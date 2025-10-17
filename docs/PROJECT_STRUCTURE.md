@@ -97,11 +97,19 @@ app/domain/
 
 ```
 app/application/
-├── commands/              # Command Bus (Ports)
+├── commands/              # Command Bus (Ports) - CQRS Commands
 │   ├── ICommandBus.ts     # Port: Command Bus интерфейс
 │   ├── ICommand.ts        # Базовый интерфейс команды
 │   ├── ICommandHandler.ts # Интерфейс обработчика
 │   ├── UICommands.ts      # UI Commands
+│   └── index.ts
+├── queries/               # Query Handlers (Ports) - CQRS Queries
+│   ├── IQueryHandler.ts   # Port: Query Handler интерфейс
+│   ├── IQueryBus.ts       # Port: Query Bus интерфейс
+│   ├── ResourceQueries.ts # Query классы
+│   ├── handlers/          # Query Handlers
+│   │   ├── ListResourcesQueryHandler.ts
+│   │   └── GetResourceByIdQueryHandler.ts
 │   └── index.ts
 ├── use-cases/             # Use Cases
 │   ├── CreateResource/
@@ -117,10 +125,11 @@ app/application/
 
 **Характеристики**:
 - Зависит только от Domain Layer
-- **Commands** - Ports для UI команд (ICommandBus, ICommand, ICommandHandler)
+- **Commands** - Ports для UI команд (CQRS - запись)
+- **Queries** - Ports для чтения данных (CQRS - чтение)
 - **Application Services** - координируют Use Cases, управляют транзакциями
 - **Use Cases** - содержат бизнес-логику конкретных операций
-- Обрабатывает команды и запросы
+- Реализует CQRS (Command Query Responsibility Segregation)
 - Предоставляет высокоуровневый API для Presentation Layer
 
 ### 3. Core Systems (`app/core/`)
@@ -171,6 +180,9 @@ app/core/
 app/infrastructure/
 ├── commands/              # Command Bus (Adapters)
 │   ├── InMemoryCommandBus.ts  # Adapter: CommandBus реализация
+│   └── index.ts
+├── queries/               # Query Bus (Adapters)
+│   ├── InMemoryQueryBus.ts    # Adapter: QueryBus реализация
 │   └── index.ts
 ├── api/                   # API Client
 │   ├── client.ts          # HTTP Client
@@ -333,7 +345,8 @@ app/hooks/
 
 ```typescript
 // app/composition/index.ts
-export { getResourceService, getCommandBus } from './ServiceContainer'
+export { queries } from './queries'  // Facade для Loaders
+export { getResourceService, getCommandBus, getQueryBus } from './ServiceContainer'
 export { resetContainer } from './ServiceContainer'
 ```
 
@@ -398,6 +411,14 @@ export * from './UICommands'
 ```
 
 ```typescript
+// app/application/queries/index.ts
+export type { IQuery, IQueryHandler, QueryResult } from './IQueryHandler'
+export type { IQueryBus } from './IQueryBus'
+export * from './ResourceQueries'
+export * from './handlers'
+```
+
+```typescript
 // app/application/use-cases/index.ts
 export { CreateResourceUseCase } from './CreateResource/CreateResourceUseCase'
 export { UpdateResourceUseCase } from './UpdateResource/UpdateResourceUseCase'
@@ -419,6 +440,7 @@ export type { ListResourcesQuery } from './ResourceService'
 export * from './api'
 export * from './repositories'
 export * from './commands'
+export * from './queries'
 export * from './event-bus'
 export * from './storage'
 export * from './clipboard'
@@ -427,6 +449,11 @@ export * from './clipboard'
 ```typescript
 // app/infrastructure/commands/index.ts
 export { InMemoryCommandBus } from './InMemoryCommandBus'
+```
+
+```typescript
+// app/infrastructure/queries/index.ts
+export { InMemoryQueryBus } from './InMemoryQueryBus'
 ```
 
 ```typescript
@@ -778,7 +805,8 @@ const { mode, enterEditingMode } = useModal()
 
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
 - [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
-- [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд
+- [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд (CQRS - Commands)
+- [Query Handlers](./QUERY_HANDLERS.md) - Query Handlers для чтения данных (CQRS - Queries)
 - [Architecture Design](./concepts/ARCHITECTURE_DESIGN.md) - Детальная архитектура
 - [System Interfaces](./contracts/system-interfaces.md) - Интерфейсы систем
 - [Domain Types](./contracts/domain-types.md) - Доменные типы

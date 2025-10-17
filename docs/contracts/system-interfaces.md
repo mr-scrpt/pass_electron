@@ -356,14 +356,16 @@ type NotificationChangeListener = (notifications: Notification[]) => void
 
 ---
 
-## Command Bus
+## CQRS: Commands & Queries
 
-### ICommand
+### Command Bus (Запись данных)
+
+#### ICommand
 
 ```typescript
 /**
  * Базовый интерфейс для всех команд
- * Commands выражают намерение выполнить UI действие
+ * Commands выражают намерение выполнить UI действие (изменение состояния)
  */
 interface ICommand {
   readonly type: string;
@@ -450,6 +452,127 @@ class ShowNotificationCommand implements ICommand {
 class CopyToClipboardCommand implements ICommand {
   readonly type = 'CopyToClipboardCommand';
   constructor(public readonly text: string) {}
+}
+```
+
+---
+
+## Query Bus (Чтение данных)
+
+### IQuery
+
+```typescript
+/**
+ * Базовый интерфейс для всех Queries
+ * Queries выражают намерение получить данные (read-only)
+ */
+interface IQuery {
+  readonly type: string;
+}
+```
+
+### IQueryHandler
+
+```typescript
+/**
+ * Обработчик Query
+ * Реализуется в Application Layer
+ */
+interface IQueryHandler<TQuery extends IQuery, TResult> {
+  handle(query: TQuery): Promise<QueryResult<TResult>>;
+}
+
+/**
+ * Результат выполнения Query
+ */
+interface QueryResult<T = any> {
+  data: T;
+  error?: string;
+  meta?: {
+    total?: number;
+    page?: number;
+    pageSize?: number;
+  };
+}
+```
+
+### IQueryBus
+
+```typescript
+/**
+ * Query Bus - посредник для Query Handlers
+ * 
+ * Port (интерфейс) в Application Layer
+ * Adapter (реализация) в Infrastructure Layer
+ * 
+ * Используется для чтения данных в Loaders
+ */
+interface IQueryBus {
+  /**
+   * Выполнить Query
+   */
+  execute<TQuery extends IQuery, TResult>(
+    query: TQuery
+  ): Promise<QueryResult<TResult>>;
+  
+  /**
+   * Зарегистрировать Query Handler
+   */
+  register<TQuery extends IQuery, TResult>(
+    queryType: string,
+    handler: IQueryHandler<TQuery, TResult>
+  ): void;
+}
+```
+
+### Resource Queries
+
+```typescript
+/**
+ * Query: Получить список ресурсов
+ */
+class ListResourcesQuery implements IQuery {
+  readonly type = 'ListResourcesQuery';
+  constructor(public readonly filters?: { search?: string; namespace?: string }) {}
+}
+
+/**
+ * Query: Получить ресурс по ID
+ */
+class GetResourceByIdQuery implements IQuery {
+  readonly type = 'GetResourceByIdQuery';
+  constructor(public readonly resourceId: string) {}
+}
+
+/**
+ * DTO: Ресурс в списке
+ */
+interface ResourceListItemDTO {
+  id: string;
+  namespace: string;
+  name: string;
+  createdAt: string;
+}
+
+/**
+ * DTO: Детальная информация о ресурсе
+ */
+interface ResourceDetailDTO {
+  id: string;
+  namespace: string;
+  name: string;
+  secret: {
+    value: string;
+    isSet: boolean;
+  };
+  customFields: Array<{
+    id: string;
+    name: string;
+    value: string;
+    type: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 

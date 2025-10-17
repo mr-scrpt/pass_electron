@@ -1,6 +1,6 @@
 # Data Flow - Поток данных в приложении
 
-Детальное описание работы с данными в Remix + Clean Architecture приложении.
+Этот документ описывает, как данные перемещаются между слоями архитектуры в Remix приложении с использованием DDD подхода и CQRS паттерна.
 
 ## Содержание
 
@@ -120,37 +120,36 @@ Application Service - это **координатор Use Cases**, которы�
 
 ```typescript
 import { MockResourceRepository } from '~/infrastructure/repositories'
+import { InMemoryQueryBus } from '~/infrastructure/queries'
 import { ResourceService } from '~/application/services/ResourceService'
+import { ListResourcesQueryHandler } from '~/application/queries/handlers'
 import type { IResourceRepository } from '~/domain/repositories'
+import type { IQueryBus } from '~/application/queries'
 
 /**
- * Composition Root - единая точка управления зависимостями
- * 
- * Этот слой знает обо ВСЕХ слоях приложения и связывает их.
- * Он не является частью Domain, Application или Infrastructure.
+ * Composition Root - место, где создаются и связываются зависимости
  */
 class ServiceContainer {
   private static resourceService: ResourceService | null = null
-  
-  /**
-   * Получить ResourceService (Singleton)
-   */
+  private static queryBus: IQueryBus | null = null
+
   static getResourceService(): ResourceService {
     if (!this.resourceService) {
-      const repository = this.createResourceRepository()
+      const repository: IResourceRepository = new MockResourceRepository()
       this.resourceService = new ResourceService(repository)
     }
     return this.resourceService
   }
   
-  /**
-   * Создать Repository (Mock или Real)
-   * Переключение через environment переменную
-   */
-  private static createResourceRepository(): IResourceRepository {
-    const useMock = process.env.USE_MOCK_DATA !== 'false'
-    
-    if (useMock) {
+  static getQueryBus(): IQueryBus {
+    if (!this.queryBus) {
+      const bus = new InMemoryQueryBus()
+      const resourceService = this.getResourceService()
+      
+      // Регистрируем Query Handlers
+      bus.register('ListResourcesQuery', new ListResourcesQueryHandler(resourceService))
+      
+      this.queryBus = bus
       return new MockResourceRepository()
     } else {
       // В будущем:
@@ -291,31 +290,81 @@ export type { ListResourcesQuery } from './ResourceService'
 
 ```typescript
 // app/routes/_index.tsx
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
-import { getResourceService } from '~/composition'
-import { ResourceList } from '~/components/ResourceList'
+import { type LoaderFunctionArgs } from '@remix-run/node'
+import { queries } from '~/composition'
 
 /**
- * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
- * Выполняется ТОЛЬКО на сервере (Node.js)
+ * ✅ ИДЕАЛЬНО: Loader в одну строку
+ * Вся сложность инкапсулирована в Facade
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // 1. Получаем сервис из DI Container
-  const resourceService = getResourceService()
-  
-  // 2. Вызываем метод сервиса
-  const resources = await resourceService.listResources()
-  
-  // 3. Возвращаем данные (будут сериализованы в JSON)
-  return json({ resources })
+  return queries.listResources(request)
 }
+```
 
+**Что происходит внутри Facade:**
+
+```typescript
+// app/composition/queries.ts
+export const queries = {
+  async listResources(request: Request) {
+    // 1. Парсим request
+    const url = new URL(request.url)
+    const filters = {
+      search: url.searchParams.get('search') || undefined,
+      namespace: url.searchParams.get('namespace') || undefined
+    }
+    
+    // 2. Создаем Query
+    const query = new ListResourcesQuery(filters)
+    
+    // 3. Выполняем через QueryBus
+    const queryBus = getQueryBus()
+    const result = await queryBus.execute(query)
+    
+    // 4. Возвращаем JSON
+    return json(result)
+  }
+}
+```
+
+**Query Handler (Application Layer):**
+
+```typescript
+// app/application/queries/handlers/ListResourcesQueryHandler.ts
+export class ListResourcesQueryHandler {
+  constructor(private resourceService: ResourceService) {}
+  
+  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceDTO[]>> {
+    try {
+      // Вызываем Application Service
+      const resources = await this.resourceService.listResources(query.filters)
+      
+      // Преобразуем Domain Model → DTO
+      const data = resources.map(r => ({
+        id: r.id.value,
+        namespace: r.namespace.value,
+        name: r.name.value
+      }))
+      
+      return { data }
+    } catch (error) {
+      return { data: [], error: 'Failed to load resources' }
+    }
+  }
+}
+```
+
+**Клиентский компонент:**
+
+```typescript
 /**
  * ✅ КЛИЕНТСКИЙ КОМПОНЕНТ (+ SSR)
  * Выполняется на сервере (SSR) и клиенте (hydration)
  */
 export default function Index() {
+  const { data } = useLoaderData<typeof loader>()
+  return <List data={data} />
   // Получаем данные из loader (типизированные)
   const { resources } = useLoaderData<typeof loader>()
   

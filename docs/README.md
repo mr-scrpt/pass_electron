@@ -7,6 +7,7 @@
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта, архитектурные границы и правила импорта
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, Application Services, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
+- **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)
 
 ### 📘 Концепты (`concepts/`)
 Концептуальные документы и архитектурное видение проекта.
@@ -32,11 +33,12 @@
 2. `concepts/ARCHITECTURE_DESIGN.md` - Архитектура
 3. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
 4. `DATA_FLOW.md` - Работа с данными (Application Services, DI Container)
-5. `COMMAND_BUS.md` - Command Bus для UI команд
-6. `contracts/domain-types.md` - Типы предметной области
-7. `contracts/system-interfaces.md` - Интерфейсы систем
-8. `contracts/api-contracts.md` - API контракты
-9. `contracts/events.md` - События системы
+5. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
+6. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
+7. `contracts/domain-types.md` - Типы предметной области
+8. `contracts/system-interfaces.md` - Интерфейсы систем
+9. `contracts/api-contracts.md` - API контракты
+10. `contracts/events.md` - События системы
 
 ## Технический стек
 

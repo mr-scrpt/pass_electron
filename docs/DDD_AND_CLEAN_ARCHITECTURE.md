@@ -171,7 +171,7 @@ export class ResourceName {
 ```
 
 > **💡 Важно**: Инварианты (правила валидации) вынесены в переиспользуемые классы в `domain/shared/invariants/`.  
-> См. [INVARIANTS.md](./INVARIANTS.md) для деталей.
+> См. [INVARIANTS.md](./error-handling/INVARIANTS.md) для деталей.
 
 ### Aggregate (DDD)
 

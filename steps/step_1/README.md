@@ -77,7 +77,7 @@ export type DateTime = string // ISO 8601
 
 #### 1.2 Создать переиспользуемые инварианты (Shared Kernel)
 
-> **📚 Детали**: [docs/INVARIANTS.md](../../docs/INVARIANTS.md) — Полное описание паттерна Invariants
+> **📚 Детали**: [docs/error-handling/INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
 **Файл: `app/domain/shared/errors/InvariantViolationError.ts`**
 ```typescript

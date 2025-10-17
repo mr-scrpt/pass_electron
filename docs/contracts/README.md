@@ -406,7 +406,7 @@ class Namespace {
 }
 ```
 
-> **📚 См. также**: [INVARIANTS.md](../INVARIANTS.md) — Полное описание паттерна Invariants и Shared Kernel
+> **📚 См. также**: [INVARIANTS.md](../error-handling/INVARIANTS.md) — Полное описание паттерна Invariants и Shared Kernel
 
 ---
 

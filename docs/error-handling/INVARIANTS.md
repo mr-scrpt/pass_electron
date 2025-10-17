@@ -597,10 +597,12 @@ throw new Error('Invalid')
 
 ## 🔗 См. также
 
-- **[DDD_AND_CLEAN_ARCHITECTURE.md](./DDD_AND_CLEAN_ARCHITECTURE.md)** — Value Objects и Entities
-- **[contracts/domain-types.md](./contracts/domain-types.md)** — Domain типы и ошибки
-- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** — Структура Domain Layer
-- **[steps/step_1/README.md](../steps/step_1/README.md)** — Реализация Value Objects
+- **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Обработка ошибок: Domain/Application/Infrastructure Errors
+- **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок: Result Pattern и монады
+- **[DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md)** — Value Objects и Entities
+- **[contracts/domain-types.md](../contracts/domain-types.md)** — Domain типы и ошибки
+- **[PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)** — Структура Domain Layer
+- **[steps/step_1/README.md](../../steps/step_1/README.md)** — Реализация Value Objects
 
 ---
 

@@ -106,7 +106,16 @@ pnpm dlx tailwindcss init -p
 
 **Примечание:** Если при `pnpm create remix@latest` выбрали опцию с Tailwind, этот шаг можно пропустить!
 
-### 2.3 Дополнительные утилиты (опционально)
+### 2.3 Catppuccin Mocha — цветовая схема (рекомендуется)
+
+```bash
+# Официальный плагин Catppuccin для Tailwind CSS
+pnpm add -D @catppuccin/tailwindcss
+```
+
+> **📚 Детали**: [docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md)
+
+### 2.4 Дополнительные утилиты (опционально)
 
 ```bash
 # Prettier для форматирования (если хотите)
@@ -116,7 +125,7 @@ pnpm add -D prettier eslint-config-prettier
 pnpm add -D cross-env
 ```
 
-### 2.4 Проверка package.json
+### 2.5 Проверка package.json
 
 После установки дополнительных зависимостей ваш `package.json` должен содержать примерно следующее:
 
@@ -551,33 +560,34 @@ app/
 **Файл: `app/styles/tailwind.css`** (создать вручную)
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Импортируем Catppuccin Mocha тему */
+@import "@catppuccin/tailwindcss/mocha.css";
 
 @layer base {
-  /* Базовые стили */
+  /* Базовые стили с Catppuccin Mocha */
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-ctp-base text-ctp-text;
   }
 }
 
 @layer components {
-  /* Кастомные компоненты */
+  /* Кастомные компоненты с Catppuccin цветами */
   .btn {
     @apply px-4 py-2 rounded-lg font-medium transition-colors;
   }
   
   .btn-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700;
+    @apply bg-ctp-mauve text-ctp-base hover:bg-ctp-lavender;
   }
   
   .btn-secondary {
-    @apply bg-gray-200 text-gray-900 hover:bg-gray-300;
+    @apply bg-ctp-surface0 text-ctp-text hover:bg-ctp-surface1;
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200;
+    @apply bg-ctp-surface0 rounded-lg shadow-sm border border-ctp-surface2;
   }
 }
 
@@ -588,6 +598,10 @@ app/
   }
 }
 ```
+
+> **💡 Примечание**: Используем официальный плагин `@catppuccin/tailwindcss`.  
+> Все цвета доступны с префиксом `ctp-`: `bg-ctp-base`, `text-ctp-text`, `border-ctp-mauve`, etc.  
+> **📚 Полная документация**: [docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md)
 
 ### 5.2 Обновить root layout (подключить Tailwind)
 

@@ -355,14 +355,48 @@ public/build
 .cache
 ```
 
-### 3.6 Electron main process (создать вручную)
+### 3.6 Electron setup
 
-**Файл: `electron/main.ts`**
+> **📚 Полная документация**: [docs/electron/README.md](../../docs/electron/README.md)
+> 
+> **Ключевая концепция:** Electron - это **packaging layer**, НЕ часть архитектуры. Приложение работает одинаково в браузере и Electron.
+
+Создайте структуру для Electron с правильной организацией кода:
+
+**Структура:**
+```
+electron/
+├── main.ts      # Main process
+├── config.ts    # Константы (нет magic strings!)
+├── types.ts     # TypeScript типы
+└── preload.ts   # Preload script (опционально, для IPC)
+```
+
+**Краткий пример `electron/config.ts`:**
+
+```typescript
+export const ElectronConfig = {
+  WINDOW: {
+    WIDTH: 1200,
+    HEIGHT: 800,
+  },
+  URLS: {
+    DEV_SERVER: 'http://localhost:5173',
+    PRODUCTION_PATH: '../build/client/index.html',
+  },
+  SECURITY: {
+    NODE_INTEGRATION: false,
+    CONTEXT_ISOLATION: true,
+    SANDBOX: true,
+  },
+} as const
+```
+
+**Краткий пример `electron/main.ts`:**
 
 ```typescript
 import { app, BrowserWindow } from 'electron'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { ElectronConfig } from './config'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -371,27 +405,25 @@ let mainWindow: BrowserWindow | null = null
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: ElectronConfig.WINDOW.WIDTH,    // ✅ Из config
+    height: ElectronConfig.WINDOW.HEIGHT,  // ✅ Из config
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      // preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: ElectronConfig.SECURITY.NODE_INTEGRATION,
+      contextIsolation: ElectronConfig.SECURITY.CONTEXT_ISOLATION,
+      sandbox: ElectronConfig.SECURITY.SANDBOX,
     },
   })
 
-  // В режиме разработки загружаем с dev сервера
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173')
+  const isDev = process.env.NODE_ENV === 'development'
+  
+  if (isDev) {
+    mainWindow.loadURL(ElectronConfig.URLS.DEV_SERVER)  // ✅ Из config
     mainWindow.webContents.openDevTools()
   } else {
-    // В продакшене загружаем собранные файлы
-    mainWindow.loadFile(path.join(__dirname, '../public/index.html'))
+    mainWindow.loadFile(path.join(__dirname, ElectronConfig.URLS.PRODUCTION_PATH))
   }
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
+  mainWindow.on('closed', () => { mainWindow = null })
 }
 
 app.whenReady().then(() => {
@@ -410,6 +442,13 @@ app.on('window-all-closed', () => {
   }
 })
 ```
+
+> **📘 Полная документация по Electron**: [docs/electron/README.md](../../docs/electron/README.md)
+> - Детальные примеры кода с типами
+> - Архитектура Main vs Renderer процессов
+> - Безопасность и best practices
+> - IPC коммуникация
+> - Сборка и распространение
 
 Обновить `package.json` для Electron:
 

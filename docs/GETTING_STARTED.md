@@ -73,29 +73,38 @@
 
 ## Этапы разработки
 
-### Этап 1: Foundation (Основа)
+> **📘 Каждый этап детально описан в `steps/`**
 
-**1.1. Setup Project**
-```bash
-# Создать Remix + Electron проект
-# Настроить TypeScript
-# Настроить окружение
-```
+### Этап 0: Setup Environment
 
-**1.2. Domain Layer**
-- [ ] Создать Value Objects (Namespace, ResourceName, etc.)
+> **📦 [steps/step_0/README.md](../steps/step_0/README.md)** — Настройка окружения и зависимостей
+
+- [ ] Инициализировать Remix проект
+- [ ] Установить зависимости (Electron, Tailwind, Catppuccin)
+- [ ] Настроить конфигурационные файлы
+- [ ] Создать структуру папок
+- [ ] Настроить Electron
+- [ ] Проверить что всё работает
+
+### Этап 1: Foundation (Domain Layer + Mock Data)
+
+> **📦 [steps/step_1/README.md](../steps/step_1/README.md)** — Domain Layer и первый функционал
+
+**1.1. Domain Layer**
+- [ ] Создать Shared Kernel (инварианты, ошибки)
+- [ ] Создать Value Objects (ResourceId, Namespace, ResourceName, etc.)
 - [ ] Создать Entities (Resource, SecretField, CustomField)
 - [ ] Создать Repository Interfaces
 - [ ] Создать Domain Events
 - [ ] Написать unit тесты для домена
 
-**1.3. Infrastructure Layer (Mock)**
+**1.2. Infrastructure Layer (Mock)**
 - [ ] Создать Mock Data
 - [ ] Реализовать MockResourceRepository
 - [ ] Реализовать MockNamespaceRepository
 - [ ] Создать Event Bus
 
-**1.4. Composition Root**
+**1.3. Composition Root**
 - [ ] Создать ServiceContainer (DI Container)
 - [ ] Настроить зависимости
 
@@ -103,146 +112,46 @@
 
 ### Этап 2: Core Systems (Ядро систем)
 
-**2.1. Modal System**
-- [ ] Реализовать ModalManager
-- [ ] Создать ModeContext
-- [ ] Реализовать React Context (ModalProvider)
-- [ ] Создать useModal hook
-- [ ] Написать тесты
+> **📦 Будет описан в steps/step_2/README.md**
 
-**2.2. Keymap System**
-- [ ] Реализовать KeymapRegistry
-- [ ] Реализовать KeymapExecutor
-- [ ] Создать базовые кеймапы (navigation, editing)
-- [ ] Реализовать React Context (KeymapProvider)
-- [ ] Создать useKeymap hook
-- [ ] Написать тесты
-
-**2.3. Focus System**
-- [ ] Реализовать FocusManager
-- [ ] Реализовать React Context (FocusProvider)
-- [ ] Создать useFocusable hook
-- [ ] Написать тесты
-
-**2.4. Notification System**
-- [ ] Реализовать NotificationManager
-- [ ] Реализовать React Context (NotificationProvider)
-- [ ] Создать useNotification hook
-- [ ] Написать тесты
+- [ ] Modal System (режимы navigation/editing)
+- [ ] Keymap System (горячие клавиши)
+- [ ] Focus System (управление фокусом)
+- [ ] Notification System (toast уведомления)
 
 ---
 
-### Этап 3: Application Layer
+### Этап 3: Application Layer (CQRS)
 
-> **📘 Детали работы с CQRS Handlers и DI см. в [DATA_FLOW.md](./DATA_FLOW.md)**
+> **📦 Будет описан в steps/step_3/README.md**  
+> **📘 Детали CQRS**: [DATA_FLOW.md](./DATA_FLOW.md), [COMMAND_BUS.md](./COMMAND_BUS.md), [QUERY_HANDLERS.md](./QUERY_HANDLERS.md)
 
-**3.1. DI Container**
-- [ ] Настроить DI Container (ServiceContainer с Modules)
-- [ ] Настроить Query Bus и Command Bus
-
-**3.2. Query Handlers (CQRS - Read)**
-- [ ] ListResourcesQueryHandler
-- [ ] GetResourceByIdQueryHandler
-- [ ] Query Bus (InMemoryQueryBus)
-
-**3.3. Command Handlers (CQRS - Write)**
-- [ ] CreateResourceCommandHandler
-- [ ] UpdateResourceCommandHandler
-- [ ] DeleteResourceCommandHandler
-- [ ] AddCustomFieldCommandHandler
-- [ ] UpdateFieldCommandHandler
-- [ ] Command Bus (InMemoryCommandBus)
-- [ ] Написать integration тесты
+- [ ] Query Handlers для чтения (List, GetById)
+- [ ] Command Handlers для записи (Create, Update, Delete)
+- [ ] Query/Command Buses
+- [ ] Интеграция с DI Container
 
 ---
 
-### Этап 4: Presentation Layer
+### Этап 4: Presentation Layer (UI)
 
-**4.1. Базовые компоненты**
-- [ ] Layout компоненты
-- [ ] KeymapStatusBar
-- [ ] NotificationToast
+> **📦 Будет описан в steps/step_4/README.md**
 
-**4.2. Resource List**
-- [ ] ResourceList компонент
-- [ ] ResourceListItem компонент
-- [ ] ResourceSearch компонент
-- [ ] Route: `_index.tsx`
-
-**4.3. Resource Detail**
-- [ ] ResourceDetail компонент
-- [ ] FieldEditor компонент
-- [ ] DynamicFieldList компонент
-- [ ] Route: `resources.$id.tsx`
-
-**4.4. Resource Creation**
-- [ ] NamespaceCloud компонент
-- [ ] CreateResourceForm компонент
-- [ ] Route: `resources.new.tsx`
-
-**4.5. Password Generator**
-- [ ] GeneratorForm компонент
-- [ ] PasswordStrength компонент
-- [ ] Route: `generator.tsx`
+- [ ] Базовые компоненты и Layout
+- [ ] Страница списка ресурсов (`_index.tsx`)
+- [ ] Страница деталей ресурса (`resources.$id.tsx`)
+- [ ] Страница создания ресурса (`resources.new.tsx`)
+- [ ] Генератор паролей (`generator.tsx`)
 
 ---
 
-### Этап 5: Integration
+### Этапы 5-7: Integration, API, Polish
 
-**5.1. Интеграция систем**
-- [ ] Подключить все провайдеры в root.tsx
-- [ ] Настроить роутинг
-- [ ] Интегрировать кеймапы со страницами
-- [ ] Протестировать взаимодействие систем
+> **📦 Будут описаны в steps/step_5-7/README.md**
 
-**5.2. Styling**
-- [ ] Настроить Tailwind CSS
-- [ ] Создать дизайн-систему
-- [ ] Стилизовать компоненты
-- [ ] Адаптировать под режимы (navigation/editing)
-
----
-
-### Этап 6: Real API Integration
-
-**6.1. API Client**
-- [ ] Реализовать HttpClient
-- [ ] Создать API mappers (DTO ↔ Domain)
-- [ ] Реализовать ApiResourceRepository
-- [ ] Реализовать ApiNamespaceRepository
-- [ ] Настроить переключение Mock ↔ Real API
-
-**6.2. Error Handling**
-- [ ] Обработка API ошибок
-- [ ] Retry механизм
-- [ ] Offline режим
-- [ ] Валидация на клиенте
-
----
-
-### Этап 7: Polish & Testing
-
-**7.1. E2E тесты**
-- [ ] Создание ресурса
-- [ ] Редактирование ресурса
-- [ ] Удаление ресурса
-- [ ] Навигация с клавиатуры
-- [ ] Генерация пароля
-
-**7.2. Performance**
-- [ ] Оптимизация рендеринга
-- [ ] Lazy loading
-- [ ] Мемоизация
-
-**7.3. Accessibility**
-- [ ] Keyboard navigation
-- [ ] Screen reader support
-- [ ] Focus indicators
-
-**7.4. Documentation**
-- [ ] API документация
-- [ ] User guide
-- [ ] Developer guide
+- **Этап 5**: Интеграция систем, стилизация
+- **Этап 6**: Real API Integration, обработка ошибок
+- **Этап 7**: E2E тесты, производительность, accessibility
 
 ---
 
@@ -268,71 +177,19 @@
 
 ## Начало работы
 
-### 1. Инициализация проекта
+> **📦 Детальная инструкция**: [steps/step_0/README.md](../steps/step_0/README.md) — полное руководство по настройке окружения с нуля
 
-```bash
-# Создать Remix проект
-npx create-remix@latest
+### Краткий обзор:
 
-# Выбрать:
-# - TypeScript
-# - Remix App Server
+1. **Инициализация** — `pnpm create remix@latest` (Remix CLI создаст всё за вас!)
+2. **Зависимости** — установить Electron, Tailwind CSS, Catppuccin
+3. **Конфигурация** — настроить `tsconfig.json`, `vite.config.ts`, `tailwind.config.js`
+4. **Структура папок** — создать DDD структуру (Domain, Application, Infrastructure, etc.)
+5. **Electron setup** — создать `electron/main.ts` и `electron/config.ts`
+6. **Стили** — настроить Tailwind CSS с Catppuccin Mocha темой
+7. **Проверка** — запустить `pnpm dev` и убедиться что всё работает
 
-# Установить зависимости
-cd project
-pnpm install
-
-# Установить Electron
-pnpm add -D electron electron-builder
-```
-
-### 2. Настройка TypeScript
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "paths": {
-      "~/*": ["./app/*"]
-    }
-  }
-}
-```
-
-### 3. Создание базовой структуры
-
-```bash
-# Создать основные директории
-mkdir -p app/{composition,domain,application,infrastructure,core,components,hooks,types}
-mkdir -p app/domain/{resource,repositories,events}
-mkdir -p app/core/{modal,keymap,focus,notification}
-mkdir -p app/infrastructure/{api,repositories,mocks,event-bus}
-```
-
-### 4. Первые файлы
-
-Начните с создания базовых типов в `app/types/domain.ts` используя контракты из `docs/contracts/domain-types.md`.
-
-### 5. Запуск
-
-```bash
-# Development
-pnpm dev
-
-# Build
-pnpm build
-
-# Test
-pnpm test
-```
+**Следуйте шагу 0 для детальных инструкций** ⬆️
 
 ---
 

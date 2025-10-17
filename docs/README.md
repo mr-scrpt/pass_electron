@@ -12,6 +12,8 @@
 - **[ERROR_HANDLING.md](./error-handling/ERROR_HANDLING.md)** - Обработка ошибок: Domain/Application/Infrastructure Errors
 - **[ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** - Эскалация ошибок: Result Pattern и монады (neverthrow)
   - **[ERROR_ESCALATION_EXTENDED.md](./error-handling/ERROR_ESCALATION_EXTENDED.md)** - Расширенное сравнение всех библиотек (@sweet-monads/either, fp-ts)
+
+### 🏗️ Архитектура и паттерны
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, CQRS + Facades, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)

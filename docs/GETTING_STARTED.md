@@ -54,7 +54,7 @@
 Краткий обзор основных директорий:
 
 - **`app/domain/`** - Domain Layer (бизнес-логика, entities, value objects)
-- **`app/application/`** - Application Layer (use cases, orchestration)
+- **`app/application/`** - Application Layer (Query/Command Handlers, CQRS)
 - **`app/core/`** - Core Systems (modal, keymap, focus, notification)
 - **`app/infrastructure/`** - Infrastructure Layer (API, repositories, storage)
 - **`app/routes/`** - Presentation Layer (Remix routes)

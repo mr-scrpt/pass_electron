@@ -849,10 +849,11 @@ Infrastructure Layer предоставляет конкретные реали�
 ### Naming Convention
 
 - `I*` - интерфейс (IModalManager, IResourceRepository)
-- `*UseCase` - use case интерфейс
-- `*Command` - команда для use case
-- `*Query` - запрос для use case
-- `*Service` - domain/application service
+- `*Query` - Query для CQRS (чтение данных)
+- `*QueryHandler` - обработчик Query
+- `*Command` - Command для CQRS (запись данных)
+- `*CommandHandler` - обработчик Command
+- `*Service` - domain service
 
 ### Async/Await
 

@@ -51,9 +51,9 @@
                        │ Commands/Queries
 ┌──────────────────────┴───────────────────────────────────┐
 │                  Application Layer                       │
-│            (Use Cases, Orchestration)                    │
+│              (CQRS, Orchestration)                       │
 │                                                          │
-│  UseCases • CommandHandlers • EventHandlers             │
+│  QueryHandlers • CommandHandlers • EventHandlers        │
 └──────────────────────┬───────────────────────────────────┘
                        │ Domain Operations
 ┌──────────────────────┴───────────────────────────────────┐
@@ -91,7 +91,7 @@
 │           Desktop Client (Electron + Remix)           │
 │                                                        │
 │  ┌─────────────────────────────────────────────────┐ │
-│  │         Application Layer (Use Cases)           │ │
+│  │    Application Layer (Query/Command Handlers)   │ │
 │  └──────────────────┬──────────────────────────────┘ │
 │                     │                                 │
 │  ┌──────────────────▼──────────────────────────────┐ │
@@ -359,10 +359,10 @@ NotificationRaised, NotificationDismissed
 - SecretField, CustomField (entities)
 - Namespace (value object)
 
-**Use Cases:**
-- CreateResource, UpdateResource, DeleteResource
-- AddCustomField, UpdateField, RemoveCustomField
-- ListResources, SearchResources, GeneratePassword
+**Операции (реализованы через Handlers):**
+- Commands: CreateResource, UpdateResource, DeleteResource, AddCustomField, UpdateField, RemoveCustomField
+- Queries: ListResources, SearchResources, GetResourceById
+- Misc: GeneratePassword
 
 **Repository Interface:**
 ```typescript
@@ -388,9 +388,9 @@ interface IResourceRepository {
 - AppMode (navigation | editing)
 - RouteInfo, EditingMetadata
 
-**Use Cases:**
-- EnterNavigationMode, EnterEditingMode
-- SwitchMode, GetCurrentMode
+**Операции:**
+- Commands: EnterNavigationMode, EnterEditingMode, SwitchMode
+- Queries: GetCurrentMode, GetModeContext
 
 **Domain Service:**
 ```typescript
@@ -423,9 +423,9 @@ class ModalManager {
 **Value Objects:**
 - KeyBinding, ActionContext, ActivationRules
 
-**Use Cases:**
-- RegisterKeymap, UnregisterKeymap, ExecuteKeymap
-- RegisterFocusable, MoveFocus, FocusNext/Previous
+**Операции:**
+- Commands: RegisterKeymap, UnregisterKeymap, ExecuteKeymap, RegisterFocusable, MoveFocus
+- Queries: GetActiveKeymaps, GetFocused, FindByBinding
 
 **Domain Services:**
 ```typescript
@@ -755,7 +755,7 @@ class ActivationRules {
 **Зависимости:**
 - Подписан на `ModeChanged` от Modal System
 - Использует Focus System через публичный API
-- Триггерит Use Cases из Resource Management
+- Триггерит Commands из Resource Management (через Command Bus)
 
 ### 3. Focus System
 

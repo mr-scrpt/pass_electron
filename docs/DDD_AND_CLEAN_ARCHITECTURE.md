@@ -39,7 +39,7 @@
 |--------|-----|-------------------|-----------|
 | **Фокус** | ЧТО моделировать | КАК структурировать | Оба подхода |
 | **Domain Layer** | Entity, Value Object, Aggregate | Enterprise Business Rules | DDD паттерны |
-| **Application Layer** | Application Services | Use Cases | DDD + CQRS |
+| **Application Layer** | Application Services (DDD) | Use Cases (Clean Arch) | Query/Command Handlers (CQRS) |
 | **Repository** | Абстракция для Aggregate | Gateway/Port | DDD интерфейс |
 | **Зависимости** | Общая идея | Dependency Rule (детально) | Clean Architecture |
 | **Структура** | Layered Architecture | Концентрические круги | Clean Architecture |
@@ -64,8 +64,8 @@
 │           ↓ создает и инжектит                      │
 │  ┌───────────────────────────────────────────────┐ │
 │  │ Application Layer                             │ │
-│  │ - Use Cases / Application Services (DDD)      │ │
-│  │ - Commands & Queries (CQRS)                   │ │
+│  │ - Query Handlers (чтение)                     │ │
+│  │ - Command Handlers (запись)                   │ │
 │  └─────────────────┬─────────────────────────────┘ │
 │                    ↓ зависит от Domain              │
 │  ┌─────────────────▼─────────────────────────────┐ │
@@ -287,122 +287,115 @@ export class ResourceRenamedEvent extends DomainEvent {
 
 ---
 
-## Application Layer: Use Cases + CQRS
+## Application Layer: CQRS Handlers
 
-Application Layer = Use Cases (Clean Architecture) + Application Services (DDD) + CQRS.
+**В нашем проекте Application Layer реализован через CQRS** (Command Query Responsibility Segregation).
 
-### Application Service (DDD)
+**Концептуально:**
+- Clean Architecture называет это "Use Cases"
+- DDD называет это "Application Services"
+- CQRS разделяет на "Query Handlers" (чтение) и "Command Handlers" (запись)
 
-Оркестрация Use Cases, работа с Repository и Domain Services.
+**Мы используем CQRS** — более современный и явный подход.
 
-```typescript
-// app/application/services/ResourceService.ts
-
-export class ResourceService {
-  constructor(
-    private readonly repository: IResourceRepository,
-    private readonly domainService: ResourceDuplicationService
-  ) {}
-
-  // Use Case: Список ресурсов
-  async listResources(namespace?: Namespace): Promise<Resource[]> {
-    return namespace 
-      ? this.repository.findByNamespace(namespace)
-      : this.repository.findAll()
-  }
-
-  // Use Case: Создать ресурс
-  async createResource(data: CreateResourceData): Promise<Resource> {
-    const resource = Resource.create(data)  // DDD Factory
-    await this.repository.save(resource)    // DDD Repository
-    return resource
-  }
-
-  // Use Case: Дублировать ресурс (использует Domain Service)
-  async duplicateResource(
-    sourceId: ResourceId,
-    targetNamespace: Namespace,
-    newName: ResourceName
-  ): Promise<Resource> {
-    const source = await this.repository.findById(sourceId)
-    if (!source) throw new ResourceNotFoundError(sourceId)
-    
-    const duplicated = this.domainService.duplicate(source, targetNamespace, newName)
-    await this.repository.save(duplicated)
-    return duplicated
-  }
-}
-```
-
-### CQRS: Queries (чтение)
+### Query Handler (чтение данных)
 
 ```typescript
-// app/application/queries/ListResourcesQuery.ts
-
-export class ListResourcesQuery implements IQuery {
-  readonly type = 'ListResourcesQuery'
-  constructor(
-    readonly namespace?: string,
-    readonly search?: string
-  ) {}
-}
-
 // app/application/queries/handlers/ListResourcesQueryHandler.ts
 
-export class ListResourcesQueryHandler 
-  implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
-  
-  constructor(private service: ResourceService) {}
+export class ListResourcesQueryHandler {
+  constructor(private readonly repository: IResourceRepository) {}
 
   async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
-    const namespace = query.namespace ? Namespace.create(query.namespace) : undefined
-    const resources = await this.service.listResources(namespace)
-
-    // Domain Model → DTO
-    const dtos = resources
-      .filter(r => !query.search || r.name.getValue().includes(query.search))
-      .map(r => ({
-        id: r.id.getValue(),
-        name: r.name.getValue(),
-        namespace: r.namespace.getValue()
+    try {
+      // Получаем данные из репозитория
+      const resources = query.namespace
+        ? await this.repository.findByNamespace(query.namespace)
+        : await this.repository.findAll()
+      
+      // Преобразуем Domain Model → DTO
+      const data = resources.map(r => ({
+        id: r.id,
+        namespace: r.namespace,
+        name: r.name,
+        fieldsCount: r.customFields.length,
+        updatedAt: r.updatedAt
       }))
-
-    return { data: dtos, meta: { total: dtos.length } }
+      
+      return { data }
+    } catch (error) {
+      return { data: [], error: error.message }
+    }
   }
 }
 ```
 
-### CQRS: Commands (запись)
+### Command Handler (запись данных)
 
 ```typescript
-// app/application/commands/CreateResourceCommand.ts
-
-export class CreateResourceCommand implements ICommand {
-  readonly type = 'CreateResourceCommand'
-  constructor(
-    readonly name: string,
-    readonly namespace: string
-  ) {}
-}
-
 // app/application/commands/handlers/CreateResourceCommandHandler.ts
 
-export class CreateResourceCommandHandler 
-  implements ICommandHandler<CreateResourceCommand> {
-  
-  constructor(private service: ResourceService) {}
+export class CreateResourceCommandHandler {
+  constructor(
+    private readonly repository: IResourceRepository,
+    private readonly eventBus: IEventBus
+  ) {}
 
-  async handle(command: CreateResourceCommand): Promise<CommandResult> {
+  async handle(command: CreateResourceCommand): Promise<CommandResult<{ id: string }>> {
     try {
-      const resource = await this.service.createResource({
+      // Создаем агрегат через Domain Factory
+      const resource = Resource.create({
         name: ResourceName.create(command.name),
-        namespace: Namespace.create(command.namespace)
+        namespace: Namespace.create(command.namespace),
+        secret: SecretField.create(command.secretValue)
       })
-      return { success: true, data: { id: resource.id.getValue() } }
+      
+      // Сохраняем через Repository
+      await this.repository.save(resource)
+      
+      // Публикуем Domain Event
+      this.eventBus.publish(new ResourceCreated(resource.id))
+      
+      return { 
+        success: true, 
+        data: { id: resource.id.getValue() } 
+      }
     } catch (error) {
-      return { success: false, error: error.message }
+      return { 
+        success: false, 
+        error: error.message 
+      }
     }
   }
+}
+```
+
+**Использование через Facade:**
+
+```typescript
+// app/composition/commands/ResourceCommands.ts
+export const resourceCommands = {
+  async create(input: unknown) {
+    // 1. Парсим input
+    const parser = ServiceContainer.getRequestParser()
+    const params = parser.parseCreateResourceParams(input)
+    
+    // 2. Создаем Command
+    const command = new CreateResourceCommand(
+      params.namespace,
+      params.name,
+      params.secretValue
+    )
+    
+    // 3. Выполняем через Command Bus
+    const commandBus = ServiceContainer.getCommandBus()
+    return commandBus.execute(command)
+  }
+}
+
+// В Route (Presentation Layer)
+export async function action({ request }) {
+  return commands.resources.create(request)  // ✅ Одна строка!
 }
 ```
 
@@ -626,9 +619,9 @@ Domain, Application, Infrastructure — не зависят от Remix. Можн
 
 ### Масштабируемость
 
-- Добавление новых Use Cases — новый Handler
+- Добавление новых операций — новый Query/Command Handler
 - Изменение персистентности — новый Repository Implementation
-- Добавление UI — новый Presentation Layer
+- Добавление UI — новый Presentation Layer (без изменения Application Layer)
 
 ### Понятность
 

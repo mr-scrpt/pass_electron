@@ -29,7 +29,7 @@
 - Focus System (IFocusManager)
 - Notification System (INotificationManager)
 - Event Bus (IEventBus)
-- Use Cases (CreateResource, UpdateResource, etc.)
+- Query/Command Handlers (CQRS - Application Layer)
 - HTTP Client (IHttpClient)
 - Clipboard Service (IClipboardService)
 
@@ -309,15 +309,15 @@ const command: CreateResourceCommand = {
   ]
 }
 
-// Use Case
-const result = await createResourceUseCase.execute(command)
+// Используем Facade (который внутри использует Command Handler)
+const result = await commands.resources.create(request)
 
 // Result handling
-if (isSuccess(result)) {
-  const resource: Resource = result.value
+if (result.success && result.data) {
+  const resourceId = result.data.id
   // Event: ResourceCreated будет опубликован
 } else {
-  const error: DomainError = result.error
+  const error = result.error
   // Обработка ошибки
 }
 ```

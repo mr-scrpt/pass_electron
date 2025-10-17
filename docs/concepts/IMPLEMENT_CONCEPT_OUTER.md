@@ -92,8 +92,8 @@
 - **`app/components/`** - React компоненты (Presentation Layer)
 - **`app/core/`** - Core Systems (modal, keymap, focus, notification)
 - **`app/domain/`** - Domain Layer (entities, aggregates, events)
-- **`app/application/`** - Application Layer (use cases)
-- **`app/infrastructure/`** - Infrastructure Layer (API, repositories, utils)
+- **`app/application/`** - Application Layer (Query/Command Handlers, CQRS)
+- **`app/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)
 - **`app/hooks/`** - React Hooks
 - **`app/types/`** - TypeScript типы (re-exports)
 

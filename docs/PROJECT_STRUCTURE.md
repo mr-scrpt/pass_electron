@@ -30,7 +30,7 @@ project/
 │   ├── components/                # Presentation Layer - React компоненты
 │   ├── core/                      # Application/Domain Layer - Системы
 │   ├── domain/                    # Domain Layer - Бизнес-логика
-│   ├── application/               # Application Layer - Use Cases
+│   ├── application/               # Application Layer - Query/Command Handlers
 │   ├── infrastructure/            # Infrastructure Layer - Внешние системы
 │   ├── hooks/                     # Presentation Layer - React Hooks
 │   ├── types/                     # Типы (re-exports)
@@ -262,7 +262,7 @@ app/
 **Характеристики**:
 - НЕ содержит бизнес-логику
 - Использует hooks для доступа к системам
-- Вызывает Use Cases через команды
+- Вызывает Queries/Commands через Facades
 - Подписывается на события через Event Bus
 
 ### 6. React Hooks (`app/hooks/`)
@@ -335,7 +335,7 @@ app/hooks/
 
 **Core Systems НЕ МОГУТ**:
 - Импортировать друг друга напрямую
-- Импортировать из Application Use Cases
+- Импортировать из Application Handlers
 - Импортировать из Presentation
 
 **Infrastructure Layer НЕ МОЖЕТ**:

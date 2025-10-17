@@ -257,7 +257,25 @@ pnpm add -D vite-tsconfig-paths
 
 ### 3.3 Tailwind CSS конфигурация (если устанавливали отдельно)
 
+> **🎨 Полная документация**: [docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md)
+
 **Файл: `tailwind.config.js`**
+
+Если установили Catppuccin плагин (рекомендуется):
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./app/**/*.{js,jsx,ts,tsx}",
+  ],
+  plugins: [],
+}
+```
+
+> **💡 Примечание**: При использовании официального плагина `@catppuccin/tailwindcss` цвета подключаются через CSS импорт (см. шаг 5.1), поэтому в `tailwind.config.js` дополнительная конфигурация не нужна.
+
+**Если НЕ используете плагин** (ручная конфигурация):
 
 ```javascript
 /** @type {import('tailwindcss').Config} */
@@ -268,14 +286,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Кастомные цвета для темы (опционально)
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-        },
+        // Catppuccin Mocha (ручная конфигурация)
+        mocha: {
+          // Accent colors
+          mauve: '#cba6f7',
+          blue: '#89b4fa',
+          green: '#a6e3a1',
+          red: '#f38ba8',
+          yellow: '#f9e2af',
+          // Neutral colors
+          text: '#cdd6f4',
+          base: '#1e1e2e',
+          surface0: '#313244',
+          surface1: '#45475a',
+          // ... см. docs/ui/CATPPUCCIN_MOCHA.md для полного списка
+        }
       },
     },
   },

@@ -189,41 +189,123 @@ export class ResourceModule {
 }
 ```
 
+```typescript
+// app/composition/modules/SystemModule.ts
+import type { IClipboardService, IStorageService } from '~/application/ports'
+
+/**
+ * Module для системных адаптеров (не доменных)
+ * ✅ НЕ знает о платформах (Web/CLI/Desktop)
+ * ✅ Принимает готовые реализации при инициализации
+ */
+export class SystemModule {
+  private static clipboard: IClipboardService | null = null
+  private static storage: IStorageService | null = null
+
+  /**
+   * Инициализация с готовыми адаптерами
+   * ✅ Вызывается ОДИН РАЗ из ServiceContainer
+   */
+  static initialize(adapters: {
+    clipboard: IClipboardService
+    storage?: IStorageService
+  }): void {
+    this.clipboard = adapters.clipboard
+    this.storage = adapters.storage || null
+  }
+
+  static getClipboardService(): IClipboardService {
+    if (!this.clipboard) {
+      throw new Error('SystemModule not initialized')
+    }
+    return this.clipboard
+  }
+
+  static getStorageService(): IStorageService {
+    if (!this.storage) {
+      throw new Error('StorageService not initialized')
+    }
+    return this.storage
+  }
+}
+```
+
 ---
 
 ## Root Container
 
 ```typescript
 // app/composition/ServiceContainer.ts
+import type { IRequestParser } from '~/application/ports'
+import type { IQueryBus } from '~/application/queries'
+import type { IClipboardService } from '~/application/ports'
+import { InMemoryQueryBus } from '~/infrastructure/queries'
+import { ResourceModule, SystemModule } from './modules'
+
+/**
+ * Root DI Container
+ * ✅ НЕ знает о конкретных адаптерах (Web/CLI/Desktop)
+ * ✅ Принимает готовые реализации при инициализации
+ */
 export class ServiceContainer {
   private static queryBus: IQueryBus | null = null
   private static requestParser: IRequestParser | null = null
-  private static environment: EnvironmentType = Environment.WEB
+  private static initialized = false
 
-  static setEnvironment(env: EnvironmentType): void {
-    this.environment = env
-    this.requestParser = null
+  /**
+   * Инициализация контейнера с готовыми адаптерами
+   * ✅ Вызывается ОДИН РАЗ при старте приложения (entry point)
+   * ✅ НЕ содержит if/else для выбора адаптеров
+   */
+  static initialize(adapters: {
+    requestParser: IRequestParser
+    clipboard: IClipboardService
+    // ... другие системные адаптеры
+  }): void {
+    if (this.initialized) return
+
+    // Инициализируем Request Parser
+    this.requestParser = adapters.requestParser
+
+    // Инициализируем системные модули
+    SystemModule.initialize({
+      clipboard: adapters.clipboard
+    })
+
+    // Создаем и регистрируем Query Bus
+    const bus = new InMemoryQueryBus()
+    ResourceModule.registerQueryHandlers(bus)
+    EntryModule.registerQueryHandlers(bus)
+    this.queryBus = bus
+
+    this.initialized = true
   }
 
   static getRequestParser(): IRequestParser {
     if (!this.requestParser) {
-      switch (this.environment) {
-        case Environment.WEB: this.requestParser = new WebRequestParser(); break
-        case Environment.CLI: this.requestParser = new CLIRequestParser(); break
-        case Environment.DESKTOP: this.requestParser = new DesktopRequestParser(); break
-      }
+      throw new Error('ServiceContainer not initialized')
     }
     return this.requestParser
   }
 
   static getQueryBus(): IQueryBus {
     if (!this.queryBus) {
-      const bus = new InMemoryQueryBus()
-      ResourceModule.registerQueryHandlers(bus)
-      EntryModule.registerQueryHandlers(bus)
-      this.queryBus = bus
+      throw new Error('ServiceContainer not initialized')
     }
     return this.queryBus
+  }
+
+  static getClipboardService(): IClipboardService {
+    if (!this.initialized) {
+      throw new Error('ServiceContainer not initialized')
+    }
+    return SystemModule.getClipboardService()
+  }
+
+  static reset(): void {
+    this.queryBus = null
+    this.requestParser = null
+    this.initialized = false
   }
 }
 ```
@@ -276,14 +358,76 @@ export { Environment, type EnvironmentType } from './config/Environment'
 
 ---
 
+## Фабрики адаптеров (Infrastructure Layer)
+
+**Знание о платформах изолировано в Infrastructure:**
+
+```typescript
+// app/infrastructure/request-parsers/RequestParserFactory.ts
+import type { IRequestParser } from '~/application/ports'
+import { RemixRequestParser } from './RemixRequestParser'
+import { CLIRequestParser } from './CLIRequestParser'
+import { DesktopRequestParser } from './DesktopRequestParser'
+
+export class RequestParserFactory {
+  static createForWeb(): IRequestParser {
+    return new RemixRequestParser()
+  }
+  
+  static createForCLI(): IRequestParser {
+    return new CLIRequestParser()
+  }
+  
+  static createForDesktop(): IRequestParser {
+    return new DesktopRequestParser()
+  }
+}
+```
+
+```typescript
+// app/infrastructure/clipboard/ClipboardServiceFactory.ts
+import type { IClipboardService } from '~/application/ports'
+import { WebClipboardService } from './WebClipboardService'
+import { ElectronClipboardService } from './ElectronClipboardService'
+
+export class ClipboardServiceFactory {
+  static createForWeb(): IClipboardService {
+    return new WebClipboardService()
+  }
+  
+  static createForDesktop(): IClipboardService {
+    return new ElectronClipboardService()
+  }
+}
+```
+
+---
+
 ## Использование
 
 ### Web (Remix)
 
 ```typescript
-// app/entry.server.tsx
-import { ServiceContainer, Environment } from '~/composition'
-ServiceContainer.setEnvironment(Environment.WEB)
+// app/entry.client.tsx
+import { hydrateRoot } from 'react-dom/client'
+import { RemixBrowser } from '@remix-run/react'
+import { ServiceContainer } from '~/composition'
+import { RequestParserFactory } from '~/infrastructure/request-parsers'
+import { ClipboardServiceFactory } from '~/infrastructure/clipboard'
+
+// ✅ Entry point знает что это Web
+// ✅ Создает Web адаптеры через фабрики
+const requestParser = RequestParserFactory.createForWeb()
+const clipboard = ClipboardServiceFactory.createForWeb()
+
+// ✅ Инициализируем контейнер готовыми адаптерами
+ServiceContainer.initialize({
+  requestParser,
+  clipboard
+})
+
+// Далее обычный Remix код
+hydrateRoot(document, <RemixBrowser />)
 ```
 
 ```typescript
@@ -299,8 +443,21 @@ export async function loader({ request }) {
 
 ```typescript
 // cli/index.ts
-import { ServiceContainer, Environment, queries } from '~/composition'
-ServiceContainer.setEnvironment(Environment.CLI)
+import { program } from 'commander'
+import { ServiceContainer, queries } from '~/composition'
+import { RequestParserFactory } from '~/infrastructure/request-parsers'
+import { ClipboardServiceFactory } from '~/infrastructure/clipboard'
+
+// ✅ Entry point знает что это CLI
+// ✅ Создает CLI адаптеры через фабрики
+const requestParser = RequestParserFactory.createForCLI()
+const clipboard = ClipboardServiceFactory.createForCLI()
+
+// ✅ Инициализируем контейнер готовыми адаптерами
+ServiceContainer.initialize({
+  requestParser,
+  clipboard
+})
 
 program.command('list')
   .option('-n, --namespace <namespace>')
@@ -313,11 +470,31 @@ program.command('list')
 ### Desktop (Electron)
 
 ```typescript
-// electron/main/index.ts
-import { ServiceContainer, Environment, queries } from '~/composition'
-ServiceContainer.setEnvironment(Environment.DESKTOP)
+// electron/main.ts
+import { app, BrowserWindow, ipcMain } from 'electron'
+import { ServiceContainer, queries } from '../app/composition'
+import { RequestParserFactory } from '../app/infrastructure/request-parsers'
+import { ClipboardServiceFactory } from '../app/infrastructure/clipboard'
 
-ipcMain.handle('resource:list', (event, params) => queries.resources.list(params))
+// ✅ Entry point знает что это Desktop (Electron)
+// ✅ Создает Desktop адаптеры через фабрики
+const requestParser = RequestParserFactory.createForDesktop()
+const clipboard = ClipboardServiceFactory.createForDesktop()
+
+app.whenReady().then(() => {
+  // ✅ Инициализируем контейнер готовыми адаптерами
+  ServiceContainer.initialize({
+    requestParser,
+    clipboard
+  })
+  
+  createWindow()
+  
+  // IPC handlers используют facades
+  ipcMain.handle('resource:list', (event, params) => 
+    queries.resources.list(params)
+  )
+})
 ```
 
 ---
@@ -342,9 +519,17 @@ Infrastructure → Domain (implements)
 
 1. **Масштабируемость** - каждая сущность в отдельном Module
 2. **Multi-UI** - один Facade для Web/CLI/Desktop
-3. **Нет Magic Strings** - все константы в одном месте
-4. **Тестируемость** - легко мокать IRequestParser
-5. **Loader в 1 строку** - вся сложность инкапсулирована
+3. **Нет Magic Strings** - все константы в одном месте (QueryTypes, CommandTypes, RequestParamKeys)
+4. **Изоляция знаний о платформах**:
+   - ✅ Composition Layer НЕ знает о Web/CLI/Desktop
+   - ✅ Фабрики в Infrastructure знают о платформах
+   - ✅ Entry points создают адаптеры и инжектят в контейнер
+5. **Никаких `if/else` при получении сервисов** - только при создании (один раз)
+6. **Тестируемость**:
+   - Легко мокать адаптеры при инициализации
+   - `ServiceContainer.initialize({ requestParser: mockParser, clipboard: mockClipboard })`
+7. **Loader в 1 строку** - вся сложность инкапсулирована
+8. **Консистентность** - один подход для всех адаптеров (Request Parser, Clipboard, Storage, etc.)
 
 ---
 
@@ -355,3 +540,4 @@ Infrastructure → Domain (implements)
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и CQRS
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus
+- **[electron/README.md](./electron/README.md)** - Electron как Packaging Layer (пример того же подхода для системных адаптеров)

@@ -485,15 +485,21 @@ function Component() {
 }
 ```
 
-### ✅ ПРАВИЛЬНО: Через Adapter Pattern
+### ✅ ПРАВИЛЬНО: Через Adapter Pattern + DI
+
+**Шаг 1: Порт (интерфейс) в Application Layer**
 
 ```typescript
-// app/application/ports/IClipboardService.ts (интерфейс)
+// app/application/ports/IClipboardService.ts
 export interface IClipboardService {
   write(text: string): Promise<void>
   read(): Promise<string>
 }
+```
 
+**Шаг 2: Адаптеры в Infrastructure Layer**
+
+```typescript
 // app/infrastructure/clipboard/WebClipboardService.ts (Web версия)
 export class WebClipboardService implements IClipboardService {
   async write(text: string): Promise<void> {
@@ -515,23 +521,167 @@ export class ElectronClipboardService implements IClipboardService {
     return await window.electronAPI.readClipboard()
   }
 }
+```
 
-// app/composition/ServiceContainer.ts
-import { Environment } from './config/Environment'
+**Шаг 3: Фабрика адаптеров в Infrastructure (изолирует знание о платформах)**
 
-function createClipboardService(): IClipboardService {
-  if (Environment.current === Environment.DESKTOP) {
+```typescript
+// app/infrastructure/clipboard/ClipboardServiceFactory.ts
+import type { IClipboardService } from '~/application/ports'
+import { WebClipboardService } from './WebClipboardService'
+import { ElectronClipboardService } from './ElectronClipboardService'
+
+/**
+ * Фабрика создает правильный адаптер
+ * ✅ Infrastructure знает о платформах
+ * ✅ Composition НЕ знает о платформах
+ */
+export class ClipboardServiceFactory {
+  static createForWeb(): IClipboardService {
+    return new WebClipboardService()
+  }
+  
+  static createForDesktop(): IClipboardService {
     return new ElectronClipboardService()
   }
-  return new WebClipboardService()
+  
+  static createForCLI(): IClipboardService {
+    throw new Error('CLI clipboard not implemented')
+  }
 }
 ```
 
-**Преимущества:**
-- ✅ Приложение НЕ знает об Electron
-- ✅ Легко переключаться между Web и Desktop
-- ✅ Легко тестировать (mock сервис)
-- ✅ Следует Clean Architecture
+**Шаг 4: DI Module принимает готовую реализацию (не знает о платформах)**
+
+```typescript
+// app/composition/modules/SystemModule.ts
+import type { IClipboardService } from '~/application/ports'
+
+export class SystemModule {
+  private static clipboardService: IClipboardService | null = null
+
+  /**
+   * Инициализация с готовой реализацией
+   * ✅ НЕ знает откуда пришла реализация
+   * ✅ Просто принимает IClipboardService
+   */
+  static initialize(services: {
+    clipboard: IClipboardService
+  }): void {
+    this.clipboardService = services.clipboard
+  }
+
+  /**
+   * Получить сервис (без if/else!)
+   */
+  static getClipboardService(): IClipboardService {
+    if (!this.clipboardService) {
+      throw new Error('SystemModule not initialized')
+    }
+    return this.clipboardService
+  }
+}
+```
+
+**Шаг 5: ServiceContainer инициализируется готовыми сервисами (не знает о платформах)**
+
+```typescript
+// app/composition/ServiceContainer.ts
+import { SystemModule } from './modules/SystemModule'
+import type { IClipboardService } from '~/application/ports'
+
+/**
+ * ServiceContainer принимает готовые реализации
+ * ✅ НЕ импортирует ElectronClipboardService или WebClipboardService
+ * ✅ НЕ знает об окружениях (Web/Desktop/CLI)
+ * ✅ Просто инициализирует модули готовыми сервисами
+ */
+export class ServiceContainer {
+  private static initialized = false
+
+  /**
+   * Инициализация с готовыми сервисами
+   * ✅ Вызывается ОДИН РАЗ при старте
+   */
+  static initialize(services: {
+    clipboard: IClipboardService
+  }): void {
+    if (this.initialized) return
+    
+    // Инициализируем модули готовыми сервисами
+    SystemModule.initialize(services)
+    
+    this.initialized = true
+  }
+
+  /**
+   * Получить сервис (делегирует модулю)
+   */
+  static getClipboardService(): IClipboardService {
+    if (!this.initialized) {
+      throw new Error('ServiceContainer not initialized. Call initialize() first')
+    }
+    return SystemModule.getClipboardService()
+  }
+}
+```
+
+**Шаг 6: Entry Point создает адаптеры через Фабрику (знает о платформе)**
+
+```typescript
+// app/entry.client.tsx (для Web)
+import { hydrateRoot } from 'react-dom/client'
+import { RemixBrowser } from '@remix-run/react'
+import { ServiceContainer } from '~/composition'
+import { ClipboardServiceFactory } from '~/infrastructure/clipboard'
+
+// ✅ Entry point знает что это Web
+// ✅ Создает Web адаптер через фабрику
+const clipboard = ClipboardServiceFactory.createForWeb()
+
+// ✅ Инициализируем контейнер готовым сервисом
+ServiceContainer.initialize({ clipboard })
+
+// Далее обычный Remix код...
+hydrateRoot(document, <RemixBrowser />)
+```
+
+```typescript
+// electron/main.ts (для Desktop)
+import { app, BrowserWindow } from 'electron'
+import { ServiceContainer } from '../app/composition'
+import { ClipboardServiceFactory } from '../app/infrastructure/clipboard'
+
+// ✅ Entry point знает что это Desktop (Electron)
+// ✅ Создает Desktop адаптер через фабрику
+const clipboard = ClipboardServiceFactory.createForDesktop()
+
+app.whenReady().then(() => {
+  // ✅ Инициализируем контейнер готовым сервисом
+  ServiceContainer.initialize({ clipboard })
+  
+  createWindow()
+})
+```
+
+**Преимущества (тот же подход что Request Parser!):**
+- ✅ **Никаких `if/else` при получении сервиса** - только при создании
+- ✅ **Инициализация один раз при старте** - адаптеры создаются в entry point
+- ✅ **SystemModule не знает о платформах** - просто принимает IClipboardService
+- ✅ **ServiceContainer не знает о платформах** - не импортирует Electron/Web адаптеры
+- ✅ **Фабрика в Infrastructure** - знание о платформах изолировано
+- ✅ **Entry point выбирает адаптер** - `entry.client.tsx` vs `electron/main.ts`
+- ✅ **Легко тестировать** - mock при инициализации
+- ✅ **Консистентно с Request Parser** - одинаковый подход во всем приложении
+
+**Сравнение с Request Parser:**
+
+| Аспект | Request Parser | Clipboard Service |
+|--------|---------------|-------------------|
+| Фабрика | `infrastructure/request-parsers/` | `infrastructure/clipboard/ClipboardServiceFactory` |
+| Где `if/else` | Entry point | Entry point |
+| Что знает Composition | Только интерфейс `IRequestParser` | Только интерфейс `IClipboardService` |
+| Инициализация | `ServiceContainer.initialize({ parser })` | `ServiceContainer.initialize({ clipboard })` |
 
 ---
 

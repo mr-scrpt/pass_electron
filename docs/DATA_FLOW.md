@@ -32,9 +32,15 @@
 ```typescript
 // app/routes/_index.tsx
 export async function loader() {  // ← НЕ клиент, это СЕРВЕР!
+  // ⚠️ Старый подход - теперь используем Query Facade
   const service = getResourceService()
   const data = await service.listResources()
   return json({ data })
+}
+
+// ✅ Новый подход (CQRS)
+export async function loader({ request }) {
+  return queries.listResources(request)  // Одна строка!
 }
 ```
 
@@ -434,13 +440,11 @@ export async function action({ request }: ActionFunctionArgs) {
 **Используй для:** Первичной загрузки данных
 
 ```typescript
-// ✅ РЕКОМЕНДУЕТСЯ
-import { getResourceService } from '~/composition'
+// ✅ РЕКОМЕНДУЕТСЯ: Используй Query Facade
+import { queries } from '~/composition'
 
-export async function loader() {
-  const service = getResourceService()
-  const data = await service.listResources()
-  return json({ data })
+export async function loader({ request }: LoaderFunctionArgs) {
+  return queries.listResources(request)
 }
 
 export default function Index() {
@@ -564,22 +568,29 @@ export default function ResourceList() {
 
 ### ✅ DO: Правильные паттерны
 
-1. **Используй `loader()` для загрузки данных**
+1. **Используй `loader()` для загрузки данных через Query Facade**
    ```typescript
-   import { getResourceService } from '~/composition'
+   import { queries } from '~/composition'
    
-   export async function loader() {
-     const service = getResourceService()
-     return json({ data: await service.getData() })
+   export async function loader({ request }: LoaderFunctionArgs) {
+     return queries.listResources(request)  // ✅ Одна строка
    }
    ```
 
-2. **Используй Application Service в loader/action**
+2. **Используй Query Facade для чтения, Application Service для записи**
    ```typescript
-   import { getResourceService } from '~/composition'
+   // ✅ Для чтения (Queries)
+   import { queries } from '~/composition'
+   export async function loader({ request }) {
+     return queries.listResources(request)
+   }
    
-   const service = getResourceService()  // ✅
-   await service.listResources()          // ✅
+   // ✅ Для записи (Commands) - через Application Service
+   import { getResourceService } from '~/composition'
+   export async function action({ request }) {
+     const service = getResourceService()
+     await service.createResource({ ... })
+   }
    ```
 
 3. **Composition Root для всех зависимостей**
@@ -687,6 +698,8 @@ export default function ResourceList() {
 
 ## См. также
 
+- [QUERY_HANDLERS.md](./QUERY_HANDLERS.md) - Query Handlers и Facade для чтения данных
+- [COMMAND_BUS.md](./COMMAND_BUS.md) - Command Bus для UI команд
 - [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) - Структура проекта
 - [ARCHITECTURE_DESIGN.md](./concepts/ARCHITECTURE_DESIGN.md) - Архитектура
 - [System Interfaces](./contracts/system-interfaces.md) - Интерфейсы

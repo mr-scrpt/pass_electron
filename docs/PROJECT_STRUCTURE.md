@@ -537,18 +537,6 @@ export async function loader() {
 
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
-// В Route Loader
-import { getResourceService } from '~/composition'
-
-export async function loader() {
-  const service = getResourceService()  // ✅ Через Composition Root
-  const data = await service.listResources()
-  return json({ data })
-}
-```
-
-### 4. Domain Layer изолирован
-
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В domain/resource/Resource.ts
@@ -590,24 +578,18 @@ export * from './api'
 
 ```typescript
 // app/routes/_index.tsx
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { getResourceService } from '~/composition'
+import { queries } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
- * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
+ * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (НОВЫЙ ПОДХОД - CQRS)
  * Loader выполняется ТОЛЬКО на сервере
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // 1. Получаем сервис из DI Container
-  const resourceService = getResourceService()
-  
-  // 2. Вызываем метод сервиса
-  const resources = await resourceService.listResources()
-  
-  // 3. Возвращаем данные
-  return json({ resources })
+  // ✅ Используем Query Facade - одна строка!
+  return queries.listResources(request)
 }
 
 /**

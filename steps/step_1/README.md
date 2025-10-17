@@ -4,9 +4,9 @@
 
 Создать минимальный end-to-end поток данных для отображения списка моковых ресурсов на главной странице `/`.
 
-**Поток данных**:
+**Поток данных (CQRS)**:
 ```
-MockRepository → Use Case → Remix Loader → React Component → UI
+MockRepository → Query Handler → Query Bus → Facade → Remix Loader → React Component → UI
 ```
 
 ## 📊 Визуализация архитектуры
@@ -23,8 +23,13 @@ MockRepository → Use Case → Remix Loader → React Component → UI
 └────────────────────┬────────────────────────────────────┘
                      ↓
 ┌────────────────────┴────────────────────────────────────┐
-│          Application Layer (Use Case)                    │
-│  ListResourcesUseCase.execute()                          │
+│          Composition Layer (Facade)                      │
+│  queries.resources.list(request)                         │
+└────────────────────┬────────────────────────────────────┘
+                     ↓
+┌────────────────────┴────────────────────────────────────┐
+│          Application Layer (Query Handler)               │
+│  ListResourcesQueryHandler.handle(query)                 │
 └────────────────────┬────────────────────────────────────┘
                      ↓
 ┌────────────────────┴────────────────────────────────────┐
@@ -49,7 +54,11 @@ MockRepository → Use Case → Remix Loader → React Component → UI
 
 ## 🔄 Порядок реализации
 
-> **📘 Важно**: Перед началом ознакомьтесь с [DATA_FLOW.md](../../docs/DATA_FLOW.md) для понимания работы с данными в Remix + Clean Architecture
+> **📘 Важно**: Перед началом ознакомьтесь с документацией:
+> - [DDD_AND_CLEAN_ARCHITECTURE.md](../../docs/DDD_AND_CLEAN_ARCHITECTURE.md) - как DDD и Clean Architecture сочетаются
+> - [COMPOSITION_LAYER.md](../../docs/COMPOSITION_LAYER.md) - декомпозиция и Multi-UI поддержка
+> - [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - Query Handlers и CQRS паттерн
+> - [DATA_FLOW.md](../../docs/DATA_FLOW.md) - поток данных в Remix
 
 ### Этап 1: Domain Layer (Типы и интерфейсы)
 
@@ -64,9 +73,37 @@ export type FieldId = string
 export type DateTime = string // ISO 8601
 ```
 
-#### 1.2 Создать Value Object: Namespace
+#### 1.2 Создать Value Object: ResourceId
 
-**Файл: `app/domain/resource/Namespace.ts`**
+**Файл: `app/domain/value-objects/ResourceId.ts`**
+```typescript
+export class ResourceId {
+  private constructor(private readonly _value: string) {}
+  
+  static generate(): ResourceId {
+    return new ResourceId(crypto.randomUUID())
+  }
+  
+  static create(value: string): ResourceId {
+    if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+      throw new Error('Invalid ResourceId format')
+    }
+    return new ResourceId(value)
+  }
+  
+  getValue(): string {
+    return this._value
+  }
+  
+  equals(other: ResourceId): boolean {
+    return this._value === other._value
+  }
+}
+```
+
+#### 1.3 Создать Value Object: Namespace
+
+**Файл: `app/domain/value-objects/Namespace.ts`**
 ```typescript
 export class Namespace {
   private constructor(private readonly _value: string) {}
@@ -98,9 +135,9 @@ export class Namespace {
 - Невозможность создать невалидный Namespace
 - Бизнес-логика в одном месте
 
-#### 1.3 Создать Value Object: ResourceName
+#### 1.4 Создать Value Object: ResourceName
 
-**Файл: `app/domain/resource/ResourceName.ts`**
+**Файл: `app/domain/value-objects/ResourceName.ts`**
 ```typescript
 export class ResourceName {
   private constructor(private readonly _value: string) {}
@@ -122,9 +159,9 @@ export class ResourceName {
 }
 ```
 
-#### 1.4 Создать тип для списка ресурсов
+#### 1.5 Создать DTO для списка ресурсов
 
-**Файл: `app/domain/resource/ResourceListItem.ts`**
+**Файл: `app/application/queries/dtos/ResourceListItemDTO.ts`**
 ```typescript
 import type { ResourceId, DateTime } from './types'
 
@@ -143,21 +180,21 @@ export interface ResourceListItem {
 ```
 
 **Почему здесь строки, а не Value Objects?**
-- ResourceListItem - это DTO для отображения
+- ResourceListItemDTO - это Data Transfer Object для Presentation Layer
 - Не содержит бизнес-логики
-- Удобно для сериализации и передачи в UI
+- Удобно для JSON сериализации в Remix loaders
+- Query Handler преобразует Domain модель в DTO
 
-#### 1.5 Создать Public API для domain/resource
+#### 1.6 Создать Public API для value-objects
 
-**Файл: `app/domain/resource/index.ts`**
+**Файл: `app/domain/value-objects/index.ts`**
 ```typescript
+export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
-export type { ResourceListItem } from './ResourceListItem'
-export type { ResourceId, FieldId, DateTime } from './types'
 ```
 
-#### 1.6 Создать интерфейс репозитория
+#### 1.7 Создать интерфейс репозитория
 
 **Файл: `app/domain/repositories/IResourceRepository.ts`**
 ```typescript
@@ -303,213 +340,336 @@ export { MockResourceRepository } from './MockResourceRepository'
 
 ---
 
-### Этап 3: Application Layer (Application Service + Use Case)
+### Этап 3: Application Layer (CQRS - Query Handler)
 
-Application Layer содержит:
-- **Application Services** - координируют Use Cases, управляют транзакциями
-- **Use Cases** - содержат бизнес-логику конкретных операций
+Application Layer реализует CQRS паттерн для разделения чтения (Queries) и записи (Commands).
 
-#### 3.1 Создать Application Service
+#### 3.1 Создать Query Types константы
 
-**Файл: `app/application/services/ResourceService.ts`**
+**Файл: `app/application/queries/QueryTypes.ts`**
 ```typescript
-import type { IResourceRepository } from '~/domain/repositories'
-import { ListResourcesUseCase } from '~/application/use-cases'
-import type { ResourceListItem } from '~/domain/resource'
-
 /**
- * Query для списка ресурсов
+ * Константы типов Query (нет magic strings!)
  */
-export interface ListResourcesQuery {
-  namespace?: string
-  search?: string
-}
+export const QueryTypes = {
+  RESOURCE: {
+    LIST: 'ListResourcesQuery',
+    GET_BY_ID: 'GetResourceByIdQuery'
+  }
+} as const
+```
 
-/**
- * Application Service для работы с ресурсами
- * 
- * Ответственность:
- * - Координация Use Cases
- * - Управление транзакциями (в будущем)
- * - Высокоуровневый API для Presentation Layer
- */
-export class ResourceService {
-  constructor(private resourceRepository: IResourceRepository) {}
-  
-  /**
-   * Получить список ресурсов
-   */
-  async listResources(query?: ListResourcesQuery): Promise<ResourceListItem[]> {
-    const useCase = new ListResourcesUseCase(this.resourceRepository)
-    return await useCase.execute(query)
-  }
-  
-  /**
-   * Получить ресурс по ID
-   */
-  async getResourceById(id: string): Promise<ResourceListItem | null> {
-    return await this.resourceRepository.findById(id)
-  }
+#### 3.2 Создать интерфейсы Query и QueryHandler
+
+**Файл: `app/application/queries/IQuery.ts`**
+```typescript
+export interface IQuery {
+  readonly type: string
 }
 ```
 
-**Зачем Application Service?**
-- Скрывает детали композиции Use Cases от UI
-- Единая точка для координации операций
-- Легко добавить транзакции, логирование, кеширование
-- Изоляция Presentation от Infrastructure
-
-#### 3.2 Создать Public API для Application Service
-
-**Файл: `app/application/services/index.ts`**
+**Файл: `app/application/queries/IQueryHandler.ts`**
 ```typescript
-export { ResourceService } from './ResourceService'
-export type { ListResourcesQuery } from './ResourceService'
-```
+import type { IQuery } from './IQuery'
 
-#### 3.3 Создать Use Case для получения списка
-
-**Файл: `app/application/use-cases/ListResources/ListResourcesUseCase.ts`**
-```typescript
-import type { IResourceRepository } from '~/domain/repositories'
-import type { ResourceListItem } from '~/domain/resource'
-
-/**
- * Запрос для получения списка ресурсов
- */
-export interface ListResourcesQuery {
-  namespace?: string
-  search?: string
+export interface QueryResult<T = any> {
+  data: T
+  error?: string
 }
 
+export interface IQueryHandler<Q extends IQuery = IQuery, R = any> {
+  handle(query: Q): Promise<QueryResult<R>>
+}
+```
+
+**Файл: `app/application/queries/IQueryBus.ts`**
+```typescript
+import type { IQuery, IQueryHandler, QueryResult } from './'
+
+export interface IQueryBus {
+  register<Q extends IQuery>(type: string, handler: IQueryHandler<Q>): void
+  execute<Q extends IQuery, R = any>(query: Q): Promise<QueryResult<R>>
+}
+```
+
+#### 3.3 Создать Query класс
+
+**Файл: `app/application/queries/ListResourcesQuery.ts`**
+```typescript
+import { QueryTypes } from './QueryTypes'
+import type { IQuery } from './IQuery'
+
+export class ListResourcesQuery implements IQuery {
+  readonly type = QueryTypes.RESOURCE.LIST
+  
+  constructor(
+    readonly namespace?: string,
+    readonly search?: string
+  ) {}
+}
+```
+
+#### 3.4 Создать Query Handler
+
+**Файл: `app/application/queries/handlers/ListResourcesQueryHandler.ts`**
+```typescript
+import type { IQueryHandler, QueryResult } from '../IQueryHandler'
+import type { ListResourcesQuery } from '../ListResourcesQuery'
+import type { IResourceRepository } from '~/domain/repositories'
+import type { ResourceListItem } from '../dtos/ResourceListItemDTO'
+
 /**
- * Use Case: Получить список ресурсов
- * 
- * Ответственность:
- * - Координация получения данных из репозитория
- * - Применение фильтров (в будущем)
- * - Возврат данных в формате для UI
+ * Query Handler для получения списка ресурсов
+ * Реализует CQRS паттерн для чтения данных
  */
-export class ListResourcesUseCase {
+export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQuery, ResourceListItem[]> {
   constructor(private repository: IResourceRepository) {}
   
-  async execute(query: ListResourcesQuery = {}): Promise<ResourceListItem[]> {
-    // Пока просто получаем все ресурсы
-    // В будущем здесь будет фильтрация и поиск
-    const resources = await this.repository.findAll()
-    
-    return resources
+  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItem[]>> {
+    try {
+      // Получаем данные из репозитория
+      const resources = await this.repository.findAll()
+      
+      // В будущем: фильтрация по namespace и search
+      // const filtered = query.namespace 
+      //   ? resources.filter(r => r.namespace === query.namespace)
+      //   : resources
+      
+      return { data: resources }
+    } catch (error) {
+      return {
+        data: [],
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
   }
 }
 ```
 
-**Зачем Use Case если есть Application Service?**
-- Use Case содержит конкретную бизнес-операцию
-- Application Service координирует несколько Use Cases
-- Легко добавить логику (сортировка, фильтрация)
-- Тестируемость каждой операции отдельно
+**Зачем Query Handler?**
+- CQRS: разделение чтения (Query) и записи (Command)
+- Инкапсулирует логику получения данных
+- Легко тестировать
+- Легко кешировать результаты
+- Изолирован от UI
 
-#### 3.4 Создать Public API для Use Case
+#### 3.5 Создать Public API для queries
 
-**Файл: `app/application/use-cases/ListResources/index.ts`**
+**Файл: `app/application/queries/index.ts`**
 ```typescript
-export { ListResourcesUseCase } from './ListResourcesUseCase'
-export type { ListResourcesQuery } from './ListResourcesUseCase'
-```
-
-#### 3.5 Создать общий Public API для use-cases
-
-**Файл: `app/application/use-cases/index.ts`**
-```typescript
-export { ListResourcesUseCase } from './ListResources'
-export type { ListResourcesQuery } from './ListResources'
+export { QueryTypes } from './QueryTypes'
+export type { IQuery } from './IQuery'
+export type { IQueryHandler, QueryResult } from './IQueryHandler'
+export type { IQueryBus } from './IQueryBus'
+export { ListResourcesQuery } from './ListResourcesQuery'
+export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
+export type { ResourceListItem } from './dtos/ResourceListItemDTO'
 ```
 
 ---
 
-### Этап 4: Composition Root (DI Container)
+### Этап 4: Infrastructure Layer (Query Bus)
 
-Composition Root - это верхний уровень приложения, который знает обо всех слоях и связывает их.
+Сначала создадим реализацию Query Bus в Infrastructure Layer.
 
-> **🎯 Важно**: Composition Root находится в `app/composition/`, а НЕ в `infrastructure/`, чтобы не нарушать архитектурные границы.
+#### 4.1 Создать Query Bus Implementation
 
-#### 4.1 Создать DI Container (Composition Root)
+**Файл: `app/infrastructure/queries/InMemoryQueryBus.ts`**
+```typescript
+import type { IQueryBus, IQuery, IQueryHandler, QueryResult } from '~/application/queries'
+
+/**
+ * In-Memory реализация Query Bus
+ * Хранит handlers в Map и диспетчеризует queries
+ */
+export class InMemoryQueryBus implements IQueryBus {
+  private handlers = new Map<string, IQueryHandler>()
+  
+  register<Q extends IQuery>(type: string, handler: IQueryHandler<Q>): void {
+    this.handlers.set(type, handler)
+  }
+  
+  async execute<Q extends IQuery, R = any>(query: Q): Promise<QueryResult<R>> {
+    const handler = this.handlers.get(query.type)
+    
+    if (!handler) {
+      return {
+        data: null as R,
+        error: `No handler registered for query type: ${query.type}`
+      }
+    }
+    
+    return handler.handle(query)
+  }
+}
+```
+
+**Файл: `app/infrastructure/queries/index.ts`**
+```typescript
+export { InMemoryQueryBus } from './InMemoryQueryBus'
+```
+
+---
+
+### Этап 5: Composition Root (Modules + Facades)
+
+Composition Root связывает все слои через декомпозированную структуру.
+
+#### 5.1 Создать Environment константы
+
+**Файл: `app/composition/config/Environment.ts`**
+```typescript
+export const Environment = {
+  WEB: 'web',
+  CLI: 'cli',
+  DESKTOP: 'desktop'
+} as const
+
+export type EnvironmentType = typeof Environment[keyof typeof Environment]
+```
+
+#### 5.2 Создать ResourceModule
+
+**Файл: `app/composition/modules/ResourceModule.ts`**
+```typescript
+import type { IResourceRepository } from '~/domain/repositories'
+import type { IQueryBus } from '~/application/queries'
+import { QueryTypes, ListResourcesQueryHandler } from '~/application/queries'
+import { MockResourceRepository } from '~/infrastructure/repositories'
+
+/**
+ * DI Module для Resource сущности
+ * Управляет зависимостями и регистрацией handlers
+ */
+export class ResourceModule {
+  private static repository: IResourceRepository | null = null
+  
+  static getRepository(): IResourceRepository {
+    if (!this.repository) {
+      this.repository = new MockResourceRepository()
+    }
+    return this.repository
+  }
+  
+  static registerQueryHandlers(bus: IQueryBus): void {
+    const repository = this.getRepository()
+    
+    bus.register(
+      QueryTypes.RESOURCE.LIST,
+      new ListResourcesQueryHandler(repository)
+    )
+  }
+  
+  static reset(): void {
+    this.repository = null
+  }
+}
+```
+
+#### 5.3 Создать ServiceContainer (координатор)
 
 **Файл: `app/composition/ServiceContainer.ts`**
 ```typescript
-import { MockResourceRepository } from '~/infrastructure/repositories'
-import { ResourceService } from '~/application/services/ResourceService'
-import type { IResourceRepository } from '~/domain/repositories'
+import { InMemoryQueryBus } from '~/infrastructure/queries'
+import { ResourceModule } from './modules/ResourceModule'
+import { Environment, type EnvironmentType } from './config/Environment'
+import type { IQueryBus } from '~/application/queries'
 
 /**
- * Composition Root - единая точка управления зависимостями
- * 
- * Этот слой знает обо ВСЕХ слоях приложения и связывает их.
- * Он не является частью Domain, Application или Infrastructure.
- * 
- * Все зависимости создаются здесь, а не в UI слое.
+ * Root DI Container - координирует все модули
  */
-class ServiceContainer {
-  private static resourceService: ResourceService | null = null
+export class ServiceContainer {
+  private static queryBus: IQueryBus | null = null
+  private static environment: EnvironmentType = Environment.WEB
   
-  /**
-   * Получить ResourceService (Singleton)
-   */
-  static getResourceService(): ResourceService {
-    if (!this.resourceService) {
-      const repository = this.createResourceRepository()
-      this.resourceService = new ResourceService(repository)
+  static setEnvironment(env: EnvironmentType): void {
+    this.environment = env
+  }
+  
+  static getQueryBus(): IQueryBus {
+    if (!this.queryBus) {
+      const bus = new InMemoryQueryBus()
+      
+      // Регистрируем handlers из модулей
+      ResourceModule.registerQueryHandlers(bus)
+      
+      this.queryBus = bus
     }
-    return this.resourceService
+    return this.queryBus
   }
   
-  /**
-   * Создать Repository (Mock или Real)
-   * В будущем здесь будет переключение через env
-   */
-  private static createResourceRepository(): IResourceRepository {
-    // Пока используем только Mock
-    // В будущем: process.env.USE_MOCK === 'true' ? Mock : Real
-    return new MockResourceRepository()
-  }
-  
-  /**
-   * Сброс контейнера (для тестов)
-   */
   static reset(): void {
-    this.resourceService = null
+    this.queryBus = null
+    ResourceModule.reset()
   }
 }
-
-// Фабричные функции для удобства
-export const getResourceService = () => ServiceContainer.getResourceService()
-
-// Для тестов
-export const resetContainer = () => ServiceContainer.reset()
 ```
 
-**Зачем Composition Root?**
-- Единая точка управления всеми зависимостями
-- Знает обо всех слоях и связывает их
-- Легко переключать Mock ↔ Real API
-- Presentation Layer не знает о деталях реализации
-- Легко тестировать (можно создать тестовый контейнер)
-- Не нарушает архитектурные границы (Infrastructure не импортирует Application)
+#### 5.4 Создать Query Facade
 
-#### 4.2 Создать Public API для Composition Root
+**Файл: `app/composition/queries/ResourceQueries.ts`**
+```typescript
+import { ListResourcesQuery } from '~/application/queries'
+import { ServiceContainer } from '../ServiceContainer'
+
+/**
+ * Facade для Resource Queries
+ * Упрощает работу с queries в Loaders
+ */
+export const resourceQueries = {
+  /**
+   * Получить список ресурсов
+   * Facade инкапсулирует создание Query и вызов Query Bus
+   */
+  async list(request: Request) {
+    // Парсинг request (в будущем будет через Request Parser)
+    const url = new URL(request.url)
+    const namespace = url.searchParams.get('namespace') || undefined
+    const search = url.searchParams.get('search') || undefined
+    
+    // Создаем Query
+    const query = new ListResourcesQuery(namespace, search)
+    
+    // Выполняем через Query Bus
+    const queryBus = ServiceContainer.getQueryBus()
+    return queryBus.execute(query)
+  }
+}
+```
+
+**Файл: `app/composition/queries/index.ts`**
+```typescript
+export { resourceQueries } from './ResourceQueries'
+
+// Единый объект для всех queries
+export const queries = {
+  resources: resourceQueries
+}
+```
+
+#### 5.5 Создать Public API для Composition
 
 **Файл: `app/composition/index.ts`**
 ```typescript
-export { getResourceService, resetContainer } from './ServiceContainer'
+export { queries } from './queries'
+export { ServiceContainer } from './ServiceContainer'
+export { Environment, type EnvironmentType } from './config/Environment'
 ```
+
+**Зачем такая декомпозиция?**
+- **Масштабируемость**: каждая сущность в своем Module
+- **Facade Pattern**: loader в одну строку
+- **Multi-UI**: легко добавить CLI/Desktop через Request Parser
+- **Нет Magic Strings**: все константы в QueryTypes
+- **Тестируемость**: каждый Module независим
 
 ---
 
-### Этап 5: Presentation Layer (UI)
+### Этап 6: Presentation Layer (UI)
 
 Presentation Layer отвечает за отображение данных пользователю.
 
-#### 5.1 Создать компонент ResourceListItem
+#### 6.1 Создать компонент ResourceListItem
 
 **Файл: `app/components/ResourceList/ResourceListItem.tsx`**
 ```typescript
@@ -553,7 +713,7 @@ export function ResourceListItem({ resource }: Props) {
 }
 ```
 
-#### 5.2 Создать компонент ResourceList
+#### 6.2 Создать компонент ResourceList
 
 **Файл: `app/components/ResourceList/ResourceList.tsx`**
 ```typescript
@@ -587,7 +747,7 @@ export function ResourceList({ resources }: Props) {
 }
 ```
 
-#### 5.3 Создать Public API для компонентов
+#### 6.3 Создать Public API для компонентов
 
 **Файл: `app/components/ResourceList/index.ts`**
 ```typescript
@@ -595,35 +755,29 @@ export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
 ```
 
-#### 5.4 Создать Remix Route
+#### 6.4 Создать Remix Route
 
 **Файл: `app/routes/_index.tsx`**
 ```typescript
-import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { getResourceService } from '~/composition'
+import { queries } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
- * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
+ * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (НОВЫЙ ПОДХОД - CQRS)
  * 
  * Loader выполняется ТОЛЬКО на сервере (Node.js)
  * НЕ выполняется на клиенте
  * 
- * Аналог: getServerSideProps в Next.js Pages Router
+ * Используем Facade Pattern:
+ * - queries.resources.list(request) - инкапсулирует ВСЮ логику
+ * - Loader не знает о Query Bus, Query Handlers, Repository
+ * - Вся сложность скрыта в Composition Layer
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // 1. Получаем сервис из DI Container
-  //    Все зависимости управляются в одном месте
-  const resourceService = getResourceService()
-  
-  // 2. Вызываем метод Application Service
-  //    Application Service координирует Use Cases
-  const resources = await resourceService.listResources()
-  
-  // 3. Возвращаем данные (сериализуются в JSON)
-  return json({ resources })
+  // ✅ ОДНА СТРОКА! Facade инкапсулирует всё
+  return queries.resources.list(request)
 }
 
 /**
@@ -662,27 +816,31 @@ export default function Index() {
 }
 ```
 
-**Ключевые моменты Remix:**
+**Ключевые моменты Remix + CQRS:**
 
 1. **`loader()` - это СЕРВЕР**, не клиент
    - Выполняется на Node.js
    - Имеет доступ к файловой системе, БД, env переменным
    - Вызывается перед каждым рендерингом страницы
 
-2. **Не путать с Next.js**
-   - В Next.js: `'use server'` / `'use client'` (explicit)
-   - В Remix: convention-based (по имени функции)
+2. **Facade Pattern** - loader в одну строку
+   - `queries.resources.list(request)` - вся логика инкапсулирована
+   - Loader не знает о Query Bus, Handlers, Repository
+   - Легко добавить кеширование, логирование, валидацию
 
-3. **Зачем Application Service?**
-   - Loader НЕ создает репозитории напрямую
-   - Loader получает готовый сервис из Composition Root
-   - Presentation Layer изолирован от Infrastructure
+3. **CQRS** - разделение чтения и записи
+   - `queries.*` - для чтения данных (GET requests, loaders)
+   - `commands.*` - для записи данных (POST/PUT/DELETE, actions)
+   - Разные оптимизации для чтения и записи
 
 4. **Type Safety**
    - `useLoaderData<typeof loader>()` - полная типизация
-   - TypeScript знает структуру данных
+   - TypeScript знает структуру QueryResult<ResourceListItem[]>
 
-**Детали см. в [DATA_FLOW.md](../../docs/DATA_FLOW.md)**
+**Детали см. в:**
+- [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - Query Handlers и Facade
+- [COMPOSITION_LAYER.md](../../docs/COMPOSITION_LAYER.md) - декомпозиция
+- [DATA_FLOW.md](../../docs/DATA_FLOW.md) - поток данных
 
 ---
 
@@ -693,37 +851,49 @@ export default function Index() {
 ```
 app/
 ├── domain/
-│   ├── resource/
-│   │   ├── types.ts
+│   ├── value-objects/               # ← Value Objects
+│   │   ├── ResourceId.ts
 │   │   ├── Namespace.ts
 │   │   ├── ResourceName.ts
-│   │   ├── ResourceListItem.ts
 │   │   └── index.ts
 │   └── repositories/
 │       ├── IResourceRepository.ts
 │       └── index.ts
 │
-├── composition/                     # ← НОВОЕ: Composition Root
-│   ├── ServiceContainer.ts
-│   └── index.ts
+├── application/
+│   └── queries/                      # ← CQRS: Queries
+│       ├── QueryTypes.ts             # ← Константы (нет magic strings)
+│       ├── IQuery.ts
+│       ├── IQueryHandler.ts
+│       ├── IQueryBus.ts
+│       ├── ListResourcesQuery.ts
+│       ├── handlers/
+│       │   └── ListResourcesQueryHandler.ts
+│       ├── dtos/
+│       │   └── ResourceListItemDTO.ts
+│       └── index.ts
 │
 ├── infrastructure/
 │   ├── mocks/
 │   │   ├── resources.mock.ts
 │   │   └── index.ts
-│   └── repositories/
-│       ├── MockResourceRepository.ts
+│   ├── repositories/
+│   │   ├── MockResourceRepository.ts
+│   │   └── index.ts
+│   └── queries/                      # ← Query Bus реализация
+│       ├── InMemoryQueryBus.ts
 │       └── index.ts
 │
-├── application/
-│   ├── services/                     # ← НОВОЕ: Application Services
-│   │   ├── ResourceService.ts
+├── composition/                      # ← Composition Root (DI)
+│   ├── config/
+│   │   └── Environment.ts            # ← Константы окружений
+│   ├── modules/
+│   │   └── ResourceModule.ts         # ← DI Module для Resource
+│   ├── queries/
+│   │   ├── ResourceQueries.ts        # ← Query Facade
 │   │   └── index.ts
-│   └── use-cases/
-│       ├── ListResources/
-│       │   ├── ListResourcesUseCase.ts
-│       │   └── index.ts
-│       └── index.ts
+│   ├── ServiceContainer.ts           # ← Root Container
+│   └── index.ts
 │
 ├── components/
 │   └── ResourceList/
@@ -732,7 +902,7 @@ app/
 │       └── index.ts
 │
 └── routes/
-    └── _index.tsx
+    └── _index.tsx                    # ← Loader в 1 строку!
 ```
 
 ---
@@ -740,66 +910,87 @@ app/
 ## ✅ Чек-лист выполнения
 
 ### Domain Layer
-- [ ] Создать `app/domain/resource/types.ts`
-- [ ] Создать `app/domain/resource/Namespace.ts`
-- [ ] Создать `app/domain/resource/ResourceName.ts`
-- [ ] Создать `app/domain/resource/ResourceListItem.ts`
-- [ ] Создать `app/domain/resource/index.ts`
+- [ ] Создать `app/domain/value-objects/ResourceId.ts`
+- [ ] Создать `app/domain/value-objects/Namespace.ts`
+- [ ] Создать `app/domain/value-objects/ResourceName.ts`
+- [ ] Создать `app/domain/value-objects/index.ts`
 - [ ] Создать `app/domain/repositories/IResourceRepository.ts`
 - [ ] Создать `app/domain/repositories/index.ts`
+
+### Application Layer (CQRS - Queries)
+- [ ] Создать `app/application/queries/QueryTypes.ts`
+- [ ] Создать `app/application/queries/IQuery.ts`
+- [ ] Создать `app/application/queries/IQueryHandler.ts`
+- [ ] Создать `app/application/queries/IQueryBus.ts`
+- [ ] Создать `app/application/queries/ListResourcesQuery.ts`
+- [ ] Создать `app/application/queries/handlers/ListResourcesQueryHandler.ts`
+- [ ] Создать `app/application/queries/dtos/ResourceListItemDTO.ts`
+- [ ] Создать `app/application/queries/index.ts`
 
 ### Infrastructure Layer
 - [ ] Создать `app/infrastructure/mocks/resources.mock.ts`
 - [ ] Создать `app/infrastructure/mocks/index.ts`
 - [ ] Создать `app/infrastructure/repositories/MockResourceRepository.ts`
 - [ ] Создать `app/infrastructure/repositories/index.ts`
+- [ ] Создать `app/infrastructure/queries/InMemoryQueryBus.ts`
+- [ ] Создать `app/infrastructure/queries/index.ts`
 
-### Composition Root
-- [ ] Создать `app/composition/ServiceContainer.ts` **← НОВОЕ**
-- [ ] Создать `app/composition/index.ts` **← НОВОЕ**
-
-### Application Layer
-- [ ] Создать `app/application/services/ResourceService.ts` **← НОВОЕ**
-- [ ] Создать `app/application/services/index.ts` **← НОВОЕ**
-- [ ] Создать `app/application/use-cases/ListResources/ListResourcesUseCase.ts`
-- [ ] Создать `app/application/use-cases/ListResources/index.ts`
-- [ ] Создать `app/application/use-cases/index.ts`
+### Composition Root (DI + Facades)
+- [ ] Создать `app/composition/config/Environment.ts`
+- [ ] Создать `app/composition/modules/ResourceModule.ts`
+- [ ] Создать `app/composition/ServiceContainer.ts`
+- [ ] Создать `app/composition/queries/ResourceQueries.ts`
+- [ ] Создать `app/composition/queries/index.ts`
+- [ ] Создать `app/composition/index.ts`
 
 ### Presentation Layer
 - [ ] Создать `app/components/ResourceList/ResourceListItem.tsx`
 - [ ] Создать `app/components/ResourceList/ResourceList.tsx`
 - [ ] Создать `app/components/ResourceList/index.ts`
-- [ ] Создать `app/routes/_index.tsx`
+- [ ] Создать `app/routes/_index.tsx` (loader в 1 строку!)
 
 ### Запуск и проверка
 - [ ] Запустить `npm run dev`
 - [ ] Открыть `http://localhost:5173` (или другой порт)
 - [ ] Проверить что список ресурсов отображается
 - [ ] Проверить стили и адаптивность
+- [ ] Убедиться что loader содержит только: `return queries.resources.list(request)`
 
 ---
 
 ## 🎓 Что вы изучите
 
-1. **Domain-Driven Design**:
-   - Value Objects (Namespace, ResourceName)
-   - Интерфейсы репозиториев
-   - Типы и контракты
+1. **Domain-Driven Design (DDD)**:
+   - Value Objects (ResourceId, Namespace, ResourceName)
+   - Repository Interfaces (IResourceRepository)
+   - Dependency Inversion Principle
 
 2. **Clean Architecture**:
-   - Разделение на слои
-   - Dependency Inversion
-   - Public API модулей
+   - Разделение на слои (Domain, Application, Infrastructure, Composition, Presentation)
+   - Dependency Rule (зависимости к центру)
+   - Public API модулей (index.ts)
 
-3. **Remix Framework**:
-   - Loader функции
-   - Server-side data fetching
+3. **CQRS Pattern**:
+   - Queries для чтения данных
+   - Query Handlers для обработки
+   - Query Bus для диспетчеризации
+   - Разделение чтения и записи
+
+4. **Composition Root**:
+   - DI Modules по сущностям
+   - Service Container координация
+   - Facade Pattern для упрощения
+
+5. **Remix Framework**:
+   - Loader функции (server-side)
+   - Facade упрощает loader до 1 строки
    - Type-safe data flow
 
-4. **React Patterns**:
-   - Component composition
-   - Props typing
-   - Conditional rendering
+6. **Паттерны**:
+   - Facade Pattern
+   - Module Pattern
+   - Strategy Pattern (Request Parsers)
+   - Dependency Injection
 
 ---
 
@@ -831,9 +1022,10 @@ npm run dev
 ## 📝 Следующие шаги
 
 После успешного завершения Шага 1:
-- **Шаг 2**: Добавить поиск и фильтрацию
-- **Шаг 3**: Создать страницу детального просмотра ресурса
-- **Шаг 4**: Добавить создание ресурса
+- **Шаг 2**: Добавить поиск и фильтрацию (расширить Query Handler)
+- **Шаг 3**: Создать страницу детального просмотра ресурса (новый Query Handler)
+- **Шаг 4**: Добавить создание ресурса (Command Bus + Command Handlers)
+- **Шаг 5**: Добавить Request Parser для Multi-UI поддержки (Web/CLI/Desktop)
 
 ---
 
@@ -849,10 +1041,19 @@ npm run dev
 ## ❓ FAQ
 
 **Q: Зачем так много файлов для простого списка?**  
-A: Мы строим масштабируемую архитектуру. Когда добавятся новые фичи, структура уже будет готова.
+A: Мы строим масштабируемую архитектуру с CQRS и Clean Architecture. Когда добавятся новые фичи, структура уже будет готова. Каждый файл имеет одну ответственность.
 
 **Q: Можно ли пропустить Value Objects?**  
-A: Нет, они важны для валидации и инкапсуляции бизнес-правил.
+A: Нет, они важны для валидации и инкапсуляции бизнес-правил. ResourceId.generate() гарантирует уникальность, Namespace.create() валидирует формат.
+
+**Q: Зачем Query Handler если есть Repository?**  
+A: Repository - это Infrastructure (работа с данными). Query Handler - это Application Layer (бизнес-логика чтения). Разделение позволяет добавить кеширование, логирование, трансформацию данных.
+
+**Q: Зачем Facade если есть Query Bus?**  
+A: Facade упрощает работу в Presentation Layer. Loader не знает о Query Bus, Query классах, парсинге параметров. Loader = 1 строка кода!
 
 **Q: Почему Mock Repository асинхронный?**  
-A: Чтобы код был готов к замене на реальный API без изменений.
+A: Чтобы код был готов к замене на реальный API без изменений. Все async/await остаются.
+
+**Q: Что такое Entry сущность?**  
+A: Entry - это Key-Value пара внутри Resource. Например, Resource "Gmail Account" содержит Entry: username, password, recovery_email.

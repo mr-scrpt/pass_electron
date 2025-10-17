@@ -414,17 +414,30 @@ app.on('window-all-closed', () => {
 
 ```bash
 # Создаем структуру директорий
-mkdir -p app/domain/resource
+mkdir -p app/domain/entities
+mkdir -p app/domain/value-objects
 mkdir -p app/domain/repositories
+mkdir -p app/domain/services
 mkdir -p app/domain/events
-mkdir -p app/application/use-cases
+mkdir -p app/application/queries
+mkdir -p app/application/queries/handlers
+mkdir -p app/application/commands
+mkdir -p app/application/commands/handlers
+mkdir -p app/application/ports
 mkdir -p app/application/services
 mkdir -p app/infrastructure/api
 mkdir -p app/infrastructure/repositories
+mkdir -p app/infrastructure/queries
+mkdir -p app/infrastructure/commands
+mkdir -p app/infrastructure/request-parsers
 mkdir -p app/infrastructure/mocks
 mkdir -p app/infrastructure/event-bus
 mkdir -p app/infrastructure/storage
 mkdir -p app/infrastructure/clipboard
+mkdir -p app/composition/modules
+mkdir -p app/composition/queries
+mkdir -p app/composition/commands
+mkdir -p app/composition/config
 mkdir -p app/core/modal
 mkdir -p app/core/keymap
 mkdir -p app/core/focus
@@ -441,25 +454,39 @@ mkdir -p app/styles
 app/
 ├── routes/                    # Remix routes (будут создаваться)
 ├── components/                # React компоненты
+├── composition/               # Composition Root (DI Container)
+│   ├── modules/               # DI Modules по сущностям
+│   ├── queries/               # Query Facades
+│   ├── commands/              # Command Facades
+│   └── config/                # Константы (Environment)
 ├── core/                      # Основные системы
 │   ├── modal/
 │   ├── keymap/
 │   ├── focus/
 │   └── notification/
 ├── domain/                    # Domain Layer
-│   ├── resource/
-│   ├── repositories/
-│   └── events/
+│   ├── entities/              # Entities
+│   ├── value-objects/         # Value Objects
+│   ├── repositories/          # Repository Interfaces
+│   ├── services/              # Domain Services
+│   └── events/                # Domain Events
 ├── application/               # Application Layer
-│   ├── use-cases/
-│   └── services/
+│   ├── queries/               # Query (CQRS - Read)
+│   │   └── handlers/
+│   ├── commands/              # Commands (CQRS - Write)
+│   │   └── handlers/
+│   ├── ports/                 # Ports (Interfaces)
+│   └── services/              # Application Services
 ├── infrastructure/            # Infrastructure Layer
-│   ├── api/
-│   ├── repositories/
-│   ├── mocks/
-│   ├── event-bus/
-│   ├── storage/
-│   └── clipboard/
+│   ├── api/                   # API Client
+│   ├── repositories/          # Repository Implementations
+│   ├── queries/               # Query Bus Implementation
+│   ├── commands/              # Command Bus Implementation
+│   ├── request-parsers/       # Request Parsers (Web/CLI/Desktop)
+│   ├── mocks/                 # Mock Data
+│   ├── event-bus/             # Event Bus Implementation
+│   ├── storage/               # Local Storage
+│   └── clipboard/             # Clipboard Service
 ├── hooks/                     # React Hooks
 ├── types/                     # TypeScript Types
 ├── styles/                    # Стили

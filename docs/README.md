@@ -17,7 +17,6 @@
 - **[THEORETICAL_CONCEPT.md](./concepts/THEORETICAL_CONCEPT.md)** - Начальная концепция и идеи
 - **[IMPLEMENT_CONCEPT_OUTER.md](./concepts/IMPLEMENT_CONCEPT_OUTER.md)** - Детальный план реализации
 - **[ARCHITECTURE_DESIGN.md](./concepts/ARCHITECTURE_DESIGN.md)** - Верхнеуровневая архитектура (DDD)
-- **[STATIC_VS_INSTANCE_METHODS.md](./concepts/STATIC_VS_INSTANCE_METHODS.md)** - Образовательная справка: когда использовать static vs instance методы
 
 ### 📋 Контракты (`contracts/`)
 Типы, интерфейсы и контракты приложения.
@@ -44,10 +43,6 @@
 10. `contracts/system-interfaces.md` - Интерфейсы систем
 11. `contracts/api-contracts.md` - API контракты
 12. `contracts/events.md` - События системы
-
-### 📚 Дополнительно
-
-- `concepts/STATIC_VS_INSTANCE_METHODS.md` - Образовательная справка о статических и обычных методах
 
 ## Технический стек
 

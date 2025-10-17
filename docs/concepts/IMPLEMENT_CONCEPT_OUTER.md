@@ -93,7 +93,7 @@
 - **`app/core/`** - Core Systems (modal, keymap, focus, notification)
 - **`app/domain/`** - Domain Layer (entities, aggregates, events)
 - **`app/application/`** - Application Layer (use cases)
-- **`app/infrastructure/`** - Infrastructure Layer (API, repositories)
+- **`app/infrastructure/`** - Infrastructure Layer (API, repositories, utils)
 - **`app/hooks/`** - React Hooks
 - **`app/types/`** - TypeScript типы (re-exports)
 
@@ -109,14 +109,16 @@
 
 ```typescript
 interface Resource {
-  id: string;
-  namespace: string;        // Например: "social"
-  name: string;             // Например: "facebook"
+  id: ResourceId;
+  namespace: Namespace;     // Например: "social" (Value Object)
+  name: ResourceName;       // Например: "facebook" (Value Object)
   secret: SecretField;      // Основной пароль (обязательное поле)
   customFields: CustomField[]; // Дополнительные поля
-  createdAt: string;        // ISO date
-  updatedAt: string;        // ISO date
+  createdAt: DateTime;      // ISO date
+  updatedAt: DateTime;      // ISO date
 }
+
+type ResourceId = string  // UUID
 
 interface SecretField {
   id: string;
@@ -147,12 +149,12 @@ interface CustomField {
 
 ```typescript
 interface ResourceListItem {
-  id: string;
-  namespace: string;
-  name: string;
+  id: ResourceId;
+  namespace: string;        // Простая строка для отображения
+  name: string;             // Простая строка для отображения
   secretPreview?: string;   // Первые символы + ***
   fieldsCount: number;
-  updatedAt: string;
+  updatedAt: DateTime;
 }
 ```
 
@@ -211,8 +213,13 @@ export type AppMode = 'navigation' | 'editing';
 
 export interface ModeContext {
   mode: AppMode;
-  route: string;
-  metadata?: Record<string, any>;
+  route: RouteInfo;         // Объект с path и params
+  state: ModeState | null;  // Состояние текущего режима
+}
+
+export interface RouteInfo {
+  path: string;
+  params: Record<string, string>;
 }
 
 export interface EditingContext {
@@ -236,6 +243,7 @@ export class ModalManager {
   private editingContext: EditingContext | null = null;
   private listeners = new Set<ModeChangeListener>();
   private route: string = '/';
+  private routeParams: Record<string, string> = {};
   
   getMode(): AppMode {
     return this.mode;
@@ -244,15 +252,21 @@ export class ModalManager {
   getContext(): ModeContext {
     return {
       mode: this.mode,
-      route: this.route,
-      metadata: this.editingContext 
-        ? { editing: this.editingContext }
-        : undefined
+      route: {
+        path: this.route,
+        params: this.routeParams || {}
+      },
+      state: this.mode === 'editing' && this.editingContext
+        ? { type: 'editing', ...this.editingContext }
+        : this.mode === 'navigation'
+        ? { type: 'navigation', focusedElementId: null, scrollPosition: 0 }
+        : null
     };
   }
   
-  setRoute(route: string): void {
+  setRoute(route: string, params?: Record<string, string>): void {
     this.route = route;
+    this.routeParams = params || {};
     this.notifyListeners();
   }
   
@@ -386,7 +400,7 @@ export interface KeyBinding {
 
 export interface ActionContext {
   mode: AppMode;
-  route: string;
+  route: string;            // Простая строка для совместимости с keymaps
   editingContext?: EditingContext;
   focusedElement?: HTMLElement;
   [key: string]: any;
@@ -763,7 +777,7 @@ export const editingKeymaps: Keymap[] = [
 
 import { Keymap } from '../types';
 import { modalManager } from '../../modal/ModalManager';
-import { apiClient } from '~/lib/api/client';
+import { apiClient } from '~/infrastructure/api';
 import { notificationManager } from '../../notification/NotificationManager';
 
 export function createResourceKeymaps(): Keymap[] {

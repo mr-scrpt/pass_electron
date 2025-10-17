@@ -453,6 +453,18 @@ interface UpdateFieldCommand {
 }
 
 /**
+ * Use Case: Удалить кастомное поле
+ */
+interface IDeleteCustomFieldUseCase {
+  execute(command: DeleteCustomFieldCommand): Promise<Result<void, DomainError>>
+}
+
+interface DeleteCustomFieldCommand {
+  resourceId: ResourceId
+  fieldId: FieldId
+}
+
+/**
  * Use Case: Удалить ресурс
  */
 interface IDeleteResourceUseCase {

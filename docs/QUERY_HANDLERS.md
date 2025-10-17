@@ -18,7 +18,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ```typescript
 // ✅ Одна строка - вся сложность инкапсулирована
 export async function loader({ request }: LoaderFunctionArgs) {
-  return queries.listResources(request);
+  return queries.resources.list(request);
 }
 ```
 
@@ -225,7 +225,7 @@ static getQueryBus(): IQueryBus {
 import { queries } from '~/composition';
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return queries.listResources(request);  // ✅ Одна строка!
+  return queries.resources.list(request);  // ✅ Одна строка!
 }
 ```
 
@@ -236,7 +236,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 import { queries } from '~/composition';
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  return queries.getResourceById(params.id!);  // ✅ Одна строка!
+  return queries.resources.getById(params.id!);  // ✅ Одна строка!
 }
 ```
 

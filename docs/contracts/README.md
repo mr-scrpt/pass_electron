@@ -383,32 +383,30 @@ eventBus.subscribe<ModeChanged>('ModeChanged', (event) => {
 Все валидации происходят на уровне Domain Layer при создании Value Objects и Entities.
 
 ```typescript
-// Пример валидации Namespace
+// Пример валидации Namespace с использованием инвариантов
+import { StringInvariant } from '~/domain/shared'
+
 class Namespace {
+  private static readonly PATTERN = /^[a-z0-9_-]+$/
   private constructor(private value: string) {}
   
-  static create(value: string): Result<Namespace, ValidationError> {
-    if (!/^[a-z0-9_-]+$/.test(value)) {
-      return {
-        success: false,
-        error: new ValidationError('namespace', 'pattern', value)
-      }
-    }
+  static create(value: string): Namespace {
+    // ✅ Используем переиспользуемые инварианты из Shared Kernel
+    StringInvariant.ensureLength(value, 2, 50, 'Namespace')
+    StringInvariant.ensurePattern(
+      value,
+      this.PATTERN,
+      'Namespace',
+      'value',
+      'lowercase letters, numbers, dash and underscore'
+    )
     
-    if (value.length < 2 || value.length > 50) {
-      return {
-        success: false,
-        error: new ValidationError('namespace', 'length', value)
-      }
-    }
-    
-    return {
-      success: true,
-      value: new Namespace(value)
-    }
+    return new Namespace(value)
   }
 }
 ```
+
+> **📚 См. также**: [INVARIANTS.md](../INVARIANTS.md) — Полное описание паттерна Invariants и Shared Kernel
 
 ---
 

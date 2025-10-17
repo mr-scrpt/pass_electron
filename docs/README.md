@@ -5,6 +5,7 @@
 ### 🚀 Начало работы
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Руководство по началу разработки
 - **[DDD_AND_CLEAN_ARCHITECTURE.md](./DDD_AND_CLEAN_ARCHITECTURE.md)** - Обзор: как DDD и Clean Architecture сочетаются в проекте
+- **[INVARIANTS.md](./INVARIANTS.md)** - Инварианты и Shared Kernel для переиспользуемых правил валидации
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта, архитектурные границы и правила импорта
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, CQRS + Facades, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
@@ -47,16 +48,17 @@
 1. `concepts/THEORETICAL_CONCEPT.md` - Общая идея
 2. `concepts/ARCHITECTURE_DESIGN.md` - Архитектура
 3. `DDD_AND_CLEAN_ARCHITECTURE.md` - Как DDD и Clean Architecture сочетаются в проекте
-4. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
-5. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
-6. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
-7. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
-8. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
-9. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
-10. `contracts/domain-types.md` - Типы предметной области
-11. `contracts/system-interfaces.md` - Интерфейсы систем
-12. `contracts/api-contracts.md` - API контракты
-13. `contracts/events.md` - События системы
+4. `INVARIANTS.md` - Инварианты и Shared Kernel (важно для понимания Domain Layer)
+5. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
+6. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
+7. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
+8. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
+9. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
+10. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
+11. `contracts/domain-types.md` - Типы предметной области
+12. `contracts/system-interfaces.md` - Интерфейсы систем
+13. `contracts/api-contracts.md` - API контракты
+14. `contracts/events.md` - События системы
 
 ## Технический стек
 

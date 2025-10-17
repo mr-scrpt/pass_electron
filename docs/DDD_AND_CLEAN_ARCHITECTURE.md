@@ -139,22 +139,23 @@ export class Resource {
 
 ```typescript
 // app/domain/value-objects/ResourceName.ts
+import { StringInvariant, InvariantViolationError } from '~/domain/shared'
 
 export class ResourceName {
-  private constructor(private readonly value: string) {
-    this.validate(value)  // Валидация в конструкторе
-  }
-
-  private validate(value: string): void {
-    if (!value || value.trim().length === 0) {
-      throw new InvalidResourceNameError('Name cannot be empty')
-    }
-    if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
-      throw new InvalidResourceNameError('Invalid characters')
-    }
-  }
+  private static readonly PATTERN = /^[a-zA-Z0-9-_]+$/
+  
+  private constructor(private readonly value: string) {}
 
   static create(value: string): ResourceName {
+    // ✅ Используем переиспользуемые инварианты
+    StringInvariant.ensureLength(value, 1, 100, 'ResourceName')
+    StringInvariant.ensurePattern(
+      value,
+      this.PATTERN,
+      'ResourceName',
+      'value',
+      'alphanumeric characters, dash and underscore'
+    )
     return new ResourceName(value)
   }
 
@@ -168,6 +169,9 @@ export class ResourceName {
   }
 }
 ```
+
+> **💡 Важно**: Инварианты (правила валидации) вынесены в переиспользуемые классы в `domain/shared/invariants/`.  
+> См. [INVARIANTS.md](./INVARIANTS.md) для деталей.
 
 ### Aggregate (DDD)
 

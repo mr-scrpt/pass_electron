@@ -603,11 +603,22 @@ class CustomField {
 ### Value Objects
 
 ```typescript
+import { StringInvariant } from '~/domain/shared'
+
 class Namespace {
+  private static readonly PATTERN = /^[a-z0-9_-]+$/
   private constructor(private value: string) {}
   
   static create(value: string): Namespace {
-    // validation: [a-z0-9_-]+, length 2-50
+    // ✅ Используем инварианты из Shared Kernel
+    StringInvariant.ensureLength(value, 2, 50, 'Namespace')
+    StringInvariant.ensurePattern(
+      value,
+      this.PATTERN,
+      'Namespace',
+      'value',
+      'lowercase letters, numbers, dash and underscore'
+    )
     return new Namespace(value)
   }
   

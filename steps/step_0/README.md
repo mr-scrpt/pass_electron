@@ -4,6 +4,38 @@
 
 Подготовить проект с нуля: установить все необходимые зависимости, настроить TypeScript, Remix, Electron, Tailwind CSS и создать базовую структуру.
 
+> **📦 Менеджер пакетов**: В этом проекте используется **pnpm**. Если он не установлен:
+> ```bash
+> npm install -g pnpm
+> ```
+
+---
+
+## 💡 Как и Next.js, Remix CLI делает все за вас!
+
+### ✅ Что Remix CLI создает автоматически (одной командой):
+
+- TypeScript + `tsconfig.json`
+- React + React DOM + все типы
+- Remix (@remix-run/node, @remix-run/react, @remix-run/dev, @remix-run/serve)
+- Vite + `vite.config.ts`
+- ESLint + `.eslintrc.cjs`
+- `.gitignore`
+- `app/root.tsx` (root layout)
+- `app/routes/_index.tsx` (главная страница)
+- `package.json` с готовыми scripts
+
+### 🔧 Что нужно добавить **для нашего проекта**:
+
+- **Electron** (desktop-специфично)
+- **Tailwind CSS** (опционально, можно выбрать при инициализации)
+- **Concurrently + wait-on** (для запуска Electron с Remix dev server)
+- **Prettier** (опционально)
+- **Структура папок DDD** (Domain, Application, Infrastructure, Composition)
+- **Electron main process** (`electron/main.ts`)
+
+> **Итого:** Remix CLI уже настроил ~90% проекта. Нам нужно только добавить Electron и DDD структуру!
+
 ---
 
 ## 📦 Технологический стек
@@ -24,72 +56,69 @@
 
 ## 🚀 Шаг 1: Инициализация проекта
 
-### 1.1 Создать Remix проект
+### 1.1 Создать Remix проект (все в одной команде!)
 
 ```bash
-# Создаем проект с Remix (если еще не создан)
-npx create-remix@latest
+# Создаем проект с Remix
+pnpm create remix@latest
 
 # Выбираем опции:
-# - Where should we create your new project? ./
-# - What type of app do you want to create? Just the basics
-# - Where do you want to deploy? Choose Remix App Server
-# - TypeScript or JavaScript? TypeScript
-# - Do you want me to run `npm install`? Yes
+# ✅ Where should we create your new project? ./password-manager (или .)
+# ✅ What type of app do you want to create? Just the basics
+# ✅ Where do you want to deploy? Choose Remix App Server
+# ✅ TypeScript or JavaScript? TypeScript
+# ✅ Do you want me to run `pnpm install`? Yes
 ```
 
-Или если проект уже существует, переходим к следующему шагу.
+**🎉 Готово! Remix CLI уже установил:**
+- ✅ TypeScript
+- ✅ React + React DOM
+- ✅ Remix (@remix-run/node, @remix-run/react, @remix-run/dev, @remix-run/serve)
+- ✅ Vite
+- ✅ ESLint
+- ✅ Все TypeScript типы (@types/react, @types/react-dom)
+
+> **Как и Next.js**, Remix создает полностью готовый к работе проект одной командой!
 
 ---
 
-## 📥 Шаг 2: Установка зависимостей
+## 📥 Шаг 2: Установка дополнительных зависимостей
 
-### 2.1 Основные зависимости
+Remix уже установил все базовое. Теперь добавим **специфичные для нашего проекта** зависимости:
 
-```bash
-# React и Remix (если не установлены)
-npm install @remix-run/node@latest @remix-run/react@latest @remix-run/serve@latest
-
-# Electron
-npm install electron
-
-# Дополнительные утилиты
-npm install cross-env
-```
-
-### 2.2 TypeScript и типы
+### 2.1 Electron (для desktop приложения)
 
 ```bash
-npm install --save-dev typescript @types/react @types/react-dom @types/node
+# Electron - это не входит в Remix по умолчанию (desktop-специфично)
+pnpm add -D electron @types/electron
 
-# Типы для Electron
-npm install --save-dev @types/electron
+# Утилиты для запуска Electron вместе с Remix dev сервером
+pnpm add -D concurrently wait-on
 ```
 
-### 2.3 Tailwind CSS
+### 2.2 Tailwind CSS (если не выбрали при инициализации)
 
 ```bash
-npm install --save-dev tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+# Если НЕ выбрали Tailwind при создании проекта
+pnpm add -D tailwindcss postcss autoprefixer
+pnpm dlx tailwindcss init -p
 ```
 
-### 2.4 Dev зависимости
+**Примечание:** Если при `pnpm create remix@latest` выбрали опцию с Tailwind, этот шаг можно пропустить!
+
+### 2.3 Дополнительные утилиты (опционально)
 
 ```bash
-# Vite (обычно уже установлен с Remix)
-npm install --save-dev vite @remix-run/dev
+# Prettier для форматирования (если хотите)
+pnpm add -D prettier eslint-config-prettier
 
-# ESLint и Prettier
-npm install --save-dev eslint prettier eslint-config-prettier
-npm install --save-dev @typescript-eslint/eslint-plugin @typescript-eslint/parser
-
-# Concurrently для запуска нескольких процессов
-npm install --save-dev concurrently wait-on
+# cross-env для кросс-платформенных env переменных
+pnpm add -D cross-env
 ```
 
-### 2.5 Проверка package.json
+### 2.4 Проверка package.json
 
-После установки ваш `package.json` должен содержать примерно следующее:
+После установки дополнительных зависимостей ваш `package.json` должен содержать примерно следующее:
 
 ```json
 {
@@ -100,7 +129,7 @@ npm install --save-dev concurrently wait-on
   "scripts": {
     "build": "remix vite:build",
     "dev": "remix vite:dev",
-    "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "dev:electron": "concurrently \"pnpm dev\" \"wait-on http://localhost:5173 && electron .\"",
     "start": "remix-serve ./build/server/index.js",
     "typecheck": "tsc",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
@@ -143,9 +172,13 @@ npm install --save-dev concurrently wait-on
 
 ## ⚙️ Шаг 3: Настройка конфигурационных файлов
 
-### 3.1 TypeScript конфигурация
+> **✅ Remix CLI уже создал:** `tsconfig.json`, `vite.config.ts`, `.gitignore`, `app/root.tsx`, `app/routes/_index.tsx`
+> 
+> Нужно только **дополнить** конфиги для наших нужд (Electron, Tailwind, алиасы путей)
 
-**Файл: `tsconfig.json`**
+### 3.1 TypeScript конфигурация (проверить/дополнить)
+
+**Файл: `tsconfig.json`** (уже создан Remix CLI)
 
 ```json
 {
@@ -185,31 +218,9 @@ npm install --save-dev concurrently wait-on
 - `strict: true` - строгая типизация
 - `moduleResolution: "Bundler"` - для Vite
 
-### 3.2 Remix конфигурация
+### 3.2 Vite конфигурация (дополнить для алиасов путей)
 
-**Файл: `remix.config.js`**
-
-```javascript
-/** @type {import('@remix-run/dev').AppConfig} */
-export default {
-  ignoredRouteFiles: ["**/.*"],
-  appDirectory: "app",
-  assetsBuildDirectory: "public/build",
-  publicPath: "/build/",
-  serverBuildPath: "build/index.js",
-  tailwind: true,
-  postcss: true,
-  future: {
-    v3_fetcherPersist: true,
-    v3_relativeSplatPath: true,
-    v3_throwAbortReason: true,
-  },
-};
-```
-
-### 3.3 Vite конфигурация
-
-**Файл: `vite.config.ts`**
+**Файл: `vite.config.ts`** (уже создан Remix CLI, нужно дополнить)
 
 ```typescript
 import { vitePlugin as remix } from "@remix-run/dev";
@@ -230,12 +241,12 @@ export default defineConfig({
 });
 ```
 
-**Установить vite-tsconfig-paths**:
+**Установить vite-tsconfig-paths** (для работы алиасов `~/...`):
 ```bash
-npm install --save-dev vite-tsconfig-paths
+pnpm add -D vite-tsconfig-paths
 ```
 
-### 3.4 Tailwind CSS конфигурация
+### 3.3 Tailwind CSS конфигурация (если устанавливали отдельно)
 
 **Файл: `tailwind.config.js`**
 
@@ -274,9 +285,9 @@ export default {
 }
 ```
 
-### 3.5 ESLint конфигурация
+### 3.4 ESLint конфигурация (уже создан Remix CLI)
 
-**Файл: `.eslintrc.cjs`**
+**Файл: `.eslintrc.cjs`** - уже существует, можно дополнить
 
 ```javascript
 /** @type {import('eslint').Linter.Config} */
@@ -320,9 +331,9 @@ module.exports = {
 };
 ```
 
-### 3.6 Prettier конфигурация
+### 3.5 Prettier конфигурация (опционально)
 
-**Файл: `.prettierrc`**
+**Файл: `.prettierrc`** - создать если хотите использовать Prettier
 
 ```json
 {
@@ -344,7 +355,7 @@ public/build
 .cache
 ```
 
-### 3.7 Electron main process
+### 3.6 Electron main process (создать вручную)
 
 **Файл: `electron/main.ts`**
 
@@ -496,11 +507,11 @@ app/
 
 ---
 
-## 🎨 Шаг 5: Настройка стилей
+## 🎨 Шаг 5: Настройка стилей (Tailwind CSS)
 
-### 5.1 Создать глобальные стили
+### 5.1 Создать глобальные стили Tailwind
 
-**Файл: `app/styles/tailwind.css`**
+**Файл: `app/styles/tailwind.css`** (создать вручную)
 
 ```css
 @tailwind base;
@@ -541,9 +552,9 @@ app/
 }
 ```
 
-### 5.2 Создать root layout
+### 5.2 Обновить root layout (подключить Tailwind)
 
-**Файл: `app/root.tsx`**
+**Файл: `app/root.tsx`** (уже создан Remix CLI, нужно добавить импорт стилей)
 
 ```typescript
 import {
@@ -714,7 +725,7 @@ export default function Index() {
 ### 8.1 Запустить dev сервер
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Откройте браузер на `http://localhost:5173` - должна отобразиться тестовая страница.
@@ -722,7 +733,7 @@ npm run dev
 ### 8.2 Проверить TypeScript
 
 ```bash
-npm run typecheck
+pnpm typecheck
 ```
 
 Не должно быть ошибок.
@@ -730,7 +741,7 @@ npm run typecheck
 ### 8.3 Запустить Electron (опционально)
 
 ```bash
-npm run dev:electron
+pnpm dev:electron
 ```
 
 Должно открыться Electron окно с приложением.
@@ -738,7 +749,7 @@ npm run dev:electron
 ### 8.4 Проверить линтер
 
 ```bash
-npm run lint
+pnpm lint
 ```
 
 ---
@@ -746,9 +757,9 @@ npm run lint
 ## 📋 Финальный чек-лист
 
 - [ ] Node.js >= 20.0.0 установлен
-- [ ] npm или yarn установлен
+- [ ] pnpm установлен (`npm install -g pnpm`)
 - [ ] Проект инициализирован
-- [ ] Все зависимости установлены (`npm install`)
+- [ ] Все зависимости установлены (`pnpm install`)
 - [ ] `tsconfig.json` настроен с алиасами
 - [ ] `remix.config.js` создан
 - [ ] `vite.config.ts` настроен
@@ -763,8 +774,8 @@ npm run lint
 - [ ] `app/routes/_index.tsx` создан
 - [ ] `.env` файл создан
 - [ ] `.gitignore` обновлен
-- [ ] `npm run dev` работает без ошибок
-- [ ] `npm run typecheck` проходит успешно
+- [ ] `pnpm dev` работает без ошибок
+- [ ] `pnpm typecheck` проходит успешно
 - [ ] Браузер отображает тестовую страницу
 - [ ] Tailwind CSS стили применяются
 
@@ -797,7 +808,7 @@ npm run lint
 
 **Решение**: Убедитесь что `vite-tsconfig-paths` установлен:
 ```bash
-npm install --save-dev vite-tsconfig-paths
+pnpm add -D vite-tsconfig-paths
 ```
 
 ### Ошибка: Tailwind стили не применяются
@@ -805,13 +816,13 @@ npm install --save-dev vite-tsconfig-paths
 **Решение**: Проверьте что:
 1. `tailwind.css` импортирован в `root.tsx`
 2. В `tailwind.config.js` правильно указан `content`
-3. Dev сервер перезапущен
+3. Dev сервер перезапущен (`pnpm dev`)
 
 ### Ошибка: TypeScript не видит типы Remix
 
 **Решение**: 
 ```bash
-npm install --save-dev @remix-run/node
+pnpm add -D @remix-run/node
 ```
 
 ### Electron не запускается
@@ -819,7 +830,7 @@ npm install --save-dev @remix-run/node
 **Решение**: Убедитесь что:
 1. В `package.json` указано `"main": "electron/main.ts"`
 2. Dev сервер Remix запущен на порту 5173
-3. Установлен `wait-on` и `concurrently`
+3. Установлен `wait-on` и `concurrently`: `pnpm add -D wait-on concurrently`
 
 ---
 

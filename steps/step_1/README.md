@@ -75,10 +75,75 @@ export type FieldId = string
 export type DateTime = string // ISO 8601
 ```
 
-#### 1.2 Создать Value Object: ResourceId
+#### 1.2 Создать переиспользуемые инварианты (Shared Kernel)
+
+> **📚 Детали**: [docs/INVARIANTS.md](../../docs/INVARIANTS.md) — Полное описание паттерна Invariants
+
+**Файл: `app/domain/shared/errors/InvariantViolationError.ts`**
+```typescript
+export class InvariantViolationError extends Error {
+  readonly code = 'INVARIANT_VIOLATION'
+  
+  constructor(
+    readonly entityType: string,
+    readonly invariant: string
+  ) {
+    super(`${entityType}: ${invariant}`)
+    this.name = 'InvariantViolationError'
+  }
+}
+```
+
+**Файл: `app/domain/shared/invariants/UuidInvariant.ts`**
+```typescript
+import { InvariantViolationError } from '../errors/InvariantViolationError'
+
+/**
+ * Переиспользуемый инвариант для UUID
+ * UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+ */
+export class UuidInvariant {
+  private static readonly UUID_V4_REGEX = 
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  
+  static ensureValidUuid(value: string, entityType: string): void {
+    if (!value) {
+      throw new InvariantViolationError(entityType, 'UUID cannot be empty')
+    }
+    
+    if (!this.UUID_V4_REGEX.test(value)) {
+      throw new InvariantViolationError(entityType, `Invalid UUID format: ${value}`)
+    }
+  }
+  
+  static isValidUuid(value: string): boolean {
+    return !!value && this.UUID_V4_REGEX.test(value)
+  }
+}
+```
+
+**Файл: `app/domain/shared/index.ts`**
+```typescript
+export { InvariantViolationError } from './errors/InvariantViolationError'
+export { UuidInvariant } from './invariants/UuidInvariant'
+```
+
+**Зачем Shared Kernel?**
+- ✅ DRY — регулярное выражение в одном месте
+- ✅ Переиспользование — можно использовать для `FieldId`, `EntryId`, etc.
+- ✅ Тестируемость — один тест для всех UUID
+- ✅ Изменяемость — изменить regex в одном месте
+
+#### 1.3 Создать Value Object: ResourceId
 
 **Файл: `app/domain/value-objects/ResourceId.ts`**
 ```typescript
+import { UuidInvariant } from '../shared'
+
+/**
+ * Value Object для ID ресурса
+ * Инвариант: должен быть валидным UUID v4
+ */
 export class ResourceId {
   private constructor(private readonly _value: string) {}
   
@@ -87,9 +152,8 @@ export class ResourceId {
   }
   
   static create(value: string): ResourceId {
-    if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
-      throw new Error('Invalid ResourceId format')
-    }
+    // ✅ Используем переиспользуемый инвариант
+    UuidInvariant.ensureValidUuid(value, 'ResourceId')
     return new ResourceId(value)
   }
   
@@ -137,7 +201,7 @@ export class Namespace {
 - Невозможность создать невалидный Namespace
 - Бизнес-логика в одном месте
 
-#### 1.4 Создать Value Object: ResourceName
+#### 1.5 Создать Value Object: ResourceName
 
 **Файл: `app/domain/value-objects/ResourceName.ts`**
 ```typescript
@@ -857,6 +921,12 @@ export default function Index() {
 ```
 app/
 ├── domain/
+│   ├── shared/                       # ← Shared Kernel (переиспользуемые инварианты)
+│   │   ├── errors/
+│   │   │   └── InvariantViolationError.ts
+│   │   ├── invariants/
+│   │   │   └── UuidInvariant.ts
+│   │   └── index.ts
 │   ├── value-objects/               # ← Value Objects
 │   │   ├── ResourceId.ts
 │   │   ├── Namespace.ts

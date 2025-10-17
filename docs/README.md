@@ -5,6 +5,7 @@
 ### 🚀 Начало работы
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Руководство по началу разработки
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта, архитектурные границы и правила импорта
+- **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, Application Services, DI Container (Remix специфика)
 
 ### 📘 Концепты (`concepts/`)
 Концептуальные документы и архитектурное видение проекта.
@@ -29,10 +30,11 @@
 1. `concepts/THEORETICAL_CONCEPT.md` - Общая идея
 2. `concepts/ARCHITECTURE_DESIGN.md` - Архитектура
 3. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
-4. `contracts/domain-types.md` - Типы предметной области
-5. `contracts/system-interfaces.md` - Интерфейсы систем
-6. `contracts/api-contracts.md` - API контракты
-7. `contracts/events.md` - События системы
+4. `DATA_FLOW.md` - Работа с данными (Application Services, DI Container)
+5. `contracts/domain-types.md` - Типы предметной области
+6. `contracts/system-interfaces.md` - Интерфейсы систем
+7. `contracts/api-contracts.md` - API контракты
+8. `contracts/events.md` - События системы
 
 ## Технический стек
 

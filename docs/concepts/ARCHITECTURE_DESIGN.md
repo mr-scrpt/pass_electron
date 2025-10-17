@@ -290,20 +290,15 @@ export const MOCK_NAMESPACES: Namespace[] = [
 
 ### Dependency Injection
 
-Выбор реализации Repository происходит на уровне Application:
+Все зависимости управляются через **DI Container** (Composition Root pattern).
 
-```typescript
-// app/root.tsx или initialization
-const USE_MOCKS = process.env.USE_MOCKS === 'true'
+> **📘 Детальное описание Dependency Injection, Application Services и работы с данными см. в [DATA_FLOW.md](../DATA_FLOW.md)**
 
-const resourceRepository: IResourceRepository = USE_MOCKS
-  ? new MockResourceRepository(MOCK_RESOURCES)
-  : new ApiResourceRepository(apiClient)
-
-const namespaceRepository: INamespaceRepository = USE_MOCKS
-  ? new MockNamespaceRepository(MOCK_NAMESPACES)
-  : new ApiNamespaceRepository(apiClient)
-```
+**Ключевые принципы**:
+- Единая точка управления зависимостями (DI Container)
+- Application Services координируют Use Cases
+- Presentation Layer не знает о деталях Infrastructure
+- Легкое переключение Mock ↔ Real API через конфигурацию
 
 ### Преимущества подхода
 
@@ -312,6 +307,7 @@ const namespaceRepository: INamespaceRepository = USE_MOCKS
 3. **Тестируемость** — легко тестировать с предсказуемыми данными
 4. **Гибкость** — легко переключаться между моками и реальным API
 5. **Соблюдение контрактов** — моки и API используют одинаковые интерфейсы
+6. **Изоляция слоев** — четкое разделение ответственности через Application Services
 
 ---
 

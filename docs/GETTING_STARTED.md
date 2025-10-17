@@ -131,7 +131,13 @@
 
 ### Этап 3: Application Layer
 
-**3.1. Use Cases**
+> **📘 Детали работы с Application Services и DI см. в [DATA_FLOW.md](./DATA_FLOW.md)**
+
+**3.1. Application Services**
+- [ ] ResourceService
+- [ ] Настроить DI Container
+
+**3.2. Use Cases**
 - [ ] CreateResourceUseCase
 - [ ] UpdateResourceUseCase
 - [ ] DeleteResourceUseCase

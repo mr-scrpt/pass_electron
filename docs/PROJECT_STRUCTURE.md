@@ -75,7 +75,7 @@ app/domain/
 
 ### 2. Application Layer (`app/application/`)
 
-**Назначение**: Оркестрация бизнес-логики, Use Cases.
+**Назначение**: Оркестрация бизнес-логики, Use Cases, Application Services.
 
 ```
 app/application/
@@ -87,14 +87,16 @@ app/application/
 │   ├── DeleteResource/
 │   └── ListResources/
 └── services/              # Application Services
-    └── ResourceService.ts
+    ├── ResourceService.ts
+    └── index.ts
 ```
 
 **Характеристики**:
 - Зависит только от Domain Layer
-- Координирует доменные объекты
-- Управляет транзакциями
+- **Application Services** - координируют Use Cases, управляют транзакциями
+- **Use Cases** - содержат бизнес-логику конкретных операций
 - Обрабатывает команды и запросы
+- Предоставляет высокоуровневый API для Presentation Layer
 
 ### 3. Core Systems (`app/core/`)
 
@@ -142,6 +144,9 @@ app/core/
 
 ```
 app/infrastructure/
+├── di/                    # Dependency Injection
+│   ├── container.ts       # DI Container (Composition Root)
+│   └── index.ts
 ├── api/                   # API Client
 │   ├── client.ts          # HTTP Client
 │   ├── ResourceApiClient.ts
@@ -169,6 +174,7 @@ app/infrastructure/
 - Реализует интерфейсы из Domain Layer
 - НЕ содержит бизнес-логику
 - Адаптирует внешние системы
+- **DI Container** - единая точка управления зависимостями (Composition Root)
 - Переключение Mock ↔ Real через конфигурацию
 
 ### 5. Presentation Layer (`app/routes/`, `app/components/`)
@@ -359,6 +365,12 @@ export { ListResourcesUseCase } from './ListResources/ListResourcesUseCase'
 export type { CreateResourceCommand, UpdateResourceCommand } from './types'
 ```
 
+```typescript
+// app/application/services/index.ts
+export { ResourceService } from './ResourceService'
+export type { ListResourcesQuery } from './ResourceService'
+```
+
 ### Infrastructure Layer
 
 ```typescript
@@ -368,6 +380,13 @@ export * from './repositories'
 export * from './event-bus'
 export * from './storage'
 export * from './clipboard'
+export * from './di'
+```
+
+```typescript
+// app/infrastructure/di/index.ts
+export { getResourceService } from './container'
+export { resetContainer } from './container' // Для тестов
 ```
 
 ```typescript
@@ -434,23 +453,31 @@ const keymap: Keymap = {
 }
 ```
 
-### 3. Presentation → Application через Use Cases
+### 3. Presentation → Application Service → Use Cases
 
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
-// В React компоненте
-import { resourceRepository } from '~/infrastructure/repositories'
+// В Route Loader
+import { MockResourceRepository } from '~/infrastructure/repositories'
+import { ListResourcesUseCase } from '~/application/use-cases'
 
-const resource = await resourceRepository.save(data)  // ❌
+export async function loader() {
+  const repository = new MockResourceRepository()  // ❌ Прямая зависимость
+  const useCase = new ListResourcesUseCase(repository)
+  return json({ data: await useCase.execute() })
+}
 ```
 
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
-// В React компоненте
-import { CreateResourceUseCase } from '~/application/use-cases'
+// В Route Loader
+import { getResourceService } from '~/infrastructure/di/container'
 
-const useCase = new CreateResourceUseCase(resourceRepository)
-const result = await useCase.execute(command)  // ✅
+export async function loader() {
+  const service = getResourceService()  // ✅ Через DI Container
+  const data = await service.listResources()
+  return json({ data })
+}
 ```
 
 ### 4. Domain Layer изолирован
@@ -492,39 +519,39 @@ export * from './api'
 
 ## Примеры правильного использования
 
-### Пример 1: Создание ресурса из UI
+### Пример 1: Получение данных через Application Service
 
 ```typescript
-// app/routes/resources.new.tsx
-import { useLoaderData, Form } from '@remix-run/react'
-import { useNotification } from '~/hooks'
-import { CreateResourceUseCase } from '~/application/use-cases'
-import { resourceRepository } from '~/infrastructure/repositories'
+// app/routes/_index.tsx
+import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+import { getResourceService } from '~/infrastructure/di/container'
+import { ResourceList } from '~/components/ResourceList'
 
-export default function NewResource() {
-  const { notify } = useNotification()
+/**
+ * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
+ * Loader выполняется ТОЛЬКО на сервере
+ */
+export async function loader({ request }: LoaderFunctionArgs) {
+  // 1. Получаем сервис из DI Container
+  const resourceService = getResourceService()
   
-  const handleSubmit = async (data: FormData) => {
-    // 1. Создаем Use Case с зависимостями
-    const useCase = new CreateResourceUseCase(resourceRepository)
-    
-    // 2. Выполняем команду
-    const result = await useCase.execute({
-      namespace: data.get('namespace'),
-      name: data.get('name'),
-      secretValue: data.get('secret')
-    })
-    
-    // 3. Обрабатываем результат
-    if (result.success) {
-      notify.success('Resource created')
-      // Event Bus автоматически уведомит другие системы
-    } else {
-      notify.error(result.error.message)
-    }
-  }
+  // 2. Вызываем метод сервиса
+  const resources = await resourceService.listResources()
   
-  return <Form onSubmit={handleSubmit}>...</Form>
+  // 3. Возвращаем данные
+  return json({ resources })
+}
+
+/**
+ * ✅ КЛИЕНТСКИЙ КОМПОНЕНТ (+ SSR)
+ * Выполняется на сервере (SSR) и клиенте (hydration)
+ */
+export default function Index() {
+  // Получаем данные из loader
+  const { resources } = useLoaderData<typeof loader>()
+  
+  return <ResourceList resources={resources} />
 }
 ```
 
@@ -703,6 +730,7 @@ const { mode, enterEditingMode } = useModal()
 ## См. также
 
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
+- [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
 - [Architecture Design](./concepts/ARCHITECTURE_DESIGN.md) - Детальная архитектура
 - [System Interfaces](./contracts/system-interfaces.md) - Интерфейсы систем
 - [Domain Types](./contracts/domain-types.md) - Доменные типы

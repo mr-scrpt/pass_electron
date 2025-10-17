@@ -49,6 +49,8 @@ MockRepository → Use Case → Remix Loader → React Component → UI
 
 ## 🔄 Порядок реализации
 
+> **📘 Важно**: Перед началом ознакомьтесь с [DATA_FLOW.md](../../docs/DATA_FLOW.md) для понимания работы с данными в Remix + Clean Architecture
+
 ### Этап 1: Domain Layer (Типы и интерфейсы)
 
 Domain Layer - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
@@ -301,11 +303,71 @@ export { MockResourceRepository } from './MockResourceRepository'
 
 ---
 
-### Этап 3: Application Layer (Use Case)
+### Этап 3: Application Layer (Application Service + Use Case)
 
-Application Layer оркеструет бизнес-логику через Use Cases.
+Application Layer содержит:
+- **Application Services** - координируют Use Cases, управляют транзакциями
+- **Use Cases** - содержат бизнес-логику конкретных операций
 
-#### 3.1 Создать Use Case для получения списка
+#### 3.1 Создать Application Service
+
+**Файл: `app/application/services/ResourceService.ts`**
+```typescript
+import type { IResourceRepository } from '~/domain/repositories'
+import { ListResourcesUseCase } from '~/application/use-cases'
+import type { ResourceListItem } from '~/domain/resource'
+
+/**
+ * Query для списка ресурсов
+ */
+export interface ListResourcesQuery {
+  namespace?: string
+  search?: string
+}
+
+/**
+ * Application Service для работы с ресурсами
+ * 
+ * Ответственность:
+ * - Координация Use Cases
+ * - Управление транзакциями (в будущем)
+ * - Высокоуровневый API для Presentation Layer
+ */
+export class ResourceService {
+  constructor(private resourceRepository: IResourceRepository) {}
+  
+  /**
+   * Получить список ресурсов
+   */
+  async listResources(query?: ListResourcesQuery): Promise<ResourceListItem[]> {
+    const useCase = new ListResourcesUseCase(this.resourceRepository)
+    return await useCase.execute(query)
+  }
+  
+  /**
+   * Получить ресурс по ID
+   */
+  async getResourceById(id: string): Promise<ResourceListItem | null> {
+    return await this.resourceRepository.findById(id)
+  }
+}
+```
+
+**Зачем Application Service?**
+- Скрывает детали композиции Use Cases от UI
+- Единая точка для координации операций
+- Легко добавить транзакции, логирование, кеширование
+- Изоляция Presentation от Infrastructure
+
+#### 3.2 Создать Public API для Application Service
+
+**Файл: `app/application/services/index.ts`**
+```typescript
+export { ResourceService } from './ResourceService'
+export type { ListResourcesQuery } from './ResourceService'
+```
+
+#### 3.3 Создать Use Case для получения списка
 
 **Файл: `app/application/use-cases/ListResources/ListResourcesUseCase.ts`**
 ```typescript
@@ -341,13 +403,13 @@ export class ListResourcesUseCase {
 }
 ```
 
-**Зачем Use Case для простого вызова?**
-- Единая точка входа для бизнес-логики
+**Зачем Use Case если есть Application Service?**
+- Use Case содержит конкретную бизнес-операцию
+- Application Service координирует несколько Use Cases
 - Легко добавить логику (сортировка, фильтрация)
-- Тестируемость
-- Независимость от UI
+- Тестируемость каждой операции отдельно
 
-#### 3.2 Создать Public API для Use Case
+#### 3.4 Создать Public API для Use Case
 
 **Файл: `app/application/use-cases/ListResources/index.ts`**
 ```typescript
@@ -355,7 +417,7 @@ export { ListResourcesUseCase } from './ListResourcesUseCase'
 export type { ListResourcesQuery } from './ListResourcesUseCase'
 ```
 
-#### 3.3 Создать общий Public API для use-cases
+#### 3.5 Создать общий Public API для use-cases
 
 **Файл: `app/application/use-cases/index.ts`**
 ```typescript
@@ -365,11 +427,84 @@ export type { ListResourcesQuery } from './ListResources'
 
 ---
 
-### Этап 4: Presentation Layer (UI)
+### Этап 4: Infrastructure Layer (DI Container)
+
+Infrastructure Layer управляет зависимостями через DI Container.
+
+#### 4.1 Создать DI Container (Composition Root)
+
+**Файл: `app/infrastructure/di/container.ts`**
+```typescript
+import { MockResourceRepository } from '~/infrastructure/repositories'
+import { ResourceService } from '~/application/services/ResourceService'
+import type { IResourceRepository } from '~/domain/repositories'
+
+/**
+ * DI Container - единая точка управления зависимостями
+ * Паттерн: Composition Root
+ * 
+ * Все зависимости создаются здесь, а не в UI слое
+ */
+class ServiceContainer {
+  private static resourceService: ResourceService | null = null
+  
+  /**
+   * Получить ResourceService (Singleton)
+   */
+  static getResourceService(): ResourceService {
+    if (!this.resourceService) {
+      const repository = this.createResourceRepository()
+      this.resourceService = new ResourceService(repository)
+    }
+    return this.resourceService
+  }
+  
+  /**
+   * Создать Repository (Mock или Real)
+   * В будущем здесь будет переключение через env
+   */
+  private static createResourceRepository(): IResourceRepository {
+    // Пока используем только Mock
+    // В будущем: process.env.USE_MOCK === 'true' ? Mock : Real
+    return new MockResourceRepository()
+  }
+  
+  /**
+   * Сброс контейнера (для тестов)
+   */
+  static reset(): void {
+    this.resourceService = null
+  }
+}
+
+// Фабричные функции для удобства
+export const getResourceService = () => ServiceContainer.getResourceService()
+
+// Для тестов
+export const resetContainer = () => ServiceContainer.reset()
+```
+
+**Зачем DI Container?**
+- Единая точка управления всеми зависимостями
+- Легко переключать Mock ↔ Real API
+- Presentation Layer не знает о деталях реализации
+- Легко тестировать (можно создать тестовый контейнер)
+
+#### 4.2 Создать Public API для DI Container
+
+**Файл: `app/infrastructure/di/index.ts`**
+```typescript
+export { getResourceService } from './container'
+export { resetContainer } from './container'
+```
+
+---
+
+### Этап 5: Presentation Layer (UI)
 
 Presentation Layer отвечает за отображение данных пользователю.
 
-#### 4.1 Создать компонент ResourceListItem
+#### 5.1 Создать компонент ResourceListItem
 
 **Файл: `app/components/ResourceList/ResourceListItem.tsx`**
 ```typescript
@@ -413,7 +548,7 @@ export function ResourceListItem({ resource }: Props) {
 }
 ```
 
-#### 4.2 Создать компонент ResourceList
+#### 5.2 Создать компонент ResourceList
 
 **Файл: `app/components/ResourceList/ResourceList.tsx`**
 ```typescript
@@ -447,7 +582,7 @@ export function ResourceList({ resources }: Props) {
 }
 ```
 
-#### 4.3 Создать Public API для компонентов
+#### 5.3 Создать Public API для компонентов
 
 **Файл: `app/components/ResourceList/index.ts`**
 ```typescript
@@ -455,39 +590,48 @@ export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
 ```
 
-#### 4.4 Создать Remix Route
+#### 5.4 Создать Remix Route
 
 **Файл: `app/routes/_index.tsx`**
 ```typescript
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { ListResourcesUseCase } from '~/application/use-cases'
-import { MockResourceRepository } from '~/infrastructure/repositories'
+import { getResourceService } from '~/infrastructure/di/container'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
- * Loader - серверная функция для загрузки данных
- * Выполняется на сервере перед рендерингом страницы
+ * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
+ * 
+ * Loader выполняется ТОЛЬКО на сервере (Node.js)
+ * НЕ выполняется на клиенте
+ * 
+ * Аналог: getServerSideProps в Next.js Pages Router
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  // 1. Создаем зависимости (Dependency Injection вручную)
-  const repository = new MockResourceRepository()
-  const useCase = new ListResourcesUseCase(repository)
+  // 1. Получаем сервис из DI Container
+  //    Все зависимости управляются в одном месте
+  const resourceService = getResourceService()
   
-  // 2. Выполняем Use Case
-  const resources = await useCase.execute()
+  // 2. Вызываем метод Application Service
+  //    Application Service координирует Use Cases
+  const resources = await resourceService.listResources()
   
-  // 3. Возвращаем данные для клиента
+  // 3. Возвращаем данные (сериализуются в JSON)
   return json({ resources })
 }
 
 /**
- * React Component - клиентская часть
- * Получает данные из loader и отрисовывает UI
+ * ✅ КЛИЕНТСКИЙ КОМПОНЕНТ (+ SSR)
+ * 
+ * Выполняется:
+ * - На сервере при SSR (первый рендер)
+ * - На клиенте после hydration
  */
 export default function Index() {
   // Получаем данные из loader (типизированные)
+  // useLoaderData - это hook для получения данных,
+  // НЕ для фетчинга (данные уже загружены в loader)
   const { resources } = useLoaderData<typeof loader>()
   
   return (
@@ -513,12 +657,27 @@ export default function Index() {
 }
 ```
 
-**Как работает Remix Loader**:
-1. Пользователь заходит на `/`
-2. Remix вызывает `loader()` на сервере
-3. Loader получает данные через Use Case
-4. Данные передаются в компонент
-5. Компонент рендерится с данными
+**Ключевые моменты Remix:**
+
+1. **`loader()` - это СЕРВЕР**, не клиент
+   - Выполняется на Node.js
+   - Имеет доступ к файловой системе, БД, env переменным
+   - Вызывается перед каждым рендерингом страницы
+
+2. **Не путать с Next.js**
+   - В Next.js: `'use server'` / `'use client'` (explicit)
+   - В Remix: convention-based (по имени функции)
+
+3. **Зачем Application Service?**
+   - Loader НЕ создает репозитории напрямую
+   - Loader получает готовый сервис из DI Container
+   - Presentation Layer изолирован от Infrastructure
+
+4. **Type Safety**
+   - `useLoaderData<typeof loader>()` - полная типизация
+   - TypeScript знает структуру данных
+
+**Детали см. в [DATA_FLOW.md](../../docs/DATA_FLOW.md)**
 
 ---
 
@@ -540,6 +699,9 @@ app/
 │       └── index.ts
 │
 ├── infrastructure/
+│   ├── di/                          # ← НОВОЕ: DI Container
+│   │   ├── container.ts
+│   │   └── index.ts
 │   ├── mocks/
 │   │   ├── resources.mock.ts
 │   │   └── index.ts
@@ -548,6 +710,9 @@ app/
 │       └── index.ts
 │
 ├── application/
+│   ├── services/                     # ← НОВОЕ: Application Services
+│   │   ├── ResourceService.ts
+│   │   └── index.ts
 │   └── use-cases/
 │       ├── ListResources/
 │       │   ├── ListResourcesUseCase.ts
@@ -582,8 +747,12 @@ app/
 - [ ] Создать `app/infrastructure/mocks/index.ts`
 - [ ] Создать `app/infrastructure/repositories/MockResourceRepository.ts`
 - [ ] Создать `app/infrastructure/repositories/index.ts`
+- [ ] Создать `app/infrastructure/di/container.ts` **← НОВОЕ**
+- [ ] Создать `app/infrastructure/di/index.ts` **← НОВОЕ**
 
 ### Application Layer
+- [ ] Создать `app/application/services/ResourceService.ts` **← НОВОЕ**
+- [ ] Создать `app/application/services/index.ts` **← НОВОЕ**
 - [ ] Создать `app/application/use-cases/ListResources/ListResourcesUseCase.ts`
 - [ ] Создать `app/application/use-cases/ListResources/index.ts`
 - [ ] Создать `app/application/use-cases/index.ts`

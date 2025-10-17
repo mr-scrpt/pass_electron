@@ -474,7 +474,6 @@ mkdir -p app/application/queries/handlers
 mkdir -p app/application/commands
 mkdir -p app/application/commands/handlers
 mkdir -p app/application/ports
-mkdir -p app/application/services
 mkdir -p app/infrastructure/api
 mkdir -p app/infrastructure/repositories
 mkdir -p app/infrastructure/queries
@@ -520,13 +519,12 @@ app/
 │   ├── repositories/          # Repository Interfaces
 │   ├── services/              # Domain Services
 │   └── events/                # Domain Events
-├── application/               # Application Layer
+├── application/               # Application Layer (CQRS)
 │   ├── queries/               # Query (CQRS - Read)
 │   │   └── handlers/
 │   ├── commands/              # Commands (CQRS - Write)
 │   │   └── handlers/
-│   ├── ports/                 # Ports (Interfaces)
-│   └── services/              # Application Services
+│   └── ports/                 # Ports (Hexagonal Architecture)
 ├── infrastructure/            # Infrastructure Layer
 │   ├── api/                   # API Client
 │   ├── repositories/          # Repository Implementations

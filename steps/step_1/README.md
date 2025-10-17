@@ -517,20 +517,7 @@ export { InMemoryQueryBus } from './InMemoryQueryBus'
 
 Composition Root связывает все слои через декомпозированную структуру.
 
-#### 5.1 Создать Environment константы
-
-**Файл: `app/composition/config/Environment.ts`**
-```typescript
-export const Environment = {
-  WEB: 'web',
-  CLI: 'cli',
-  DESKTOP: 'desktop'
-} as const
-
-export type EnvironmentType = typeof Environment[keyof typeof Environment]
-```
-
-#### 5.2 Создать ResourceModule
+#### 5.1 Создать ResourceModule
 
 **Файл: `app/composition/modules/ResourceModule.ts`**
 ```typescript
@@ -568,46 +555,60 @@ export class ResourceModule {
 }
 ```
 
-#### 5.3 Создать ServiceContainer (координатор)
+#### 5.2 Создать ServiceContainer (упрощенная версия для Шага 1)
 
 **Файл: `app/composition/ServiceContainer.ts`**
 ```typescript
 import { InMemoryQueryBus } from '~/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
-import { Environment, type EnvironmentType } from './config/Environment'
 import type { IQueryBus } from '~/application/queries'
 
 /**
  * Root DI Container - координирует все модули
+ * 
+ * Примечание: В будущем (когда добавим Request Parser для Multi-UI)
+ * будет принимать адаптеры через initialize(adapters).
+ * Пока упрощенная версия для Шага 1.
  */
 export class ServiceContainer {
   private static queryBus: IQueryBus | null = null
-  private static environment: EnvironmentType = Environment.WEB
+  private static initialized = false
   
-  static setEnvironment(env: EnvironmentType): void {
-    this.environment = env
+  /**
+   * Инициализация контейнера
+   * В Шаге 1 - без параметров (только Query Bus)
+   * В будущих шагах - будет принимать адаптеры (requestParser, clipboard и т.д.)
+   */
+  static initialize(): void {
+    if (this.initialized) return
+    
+    const bus = new InMemoryQueryBus()
+    
+    // Регистрируем handlers из модулей
+    ResourceModule.registerQueryHandlers(bus)
+    
+    this.queryBus = bus
+    this.initialized = true
   }
   
   static getQueryBus(): IQueryBus {
-    if (!this.queryBus) {
-      const bus = new InMemoryQueryBus()
-      
-      // Регистрируем handlers из модулей
-      ResourceModule.registerQueryHandlers(bus)
-      
-      this.queryBus = bus
+    if (!this.initialized) {
+      // Auto-initialize для удобства в Шаге 1
+      // В production коде лучше бросать ошибку
+      this.initialize()
     }
-    return this.queryBus
+    return this.queryBus!
   }
   
   static reset(): void {
     this.queryBus = null
+    this.initialized = false
     ResourceModule.reset()
   }
 }
 ```
 
-#### 5.4 Создать Query Facade
+#### 5.3 Создать Query Facade
 
 **Файл: `app/composition/queries/ResourceQueries.ts`**
 ```typescript
@@ -616,15 +617,18 @@ import { ServiceContainer } from '../ServiceContainer'
 
 /**
  * Facade для Resource Queries
- * Упрощает работу с queries в Loaders
+ * Упрощает работу с queries в Loaders (одна строка!)
  */
 export const resourceQueries = {
   /**
    * Получить список ресурсов
    * Facade инкапсулирует создание Query и вызов Query Bus
+   * 
+   * Примечание: В будущем (Шаг 5) будет использовать Request Parser
+   * для парсинга параметров. Пока парсим напрямую из Request.
    */
   async list(request: Request) {
-    // Парсинг request (в будущем будет через Request Parser)
+    // Парсинг request напрямую (в будущем через Request Parser)
     const url = new URL(request.url)
     const namespace = url.searchParams.get('namespace') || undefined
     const search = url.searchParams.get('search') || undefined
@@ -649,13 +653,13 @@ export const queries = {
 }
 ```
 
-#### 5.5 Создать Public API для Composition
+#### 5.4 Создать Public API для Composition
 
 **Файл: `app/composition/index.ts`**
 ```typescript
 export { queries } from './queries'
 export { ServiceContainer } from './ServiceContainer'
-export { Environment, type EnvironmentType } from './config/Environment'
+// В будущих шагах здесь появятся commands и другие exports
 ```
 
 **Зачем такая декомпозиция?**
@@ -887,14 +891,12 @@ app/
 │       └── index.ts
 │
 ├── composition/                      # ← Composition Root (DI)
-│   ├── config/
-│   │   └── Environment.ts            # ← Константы окружений
 │   ├── modules/
 │   │   └── ResourceModule.ts         # ← DI Module для Resource
 │   ├── queries/
 │   │   ├── ResourceQueries.ts        # ← Query Facade
 │   │   └── index.ts
-│   ├── ServiceContainer.ts           # ← Root Container
+│   ├── ServiceContainer.ts           # ← Root Container (упрощенный для Шага 1)
 │   └── index.ts
 │
 ├── components/
@@ -938,9 +940,8 @@ app/
 - [ ] Создать `app/infrastructure/queries/index.ts`
 
 ### Composition Root (DI + Facades)
-- [ ] Создать `app/composition/config/Environment.ts`
 - [ ] Создать `app/composition/modules/ResourceModule.ts`
-- [ ] Создать `app/composition/ServiceContainer.ts`
+- [ ] Создать `app/composition/ServiceContainer.ts` (с initialize(), без setEnvironment)
 - [ ] Создать `app/composition/queries/ResourceQueries.ts`
 - [ ] Создать `app/composition/queries/index.ts`
 - [ ] Создать `app/composition/index.ts`

@@ -616,19 +616,71 @@ type EventHandler<T extends DomainEvent> = (event: T) => void | Promise<void>
 
 ---
 
-## Use Cases (Application Layer)
+## CQRS Handlers (Application Layer)
 
-### Resource Management Use Cases
+### Query Handlers (Read)
 
 ```typescript
 /**
- * Use Case: Создать ресурс
+ * Query Handler: Получить список ресурсов
  */
-interface ICreateResourceUseCase {
-  execute(command: CreateResourceCommand): Promise<Result<Resource, DomainError>>
+interface IListResourcesQueryHandler {
+  handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>>
+}
+
+interface ListResourcesQuery {
+  readonly type: 'ListResourcesQuery'
+  namespace?: string
+  search?: string
+}
+
+interface ResourceListItemDTO {
+  id: string
+  namespace: string
+  name: string
+  fieldsCount: number
+  updatedAt: Date
+}
+
+/**
+ * Query Handler: Получить детали ресурса
+ */
+interface IGetResourceByIdQueryHandler {
+  handle(query: GetResourceByIdQuery): Promise<QueryResult<ResourceDetailDTO | null>>
+}
+
+interface GetResourceByIdQuery {
+  readonly type: 'GetResourceByIdQuery'
+  resourceId: string
+}
+
+interface ResourceDetailDTO {
+  id: string
+  namespace: string
+  name: string
+  secret: string
+  customFields: Array<{
+    id: string
+    label: string
+    value: string
+  }>
+  createdAt: Date
+  updatedAt: Date
+}
+```
+
+### Command Handlers (Write)
+
+```typescript
+/**
+ * Command Handler: Создать ресурс
+ */
+interface ICreateResourceCommandHandler {
+  handle(command: CreateResourceCommand): Promise<CommandResult<{ id: string }>>
 }
 
 interface CreateResourceCommand {
+  readonly type: 'CreateResourceCommand'
   namespace: string
   name: string
   secretValue: string
@@ -636,88 +688,84 @@ interface CreateResourceCommand {
 }
 
 /**
- * Use Case: Обновить ресурс
+ * Command Handler: Обновить ресурс
  */
-interface IUpdateResourceUseCase {
-  execute(command: UpdateResourceCommand): Promise<Result<Resource, DomainError>>
+interface IUpdateResourceCommandHandler {
+  handle(command: UpdateResourceCommand): Promise<CommandResult<void>>
 }
 
 interface UpdateResourceCommand {
-  resourceId: ResourceId
+  readonly type: 'UpdateResourceCommand'
+  resourceId: string
   name?: string
   namespace?: string
 }
 
 /**
- * Use Case: Добавить кастомное поле
+ * Command Handler: Добавить кастомное поле
  */
-interface IAddCustomFieldUseCase {
-  execute(command: AddCustomFieldCommand): Promise<Result<CustomField, DomainError>>
+interface IAddCustomFieldCommandHandler {
+  handle(command: AddCustomFieldCommand): Promise<CommandResult<{ fieldId: string }>>
 }
 
 interface AddCustomFieldCommand {
-  resourceId: ResourceId
+  readonly type: 'AddCustomFieldCommand'
+  resourceId: string
   label: string
   value: string
 }
 
 /**
- * Use Case: Обновить поле
+ * Command Handler: Обновить поле
  */
-interface IUpdateFieldUseCase {
-  execute(command: UpdateFieldCommand): Promise<Result<void, DomainError>>
+interface IUpdateFieldCommandHandler {
+  handle(command: UpdateFieldCommand): Promise<CommandResult<void>>
 }
 
 interface UpdateFieldCommand {
-  resourceId: ResourceId
-  fieldId: FieldId
+  readonly type: 'UpdateFieldCommand'
+  resourceId: string
+  fieldId: string
   value: string
 }
 
 /**
- * Use Case: Удалить кастомное поле
+ * Command Handler: Удалить кастомное поле
  */
-interface IDeleteCustomFieldUseCase {
-  execute(command: DeleteCustomFieldCommand): Promise<Result<void, DomainError>>
+interface IDeleteCustomFieldCommandHandler {
+  handle(command: DeleteCustomFieldCommand): Promise<CommandResult<void>>
 }
 
 interface DeleteCustomFieldCommand {
-  resourceId: ResourceId
-  fieldId: FieldId
+  readonly type: 'DeleteCustomFieldCommand'
+  resourceId: string
+  fieldId: string
 }
 
 /**
- * Use Case: Удалить ресурс
+ * Command Handler: Удалить ресурс
  */
-interface IDeleteResourceUseCase {
-  execute(command: DeleteResourceCommand): Promise<Result<void, DomainError>>
+interface IDeleteResourceCommandHandler {
+  handle(command: DeleteResourceCommand): Promise<CommandResult<void>>
 }
 
 interface DeleteResourceCommand {
-  resourceId: ResourceId
+  readonly type: 'DeleteResourceCommand'
+  resourceId: string
 }
 
 /**
- * Use Case: Получить список ресурсов
+ * Общие типы результатов
  */
-interface IListResourcesUseCase {
-  execute(query: ListResourcesQuery): Promise<Result<ResourceListItem[], DomainError>>
+interface QueryResult<T> {
+  data: T
+  error?: string
 }
 
-interface ListResourcesQuery {
-  namespace?: string
-  search?: string
-}
-
-/**
- * Use Case: Получить детали ресурса
- */
-interface IGetResourceUseCase {
-  execute(query: GetResourceQuery): Promise<Result<Resource, DomainError>>
-}
-
-interface GetResourceQuery {
-  resourceId: ResourceId
+interface CommandResult<T = void> {
+  data?: T
+  error?: string
+  success: boolean
 }
 ```
 

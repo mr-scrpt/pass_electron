@@ -134,20 +134,24 @@
 
 ### Этап 3: Application Layer
 
-> **📘 Детали работы с Application Services и DI см. в [DATA_FLOW.md](./DATA_FLOW.md)**
+> **📘 Детали работы с CQRS Handlers и DI см. в [DATA_FLOW.md](./DATA_FLOW.md)**
 
-**3.1. Application Services**
-- [ ] ResourceService
-- [ ] Настроить DI Container
+**3.1. DI Container**
+- [ ] Настроить DI Container (ServiceContainer с Modules)
+- [ ] Настроить Query Bus и Command Bus
 
-**3.2. Use Cases**
-- [ ] CreateResourceUseCase
-- [ ] UpdateResourceUseCase
-- [ ] DeleteResourceUseCase
-- [ ] ListResourcesUseCase
-- [ ] GetResourceUseCase
-- [ ] AddCustomFieldUseCase
-- [ ] UpdateFieldUseCase
+**3.2. Query Handlers (CQRS - Read)**
+- [ ] ListResourcesQueryHandler
+- [ ] GetResourceByIdQueryHandler
+- [ ] Query Bus (InMemoryQueryBus)
+
+**3.3. Command Handlers (CQRS - Write)**
+- [ ] CreateResourceCommandHandler
+- [ ] UpdateResourceCommandHandler
+- [ ] DeleteResourceCommandHandler
+- [ ] AddCustomFieldCommandHandler
+- [ ] UpdateFieldCommandHandler
+- [ ] Command Bus (InMemoryCommandBus)
 - [ ] Написать integration тесты
 
 ---

@@ -5,7 +5,7 @@
 ## Содержание
 
 1. [Remix: Server vs Client](#remix-server-vs-client)
-2. [Application Services Layer](#application-services-layer)
+2. [CQRS + Facades](#cqrs--facades)
 3. [Dependency Injection](#dependency-injection)
 4. [Полный поток данных](#полный-поток-данных)
 5. [Паттерны работы с данными](#паттерны-работы-с-данными)
@@ -48,11 +48,9 @@ export async function loader({ request }) {
 
 ---
 
-## Application Services Layer
+## CQRS + Facades
 
-### Зачем нужен Application Service?
-
-**Проблема без Application Service:**
+**Проблема без Facades:**
 
 ```typescript
 // ❌ ПЛОХО: Route Handler знает о деталях реализации
@@ -70,34 +68,34 @@ export async function loader() {
 - Невозможно легко переключить Mock ↔ Real API
 - Дублирование кода композиции зависимостей
 
-### Решение: Application Service
+### Решение: CQRS + Facades
 
-Application Service - это **координатор Use Cases**, который:
-- Инкапсулирует композицию зависимостей
-- Управляет транзакциями (в будущем)
-- Предоставляет высокоуровневый API для UI
-- Скрывает детали реализации от Presentation Layer
+Мы используем **CQRS паттерн + Facade Pattern** для упрощения Presentation Layer:
 
-### Архитектура с Application Service
+- **Query Handlers** - обрабатывают чтение данных (CQRS - Read)
+- **Command Handlers** - обрабатывают запись данных (CQRS - Write)
+- **Facades** - предоставляют простой API для UI (queries.resources.list())
+- **Request Parser** - парсит платформенно-специфичные запросы в DTO
+
+### Архитектура с CQRS + Facades
 
 ```
 ┌─────────────────────────────────────────────────┐
 │  Presentation Layer (Route Handler)              │
 │  - loader() / action()                           │
-│  - Вызывает Application Service                 │
+│  - Вызывает Facade (queries/commands)           │
 └────────────┬────────────────────────────────────┘
              ↓
 ┌────────────┴────────────────────────────────────┐
-│  Application Service                             │
-│  - ResourceService                               │
-│  - Координация Use Cases                        │
-│  - Высокоуровневый API                          │
+│  Composition Layer (Facades)                     │
+│  - queries.resources.list(request)               │
+│  - Парсит request → создает Query → вызывает Bus│
 └────────────┬────────────────────────────────────┘
              ↓
 ┌────────────┴────────────────────────────────────┐
-│  Use Cases                                       │
-│  - ListResourcesUseCase                          │
-│  - CreateResourceUseCase                         │
+│  Application Layer (Query/Command Handlers)      │
+│  - ListResourcesQueryHandler                     │
+│  - CreateResourceCommandHandler                  │
 └────────────┬────────────────────────────────────┘
              ↓
 ┌────────────┴────────────────────────────────────┐
@@ -125,169 +123,172 @@ Application Service - это **координатор Use Cases**, которы�
 **Файл: `app/composition/ServiceContainer.ts`**
 
 ```typescript
-import { MockResourceRepository } from '~/infrastructure/repositories'
 import { InMemoryQueryBus } from '~/infrastructure/queries'
-import { ResourceService } from '~/application/services/ResourceService'
-import { ListResourcesQueryHandler } from '~/application/queries/handlers'
-import type { IResourceRepository } from '~/domain/repositories'
-import type { IQueryBus } from '~/application/queries'
+import { ResourceModule } from './modules/ResourceModule'
+import type { IQueryBus, IRequestParser } from '~/application'
+import type { IClipboardService } from '~/application/ports'
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
+ * ✅ НЕ знает о конкретных адаптерах (Web/CLI/Desktop)
+ * ✅ Принимает готовые реализации при инициализации
  */
 class ServiceContainer {
-  private static resourceService: ResourceService | null = null
   private static queryBus: IQueryBus | null = null
+  private static requestParser: IRequestParser | null = null
+  private static initialized = false
 
-  static getResourceService(): ResourceService {
-    if (!this.resourceService) {
-      const repository: IResourceRepository = new MockResourceRepository()
-      this.resourceService = new ResourceService(repository)
-    }
-    return this.resourceService
+  /**
+   * Инициализация с готовыми адаптерами
+   * ✅ Вызывается ОДИН РАЗ при старте (entry point)
+   */
+  static initialize(adapters: {
+    requestParser: IRequestParser
+    clipboard: IClipboardService
+  }): void {
+    if (this.initialized) return
+    
+    this.requestParser = adapters.requestParser
+    SystemModule.initialize({ clipboard: adapters.clipboard })
+    
+    // Создаем Query Bus и регистрируем handlers
+    const bus = new InMemoryQueryBus()
+    ResourceModule.registerQueryHandlers(bus)
+    this.queryBus = bus
+    
+    this.initialized = true
   }
   
   static getQueryBus(): IQueryBus {
     if (!this.queryBus) {
-      const bus = new InMemoryQueryBus()
-      const resourceService = this.getResourceService()
-      
-      // Регистрируем Query Handlers
-      bus.register('ListResourcesQuery', new ListResourcesQueryHandler(resourceService))
-      
-      this.queryBus = bus
-      return new MockResourceRepository()
-    } else {
-      // В будущем:
-      // return new ApiResourceRepository(apiClient)
-      throw new Error('Real API not implemented yet')
+      throw new Error('ServiceContainer not initialized')
     }
+    return this.queryBus
+  }
+  
+  static getRequestParser(): IRequestParser {
+    if (!this.requestParser) {
+      throw new Error('ServiceContainer not initialized')
+    }
+    return this.requestParser
   }
   
   /**
    * Сброс контейнера (для тестов)
    */
   static reset(): void {
-    this.resourceService = null
+    this.queryBus = null
+    this.requestParser = null
+    this.initialized = false
   }
 }
-
-// Фабричные функции для удобства
-export const getResourceService = () => ServiceContainer.getResourceService()
-
-// Для тестов
-export const resetContainer = () => ServiceContainer.reset()
 ```
 
 **Public API:**
 
 ```typescript
 // app/composition/index.ts
-export { getResourceService, resetContainer } from './ServiceContainer'
+export { queries } from './queries'
+export { commands } from './commands'
+export { ServiceContainer } from './ServiceContainer'
 ```
 
 **Зачем Composition Root?**
-- Единая точка управления всеми зависимостями
-- Знает обо всех слоях и связывает их
-- Легко переключать Mock ↔ Real API
-- Presentation Layer не знает о деталях реализации
-- Легко тестировать (можно создать тестовый контейнер)
-- Не нарушает архитектурные границы (Infrastructure не импортирует Application)
+- ✅ Единая точка управления всеми зависимостями
+- ✅ Принимает готовые адаптеры (НЕ создает их сам)
+- ✅ Легко переключать Mock ↔ Real API (меняем Repository в Module)
+- ✅ Presentation Layer не знает о деталях реализации
+- ✅ Легко тестировать - mock адаптеры при инициализации
+- ✅ Не нарушает архитектурные границы
 
-### Application Service
+### Query Facades (упрощенный API для UI)
 
-**Файл: `app/application/services/ResourceService.ts`**
+**Файл: `app/composition/queries/ResourceQueries.ts`**
 
 ```typescript
-import type { IResourceRepository } from '~/domain/repositories'
-import { ListResourcesUseCase } from '~/application/use-cases'
-import type { ResourceListItem } from '~/domain/resource'
+import { ListResourcesQuery } from '~/application/queries'
+import { ServiceContainer } from '../ServiceContainer'
 
 /**
- * Query для списка ресурсов
+ * Facade для Resource Queries
+ * ✅ Loader в одну строку: queries.resources.list(request)
  */
-export interface ListResourcesQuery {
-  namespace?: string
-  search?: string
-}
-
-/**
- * Application Service для работы с ресурсами
- * 
- * Ответственность:
- * - Координация Use Cases
- * - Управление транзакциями (в будущем)
- * - Высокоуровневый API для Presentation Layer
- */
-export class ResourceService {
-  constructor(private resourceRepository: IResourceRepository) {}
+export const resourceQueries = {
+  async list(request: Request) {
+    // 1. Парсим request (платформо-специфично)
+    const parser = ServiceContainer.getRequestParser()
+    const params = parser.parseListResourcesParams(request)
+    
+    // 2. Создаем Query
+    const query = new ListResourcesQuery(params.namespace, params.search)
+    
+    // 3. Выполняем через Query Bus
+    const queryBus = ServiceContainer.getQueryBus()
+    return queryBus.execute(query)
+  },
   
-  /**
-   * Получить список ресурсов
-   */
-  async listResources(query?: ListResourcesQuery): Promise<ResourceListItem[]> {
-    const useCase = new ListResourcesUseCase(this.resourceRepository)
-    return await useCase.execute(query)
+  async getById(request: Request) {
+    const parser = ServiceContainer.getRequestParser()
+    const params = parser.parseGetResourceByIdParams(request)
+    
+    const query = new GetResourceByIdQuery(params.id)
+    const queryBus = ServiceContainer.getQueryBus()
+    return queryBus.execute(query)
   }
-  
-  /**
-   * Получить ресурс по ID
-   */
-  async getResourceById(id: string): Promise<ResourceListItem | null> {
-    return await this.resourceRepository.findById(id)
-  }
-  
-  /**
-   * В будущем здесь будут методы для:
-   * - createResource()
-   * - updateResource()
-   * - deleteResource()
-   * - addCustomField()
-   * и т.д.
-   */
 }
 ```
 
 **Public API:**
 
 ```typescript
-// app/application/services/index.ts
-export { ResourceService } from './ResourceService'
-export type { ListResourcesQuery } from './ResourceService'
+// app/composition/queries/index.ts
+export { resourceQueries } from './ResourceQueries'
+
+export const queries = {
+  resources: resourceQueries
+}
 ```
 
 ---
 
 ## Полный поток данных
 
-### GET Request (загрузка данных)
+### GET Request (загрузка данных с CQRS)
 
 ```
 1. Browser → GET /
    ↓
 2. Remix вызывает loader() ← СЕРВЕР
    ↓
-3. loader() → getResourceService() ← СЕРВЕР
+3. loader() → queries.resources.list(request) ← СЕРВЕР (Facade)
    ↓
-4. DI Container → new ResourceService(repository) ← СЕРВЕР
+4. Facade → Request Parser (парсит request в DTO) ← СЕРВЕР
    ↓
-5. ResourceService → listResources() ← СЕРВЕР
+5. Facade → создает ListResourcesQuery ← СЕРВЕР
    ↓
-6. ListResourcesUseCase → execute() ← СЕРВЕР
+6. Facade → Query Bus.execute(query) ← СЕРВЕР
    ↓
-7. Repository → findAll() ← СЕРВЕР
+7. Query Bus → находит Handler по типу Query ← СЕРВЕР
    ↓
-8. Mock Data → return data ← СЕРВЕР
+8. ListResourcesQueryHandler → handle(query) ← СЕРВЕР
    ↓
-9. Remix → SSR (рендер React компонента) ← СЕРВЕР
+9. Handler → Repository.findAll() ← СЕРВЕР
    ↓
-10. Browser получает HTML + JSON
+10. Mock Data → return data ← СЕРВЕР
    ↓
-11. React Hydration (компонент оживает) ← КЛИЕНТ
+11. Handler → преобразует в DTO ← СЕРВЕР
    ↓
-12. useLoaderData() → получить данные ← КЛИЕНТ
+12. Handler → return { data, error? } ← СЕРВЕР
    ↓
-13. Рендер UI ← КЛИЕНТ
+13. Remix → SSR (рендер React компонента) ← СЕРВЕР
+   ↓
+14. Browser получает HTML + JSON
+   ↓
+15. React Hydration (компонент оживает) ← КЛИЕНТ
+   ↓
+16. useLoaderData() → получить данные ← КЛИЕНТ
+   ↓
+17. Рендер UI ← КЛИЕНТ
 ```
 
 ### Пример кода
@@ -304,32 +305,26 @@ import { queries } from '~/composition'
  * Вся сложность инкапсулирована в Facade
  */
 export async function loader({ request }: LoaderFunctionArgs) {
-  return queries.listResources(request)
+  return queries.resources.list(request)  // ✅ Одна строка!
 }
 ```
 
 **Что происходит внутри Facade:**
 
 ```typescript
-// app/composition/queries.ts
-export const queries = {
-  async listResources(request: Request) {
+// app/composition/queries/ResourceQueries.ts
+export const resourceQueries = {
+  async list(request: Request) {
     // 1. Парсим request
-    const url = new URL(request.url)
-    const filters = {
-      search: url.searchParams.get('search') || undefined,
-      namespace: url.searchParams.get('namespace') || undefined
-    }
+    const parser = ServiceContainer.getRequestParser()
+    const params = parser.parseListResourcesParams(request)
     
     // 2. Создаем Query
-    const query = new ListResourcesQuery(filters)
+    const query = new ListResourcesQuery(params.namespace, params.search)
     
-    // 3. Выполняем через QueryBus
-    const queryBus = getQueryBus()
-    const result = await queryBus.execute(query)
-    
-    // 4. Возвращаем JSON
-    return json(result)
+    // 3. Выполняем через Query Bus
+    const queryBus = ServiceContainer.getQueryBus()
+    return queryBus.execute(query)
   }
 }
 ```
@@ -339,23 +334,28 @@ export const queries = {
 ```typescript
 // app/application/queries/handlers/ListResourcesQueryHandler.ts
 export class ListResourcesQueryHandler {
-  constructor(private resourceService: ResourceService) {}
+  constructor(private repository: IResourceRepository) {}
   
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceDTO[]>> {
+  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
     try {
-      // Вызываем Application Service
-      const resources = await this.resourceService.listResources(query.filters)
+      // Получаем данные из репозитория
+      const resources = await this.repository.findAll()
       
       // Преобразуем Domain Model → DTO
-      const data = resources.map(r => ({
-        id: r.id.value,
-        namespace: r.namespace.value,
-        name: r.name.value
+      const data: ResourceListItemDTO[] = resources.map(r => ({
+        id: r.id,
+        namespace: r.namespace,
+        name: r.name,
+        fieldsCount: r.customFields.length,
+        updatedAt: r.updatedAt
       }))
       
       return { data }
     } catch (error) {
-      return { data: [], error: 'Failed to load resources' }
+      return { 
+        data: [], 
+        error: error instanceof Error ? error.message : 'Failed to load resources'
+      }
     }
   }
 }
@@ -364,45 +364,51 @@ export class ListResourcesQueryHandler {
 **Клиентский компонент:**
 
 ```typescript
-/**
- * ✅ КЛИЕНТСКИЙ КОМПОНЕНТ (+ SSR)
- * Выполняется на сервере (SSR) и клиенте (hydration)
- */
 export default function Index() {
-  const { data } = useLoaderData<typeof loader>()
-  return <List data={data} />
-  // Получаем данные из loader (типизированные)
-  const { resources } = useLoaderData<typeof loader>()
+  // ✅ useLoaderData типизирован! TypeScript знает структуру
+  const { data, error } = useLoaderData<typeof loader>()
+  
+  if (error) {
+    return <ErrorMessage message={error} />
+  }
   
   return (
     <div>
       <h1>Resources</h1>
-      <ResourceList resources={resources} />
+      <ResourceList resources={data} />
     </div>
   )
 }
 ```
 
-### POST Request (мутации данных)
+### POST Request (мутации данных с Commands)
 
 ```
 1. Browser → Form Submit (POST)
    ↓
 2. Remix вызывает action() ← СЕРВЕР
    ↓
-3. action() → getResourceService() ← СЕРВЕР
+3. action() → commands.resources.create(request) ← СЕРВЕР (Facade)
    ↓
-4. ResourceService → createResource() ← СЕРВЕР
+4. Facade → Request Parser (парсит FormData/JSON в DTO) ← СЕРВЕР
    ↓
-5. CreateResourceUseCase → execute() ← СЕРВЕР
+5. Facade → создает CreateResourceCommand ← СЕРВЕР
    ↓
-6. Repository → save() ← СЕРВЕР
+6. Facade → Command Bus.execute(command) ← СЕРВЕР
    ↓
-7. Event Bus → publish('ResourceCreated') ← СЕРВЕР
+7. Command Bus → находит Handler по типу Command ← СЕРВЕР
    ↓
-8. Redirect или return data ← СЕРВЕР
+8. CreateResourceCommandHandler → handle(command) ← СЕРВЕР
    ↓
-9. Browser → Revalidation (перезагрузка loader)
+9. Handler → Repository.save() ← СЕРВЕР
+   ↓
+10. Handler → Event Bus.publish('ResourceCreated') ← СЕРВЕР
+   ↓
+11. Handler → return { success: true } ← СЕРВЕР
+   ↓
+12. Redirect или return data ← СЕРВЕР
+   ↓
+13. Browser → Revalidation (перезагрузка loader)
 ```
 
 **Пример:**
@@ -410,24 +416,20 @@ export default function Index() {
 ```typescript
 // app/routes/resources.new.tsx
 import { redirect, type ActionFunctionArgs } from '@remix-run/node'
-import { getResourceService } from '~/composition'
+import { commands } from '~/composition'
 
 /**
- * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
- * Обрабатывает POST запросы
+ * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (action для мутаций)
+ * ✅ Одна строка! Facade инкапсулирует всю логику
  */
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const resourceService = getResourceService()
+  const result = await commands.resources.create(request)
   
-  // Вызываем метод создания (в будущем)
-  // await resourceService.createResource({
-  //   namespace: formData.get('namespace'),
-  //   name: formData.get('name'),
-  //   secret: formData.get('secret')
-  // })
+  if (result.error) {
+    return json({ error: result.error }, { status: 400 })
+  }
   
-  return redirect('/')
+  return redirect(`/resources/${result.data.id}`)
 }
 ```
 
@@ -577,27 +579,26 @@ export default function ResourceList() {
    }
    ```
 
-2. **Используй Query Facade для чтения, Application Service для записи**
+2. **Используй Facades для чтения и записи**
    ```typescript
    // ✅ Для чтения (Queries)
    import { queries } from '~/composition'
    export async function loader({ request }) {
-     return queries.listResources(request)
+     return queries.resources.list(request)
    }
    
-   // ✅ Для записи (Commands) - через Application Service
-   import { getResourceService } from '~/composition'
+   // ✅ Для записи (Commands)
+   import { commands } from '~/composition'
    export async function action({ request }) {
-     const service = getResourceService()
-     await service.createResource({ ... })
+     return commands.resources.create(request)
    }
    ```
 
 3. **Composition Root для всех зависимостей**
    ```typescript
    // Все зависимости в одном месте (app/composition/)
-   export const getResourceService = () => 
-     ServiceContainer.getResourceService()
+   export { queries } from './queries'
+   export { commands } from './commands'
    ```
 
 4. **Хуки для UI логики, не для фетчинга**
@@ -643,12 +644,12 @@ export default function ResourceList() {
    }
    ```
 
-4. **НЕ обходи Application Service**
+4. **НЕ обходи Facade**
    ```typescript
    // ❌ ПЛОХО
    export async function loader() {
      const repo = getResourceRepository()
-     return json({ data: await repo.findAll() })  // Минуешь Use Case
+     return json({ data: await repo.findAll() })  // Минуешь Query Handler и Facade
    }
    ```
 
@@ -657,12 +658,21 @@ export default function ResourceList() {
    // ❌ ПЛОХО - дублирование в каждом loader
    export async function loader1() {
      const repo = new MockResourceRepository()
-     const useCase = new ListResourcesUseCase(repo)
+     const handler = new ListResourcesQueryHandler(repo)
    }
    
    export async function loader2() {
      const repo = new MockResourceRepository()  // Дубль
-     const useCase = new ListResourcesUseCase(repo)
+     const handler = new ListResourcesQueryHandler(repo)
+   }
+   
+   // ✅ ХОРОШО - используем Facade
+   export async function loader1() {
+     return queries.resources.list(request)
+   }
+   
+   export async function loader2() {
+     return queries.resources.list(request)
    }
    ```
 
@@ -687,12 +697,12 @@ export default function ResourceList() {
 
 - [ ] Определить нужен ли `loader()` (загрузка данных)
 - [ ] Определить нужен ли `action()` (мутации)
-- [ ] Импортировать сервис из `~/composition`
-- [ ] Вызвать метод Application Service
+- [ ] Импортировать `queries` или `commands` из `~/composition`
+- [ ] Вызвать Facade: `queries.resources.list(request)` или `commands.resources.create(request)`
 - [ ] Типизировать `useLoaderData<typeof loader>()`
 - [ ] Для client-side операций использовать `useFetcher()`
 - [ ] Для UI логики создать кастомный hook (если нужно)
-- [ ] НЕ создавать репозитории/use cases напрямую в UI
+- [ ] НЕ создавать репозитории/handlers напрямую в UI - только через Facades
 
 ---
 

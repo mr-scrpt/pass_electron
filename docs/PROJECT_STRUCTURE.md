@@ -93,44 +93,52 @@ app/domain/
 
 ### 2. Application Layer (`app/application/`)
 
-**Назначение**: Оркестрация бизнес-логики, Use Cases, Application Services.
+**Назначение**: Оркестрация бизнес-логики через CQRS (Query/Command Handlers).
 
 ```
 app/application/
-├── commands/              # Command Bus (Ports) - CQRS Commands
-│   ├── ICommandBus.ts     # Port: Command Bus интерфейс
-│   ├── ICommand.ts        # Базовый интерфейс команды
-│   ├── ICommandHandler.ts # Интерфейс обработчика
-│   ├── UICommands.ts      # UI Commands
-│   └── index.ts
-├── queries/               # Query Handlers (Ports) - CQRS Queries
-│   ├── IQueryHandler.ts   # Port: Query Handler интерфейс
-│   ├── IQueryBus.ts       # Port: Query Bus интерфейс
-│   ├── ResourceQueries.ts # Query классы
+├── queries/               # Queries (CQRS - Read)
+│   ├── QueryTypes.ts      # Константы типов Query
+│   ├── IQuery.ts          # Базовый интерфейс Query
+│   ├── IQueryHandler.ts   # Интерфейс обработчика
+│   ├── IQueryBus.ts       # Query Bus интерфейс
+│   ├── ListResourcesQuery.ts
+│   ├── GetResourceByIdQuery.ts
 │   ├── handlers/          # Query Handlers
 │   │   ├── ListResourcesQueryHandler.ts
 │   │   └── GetResourceByIdQueryHandler.ts
+│   ├── dtos/              # Data Transfer Objects для UI
+│   │   └── ResourceListItemDTO.ts
 │   └── index.ts
-├── use-cases/             # Use Cases
-│   ├── CreateResource/
-│   │   ├── CreateResourceUseCase.ts
-│   │   └── CreateResourceCommand.ts
-│   ├── UpdateResource/
-│   ├── DeleteResource/
-│   └── ListResources/
-└── services/              # Application Services
-    ├── ResourceService.ts
-    └── index.ts
+├── commands/              # Commands (CQRS - Write)
+│   ├── CommandTypes.ts    # Константы типов команд
+│   ├── ICommand.ts        # Базовый интерфейс команды
+│   ├── ICommandHandler.ts # Интерфейс обработчика
+│   ├── ICommandBus.ts     # Command Bus интерфейс
+│   ├── CreateResourceCommand.ts
+│   ├── UpdateResourceCommand.ts
+│   ├── DeleteResourceCommand.ts
+│   ├── handlers/
+│   │   ├── CreateResourceCommandHandler.ts
+│   │   ├── UpdateResourceCommandHandler.ts
+│   │   └── DeleteResourceCommandHandler.ts
+│   └── index.ts
+├── ports/                 # Ports (Hexagonal Architecture)
+│   ├── IRequestParser.ts  # Парсинг платформо-специфичных запросов
+│   ├── IClipboardService.ts
+│   ├── IStorageService.ts
+│   └── index.ts
+└── index.ts               # Public API
 ```
 
 **Характеристики**:
 - Зависит только от Domain Layer
-- **Commands** - Ports для UI команд (CQRS - запись)
-- **Queries** - Ports для чтения данных (CQRS - чтение)
-- **Application Services** - координируют Use Cases, управляют транзакциями
-- **Use Cases** - содержат бизнес-логику конкретных операций
+- **Queries** - чтение данных (CQRS - Read)
+- **Commands** - запись данных (CQRS - Write)
+- **Query/Command Handlers** - содержат бизнес-логику операций
+- **Ports** - интерфейсы для адаптеров (Hexagonal Architecture)
 - Реализует CQRS (Command Query Responsibility Segregation)
-- Предоставляет высокоуровневый API для Presentation Layer
+- Предоставляет высокоуровневый API для Presentation Layer через Facades
 
 ### 3. Core Systems (`app/core/`)
 
@@ -283,8 +291,8 @@ app/hooks/
              ↓ МОЖЕТ использовать
 ┌────────────┴────────────────────────┐
 │      Application Layer              │
-│  (use-cases, core systems)          │
-└────────────┬────────────────────────┘
+│  (query/command handlers)           │
+└────────────┴────────────────────────┘
              ↓ МОЖЕТ использовать
 ┌────────────┴────────────────────────┐
 │         Domain Layer                │
@@ -415,22 +423,16 @@ export * from './UICommands'
 export type { IQuery, IQueryHandler, QueryResult } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export * from './ResourceQueries'
-export * from './handlers'
 ```
 
 ```typescript
-// app/application/use-cases/index.ts
-export { CreateResourceUseCase } from './CreateResource/CreateResourceUseCase'
-export { UpdateResourceUseCase } from './UpdateResource/UpdateResourceUseCase'
-export { DeleteResourceUseCase } from './DeleteResource/DeleteResourceUseCase'
-export { ListResourcesUseCase } from './ListResources/ListResourcesUseCase'
-export type { CreateResourceCommand, UpdateResourceCommand } from './types'
-```
-
-```typescript
-// app/application/services/index.ts
-export { ResourceService } from './ResourceService'
-export type { ListResourcesQuery } from './ResourceService'
+// app/application/commands/index.ts
+export { CommandTypes } from './CommandTypes'
+export type { ICommand } from './ICommand'
+export type { ICommandHandler } from './ICommandHandler'
+export type { ICommandBus } from './ICommandBus'
+export { CreateResourceCommand } from './CreateResourceCommand'
+export { CreateResourceCommandHandler } from './handlers/CreateResourceCommandHandler'
 ```
 
 ### Infrastructure Layer
@@ -520,23 +522,36 @@ const keymap: Keymap = {
 }
 ```
 
-### 3. Presentation → Application Service → Use Cases
+### 3. Presentation → Facades (CQRS)
 
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В Route Loader
 import { MockResourceRepository } from '~/infrastructure/repositories'
-import { ListResourcesUseCase } from '~/application/use-cases'
+import { ListResourcesQueryHandler } from '~/application/queries/handlers'
 
-export async function loader() {
+export async function loader({ request }) {
   const repository = new MockResourceRepository()  // ❌ Прямая зависимость
-  const useCase = new ListResourcesUseCase(repository)
-  return json({ data: await useCase.execute() })
+  const handler = new ListResourcesQueryHandler(repository)
+  const query = new ListResourcesQuery()
+  return handler.handle(query)  // ❌ Обходим Facade
 }
 ```
 
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
+// В Route Loader - используем Facade
+import { queries } from '~/composition'
+
+export async function loader({ request }) {
+  return queries.resources.list(request)  // ✅ Одна строка!
+}
+```
+
+---
+
+## 4. Domain Layer изолирован
+
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В domain/resource/Resource.ts

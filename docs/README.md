@@ -6,7 +6,7 @@
 - **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Руководство по началу разработки
 - **[DDD_AND_CLEAN_ARCHITECTURE.md](./DDD_AND_CLEAN_ARCHITECTURE.md)** - Обзор: как DDD и Clean Architecture сочетаются в проекте
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта, архитектурные границы и правила импорта
-- **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, Application Services, DI Container (Remix специфика)
+- **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, CQRS + Facades, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)
 - **[COMPOSITION_LAYER.md](./COMPOSITION_LAYER.md)** - Декомпозиция Composition Layer, Multi-UI поддержка, константы
@@ -42,7 +42,7 @@
 2. `concepts/ARCHITECTURE_DESIGN.md` - Архитектура
 3. `DDD_AND_CLEAN_ARCHITECTURE.md` - Как DDD и Clean Architecture сочетаются в проекте
 4. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
-5. `DATA_FLOW.md` - Работа с данными (Application Services, DI Container)
+5. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
 6. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
 7. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
 8. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка

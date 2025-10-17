@@ -62,7 +62,7 @@ Command Bus - это посредник между Core Systems и UI Layer, к�
 - `NavigateToCommand` - перейти на страницу
 - `ShowNotificationCommand` - показать уведомление
 
-**Command Handler** - это Application Service, обрабатывающий команду.
+**Command Handler** - это обработчик команды в Application Layer (CQRS - Write side).
 
 **Command Bus** - это координатор, связывающий Commands с Handlers.
 

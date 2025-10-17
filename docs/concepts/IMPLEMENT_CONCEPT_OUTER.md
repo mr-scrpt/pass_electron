@@ -403,6 +403,13 @@ export interface ActionContext {
   route: string;            // Простая строка для совместимости с keymaps
   editingContext?: EditingContext;
   focusedElement?: HTMLElement;
+  
+  // Зависимости передаются через ActionContext (Dependency Injection)
+  commandBus?: ICommandBus;           // Command Bus для UI команд
+  modalManager?: ModalManager;
+  focusManager?: FocusManager;
+  notificationManager?: NotificationManager;
+  
   [key: string]: any;
 }
 
@@ -534,7 +541,10 @@ import { ModalManager } from '../modal/ModalManager';
 export class KeymapExecutor {
   constructor(
     private registry: KeymapRegistry,
-    private modalManager: ModalManager
+    private commandBus: ICommandBus,     // Command Bus добавлен
+    private modalManager: ModalManager,
+    private focusManager: FocusManager,
+    private notificationManager: NotificationManager
   ) {
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
@@ -580,7 +590,13 @@ export class KeymapExecutor {
       mode: modalContext.mode,
       route: modalContext.route,
       editingContext: editingContext || undefined,
-      focusedElement: document.activeElement as HTMLElement
+      focusedElement: document.activeElement as HTMLElement,
+      
+      // Передаем зависимости в ActionContext (Dependency Injection)
+      commandBus: this.commandBus,         // Command Bus
+      modalManager: this.modalManager,
+      focusManager: this.focusManager,
+      notificationManager: this.notificationManager
     };
   }
 }
@@ -595,6 +611,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { keymapRegistry, KeymapRegistry } from './KeymapRegistry';
 import { KeymapExecutor } from './KeymapExecutor';
 import { modalManager } from '../modal/ModalManager';
+import { focusManager } from '../focus/FocusManager';
+import { notificationManager } from '../notification/NotificationManager';
+import { getCommandBus } from '~/composition';
 import type { Keymap, ActionContext } from './types';
 
 interface KeymapContextValue {
@@ -604,7 +623,15 @@ interface KeymapContextValue {
 
 const KeymapContext = createContext<KeymapContextValue | null>(null);
 
-const keymapExecutor = new KeymapExecutor(keymapRegistry, modalManager);
+// ✅ Dependency Injection: KeymapExecutor получает все необходимые зависимости
+const commandBus = getCommandBus();
+const keymapExecutor = new KeymapExecutor(
+  keymapRegistry,
+  commandBus,            // Command Bus через Composition Root
+  modalManager,
+  focusManager,
+  notificationManager
+);
 
 export function KeymapProvider({ children }: { children: ReactNode }) {
   const [activeKeymaps, setActiveKeymaps] = useState<Keymap[]>([]);
@@ -666,19 +693,21 @@ export function useKeymapContext() {
 #### Определения кеймапов
 
 ##### Navigation Keymaps
-
-```typescript
-// core/keymap/keymaps/navigation.ts
-
 import { Keymap } from '../types';
-import { focusManager } from '../../focus/FocusManager';
 
+/**
+ * ✅ ПРАВИЛЬНО: Keymaps не импортируют другие Core Systems напрямую
+ * Вместо этого используют ActionContext, который предоставляет нужные зависимости
+ */
 export const navigationKeymaps: Keymap[] = [
   {
     id: 'nav-down',
     name: 'Navigate Down',
     binding: { key: 'j' },
-    action: () => focusManager.focusNext(),
+    action: (ctx) => {
+      // FocusManager передается через ActionContext
+      ctx.focusManager?.focusNext();
+    },
     description: 'Move focus down',
     modes: ['navigation'],
     icon: 'arrow-down.svg'
@@ -687,24 +716,26 @@ export const navigationKeymaps: Keymap[] = [
     id: 'nav-up',
     name: 'Navigate Up',
     binding: { key: 'k' },
-    action: () => focusManager.focusPrevious(),
+    action: (ctx) => {
+      ctx.focusManager?.focusPrevious();
+    },
     description: 'Move focus up',
     modes: ['navigation'],
     icon: 'arrow-up.svg'
   },
   {
-    id: 'nav-enter',
+    id: 'select',
     name: 'Select/Enter',
     binding: { key: 'enter' },
     action: async (ctx) => {
-      const focused = focusManager.getFocused();
+      const focused = ctx.focusManager?.getFocused();
       if (focused?.onEnter) {
         await focused.onEnter();
       }
     },
-    description: 'Select item or enter edit mode',
+    description: 'Select focused item',
     modes: ['navigation'],
-    icon: 'enter.svg'
+    icon: 'check.svg'
   },
   {
     id: 'nav-search',
@@ -730,23 +761,22 @@ export const navigationKeymaps: Keymap[] = [
     modes: ['navigation']
   }
 ];
-```
 
-##### Editing Keymaps
-
-```typescript
 // core/keymap/keymaps/editing.ts
 
 import { Keymap } from '../types';
-import { modalManager } from '../../modal/ModalManager';
 
+/**
+ * ✅ ПРАВИЛЬНО: Используем ActionContext вместо прямого импорта
+ */
 export const editingKeymaps: Keymap[] = [
   {
-    id: 'edit-escape',
+    id: 'exit-edit-mode',
     name: 'Exit Edit Mode',
     binding: { key: 'escape' },
-    action: () => {
-      modalManager.enterNavigationMode();
+    action: (ctx) => {
+      // ModalManager передается через ActionContext
+      ctx.modalManager?.enterNavigationMode();
     },
     description: 'Exit edit mode',
     modes: ['editing'],
@@ -776,10 +806,12 @@ export const editingKeymaps: Keymap[] = [
 // core/keymap/keymaps/resource.ts
 
 import { Keymap } from '../types';
-import { modalManager } from '../../modal/ModalManager';
-import { apiClient } from '~/infrastructure/api';
-import { notificationManager } from '../../notification/NotificationManager';
+import { DeleteResourceCommand } from '~/application/commands';
 
+/**
+ * ✅ ПРАВИЛЬНО: Используем CommandBus через абстракцию
+ * Не зависим от Browser API или конкретных реализаций
+ */
 export function createResourceKeymaps(): Keymap[] {
   return [
     {
@@ -792,13 +824,11 @@ export function createResourceKeymaps(): Keymap[] {
         const resourceId = ctx.editingContext?.resourceId;
         if (!resourceId) return;
         
-        try {
-          await apiClient.deleteResource(resourceId);
-          notificationManager.success('Resource deleted');
-          window.location.href = '/';
-        } catch (error) {
-          notificationManager.error('Failed to delete resource');
-        }
+        // ✅ ПРАВИЛЬНО: Используем Command Bus (Port/Adapter)
+        // Keymap не зависит от DOM API или UI реализации
+        await ctx.commandBus?.dispatch(
+          new DeleteResourceCommand(resourceId)
+        );
       },
       description: 'Delete resource',
       modes: ['navigation'],
@@ -809,10 +839,12 @@ export function createResourceKeymaps(): Keymap[] {
       id: 'resource-add-field',
       name: 'Add Custom Field',
       binding: { key: 'a' },
-      action: (ctx) => {
-        // Триггерим добавление поля через custom event
-        const event = new CustomEvent('add-custom-field');
-        window.dispatchEvent(event);
+      action: async (ctx) => {
+        // ✅ Через Command Bus
+        const { ShowNotificationCommand } = await import('~/application/commands');
+        await ctx.commandBus?.dispatch(
+          new ShowNotificationCommand('Add field UI would open here', 'info')
+        );
       },
       description: 'Add custom field',
       modes: ['navigation'],
@@ -820,12 +852,16 @@ export function createResourceKeymaps(): Keymap[] {
       icon: 'plus.svg'
     },
     {
-      id: 'resource-copy-secret',
+      id: 'resource-copy',
       name: 'Copy Secret',
       binding: { key: 'c' },
       action: async (ctx) => {
-        const event = new CustomEvent('copy-secret');
-        window.dispatchEvent(event);
+        // ✅ Через Command Bus
+        const { CopyToClipboardCommand } = await import('~/application/commands');
+        const secretValue = ctx.editingContext?.secretValue || 'secret';
+        await ctx.commandBus?.dispatch(
+          new CopyToClipboardCommand(secretValue)
+        );
       },
       description: 'Copy secret to clipboard',
       modes: ['navigation'],
@@ -834,9 +870,6 @@ export function createResourceKeymaps(): Keymap[] {
     }
   ];
 }
-```
-
-##### Index (регистрация)
 
 ```typescript
 // core/keymap/keymaps/index.ts

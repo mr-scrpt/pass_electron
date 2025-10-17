@@ -94,7 +94,10 @@
 - [ ] Реализовать MockResourceRepository
 - [ ] Реализовать MockNamespaceRepository
 - [ ] Создать Event Bus
-- [ ] Настроить DI Container
+
+**1.4. Composition Root**
+- [ ] Создать ServiceContainer (DI Container)
+- [ ] Настроить зависимости
 
 ---
 
@@ -304,7 +307,7 @@ pnpm add -D electron electron-builder
 
 ```bash
 # Создать основные директории
-mkdir -p app/{domain,application,infrastructure,core,components,hooks,types}
+mkdir -p app/{composition,domain,application,infrastructure,core,components,hooks,types}
 mkdir -p app/domain/{resource,repositories,events}
 mkdir -p app/core/{modal,keymap,focus,notification}
 mkdir -p app/infrastructure/{api,repositories,mocks,event-bus}

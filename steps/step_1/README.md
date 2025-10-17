@@ -427,23 +427,27 @@ export type { ListResourcesQuery } from './ListResources'
 
 ---
 
-### Этап 4: Infrastructure Layer (DI Container)
+### Этап 4: Composition Root (DI Container)
 
-Infrastructure Layer управляет зависимостями через DI Container.
+Composition Root - это верхний уровень приложения, который знает обо всех слоях и связывает их.
+
+> **🎯 Важно**: Composition Root находится в `app/composition/`, а НЕ в `infrastructure/`, чтобы не нарушать архитектурные границы.
 
 #### 4.1 Создать DI Container (Composition Root)
 
-**Файл: `app/infrastructure/di/container.ts`**
+**Файл: `app/composition/ServiceContainer.ts`**
 ```typescript
 import { MockResourceRepository } from '~/infrastructure/repositories'
 import { ResourceService } from '~/application/services/ResourceService'
 import type { IResourceRepository } from '~/domain/repositories'
 
 /**
- * DI Container - единая точка управления зависимостями
- * Паттерн: Composition Root
+ * Composition Root - единая точка управления зависимостями
  * 
- * Все зависимости создаются здесь, а не в UI слое
+ * Этот слой знает обо ВСЕХ слоях приложения и связывает их.
+ * Он не является частью Domain, Application или Infrastructure.
+ * 
+ * Все зависимости создаются здесь, а не в UI слое.
  */
 class ServiceContainer {
   private static resourceService: ResourceService | null = null
@@ -484,18 +488,19 @@ export const getResourceService = () => ServiceContainer.getResourceService()
 export const resetContainer = () => ServiceContainer.reset()
 ```
 
-**Зачем DI Container?**
+**Зачем Composition Root?**
 - Единая точка управления всеми зависимостями
+- Знает обо всех слоях и связывает их
 - Легко переключать Mock ↔ Real API
 - Presentation Layer не знает о деталях реализации
 - Легко тестировать (можно создать тестовый контейнер)
+- Не нарушает архитектурные границы (Infrastructure не импортирует Application)
 
-#### 4.2 Создать Public API для DI Container
+#### 4.2 Создать Public API для Composition Root
 
-**Файл: `app/infrastructure/di/index.ts`**
+**Файл: `app/composition/index.ts`**
 ```typescript
-export { getResourceService } from './container'
-export { resetContainer } from './container'
+export { getResourceService, resetContainer } from './ServiceContainer'
 ```
 
 ---
@@ -597,7 +602,7 @@ export { ResourceListItem } from './ResourceListItem'
 import { json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import type { LoaderFunctionArgs } from '@remix-run/node'
-import { getResourceService } from '~/infrastructure/di/container'
+import { getResourceService } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
@@ -670,7 +675,7 @@ export default function Index() {
 
 3. **Зачем Application Service?**
    - Loader НЕ создает репозитории напрямую
-   - Loader получает готовый сервис из DI Container
+   - Loader получает готовый сервис из Composition Root
    - Presentation Layer изолирован от Infrastructure
 
 4. **Type Safety**
@@ -698,10 +703,11 @@ app/
 │       ├── IResourceRepository.ts
 │       └── index.ts
 │
+├── composition/                     # ← НОВОЕ: Composition Root
+│   ├── ServiceContainer.ts
+│   └── index.ts
+│
 ├── infrastructure/
-│   ├── di/                          # ← НОВОЕ: DI Container
-│   │   ├── container.ts
-│   │   └── index.ts
 │   ├── mocks/
 │   │   ├── resources.mock.ts
 │   │   └── index.ts
@@ -747,8 +753,10 @@ app/
 - [ ] Создать `app/infrastructure/mocks/index.ts`
 - [ ] Создать `app/infrastructure/repositories/MockResourceRepository.ts`
 - [ ] Создать `app/infrastructure/repositories/index.ts`
-- [ ] Создать `app/infrastructure/di/container.ts` **← НОВОЕ**
-- [ ] Создать `app/infrastructure/di/index.ts` **← НОВОЕ**
+
+### Composition Root
+- [ ] Создать `app/composition/ServiceContainer.ts` **← НОВОЕ**
+- [ ] Создать `app/composition/index.ts` **← НОВОЕ**
 
 ### Application Layer
 - [ ] Создать `app/application/services/ResourceService.ts` **← НОВОЕ**

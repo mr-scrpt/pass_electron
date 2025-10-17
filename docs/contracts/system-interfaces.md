@@ -356,13 +356,112 @@ type NotificationChangeListener = (notifications: Notification[]) => void
 
 ---
 
+## Command Bus
+
+### ICommand
+
+```typescript
+/**
+ * Базовый интерфейс для всех команд
+ * Commands выражают намерение выполнить UI действие
+ */
+interface ICommand {
+  readonly type: string;
+}
+```
+
+### ICommandHandler
+
+```typescript
+/**
+ * Обработчик команды
+ * Реализуется в Presentation Layer
+ */
+interface ICommandHandler<T extends ICommand> {
+  handle(command: T): Promise<void> | void;
+}
+```
+
+### ICommandBus
+
+```typescript
+/**
+ * Command Bus - посредник между Core Systems и UI
+ * 
+ * Port (интерфейс) определяется в Application Layer
+ * Adapter (реализация) находится в Infrastructure Layer
+ * 
+ * Используется для изоляции Core Systems от Browser API
+ */
+interface ICommandBus {
+  /**
+   * Отправить команду на выполнение
+   */
+  dispatch<T extends ICommand>(command: T): Promise<void>;
+  
+  /**
+   * Зарегистрировать обработчик для типа команды
+   */
+  register<T extends ICommand>(
+    commandType: string,
+    handler: ICommandHandler<T>
+  ): void;
+  
+  /**
+   * Отменить регистрацию обработчика
+   */
+  unregister(commandType: string): void;
+}
+```
+
+### UI Commands
+
+```typescript
+/**
+ * Команда: Удалить ресурс
+ */
+class DeleteResourceCommand implements ICommand {
+  readonly type = 'DeleteResourceCommand';
+  constructor(public readonly resourceId: string) {}
+}
+
+/**
+ * Команда: Навигация
+ */
+class NavigateToCommand implements ICommand {
+  readonly type = 'NavigateToCommand';
+  constructor(public readonly path: string) {}
+}
+
+/**
+ * Команда: Показать уведомление
+ */
+class ShowNotificationCommand implements ICommand {
+  readonly type = 'ShowNotificationCommand';
+  constructor(
+    public readonly message: string,
+    public readonly level: 'success' | 'error' | 'info' | 'warning'
+  ) {}
+}
+
+/**
+ * Команда: Копировать в буфер обмена
+ */
+class CopyToClipboardCommand implements ICommand {
+  readonly type = 'CopyToClipboardCommand';
+  constructor(public readonly text: string) {}
+}
+```
+
+---
+
 ## Event Bus
 
 ### IEventBus
 
 ```typescript
 /**
- * Шина событий для коммуникации между системами
+ * Event Bus для коммуникации между системами
  */
 interface IEventBus {
   /**

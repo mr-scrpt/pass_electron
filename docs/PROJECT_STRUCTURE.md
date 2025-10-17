@@ -25,6 +25,7 @@ project/
 │   └── PROJECT_STRUCTURE.md      # ← Этот файл
 │
 ├── app/                           # Remix приложение
+│   ├── composition/               # Composition Root - DI Container
 │   ├── routes/                    # Presentation Layer - Remix routes
 │   ├── components/                # Presentation Layer - React компоненты
 │   ├── core/                      # Application/Domain Layer - Системы
@@ -46,6 +47,23 @@ project/
 ---
 
 ## Архитектурные слои
+
+### 0. Composition Root (`app/composition/`)
+
+**Назначение**: Единая точка управления зависимостями (DI Container).
+
+```
+app/composition/
+├── ServiceContainer.ts    # DI Container для всех сервисов
+└── index.ts               # Public API
+```
+
+**Характеристики**:
+- Знает обо ВСЕХ слоях приложения
+- Создает и связывает зависимости
+- Не является частью ни одного слоя
+- Единственное место где слои пересекаются
+- Переключение Mock ↔ Real через конфигурацию
 
 ### 1. Domain Layer (`app/domain/`)
 
@@ -79,6 +97,12 @@ app/domain/
 
 ```
 app/application/
+├── commands/              # Command Bus (Ports)
+│   ├── ICommandBus.ts     # Port: Command Bus интерфейс
+│   ├── ICommand.ts        # Базовый интерфейс команды
+│   ├── ICommandHandler.ts # Интерфейс обработчика
+│   ├── UICommands.ts      # UI Commands
+│   └── index.ts
 ├── use-cases/             # Use Cases
 │   ├── CreateResource/
 │   │   ├── CreateResourceUseCase.ts
@@ -93,6 +117,7 @@ app/application/
 
 **Характеристики**:
 - Зависит только от Domain Layer
+- **Commands** - Ports для UI команд (ICommandBus, ICommand, ICommandHandler)
 - **Application Services** - координируют Use Cases, управляют транзакциями
 - **Use Cases** - содержат бизнес-логику конкретных операций
 - Обрабатывает команды и запросы
@@ -144,8 +169,8 @@ app/core/
 
 ```
 app/infrastructure/
-├── di/                    # Dependency Injection
-│   ├── container.ts       # DI Container (Composition Root)
+├── commands/              # Command Bus (Adapters)
+│   ├── InMemoryCommandBus.ts  # Adapter: CommandBus реализация
 │   └── index.ts
 ├── api/                   # API Client
 │   ├── client.ts          # HTTP Client
@@ -174,8 +199,7 @@ app/infrastructure/
 - Реализует интерфейсы из Domain Layer
 - НЕ содержит бизнес-логику
 - Адаптирует внешние системы
-- **DI Container** - единая точка управления зависимостями (Composition Root)
-- Переключение Mock ↔ Real через конфигурацию
+- НЕ знает о Application Layer (зависит только от Domain)
 
 ### 5. Presentation Layer (`app/routes/`, `app/components/`)
 
@@ -267,7 +291,8 @@ app/hooks/
 
 | Слой | Может импортировать из |
 |------|------------------------|
-| **Presentation** | Application, Domain, Core, Infrastructure, Hooks |
+| **Composition Root** | ВСЕ слои (это единственное исключение) |
+| **Presentation** | Composition, Application, Domain, Core, Hooks |
 | **Application** | Domain |
 | **Core Systems** | Domain, Infrastructure (только Event Bus) |
 | **Domain** | НИЧЕГО (полностью изолирован) |
@@ -303,6 +328,14 @@ app/hooks/
 ## Public API модулей
 
 Каждый модуль экспортирует свой Public API через `index.ts`.
+
+### Composition Root
+
+```typescript
+// app/composition/index.ts
+export { getResourceService, getCommandBus } from './ServiceContainer'
+export { resetContainer } from './ServiceContainer'
+```
 
 ### Domain Layer
 
@@ -357,6 +390,14 @@ export type { Notification, NotificationType } from './types'
 ### Application Layer
 
 ```typescript
+// app/application/commands/index.ts
+export type { ICommand } from './ICommand'
+export type { ICommandHandler } from './ICommandHandler'
+export type { ICommandBus } from './ICommandBus'
+export * from './UICommands'
+```
+
+```typescript
 // app/application/use-cases/index.ts
 export { CreateResourceUseCase } from './CreateResource/CreateResourceUseCase'
 export { UpdateResourceUseCase } from './UpdateResource/UpdateResourceUseCase'
@@ -377,16 +418,15 @@ export type { ListResourcesQuery } from './ResourceService'
 // app/infrastructure/index.ts
 export * from './api'
 export * from './repositories'
+export * from './commands'
 export * from './event-bus'
 export * from './storage'
 export * from './clipboard'
-export * from './di'
 ```
 
 ```typescript
-// app/infrastructure/di/index.ts
-export { getResourceService } from './container'
-export { resetContainer } from './container' // Для тестов
+// app/infrastructure/commands/index.ts
+export { InMemoryCommandBus } from './InMemoryCommandBus'
 ```
 
 ```typescript
@@ -471,10 +511,10 @@ export async function loader() {
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
 // В Route Loader
-import { getResourceService } from '~/infrastructure/di/container'
+import { getResourceService } from '~/composition'
 
 export async function loader() {
-  const service = getResourceService()  // ✅ Через DI Container
+  const service = getResourceService()  // ✅ Через Composition Root
   const data = await service.listResources()
   return json({ data })
 }
@@ -525,7 +565,7 @@ export * from './api'
 // app/routes/_index.tsx
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { getResourceService } from '~/infrastructure/di/container'
+import { getResourceService } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
@@ -632,7 +672,7 @@ export function ResourceList() {
 }
 ```
 
-### Пример 5: Dependency Injection в root.tsx
+### Пример 5: Providers в root.tsx
 
 ```typescript
 // app/root.tsx
@@ -640,9 +680,11 @@ import { ModalProvider } from '~/core/modal'
 import { KeymapProvider } from '~/core/keymap'
 import { FocusProvider } from '~/core/focus'
 import { NotificationProvider } from '~/core/notification'
-import { eventBus } from '~/infrastructure/event-bus'
-import { resourceRepository } from '~/infrastructure/repositories'
 
+/**
+ * ✅ ПРАВИЛЬНО: Презентационный слой использует только Public API систем
+ * Providers получают зависимости внутри себя или через Composition Root
+ */
 export default function App() {
   return (
     <html>
@@ -661,6 +703,11 @@ export default function App() {
   )
 }
 ```
+
+**Примечание**: Если Providers нужны зависимости (например, EventBus), они должны:
+- Либо создавать их внутри себя
+- Либо получать через Composition Root
+- ❌ **НЕ импортировать напрямую из Infrastructure**
 
 ---
 
@@ -731,6 +778,7 @@ const { mode, enterEditingMode } = useModal()
 
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
 - [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
+- [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд
 - [Architecture Design](./concepts/ARCHITECTURE_DESIGN.md) - Детальная архитектура
 - [System Interfaces](./contracts/system-interfaces.md) - Интерфейсы систем
 - [Domain Types](./contracts/domain-types.md) - Доменные типы

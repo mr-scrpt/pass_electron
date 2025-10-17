@@ -112,9 +112,11 @@ Application Service - это **координатор Use Cases**, которы�
 
 ### DI Container (Composition Root)
 
-Все зависимости создаются в **одном месте** - DI Container.
+Все зависимости создаются в **одном месте** - DI Container в Composition Root.
 
-**Файл: `app/infrastructure/di/container.ts`**
+> **🎯 Важно**: Composition Root находится на верхнем уровне `app/composition/`, а НЕ в `infrastructure/`. Он знает обо всех слоях и связывает их, но сам не является частью ни одного слоя.
+
+**Файл: `app/composition/ServiceContainer.ts`**
 
 ```typescript
 import { MockResourceRepository } from '~/infrastructure/repositories'
@@ -122,8 +124,10 @@ import { ResourceService } from '~/application/services/ResourceService'
 import type { IResourceRepository } from '~/domain/repositories'
 
 /**
- * DI Container - единая точка управления зависимостями
- * Паттерн: Composition Root
+ * Composition Root - единая точка управления зависимостями
+ * 
+ * Этот слой знает обо ВСЕХ слоях приложения и связывает их.
+ * Он не является частью Domain, Application или Infrastructure.
  */
 class ServiceContainer {
   private static resourceService: ResourceService | null = null
@@ -169,6 +173,21 @@ export const getResourceService = () => ServiceContainer.getResourceService()
 // Для тестов
 export const resetContainer = () => ServiceContainer.reset()
 ```
+
+**Public API:**
+
+```typescript
+// app/composition/index.ts
+export { getResourceService, resetContainer } from './ServiceContainer'
+```
+
+**Зачем Composition Root?**
+- Единая точка управления всеми зависимостями
+- Знает обо всех слоях и связывает их
+- Легко переключать Mock ↔ Real API
+- Presentation Layer не знает о деталях реализации
+- Легко тестировать (можно создать тестовый контейнер)
+- Не нарушает архитектурные границы (Infrastructure не импортирует Application)
 
 ### Application Service
 
@@ -274,7 +293,7 @@ export type { ListResourcesQuery } from './ResourceService'
 // app/routes/_index.tsx
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
-import { getResourceService } from '~/infrastructure/di/container'
+import { getResourceService } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**
@@ -336,7 +355,7 @@ export default function Index() {
 ```typescript
 // app/routes/resources.new.tsx
 import { redirect, type ActionFunctionArgs } from '@remix-run/node'
-import { getResourceService } from '~/infrastructure/di/container'
+import { getResourceService } from '~/composition'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ
@@ -367,6 +386,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```typescript
 // ✅ РЕКОМЕНДУЕТСЯ
+import { getResourceService } from '~/composition'
+
 export async function loader() {
   const service = getResourceService()
   const data = await service.listResources()
@@ -496,6 +517,8 @@ export default function ResourceList() {
 
 1. **Используй `loader()` для загрузки данных**
    ```typescript
+   import { getResourceService } from '~/composition'
+   
    export async function loader() {
      const service = getResourceService()
      return json({ data: await service.getData() })
@@ -504,13 +527,15 @@ export default function ResourceList() {
 
 2. **Используй Application Service в loader/action**
    ```typescript
+   import { getResourceService } from '~/composition'
+   
    const service = getResourceService()  // ✅
    await service.listResources()          // ✅
    ```
 
-3. **DI Container для всех зависимостей**
+3. **Composition Root для всех зависимостей**
    ```typescript
-   // Все зависимости в одном месте
+   // Все зависимости в одном месте (app/composition/)
    export const getResourceService = () => 
      ServiceContainer.getResourceService()
    ```
@@ -523,14 +548,14 @@ export default function ResourceList() {
 
 5. **Type-safe data flow**
    ```typescript
-   const { resources } = useLoaderData<typeof loader>()  // ✅ Типизация
+   const { resources } = useLoaderData<typeof loader>()  // Типизация
    ```
 
-### ❌ DON'T: Антипаттерны
+### DON'T: Антипаттерны
 
 1. **НЕ создавай репозитории в loader напрямую**
    ```typescript
-   // ❌ ПЛОХО
+   // ПЛОХО
    export async function loader() {
      const repo = new MockResourceRepository()  // Прямая зависимость
      const useCase = new ListResourcesUseCase(repo)
@@ -540,7 +565,7 @@ export default function ResourceList() {
 
 2. **НЕ используй useState/useEffect для первичной загрузки**
    ```typescript
-   // ❌ ПЛОХО
+   // ПЛОХО
    export default function Index() {
      const [resources, setResources] = useState([])
      useEffect(() => {
@@ -551,6 +576,7 @@ export default function ResourceList() {
 
 3. **НЕ мешай серверный и клиентский код**
    ```typescript
+   // ПЛОХО - Repository на клиенте
    // ❌ ПЛОХО - Repository на клиенте
    export default function Index() {
      const repo = new MockResourceRepository()  // Только для сервера!
@@ -601,7 +627,7 @@ export default function ResourceList() {
 
 - [ ] Определить нужен ли `loader()` (загрузка данных)
 - [ ] Определить нужен ли `action()` (мутации)
-- [ ] Использовать `getResourceService()` из DI Container
+- [ ] Импортировать сервис из `~/composition`
 - [ ] Вызвать метод Application Service
 - [ ] Типизировать `useLoaderData<typeof loader>()`
 - [ ] Для client-side операций использовать `useFetcher()`

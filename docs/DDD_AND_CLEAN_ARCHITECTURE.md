@@ -646,5 +646,6 @@ Domain, Application, Infrastructure — не зависят от Remix. Можн
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus (CQRS Commands)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers (CQRS Queries)
+- **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Adapter Pattern + DI (Hexagonal Architecture - Ports & Adapters)
 - **[contracts/domain-types.md](./contracts/domain-types.md)** - Типы домена
 - **[contracts/system-interfaces.md](./contracts/system-interfaces.md)** - Системные интерфейсы

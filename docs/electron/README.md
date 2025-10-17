@@ -487,6 +487,8 @@ function Component() {
 
 ### ✅ ПРАВИЛЬНО: Через Adapter Pattern + DI
 
+> **📘 Полное описание паттерна см. в [ADAPTER_PATTERN_DI.md](../ADAPTER_PATTERN_DI.md)**
+
 **Шаг 1: Порт (интерфейс) в Application Layer**
 
 ```typescript
@@ -797,10 +799,16 @@ A: Используйте `electron-updater` пакет для автообно�
 
 ## 📚 Дополнительная документация
 
+### Electron-специфичная:
 - [CONFIGURATION.md](./CONFIGURATION.md) - Детальная настройка конфигурации
 - [SECURITY.md](./SECURITY.md) - Безопасность и best practices
 - [IPC.md](./IPC.md) - Inter-Process Communication (если нужен)
 - [PACKAGING.md](./PACKAGING.md) - Сборка и распространение
+
+### Архитектура приложения:
+- [../ADAPTER_PATTERN_DI.md](../ADAPTER_PATTERN_DI.md) - Канонический подход к внедрению внешних зависимостей
+- [../COMPOSITION_LAYER.md](../COMPOSITION_LAYER.md) - Composition Layer и DI
+- [../PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) - Структура проекта и архитектурные границы
 
 ---
 

@@ -10,6 +10,7 @@
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)
 - **[COMPOSITION_LAYER.md](./COMPOSITION_LAYER.md)** - Декомпозиция Composition Layer, Multi-UI поддержка, константы
+- **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Канонический подход к внедрению внешних зависимостей (Adapter Pattern + DI)
 
 ### 📦 Electron (`electron/`)
 Документация по Packaging Layer - упаковка приложения в desktop формат.
@@ -46,10 +47,11 @@
 6. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
 7. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
 8. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
-9. `contracts/domain-types.md` - Типы предметной области
-10. `contracts/system-interfaces.md` - Интерфейсы систем
-11. `contracts/api-contracts.md` - API контракты
-12. `contracts/events.md` - События системы
+9. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
+10. `contracts/domain-types.md` - Типы предметной области
+11. `contracts/system-interfaces.md` - Интерфейсы систем
+12. `contracts/api-contracts.md` - API контракты
+13. `contracts/events.md` - События системы
 
 ## Технический стек
 

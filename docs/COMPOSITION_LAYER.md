@@ -117,7 +117,9 @@ export const RequestParamKeys = {
 
 Facade не должен зависеть от Web-специфичных типов (Request). Иначе невозможно использовать в CLI/Desktop.
 
-### Решение: Strategy Pattern + DI
+### Фабрики адаптеров (Infrastructure Layer)
+
+> **📘 Полное описание Adapter Pattern + DI см. в [ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)**
 
 **Port (Application Layer):**
 ```typescript

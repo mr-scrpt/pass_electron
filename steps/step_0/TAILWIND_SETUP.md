@@ -16,22 +16,21 @@
 
 ## 📦 Установка
 
-### 1. Установить Tailwind CSS v4
+> **⚠️ ВАЖНО**: Устанавливать **только** в web presentation workspace, НЕ в root!
 
 ```bash
-# В presentation/web/react директории
+# Перейти в presentation/web/react директорию
 cd src/presentation/web/react
 
-# Tailwind v4 (через Vite plugin)
-pnpm add -D @tailwindcss/vite
-
-# Catppuccin тема
-pnpm add -D @catppuccin/tailwindcss
+# Установить Tailwind v4 и Catppuccin
+pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 ```
 
 **Что устанавливаем:**
 - `@tailwindcss/vite` - Tailwind v4 как Vite plugin
 - `@catppuccin/tailwindcss` - Catppuccin цветовая палитра
+
+**Зависимости автоматически добавятся** в `src/presentation/web/react/package.json`
 
 ---
 

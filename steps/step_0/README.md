@@ -94,42 +94,35 @@ git init
 
 ---
 
-## 📥 Шаг 2: Настройка package.json и pnpm Workspaces
+## 📥 Шаг 2: Настройка package.json и pnpm Workspaces ✅ ОБЯЗАТЕЛЬНО
 
-> **📚 КОМПОЗИЦИЯ ШАГОВ**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
+> **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
 
-В этом проекте используется **pnpm workspaces** для разделения зависимостей:
+**Что настраиваем:**
+- Root `package.json` - зависимости для DDD слоев (neverthrow, typescript, eslint)
+- `pnpm-workspace.yaml` - конфигурация workspaces
+- Web `package.json` - зависимости для UI (react, vite, tailwind)
 
-### Структура package.json файлов
+**Зачем:**
+- Разделение зависимостей: DDD слои независимы от UI framework
+- Легко добавить другие presentations (CLI, Mobile) без влияния на Domain
 
+**Структура:**
 ```
 password-manager/
-├── package.json                              # ✅ Root: DDD слои (domain, application, etc.)
-├── pnpm-workspace.yaml                       # ✅ Workspaces конфигурация
+├── package.json              # Root: DDD слои
+├── pnpm-workspace.yaml       # Workspaces
 └── src/presentation/web/react/
-    └── package.json                          # ✅ Web: React Router, Vite, Tailwind
+    └── package.json          # Web: React Router, Vite
 ```
 
-### Почему так?
+**Последовательность:**
+1. Создать root `package.json`
+2. Создать `pnpm-workspace.yaml`
+3. Создать web `package.json` через React Router CLI
+4. Установить зависимости: `pnpm install`
 
-**Root `package.json`:**
-- Зависимости для DDD слоев (Domain, Application, Infrastructure)
-- Общие dev-зависимости (TypeScript, ESLint)
-- **НЕ содержит**: React, Vite, Tailwind (это только для web presentation)
-
-**Web `package.json`:**
-- React Router, React, Vite
-- Tailwind CSS, PostCSS
-- **Изолирован** от других presentation layers
-
-**Мотивация**: DDD слои независимы от UI framework → легко добавить CLI, Mobile, Desktop
-
-> **💡 Используем React Router CLI** — он создает конфиги с актуальными версиями!  
-> Мы только модифицируем их под DDD структуру.
->
-> **⚠️ ВАЖНО**: Tailwind, Vite, React устанавливаются ТОЛЬКО в `src/presentation/web/react/package.json`, НЕ в root!
-
-**Полная композиция с последовательностью настройки**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
+**Детали в**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
 
 ---
 
@@ -137,89 +130,87 @@ password-manager/
 
 > **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
 
-В этом шаге настраиваем:
-- **TypeScript paths** - алиасы для DDD слоёв (`@domain`, `@api`, `@client/*`, `@internal/*`)
-- **Vite config** - алиасы и build для React Router
+**Что настраиваем:**
+- Root `tsconfig.json` - TypeScript paths для алиасов
+- Web `vite.config.ts` - Vite алиасы и настройки сборки
 
-### Быстрый обзор алиасов
+**Зачем:**
+- Clean imports без относительных путей (`../../../`)
+- Presentation может импортировать из DDD слоев
+- Vite правильно резолвит пути при сборке
 
-**Root `tsconfig.json`:**
-```json
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@domain": ["./src/domain/index.ts"],        // Public API типов
-      "@api": ["./src/composition/index.ts"],      // Facades
-      "@client/*": ["./src/presentation/web/react/src/*"],  // Локальные
-      "@internal/application/*": ["./src/application/*"],   // Только для Composition
-      "@internal/infrastructure/*": ["./src/infrastructure/*"]
-    }
-  }
-}
-```
+**Алиасы:**
+- `@domain` - Public API Domain Layer
+- `@api` - Facades из Composition Layer
+- `@client/*` - Локальные файлы presentation
+- `@internal/*` - Только для Composition (запрещены в Presentation)
 
-**Ключевые настройки:**
-- `root: projectRoot` - Vite знает корень проекта
-- `appDirectory` - где React Router ищет routes
-- `resolve.alias` - алиасы для DDD слоев
+**Файлы:**
+- `tsconfig.json` (root)
+- `src/presentation/web/react/vite.config.ts`
 
-**Полная инструкция с примерами**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
+**Детали в**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
 
 ---
 
-## 🛡️ Шаг 4: Настройка ESLint с архитектурными границами 🟡 ОПЦИОНАЛЬНО
+## 🛡️ Шаг 4: Настройка ESLint ✅ ОБЯЗАТЕЛЬНО
 
 > **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
-> 
-> **📚 ПРАВИЛА АРХИТЕКТУРЫ**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md)
 
-**Опционально**, но **крайне рекомендуется**: автоматическая проверка архитектурных границ.
+**Что настраиваем:**
+- `eslint.config.js` - конфигурация линтера с TypeScript
+- `eslint-plugin-boundaries` - автоматическая проверка архитектурных границ
+- Scripts в `package.json` - команды для запуска линтера
 
-### Что проверяется
+**Зачем:**
+- Автоматическая проверка архитектурных правил
+- Presentation НЕ может импортировать `@internal/*`
+- Domain полностью изолирован от других слоев
+- Ошибки на уровне линтера, а не runtime
 
-- ✅ **Presentation** НЕ может импортировать `@internal/*` (только `@domain`, `@api`, `@client/*`)
-- ✅ **Domain** полностью изолирован (не импортирует другие слои)
-- ✅ **Infrastructure** НЕ зависит от Application
-- ✅ **Composition** - единственный кто может использовать `@internal/*`
+**Проверяет:**
+- ✅ Domain изолирован
+- ✅ Application импортирует только Domain
+- ✅ Infrastructure импортирует только Domain
+- ✅ Composition имеет доступ ко всем слоям
+- ✅ Presentation НЕ может использовать `@internal/*`
 
-### Быстрая установка
-
+**Установка:**
 ```bash
-# Установить ESLint + плагины
 pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescript-eslint/eslint-plugin
-
-# Создать eslint.config.js (см. ESLINT_SETUP.md)
 ```
 
-**Полная инструкция**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
+**Детали в**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
 
 ---
 
-## 🎨 Дополнительные библиотеки (опционально)
-
-Можно добавить дополнительные библиотеки для UI, стилей и т.д.
-
-### Tailwind CSS + Catppuccin Mocha
+## 🎨 Шаг 5: Tailwind CSS (опционально)
 
 > **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
 
-Готовая система стилей с красивой темной темой:
+**Что настраиваем:**
+- Tailwind CSS v4 через `@tailwindcss/vite`
+- Catppuccin Mocha theme для красивой темной темы
+- `tailwind.config.js` с настройками
 
+**Зачем:**
+- Быстрая разработка UI с utility-first CSS
+- Готовая темная тема из коробки
+- Консистентная цветовая палитра
+
+**Установка:**
 ```bash
-# В presentation/web/react
 cd src/presentation/web/react
 pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 ```
 
-**Зачем:**
-- ✅ Быстрая разработка UI с utility classes
-- ✅ Catppuccin Mocha - красивая темная тема
-- ✅ Готовые цвета: `bg-ctp-base`, `text-ctp-mauve`, и т.д.
+**⚠️ ВАЖНО:** Устанавливать ТОЛЬКО в web presentation, НЕ в root!
 
 **Альтернативы:** CSS Modules, styled-components, Emotion, обычный CSS
 
-**Полная инструкция**: [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
+**Детали в**: [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
+
+---
 
 ### Будущие библиотеки
 
@@ -317,19 +308,31 @@ pnpm dev
 
 ## 📋 Финальный чек-лист
 
-- [ ] Структура `src/` создана
-- [ ] Root `package.json` создан
-- [ ] Web `package.json` создан  
+**Шаг 1: Структура проекта**
+- [ ] Директории `src/{domain,application,infrastructure,composition,presentation}` созданы
+- [ ] Git инициализирован
+
+**Шаг 2: Package.json и workspaces**
+- [ ] Root `package.json` создан и настроен
 - [ ] `pnpm-workspace.yaml` создан
-- [ ] Зависимости установлены (root + web)
-- [ ] `tsconfig.json` с алиасами настроен
-- [ ] `vite.config.ts` настроен
-- [ ] `tailwind.config.js` настроен
-- [ ] **`eslint.config.js` настроен** ⭐
-- [ ] **`pnpm lint` работает** ⭐
-- [ ] Тестовые файлы созданы
-- [ ] `pnpm dev` работает
-- [ ] Браузер показывает страницу с Catppuccin темой
+- [ ] Web `package.json` создан через React Router CLI
+- [ ] Зависимости установлены: `pnpm install`
+- [ ] `pnpm list --depth=0` показывает workspace
+
+**Шаг 3: TypeScript и Vite**
+- [ ] Root `tsconfig.json` с алиасами настроен
+- [ ] `src/presentation/web/react/vite.config.ts` настроен
+- [ ] Импорты с алиасами работают
+
+**Шаг 4: ESLint**
+- [ ] `eslint.config.js` создан
+- [ ] Scripts добавлены в root `package.json`
+- [ ] `pnpm lint` работает без ошибок
+
+**Шаг 5: Tailwind (опционально)**
+- [ ] Зависимости установлены в web workspace
+- [ ] `tailwind.config.js` создан
+- [ ] Vite plugin настроен
 
 ---
 
@@ -359,25 +362,19 @@ pnpm dev
 
 Каждый шаг настройки вынесен в отдельный файл с детальной инструкцией:
 
-#### ✅ Обязательные шаги (для запуска проекта)
+#### ✅ Обязательные шаги
 
 | Шаг | Файл инструкции | Что настраивается | Зачем |
 |-----|----------------|-------------------|-------|
-| **Шаг 2** | [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md) | • Root `package.json`<br>• Web `package.json`<br>• `pnpm-workspace.yaml`<br>• Какие пакеты куда | Управление зависимостями, workspaces |
-| **Шаг 3** | [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) | • Root `tsconfig.json` paths<br>• `vite.config.ts` алиасы | Алиасы для DDD слоев, сборка проекта |
+| **Шаг 2** | [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md) | • Root `package.json`<br>• Web `package.json`<br>• `pnpm-workspace.yaml` | Управление зависимостями, workspaces |
+| **Шаг 3** | [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) | • Root `tsconfig.json`<br>• `vite.config.ts` | Алиасы для DDD слоев, сборка проекта |
+| **Шаг 4** | [ESLINT_SETUP.md](./ESLINT_SETUP.md) | • `eslint.config.js`<br>• Scripts в `package.json` | Линтинг + архитектурные границы |
 
-#### 🟡 Опциональные шаги (рекомендуется)
+#### 🎨 Опциональные шаги
 
-| Шаг | Файл инструкции | Что настраивается | Зачем |
-|-----|----------------|-------------------|-------|
-| **Шаг 4** | [ESLINT_SETUP.md](./ESLINT_SETUP.md) | • `eslint.config.js`<br>• `eslint-plugin-boundaries`<br>• Архитектурные правила | Автоматическая проверка границ слоев |
-
-#### 🎨 Дополнительные библиотеки (опционально)
-
-| Библиотека | Файл инструкции | Что дает | Альтернативы |
-|-----------|----------------|----------|--------------|
-| **Tailwind CSS** | [TAILWIND_SETUP.md](./TAILWIND_SETUP.md) | • Utility-first CSS<br>• Catppuccin тема<br>• Готовые цвета | CSS Modules, styled-components, Emotion |
-| **Будущие** | - | UI компоненты, иконки, формы | По мере необходимости |
+| Шаг | Файл инструкции | Что настраивается | Альтернативы |
+|-----|----------------|-------------------|--------------|
+| **Шаг 5** | [TAILWIND_SETUP.md](./TAILWIND_SETUP.md) | • Tailwind CSS v4<br>• Catppuccin тема | CSS Modules, styled-components, Emotion |
 
 ### 🎯 Философия: Single Source of Truth
 
@@ -386,14 +383,12 @@ pnpm dev
 ```
 README.md (этот файл)           ← Краткий обзор шагов + ссылки
     ↓ ссылается на
-Обязательные:
+Обязательные шаги:
 ├─ PACKAGE_JSON_SETUP.md        ← package.json и workspaces
-└─ TYPESCRIPT_VITE_CONFIG.md    ← tsconfig, vite алиасы
+├─ TYPESCRIPT_VITE_CONFIG.md    ← tsconfig, vite алиасы
+└─ ESLINT_SETUP.md              ← ESLint + архитектурные границы
 
-Опциональные:
-└─ ESLINT_SETUP.md              ← ESLint с boundaries
-
-Дополнительные библиотеки:
+Опциональные шаги:
 └─ TAILWIND_SETUP.md            ← Tailwind CSS + Catppuccin
 
     ↓ ссылаются на

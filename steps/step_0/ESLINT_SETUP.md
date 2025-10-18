@@ -16,10 +16,10 @@
 
 ## 📦 Установка
 
-### 1. Установить зависимости
+> **⚠️ ВАЖНО**: Устанавливать в **root проекта**, НЕ в web presentation!
 
 ```bash
-# В корне проекта
+# В корне проекта (password-manager/)
 pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescript-eslint/eslint-plugin
 ```
 
@@ -27,6 +27,8 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 - `eslint` - сам линтер
 - `eslint-plugin-boundaries` - проверка архитектурных границ
 - `@typescript-eslint/*` - поддержка TypeScript
+
+**Зависимости автоматически добавятся** в root `package.json`
 
 ---
 

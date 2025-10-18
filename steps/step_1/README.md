@@ -57,25 +57,17 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 ## 🔄 Порядок реализации
 
 > **📘 Важно**: Перед началом ознакомьтесь с документацией:
+> - [TYPES_AND_ENTITIES.md](../../docs/TYPES_AND_ENTITIES.md) - типизация в DDD: Value Objects, Entities, DTO ⭐
 > - [DDD_AND_CLEAN_ARCHITECTURE.md](../../docs/DDD_AND_CLEAN_ARCHITECTURE.md) - как DDD и Clean Architecture сочетаются
 > - [COMPOSITION_LAYER.md](../../docs/COMPOSITION_LAYER.md) - декомпозиция и Multi-UI поддержка
 > - [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - Query Handlers и CQRS паттерн
-> - [DATA_FLOW.md](../../docs/DATA_FLOW.md) - поток данных в Remix
+> - [DATA_FLOW.md](../../docs/DATA_FLOW.md) - поток данных в React Router
 
 ### Этап 1: Domain Layer (Типы и интерфейсы)
 
 Domain Layer - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
 
-#### 1.1 Создать базовые типы
-
-**Файл: `src/domain/resource/types.ts`**
-```typescript
-export type ResourceId = string
-export type FieldId = string
-export type DateTime = string // ISO 8601
-```
-
-#### 1.2 Создать переиспользуемые инварианты (Shared Kernel)
+#### 1.1 Создать переиспользуемые инварианты (Shared Kernel)
 
 > **📚 Детали**: [docs/error-handling/INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
@@ -151,13 +143,15 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 - ✅ Тестируемость — один тест для всех UUID
 - ✅ Изменяемость — изменить regex в одном месте
 
-#### 1.3 Создать Value Object: ResourceId
+#### 1.2 Создать Value Object: ResourceId
 
-**Файл: `src/domain/value-objects/ResourceId.ts`**
+> **📚 Детали**: [TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы](../../docs/TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы) — Почему класс, а не type alias
+
+**Файл: `src/domain/resource/ResourceId.ts`**
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~domain/shared/errors'
-import { UuidInvariant } from '../shared'
+import { InvariantViolationError } from '@/domain/shared/errors'
+import { UuidInvariant } from '@/domain/shared/invariants'
 
 /**
  * Value Object для ID ресурса
@@ -188,7 +182,7 @@ export class ResourceId {
 
 #### 1.3 Создать Value Object: Namespace
 
-**Файл: `src/domain/value-objects/Namespace.ts`**
+**Файл: `src/domain/resource/Namespace.ts`**
 ```typescript
 export class Namespace {
   private constructor(private readonly _value: string) {}
@@ -220,9 +214,9 @@ export class Namespace {
 - Невозможность создать невалидный Namespace
 - Бизнес-логика в одном месте
 
-#### 1.5 Создать Value Object: ResourceName
+#### 1.4 Создать Value Object: ResourceName
 
-**Файл: `src/domain/value-objects/ResourceName.ts`**
+**Файл: `src/domain/resource/ResourceName.ts`**
 ```typescript
 export class ResourceName {
   private constructor(private readonly _value: string) {}
@@ -246,21 +240,21 @@ export class ResourceName {
 
 #### 1.5 Создать DTO для списка ресурсов
 
+> **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer) — Зачем нужны DTO
+
 **Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**
 ```typescript
-import type { ResourceId, DateTime } from './types'
-
 /**
- * Упрощенное представление ресурса для списков
- * Не содержит чувствительных данных (только preview)
+ * DTO для списка ресурсов
+ * Простые примитивы для UI (не Value Objects!)
  */
-export interface ResourceListItem {
-  id: ResourceId
-  namespace: string        // Простая строка для отображения
-  name: string            // Простая строка для отображения
+export interface ResourceListItemDTO {
+  id: string              // ResourceId → string
+  namespace: string       // Namespace → string
+  name: string           // ResourceName → string
   secretPreview?: string  // Первые символы + ***
   fieldsCount: number
-  updatedAt: DateTime
+  updatedAt: string      // Date → ISO string
 }
 ```
 
@@ -270,13 +264,18 @@ export interface ResourceListItem {
 - Удобно для JSON сериализации в Remix loaders
 - Query Handler преобразует Domain модель в DTO
 
-#### 1.6 Создать Public API для value-objects
+#### 1.6 Создать Public API для resource модуля
 
-**Файл: `src/domain/value-objects/index.ts`**
+> **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
+
+**Файл: `src/domain/resource/index.ts`**
 ```typescript
+// Экспортируем Value Objects
 export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
+
+// В будущем здесь появятся Resource Aggregate и CustomField Entity
 ```
 
 #### 1.7 Создать интерфейс репозитория
@@ -319,9 +318,9 @@ Infrastructure Layer реализует интерфейсы из Domain Layer.
 
 **Файл: `src/infrastructure/mocks/resources.mock.ts`**
 ```typescript
-import type { ResourceListItem } from '~domain/resource'
+import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
-export const mockResources: ResourceListItem[] = [
+export const mockResources: ResourceListItemDTO[] = [
   {
     id: '1',
     namespace: 'social',
@@ -376,8 +375,9 @@ export { mockResources } from './resources.mock'
 
 **Файл: `src/infrastructure/repositories/MockResourceRepository.ts`**
 ```typescript
-import type { IResourceRepository } from '~domain/repositories'
-import type { ResourceListItem, ResourceId, Namespace } from '~domain/resource'
+import type { IResourceRepository } from '@/domain/repositories'
+import type { ResourceListItemDTO } from '@/application/queries/dtos'
+import type { ResourceId, Namespace } from '@/domain/resource'
 import { mockResources } from '../mocks'
 
 /**
@@ -385,22 +385,22 @@ import { mockResources } from '../mocks'
  * Использует in-memory данные для разработки
  */
 export class MockResourceRepository implements IResourceRepository {
-  async findAll(): Promise<ResourceListItem[]> {
+  async findAll(): Promise<ResourceListItemDTO[]> {
     // Имитация асинхронности (как будто запрос к API)
     return Promise.resolve([...mockResources])
   }
   
-  async findById(id: ResourceId): Promise<ResourceListItem | null> {
-    const resource = mockResources.find(r => r.id === id)
+  async findById(id: ResourceId): Promise<ResourceListItemDTO | null> {
+    const resource = mockResources.find(r => r.id === id.getValue())
     return Promise.resolve(resource ?? null)
   }
   
-  async findByNamespace(namespace: Namespace): Promise<ResourceListItem[]> {
-    const filtered = mockResources.filter(r => r.namespace === namespace.value)
+  async findByNamespace(namespace: Namespace): Promise<ResourceListItemDTO[]> {
+    const filtered = mockResources.filter(r => r.namespace === namespace.getValue())
     return Promise.resolve(filtered)
   }
   
-  async search(query: string): Promise<ResourceListItem[]> {
+  async search(query: string): Promise<ResourceListItemDTO[]> {
     const lowerQuery = query.toLowerCase()
     const filtered = mockResources.filter(r => 
       r.namespace.includes(lowerQuery) ||
@@ -500,17 +500,17 @@ export class ListResourcesQuery implements IQuery {
 ```typescript
 import type { IQueryHandler, QueryResult } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
-import type { IResourceRepository } from '~domain/repositories'
-import type { ResourceListItem } from '../dtos/ResourceListItemDTO'
+import type { IResourceRepository } from '@/domain/repositories'
+import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
 
 /**
  * Query Handler для получения списка ресурсов
  * Реализует CQRS паттерн для чтения данных
  */
-export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQuery, ResourceListItem[]> {
+export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   constructor(private repository: IResourceRepository) {}
   
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItem[]>> {
+  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
     try {
       // Получаем данные из репозитория
       const resources = await this.repository.findAll()
@@ -548,7 +548,7 @@ export type { IQueryHandler, QueryResult } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export { ListResourcesQuery } from './ListResourcesQuery'
 export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
-export type { ResourceListItem } from './dtos/ResourceListItemDTO'
+export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 ```
 
 ---
@@ -561,7 +561,7 @@ export type { ResourceListItem } from './dtos/ResourceListItemDTO'
 
 **Файл: `src/infrastructure/queries/InMemoryQueryBus.ts`**
 ```typescript
-import type { IQueryBus, IQuery, IQueryHandler, QueryResult } from '~application/queries'
+import type { IQueryBus, IQuery, IQueryHandler, QueryResult } from '@/application/queries'
 
 /**
  * In-Memory реализация Query Bus
@@ -604,10 +604,10 @@ Composition Root связывает все слои через декомпоз�
 
 **Файл: `src/composition/modules/ResourceModule.ts`**
 ```typescript
-import type { IResourceRepository } from '~domain/repositories'
-import type { IQueryBus } from '~application/queries'
-import { QueryTypes, ListResourcesQueryHandler } from '~application/queries'
-import { MockResourceRepository } from '~infrastructure/repositories'
+import type { IResourceRepository } from '@/domain/repositories'
+import type { IQueryBus } from '@/application/queries'
+import { QueryTypes, ListResourcesQueryHandler } from '@/application/queries'
+import { MockResourceRepository } from '@/infrastructure/repositories'
 
 /**
  * DI Module для Resource сущности
@@ -642,9 +642,9 @@ export class ResourceModule {
 
 **Файл: `src/composition/ServiceContainer.ts`**
 ```typescript
-import { InMemoryQueryBus } from '~infrastructure/queries'
+import { InMemoryQueryBus } from '@/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
-import type { IQueryBus } from '~application/queries'
+import type { IQueryBus } from '@/application/queries'
 
 /**
  * Root DI Container - координирует все модули
@@ -695,7 +695,7 @@ export class ServiceContainer {
 
 **Файл: `src/composition/queries/ResourceQueries.ts`**
 ```typescript
-import { ListResourcesQuery } from '~application/queries'
+import { ListResourcesQuery } from '@/application/queries'
 import { ServiceContainer } from '../ServiceContainer'
 
 /**
@@ -762,10 +762,10 @@ Presentation Layer отвечает за отображение данных п�
 
 **Файл: `src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx`**
 ```typescript
-import type { ResourceListItem } from '~domain/resource'
+import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
 interface Props {
-  resource: ResourceListItem
+  resource: ResourceListItemDTO
 }
 
 /**
@@ -806,11 +806,11 @@ export function ResourceListItem({ resource }: Props) {
 
 **Файл: `src/presentation/web/react/src/components/ResourceList/ResourceList.tsx`**
 ```typescript
-import type { ResourceListItem as ResourceListItemType } from '~domain/resource'
+import type { ResourceListItemDTO } from '@/application/queries/dtos'
 import { ResourceListItem } from './ResourceListItem'
 
 interface Props {
-  resources: ResourceListItemType[]
+  resources: ResourceListItemDTO[]
 }
 
 /**
@@ -850,7 +850,7 @@ export { ResourceListItem } from './ResourceListItem'
 ```typescript
 import { useLoaderData } from 'react-router'
 import type { Route } from './+types/_index'
-import { queries } from '~composition'
+import { queries } from '@/composition'
 import { ResourceList } from '~/components/ResourceList'
 
 /**

@@ -85,19 +85,30 @@ packages:
 
 ---
 
-## 3️⃣ Web Presentation package.json
+## 3️⃣ Web Presentation через CLI
 
-**Файл**: `src/presentation/web/react/package.json`
+**Файлы**: 
+- `src/presentation/web/react/package.json`
+- `src/presentation/web/react/tsconfig.json`
+- `src/presentation/web/react/vite.config.ts`
+- `src/presentation/web/react/react-router.config.ts`
 
 **Метод**: Использовать React Router CLI (автоматически создает актуальные версии)
 
 **Шаги**:
 1. Из `src/presentation/web/` запустить: `pnpm dlx create-react-router@latest temp`
 2. Выбрать: Template=Basic, TypeScript=Yes, Package manager=pnpm
-3. Скопировать `package.json`:
-   - `temp/package.json` → `react/package.json`
+3. Скопировать конфиги:
+   ```bash
+   cp temp/package.json react/package.json
+   cp temp/tsconfig.json react/tsconfig.json
+   cp temp/vite.config.ts react/vite.config.ts
+   cp temp/react-router.config.ts react/react-router.config.ts
+   ```
 4. Изменить `"name"` на `"@password-manager/web"` в `react/package.json`
 5. Удалить временную папку: `rm -rf temp`
+
+**⚠️ Важно**: Конфиги из CLI нужно будет адаптировать под DDD структуру (см. шаги 3-4 в главном README)
 
 **Почему CLI**:
 - ✅ Всегда актуальные версии пакетов

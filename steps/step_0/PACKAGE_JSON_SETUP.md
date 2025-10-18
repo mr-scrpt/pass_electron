@@ -27,35 +27,31 @@
   "private": true,
   "type": "module",
   
-  "workspaces": [
-    "src/presentation/web/react"
-  ],
-  
   "scripts": {
     "dev:web": "pnpm --filter @password-manager/web dev",
     "build:web": "pnpm --filter @password-manager/web build",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint src",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   
   "dependencies": {
-    "neverthrow": "^6.2.0"
+    "neverthrow": "^8.1.2"
   },
   
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "typescript": "^5.3.3",
-    "eslint": "^8.55.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0",
-    "prettier": "^3.1.1",
-    "vitest": "^1.0.4"
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.2",
+    "eslint": "^9.18.0",
+    "@eslint/js": "^9.18.0",
+    "typescript-eslint": "^8.20.0",
+    "prettier": "^3.4.2",
+    "vitest": "^2.1.8"
   },
   
   "engines": {
     "node": ">=20.0.0",
-    "pnpm": ">=8.0.0"
+    "pnpm": ">=9.0.0"
   }
 }
 ```
@@ -90,20 +86,20 @@ pnpm install
   },
   
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router": "^7.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7.5.0"
   },
   
   "devDependencies": {
-    "@react-router/dev": "^7.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "vite": "^5.0.0",
-    "tailwindcss": "^3.4.0",
-    "postcss": "^8.4.0",
-    "autoprefixer": "^10.4.0",
-    "@catppuccin/tailwindcss": "^1.0.0"
+    "@react-router/dev": "^7.5.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "vite": "^6.0.7",
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.20",
+    "@catppuccin/tailwindcss": "^1.0.3"
   }
 }
 ```
@@ -246,11 +242,68 @@ password-manager/
 
 ---
 
+## 7️⃣ ESLint 9 конфигурация (Flat Config)
+
+> **⚠️ ВАЖНО**: ESLint 9 использует новый формат конфигурации (Flat Config).  
+> Старый `.eslintrc.cjs` больше не поддерживается.
+
+**Файл: `eslint.config.js`** (в корне проекта)
+
+```javascript
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/build/**',
+      '**/dist/**',
+      '**/.cache/**',
+      'eslint.config.js',
+    ],
+  }
+)
+```
+
+**Ключевые изменения в ESLint 9:**
+- ✅ Flat Config вместо `.eslintrc.*`
+- ✅ `typescript-eslint` вместо отдельных `@typescript-eslint/*` пакетов
+- ✅ `projectService: true` для автоматического определения tsconfig
+- ✅ Native `ignores` вместо `.eslintignore`
+
+**Запуск:**
+```bash
+pnpm lint
+# Исправить автоматически:
+pnpm lint --fix
+```
+
+---
+
 ## ✅ Чеклист
 
-- [ ] Создан `package.json` в корне с workspaces
+- [ ] Создан `package.json` в корне (без поля `workspaces`!)
 - [ ] Создан `pnpm-workspace.yaml`
 - [ ] Создан `src/presentation/web/react/package.json`
+- [ ] Создан `eslint.config.js` (Flat Config для ESLint 9)
 - [ ] Установлены зависимости: `pnpm install`
 - [ ] Проверка: `pnpm list --depth=0` показывает workspaces
 - [ ] Команда `pnpm dev:web` работает (после настройки vite.config)

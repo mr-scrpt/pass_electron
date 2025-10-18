@@ -13,7 +13,7 @@
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
 import { queries } from '@/composition'           // ← Единый алиас!
-import { Resource } from '@/domain/resource/Resource'
+import { Resource } from '@/domain'               // ← Через Public API!
 ```
 
 **Vite должен знать** где искать эти файлы.
@@ -174,9 +174,12 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 
 ```typescript
 // ✅ Domain импортирует ТОЛЬКО других Domain объектов
+// Внутри модуля - локальные импорты (через ./)
 import { ResourceId } from './ResourceId'
 import { Namespace } from './Namespace'
-import { DomainError } from '@domain/shared/errors/DomainError'
+
+// Кросс-модульные импорты внутри Domain - через @/domain
+import { DomainError } from '@/domain/shared/errors'
 
 // ❌ Domain НЕ импортирует из других слоев!
 // import { queries } from '@api'  // ← ЗАПРЕЩЕНО

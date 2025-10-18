@@ -125,10 +125,10 @@ export async function loader() {
 **Файл: `src/composition/ServiceContainer.ts`**
 
 ```typescript
-import { InMemoryQueryBus } from '~/src/infrastructure/queries'
+import { InMemoryQueryBus } from '@/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
-import type { IQueryBus, IRequestParser } from '~application'
-import type { IClipboardService } from '~application/ports'
+import type { IQueryBus, IRequestParser } from '@/application'
+import type { IClipboardService } from '@/application/ports'
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
@@ -208,7 +208,7 @@ export { ServiceContainer } from './ServiceContainer'
 **Файл: `src/composition/queries/ResourceQueries.ts`**
 
 ```typescript
-import { ListResourcesQuery } from '~application/queries'
+import { ListResourcesQuery } from '@/application/queries'
 import { ServiceContainer } from '../ServiceContainer'
 
 /**
@@ -299,8 +299,7 @@ export const queries = {
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-import type { Route } from './+types/_index'
-import { queries } from '~composition'
+import { queries } from '@/composition'
 
 /**
  * ✅ ИДЕАЛЬНО: Loader в одну строку
@@ -418,8 +417,7 @@ export default function Index() {
 ```typescript
 // src/presentation/web/react/src/routes/resources.new.tsx
 import { redirect } from 'react-router'
-import type { Route } from './+types/resources.new'
-import { commands } from '~composition'
+import { commands } from '@/composition'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (action для мутаций)
@@ -446,7 +444,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```typescript
 // ✅ РЕКОМЕНДУЕТСЯ: Используй Query Facade
-import { queries } from '~composition'
+import { queries } from '@/composition'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.listResources(request)
@@ -575,7 +573,7 @@ export default function ResourceList() {
 
 1. **Используй `loader()` для загрузки данных через Query Facade**
    ```typescript
-   import { queries } from '~composition'
+   import { queries } from '@/composition'
    
    export async function loader({ request }: LoaderFunctionArgs) {
      return queries.listResources(request)  // ✅ Одна строка
@@ -585,13 +583,13 @@ export default function ResourceList() {
 2. **Используй Facades для чтения и записи**
    ```typescript
    // ✅ Для чтения (Queries)
-   import { queries } from '~composition'
+   import { queries } from '@/composition'
    export async function loader({ request }) {
      return queries.resources.list(request)
    }
    
    // ✅ Для записи (Commands)
-   import { commands } from '~composition'
+   import { commands } from '@/composition'
    export async function action({ request }) {
      return commands.resources.create(request)
    }
@@ -700,7 +698,7 @@ export default function ResourceList() {
 
 - [ ] Определить нужен ли `loader()` (загрузка данных)
 - [ ] Определить нужен ли `action()` (мутации)
-- [ ] Импортировать `queries` или `commands` из `~/composition`
+- [ ] Импортировать `queries` или `commands` из `@/composition`
 - [ ] Вызвать Facade: `queries.resources.list(request)` или `commands.resources.create(request)`
 - [ ] Типизировать `useLoaderData<typeof loader>()`
 - [ ] Для client-side операций использовать `useFetcher()`

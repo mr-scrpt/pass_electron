@@ -292,7 +292,7 @@ import type {
   ICommandBus, 
   ICommand, 
   ICommandHandler 
-} from '~application/commands';
+} from '@/application/commands';
 
 /**
  * In-Memory реализация Command Bus
@@ -348,8 +348,8 @@ export { InMemoryCommandBus } from './InMemoryCommandBus';
 **Файл: `src/composition/ServiceContainer.ts`**
 
 ```typescript
-import { InMemoryCommandBus } from '~/infrastructure/commands';
-import type { ICommandBus } from '~application/commands';
+import { InMemoryCommandBus } from '@/infrastructure/commands';
+import type { ICommandBus } from '@/application/commands';
 
 class ServiceContainer {
   private static commandBus: ICommandBus | null = null;
@@ -379,7 +379,7 @@ export const getCommandBus = () => ServiceContainer.getCommandBus();
 **Файл: `src/application/services/keymap/types.ts`**
 
 ```typescript
-import type { ICommandBus } from '~application/commands';
+import type { ICommandBus } from '@/application/commands';
 
 export interface ActionContext {
   mode: AppMode;
@@ -401,7 +401,7 @@ import { Keymap } from '../types';
 import { 
   DeleteResourceCommand,
   ShowNotificationCommand 
-} from '~application/commands';
+} from '@/application/commands';
 
 /**
  * ✅ ПРАВИЛЬНО: Использует CommandBus через абстракцию
@@ -436,7 +436,7 @@ export const resourceKeymaps: Keymap[] = [
 **Файл: `src/application/services/keymap/KeymapExecutor.ts`**
 
 ```typescript
-import type { ICommandBus } from '~application/commands';
+import type { ICommandBus } from '@/application/commands';
 
 export class KeymapExecutor {
   constructor(
@@ -477,12 +477,12 @@ export class KeymapExecutor {
 ```typescript
 import { useEffect } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
-import { getCommandBus } from '~composition';
+import { getCommandBus } from '@/composition';
 import { 
   DeleteResourceCommand,
   NavigateToCommand,
   type ICommandHandler 
-} from '~application/commands';
+} from '@/application/commands';
 
 /**
  * Handler для удаления ресурса

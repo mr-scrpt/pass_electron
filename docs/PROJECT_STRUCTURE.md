@@ -226,7 +226,7 @@ src/domain/
 
 **📋 Правила импортов:**
 - ✅ **МОЖЕТ импортировать:** НИЧЕГО! Полностью изолирован
-- ✅ **Внутренние импорты:** Только другие Domain объекты через `@domain/*`
+- ✅ **Внутренние импорты:** Только другие Domain объекты через `@/domain/*`
 - ❌ **НЕ МОЖЕТ импортировать:** Application, Infrastructure, Presentation, React, HTTP, etc.
 - ✅ **Public API:** Entities, Value Objects, Domain Events, Repository Interfaces, Domain Errors
 - 🔒 **Внутренности:** Приватные методы entities - НЕ экспортируются
@@ -300,10 +300,10 @@ src/application/
 ```
 
 **📋 Правила импортов:**
-- ✅ **МОЖЕТ импортировать:** Domain (`@domain`)
+- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`)
 - ❌ **НЕ МОЖЕТ импортировать:** Infrastructure, Presentation, Composition, React, HTTP
 - ✅ **Public API:** Query/Command типы, Result типы, Ports (интерфейсы)
-- 🔒 **Внутренности:** Handlers реализации - доступны ТОЛЬКО через `@internal/application/*` (для Composition)
+- 🔒 **Внутренности:** Handlers реализации - доступны ТОЛЬКО через `@/internal/application/*` (для Composition)
 
 **Характеристики**:
 - Зависит только от Domain Layer (Dependency Rule)
@@ -405,10 +405,10 @@ src/infrastructure/
 ```
 
 **📋 Правила импортов:**
-- ✅ **МОЖЕТ импортировать:** Domain (`@domain`) - ТОЛЬКО интерфейсы
+- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`) - ТОЛЬКО интерфейсы
 - ❌ **НЕ МОЖЕТ импортировать:** Application, Presentation, Composition
 - ✅ **Public API:** Repository реализации, Service реализации, Factories
-- 🔒 **Внутренности:** Приватные методы адаптеров - доступны ТОЛЬКО через `@internal/infrastructure/*` (для Composition)
+- 🔒 **Внутренности:** Приватные методы адаптеров - доступны ТОЛЬКО через `@/internal/infrastructure/*` (для Composition)
 
 **⚠️ КРИТИЧНО:** Infrastructure НЕ должен зависеть от Application!
 Это нарушение Dependency Rule. DI логика должна быть в Composition.
@@ -479,12 +479,12 @@ src/presentation/
 
 **📋 Правила импортов:**
 - ✅ **МОЖЕТ импортировать:** 
-  - Domain (`@domain`) - ТОЛЬКО типы через Public API
-  - Composition (`@api`) - ТОЛЬКО facades (queries, commands)
-  - Локальные компоненты (`@client/*`)
+  - Domain (`@/domain`) - ТОЛЬКО типы через Public API
+  - Composition (`@/api`) - ТОЛЬКО facades (queries, commands)
+  - Локальные компоненты (`@/*`)
 - ❌ **НЕ МОЖЕТ импортировать:**
-  - Application handlers напрямую (`@internal/application/*`) ← ESLint запретит!
-  - Infrastructure напрямую (`@internal/infrastructure/*`) ← ESLint запретит!
+  - Application handlers напрямую (`@/internal/application/*`) ← ESLint запретит!
+  - Infrastructure напрямую (`@/internal/infrastructure/*`) ← ESLint запретит!
 - ✅ **Public API:** React компоненты, hooks (для других Presentation слоев)
 - 🔒 **Внутренности:** Приватные компоненты, утилиты - НЕ экспортируются
 
@@ -532,11 +532,11 @@ src/presentation/
 
 | Слой | Может импортировать | Алиасы | Примечание |
 |------|---------------------|--------|------------|
-| **Domain** | НИЧЕГО | `@domain/*` (только внутри себя) | Полностью изолирован |
-| **Application** | Domain | `@domain` | Только через Public API |
-| **Infrastructure** | Domain (интерфейсы) | `@domain` | Только интерфейсы, НЕ реализации |
-| **Composition** ⭐ | Domain, Application, Infrastructure | `@domain`, `@internal/application/*`, `@internal/infrastructure/*` | **Единственный** кто может импортировать `@internal/*` |
-| **Presentation** | Domain (типы), Composition (facades) | `@domain`, `@api`, `@client/*` | ❌ НЕ может `@internal/*` |
+| **Domain** | НИЧЕГО | `@/domain/*` (только внутри себя) | Полностью изолирован |
+| **Application** | Domain | `@/domain` | Только через Public API |
+| **Infrastructure** | Domain (интерфейсы) | `@/domain` | Только интерфейсы, НЕ реализации |
+| **Composition** ⭐ | Domain, Application, Infrastructure | `@/domain`, `@/internal/application/*`, `@/internal/infrastructure/*` | **Единственный** кто может импортировать `@/internal/*` |
+| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/api`, `@/*` | ❌ НЕ может `@/internal/*` |
 
 **Ключевое правило:** Только Composition может использовать `@internal/*` алиасы!
 
@@ -769,9 +769,9 @@ import { ApiClient } from '@/infrastructure/api/client.ts'  // ❌
 #### ✅ **ПРАВИЛЬНО** - Только через Public API (`index.ts`):
 ```typescript
 // Используем алиасы, которые указывают на index.ts
-import { Resource, ResourceId, Namespace } from '@domain'  // ✅ Public API
-import { queries, commands } from '@api'  // ✅ Facades
-import { ResourceList } from '@client/components/ResourceList'  // ✅ Локальные
+import { Resource, ResourceId, Namespace } from '@/domain'  // ✅ Public API
+import { queries, commands } from '@/api'  // ✅ Facades
+import { ResourceList } from '@/components/ResourceList'  // ✅ Локальные
 ```
 
 ### 2. Presentation → ТОЛЬКО Public API
@@ -779,8 +779,8 @@ import { ResourceList } from '@client/components/ResourceList'  // ✅ Лока�
 #### ❌ **НЕПРАВИЛЬНО** - Прямой импорт handlers:
 ```typescript
 // В Presentation Layer - НАРУШЕНИЕ архитектуры!
-import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'  // ❌ ESLint запретит!
-import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'  // ❌ ESLint запретит!
+import { GetResourcesHandler } from '@/internal/application/queries/GetResourcesHandler'  // ❌ ESLint запретит!
+import { ApiResourceRepository } from '@/internal/infrastructure/repositories/ApiResourceRepository'  // ❌ ESLint запретит!
 
 export async function loader() {
   const repo = new ApiResourceRepository()  // ❌ Прямая зависимость
@@ -792,7 +792,7 @@ export async function loader() {
 #### ✅ **ПРАВИЛЬНО** - Использовать facades:
 ```typescript
 // В Presentation Layer - Через Public API
-import { queries } from '@api'  // ✅ Facade
+import { queries } from '@/api'  // ✅ Facade
 
 export async function loader() {
   return await queries.resources.list()  // ✅ Одна строка!
@@ -803,10 +803,10 @@ export async function loader() {
 
 #### ✅ **ПРАВИЛЬНО** - DI в Composition:
 ```typescript
-// src/composition/queries.ts - ТОЛЬКО здесь можно @internal/*
-import { Resource } from '@domain'  // ✅ Public API
-import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'  // ✅ Разрешено
-import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'  // ✅ Разрешено
+// src/composition/queries.ts - ТОЛЬКО здесь можно @/internal/*
+import { Resource } from '@/domain'  // ✅ Public API
+import { GetResourcesHandler } from '@/internal/application/queries/GetResourcesHandler'  // ✅ Разрешено
+import { ApiResourceRepository } from '@/internal/infrastructure/repositories/ApiResourceRepository'  // ✅ Разрешено
 
 export const queries = {
   resources: {
@@ -825,8 +825,8 @@ export const queries = {
 #### ❌ **НЕПРАВИЛЬНО** - Импорт из других слоев:
 ```typescript
 // src/domain/resource/Resource.ts
-import { queries } from '@api'  // ❌ ЗАПРЕЩЕНО!
-import { ApiClient } from '@internal/infrastructure/api/ApiClient'  // ❌ ЗАПРЕЩЕНО!
+import { queries } from '@/api'  // ❌ ЗАПРЕЩЕНО!
+import { ApiClient } from '@/internal/infrastructure/api/ApiClient'  // ❌ ЗАПРЕЩЕНО!
 ```
 
 #### ✅ **ПРАВИЛЬНО** - Только другие Domain объекты:
@@ -834,7 +834,7 @@ import { ApiClient } from '@internal/infrastructure/api/ApiClient'  // ❌ ЗА�
 // src/domain/resource/Resource.ts
 import { ResourceId } from './ResourceId'  // ✅ Локальный импорт
 import { Namespace } from './Namespace'  // ✅
-import { DomainError } from '@domain/shared/errors/DomainError'  // ✅ Через @domain/*
+import { DomainError } from '@/domain/shared/errors'  // ✅ Через Public API (index.ts)
 
 // Domain определяет интерфейсы, не зная о реализации
 interface IEventBus {
@@ -849,10 +849,10 @@ class EventBus implements IEventBus { ... }
 
 ```typescript
 // src/shared/types/domain.ts - Re-export domain types
-export type { Resource, Namespace, SecretField } from '~domain'
+export type { Resource, Namespace, SecretField } from '@/domain'
 
 // src/shared/types/infrastructure.ts - Re-export infrastructure types
-export type { ApiResponse, ApiError } from '~infrastructure'
+export type { ApiResponse, ApiError } from '@/infrastructure'
 
 // src/shared/types/index.ts - Single entry point
 export * from './domain'
@@ -868,10 +868,9 @@ export * from './api'
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-import type { Route } from './+types/_index'
 import { useLoaderData } from 'react-router'
-import { queries } from '~composition'
-import { ResourceList } from '../components/ResourceList'
+import { queries } from '@/composition'
+import { ResourceList } from '@/components/ResourceList'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (НОВЫЙ ПОДХОД - CQRS)
@@ -898,7 +897,7 @@ export default function Index() {
 
 ```typescript
 // src/application/services/notification/NotificationManager.ts
-import { IEventBus } from '~domain'
+import { IEventBus } from '@/domain'
 
 export class NotificationManager {
   constructor(private eventBus: IEventBus) {
@@ -1101,13 +1100,13 @@ const { mode, enterEditingMode } = useModal()
 - 🔒 Внутренности модулей - ПРИВАТНЫЕ
 
 ### 3. Алиасы строго разделены
-- `@domain` - Public API типов (указывает на `index.ts`)
-- `@api` - Facades (указывает на `index.ts`)  
-- `@client/*` - Локальные компоненты Presentation
-- `@internal/*` - ТОЛЬКО для Composition Layer!
+- `@/domain` - Public API типов (указывает на `index.ts`)
+- `@/api` - Facades (указывает на `index.ts`)  
+- `@/*` - Локальные компоненты и модули
+- `@/internal/*` - ТОЛЬКО для Composition Layer!
 
 ### 4. ESLint enforcement
-- Presentation НЕ может импортировать `@internal/*`
+- Presentation НЕ может импортировать `@/internal/*`
 - Domain полностью изолирован
 - Infrastructure НЕ зависит от Application
 

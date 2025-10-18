@@ -100,11 +100,20 @@
 
 ### 1. Инварианты в Domain Layer
 ```typescript
-// ✅ ХОРОШО: инвариант в Shared Kernel
+// ✅ ХОРОШО: Self-validating Value Object
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Result<ResourceName, InvariantViolationError> {
-    StringInvariant.ensureLength(value, 1, 100, 'ResourceName')
-    return success(new ResourceName(value))
+    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
+      .andThen(v => 
+        StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName')
+      )
+      .map(validValue => new ResourceName(validValue))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```

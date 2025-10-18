@@ -185,11 +185,17 @@ npm install @sweet-monads/either
 import { Either, left, right } from '@sweet-monads/either'
 
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value) {
       return left(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
     return right(new ResourceName(value))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```
@@ -437,7 +443,13 @@ class CreateResourceCommandHandler {
 ```typescript
 // Domain Layer — нативный Result (простота)
 class ResourceName {
-  static create(value: string): Result<ResourceName, InvariantViolationError>
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
+    // Валидация
+    if (!value) return failure(new InvariantViolationError(...))
+    return success(new ResourceName(value))
+  }
 }
 
 // Application Layer — neverthrow (композиция)

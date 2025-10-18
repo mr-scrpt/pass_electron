@@ -71,11 +71,32 @@ app/composition/
 
 ```
 app/domain/
+├── shared/                # Shared Kernel (переиспользуемые компоненты)
+│   ├── errors/            # Domain Errors
+│   │   ├── DomainError.ts
+│   │   ├── InvariantViolationError.ts
+│   │   ├── NotFoundError.ts
+│   │   ├── DuplicateError.ts
+│   │   ├── InvalidOperationError.ts
+│   │   └── index.ts
+│   ├── invariants/        # Переиспользуемые инварианты
+│   │   ├── UuidInvariant.ts
+│   │   ├── StringInvariant.ts          # Атомарные операции
+│   │   ├── EmailInvariant.ts
+│   │   ├── IdentifierInvariant.ts      # Композитные правила
+│   │   └── index.ts
+│   └── index.ts
 ├── resource/              # Resource Aggregate
 │   ├── Resource.ts        # Aggregate Root
 │   ├── SecretField.ts     # Entity
 │   ├── CustomField.ts     # Entity
-│   └── Namespace.ts       # Value Object
+│   ├── ResourceName.ts    # Value Object
+│   ├── Namespace.ts       # Value Object
+│   ├── errors/            # Aggregate-specific errors
+│   │   ├── ResourceLockedError.ts
+│   │   ├── DuplicateFieldLabelError.ts
+│   │   └── index.ts
+│   └── index.ts
 ├── repositories/          # Repository Interfaces
 │   ├── IResourceRepository.ts
 │   └── INamespaceRepository.ts
@@ -90,6 +111,7 @@ app/domain/
 - Определяет интерфейсы для Infrastructure
 - Содержит бизнес-инварианты
 - Публикует Domain Events
+- Содержит Shared Kernel с переиспользуемыми компонентами (errors, invariants)
 
 ### 2. Application Layer (`app/application/`)
 
@@ -127,6 +149,11 @@ app/application/
 │   ├── IRequestParser.ts  # Парсинг платформо-специфичных запросов
 │   ├── IClipboardService.ts
 │   ├── IStorageService.ts
+│   └── index.ts
+├── errors/                # Application Errors
+│   ├── ValidationError.ts
+│   ├── CommandError.ts
+│   ├── QueryError.ts
 │   └── index.ts
 └── index.ts               # Public API
 ```
@@ -210,8 +237,13 @@ app/infrastructure/
 ├── storage/               # Local Storage
 │   ├── LocalStorage.ts
 │   └── index.ts
-└── clipboard/             # Clipboard Service
-    ├── ClipboardService.ts
+├── clipboard/             # Clipboard Service
+│   ├── ClipboardService.ts
+│   └── index.ts
+└── errors/                # Infrastructure Errors
+    ├── NetworkError.ts
+    ├── ApiError.ts
+    ├── StorageError.ts
     └── index.ts
 ```
 
@@ -362,18 +394,50 @@ export { resetContainer } from './ServiceContainer'
 
 ```typescript
 // app/domain/index.ts
+export * from './shared'
 export * from './resource'
 export * from './repositories'
 export * from './events'
 ```
 
 ```typescript
+// app/domain/shared/index.ts
+export * from './errors'
+export * from './invariants'
+```
+
+```typescript
+// app/domain/shared/errors/index.ts
+export { DomainError } from './DomainError'
+export { InvariantViolationError } from './InvariantViolationError'
+export { NotFoundError } from './NotFoundError'
+export { DuplicateError } from './DuplicateError'
+export { InvalidOperationError } from './InvalidOperationError'
+```
+
+```typescript
+// app/domain/shared/invariants/index.ts
+export { UuidInvariant } from './UuidInvariant'
+export { StringInvariant } from './StringInvariant'        // Атомарные операции
+export { EmailInvariant } from './EmailInvariant'
+export { IdentifierInvariant } from './IdentifierInvariant'  // Композитные правила
+```
+
+```typescript
 // app/domain/resource/index.ts
 export { Resource } from './Resource'
+export { ResourceName } from './ResourceName'
 export { Namespace } from './Namespace'
 export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
+export * from './errors'
 export type { ResourceId, FieldId } from './types'
+```
+
+```typescript
+// app/domain/resource/errors/index.ts
+export { ResourceLockedError } from './ResourceLockedError'
+export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 ```
 
 ### Core Systems
@@ -801,6 +865,7 @@ const { mode, enterEditingMode } = useModal()
 ## См. также
 
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
+- [Error Handling](./error-handling/README.md) - Обработка ошибок, инварианты и Result Pattern
 - [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
 - [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд (CQRS - Commands)
 - [Query Handlers](./QUERY_HANDLERS.md) - Query Handlers для чтения данных (CQRS - Queries)

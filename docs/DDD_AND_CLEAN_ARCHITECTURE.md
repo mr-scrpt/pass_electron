@@ -100,35 +100,50 @@ Domain Layer полностью построен на тактических п�
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// app/domain/entities/Resource.ts
+// app/domain/resource/Resource.ts
+import { Result, ok, err } from 'neverthrow'
+import { ResourceLockedError } from './errors'
 
 export class Resource {
   private constructor(
     private readonly _id: ResourceId,      // Value Object
     private _name: ResourceName,           // Value Object
     private _namespace: Namespace,         // Value Object
-    private _metadata: ResourceMetadata    // Entity (часть Aggregate)
+    private _isLocked: boolean
   ) {}
 
-  // Бизнес-метод с инвариантами
-  rename(newName: ResourceName): void {
-    this.ensureNotLocked()  // Инвариант
+  // Бизнес-метод возвращает Result с aggregate-specific ошибкой
+  rename(newName: ResourceName): Result<void, ResourceLockedError> {
+    if (this._isLocked) {
+      return err(new ResourceLockedError(this._id))
+    }
+    
     this._name = newName
     this.addDomainEvent(new ResourceRenamedEvent(this._id, newName))
-  }
-
-  // Инвариант (бизнес-правило)
-  private ensureNotLocked(): void {
-    if (this._metadata.isLocked) {
-      throw new ResourceLockedError(this._id)
-    }
+    return ok(undefined)
   }
 
   // Фабричный метод (DDD паттерн)
-  static create(data: CreateResourceData): Resource {
-    const resource = new Resource(...)
-    resource.addDomainEvent(new ResourceCreatedEvent(...))
-    return resource
+  static create(
+    name: string,
+    namespace: string
+  ): Result<Resource, InvariantViolationError> {
+    // Создание через Value Objects (они валидируют)
+    return ResourceName.create(name)
+      .andThen(validName =>
+        Namespace.create(namespace)
+          .map(validNamespace => ({ validName, validNamespace }))
+      )
+      .map(({ validName, validNamespace }) => {
+        const resource = new Resource(
+          ResourceId.generate(),
+          validName,
+          validNamespace,
+          false // не заблокирован
+        )
+        resource.addDomainEvent(new ResourceCreatedEvent(resource._id))
+        return resource
+      })
   }
 }
 ```
@@ -138,25 +153,24 @@ export class Resource {
 Неизменяемый объект без идентичности, определяется значением.
 
 ```typescript
-// app/domain/value-objects/ResourceName.ts
-import { StringInvariant, InvariantViolationError } from '~/domain/shared'
+// app/domain/resource/ResourceName.ts
+import { Result } from 'neverthrow'
+import { InvariantViolationError } from '~/domain/shared/errors'
+import { StringInvariant } from '~/domain/shared/invariants'
 
 export class ResourceName {
-  private static readonly PATTERN = /^[a-zA-Z0-9-_]+$/
-  
   private constructor(private readonly value: string) {}
 
-  static create(value: string): ResourceName {
-    // ✅ Используем переиспользуемые инварианты
-    StringInvariant.ensureLength(value, 1, 100, 'ResourceName')
-    StringInvariant.ensurePattern(
-      value,
-      this.PATTERN,
-      'ResourceName',
-      'value',
-      'alphanumeric characters, dash and underscore'
-    )
-    return new ResourceName(value)
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
+    // ✅ Используем именованные переиспользуемые инварианты
+    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
+      .andThen(validValue =>
+        StringInvariant.validateAlphanumericWithDashUnderscore(
+          validValue,
+          'ResourceName'
+        )
+      )
+      .map(validValue => new ResourceName(validValue))
   }
 
   getValue(): string {

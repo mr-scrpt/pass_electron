@@ -6,11 +6,13 @@
 
 ## 🎯 Принципы
 
-### 1. **Domain Errors** — бизнес-ошибки
+### 1. **Domain Errors** — доменные ошибки
 - Нарушение бизнес-правил (инварианты)
 - Часть Ubiquitous Language
 - Должны быть понятны бизнесу
-- **Место**: `app/domain/shared/errors/`
+- **Место**: 
+  - **Общие**: `app/domain/shared/errors/` (Shared Kernel)
+  - **Aggregate-specific**: `app/domain/{aggregate}/errors/`
 
 ### 2. **Application Errors** — ошибки use case
 - Ошибки валидации команд/запросов
@@ -35,13 +37,20 @@
 ```
 app/
 ├── domain/
-│   └── shared/
-│       └── errors/                    # ← Domain Errors
-│           ├── DomainError.ts         # Базовая доменная ошибка
-│           ├── InvariantViolationError.ts
-│           ├── NotFoundError.ts
-│           ├── DuplicateError.ts
-│           ├── InvalidOperationError.ts
+│   ├── shared/                      # Shared Kernel
+│   │   └── errors/                  # ← Общие Domain Errors
+│   │       ├── DomainError.ts       # Базовая доменная ошибка
+│   │       ├── InvariantViolationError.ts
+│   │       ├── NotFoundError.ts
+│   │       ├── DuplicateError.ts
+│   │       ├── InvalidOperationError.ts
+│   │       └── index.ts
+│   └── resource/                   # Resource Aggregate
+│       ├── Resource.ts
+│       ├── ResourceName.ts
+│       └── errors/                 # ← Aggregate-specific errors
+│           ├── ResourceLockedError.ts
+│           ├── DuplicateFieldLabelError.ts
 │           └── index.ts
 ├── application/
 │   └── errors/                        # ← Application Errors
@@ -127,6 +136,8 @@ export class InvariantViolationError extends DomainError {
 ```typescript
 // В Value Object
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): ResourceName {
     if (!value || value.length < 1) {
       throw new InvariantViolationError(
@@ -135,6 +146,10 @@ class ResourceName {
       )
     }
     return new ResourceName(value)
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```
@@ -266,7 +281,82 @@ class Resource {
 }
 ```
 
-### Public API
+---
+
+## 🎯 Aggregate-Specific Errors
+
+**Принцип DDD**: Если ошибка специфична для конкретного Aggregate, она **не должна** быть в Shared Kernel.
+
+### ResourceLockedError
+
+**Файл: `app/domain/resource/errors/ResourceLockedError.ts`**
+
+```typescript
+import { DomainError } from '~/domain/shared/errors'
+import { ResourceId } from '../types'
+
+/**
+ * Ошибка заблокированного ресурса
+ * Aggregate-specific ошибка для Resource Aggregate
+ */
+export class ResourceLockedError extends DomainError {
+  readonly code = 'RESOURCE_LOCKED'
+  
+  constructor(readonly resourceId: ResourceId) {
+    super(`Resource ${resourceId.getValue()} is locked and cannot be modified`)
+  }
+}
+```
+
+**Использование:**
+```typescript
+import { Result, ok, err } from 'neverthrow'
+import { ResourceLockedError } from './errors'
+
+// В Resource Aggregate
+class Resource {
+  rename(name: ResourceName): Result<void, ResourceLockedError> {
+    if (this._isLocked) {
+      return err(new ResourceLockedError(this._id))
+    }
+    this._name = name
+    return ok(undefined)
+  }
+}
+```
+
+### DuplicateFieldLabelError
+
+**Файл: `app/domain/resource/errors/DuplicateFieldLabelError.ts`**
+
+```typescript
+import { DomainError } from '~/domain/shared/errors'
+
+/**
+ * Ошибка дублирования метки поля
+ * Aggregate-specific ошибка для Resource Aggregate
+ */
+export class DuplicateFieldLabelError extends DomainError {
+  readonly code = 'DUPLICATE_FIELD_LABEL'
+  
+  constructor(readonly fieldLabel: string) {
+    super(`Field with label "${fieldLabel}" already exists in this resource`)
+  }
+}
+```
+
+### Public API (для aggregate errors)
+
+**Файл: `app/domain/resource/errors/index.ts`**
+
+```typescript
+export { ResourceLockedError } from './ResourceLockedError'
+export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
+```
+
+---
+
+### Public API (Shared Kernel)
 
 **Файл: `app/domain/shared/errors/index.ts`**
 
@@ -685,11 +775,17 @@ Error (JavaScript)
 import { InvariantViolationError } from '~/domain/shared/errors'
 
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): ResourceName {
     if (!value) {
       throw new InvariantViolationError('ResourceName', 'cannot be empty')
     }
     return new ResourceName(value)
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```
@@ -741,15 +837,27 @@ try {
 ```typescript
 // ❌ ПЛОХО: NetworkError в Domain Layer
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): ResourceName {
     if (!value) {
       throw new NetworkError('invalid name')  // ❌ Не та ошибка!
     }
+    return new ResourceName(value)
   }
 }
 
-// ✅ ХОРОШО
-throw new InvariantViolationError('ResourceName', 'cannot be empty')
+// ✅ ХОРОШО: используй правильную ошибку
+class ResourceName {
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): ResourceName {
+    if (!value) {
+      throw new InvariantViolationError('ResourceName', 'cannot be empty')
+    }
+    return new ResourceName(value)
+  }
+}
 ```
 
 ### 2. Общие Error вместо специализированных

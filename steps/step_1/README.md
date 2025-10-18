@@ -96,26 +96,43 @@ export class InvariantViolationError extends Error {
 
 **Файл: `app/domain/shared/invariants/UuidInvariant.ts`**
 ```typescript
+import { Result, ok, err } from 'neverthrow'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
 
 /**
- * Переиспользуемый инвариант для UUID
- * UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+ * Инварианты для UUID
  */
 export class UuidInvariant {
   private static readonly UUID_V4_REGEX = 
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
   
-  static ensureValidUuid(value: string, entityType: string): void {
+  /**
+   * Валидация UUID v4 через Result
+   */
+  static validate(
+    value: string,
+    entityType: string
+  ): Result<string, InvariantViolationError> {
     if (!value) {
-      throw new InvariantViolationError(entityType, 'UUID cannot be empty')
+      return err(new InvariantViolationError(
+        entityType,
+        'UUID cannot be empty'
+      ))
     }
     
     if (!this.UUID_V4_REGEX.test(value)) {
-      throw new InvariantViolationError(entityType, `Invalid UUID format: ${value}`)
+      return err(new InvariantViolationError(
+        entityType,
+        `Invalid UUID format: ${value}`
+      ))
     }
+    
+    return ok(value)
   }
   
+  /**
+   * Type guard (не бросает)
+   */
   static isValidUuid(value: string): boolean {
     return !!value && this.UUID_V4_REGEX.test(value)
   }
@@ -138,6 +155,8 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 **Файл: `app/domain/value-objects/ResourceId.ts`**
 ```typescript
+import { Result } from 'neverthrow'
+import { InvariantViolationError } from '~/domain/shared/errors'
 import { UuidInvariant } from '../shared'
 
 /**
@@ -151,10 +170,10 @@ export class ResourceId {
     return new ResourceId(crypto.randomUUID())
   }
   
-  static create(value: string): ResourceId {
-    // ✅ Используем переиспользуемый инвариант
-    UuidInvariant.ensureValidUuid(value, 'ResourceId')
-    return new ResourceId(value)
+  static create(value: string): Result<ResourceId, InvariantViolationError> {
+    // ✅ Используем переиспользуемый инвариант с Result
+    return UuidInvariant.validate(value, 'ResourceId')
+      .map(validValue => new ResourceId(validValue))
   }
   
   getValue(): string {

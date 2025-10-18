@@ -177,76 +177,123 @@ export class UuidInvariant {
 **Файл: `app/domain/shared/invariants/StringInvariant.ts`**
 
 ```typescript
+import { Result, ok, err } from 'neverthrow'
 import { InvariantViolationError } from '../errors'
 
 /**
  * Инварианты для строк
+ * Переиспользуемые правила валидации строк
  */
 export class StringInvariant {
   /**
    * Проверка длины строки
+   * Возвращает Result для type-safe обработки
    */
-  static ensureLength(
+  static validateLength(
     value: string,
-    min: number,
-    max: number,
-    entityType: string,
-    fieldName: string = 'value'
-  ): void {
+    minLength: number,
+    maxLength: number,
+    entityType: string
+  ): Result<string, InvariantViolationError> {
     if (!value) {
-      throw new InvariantViolationError(
+      return err(new InvariantViolationError(
         entityType,
-        `${fieldName} cannot be empty`
-      )
+        `value cannot be empty`
+      ))
     }
     
-    if (value.length < min || value.length > max) {
-      throw new InvariantViolationError(
+    if (value.length < minLength || value.length > maxLength) {
+      return err(new InvariantViolationError(
         entityType,
-        `${fieldName} length must be ${min}-${max} characters (got ${value.length})`
-      )
+        `length must be between ${minLength} and ${maxLength} characters`
+      ))
     }
+    
+    return ok(value)
   }
   
   /**
-   * Проверка что строка соответствует паттерну
+   * Проверка: буквы, цифры, дефис, подчеркивание
+   * Используется для: ResourceName, Namespace, CustomField labels
    */
-  static ensurePattern(
+  static validateAlphanumericWithDashUnderscore(
     value: string,
-    pattern: RegExp,
-    entityType: string,
-    fieldName: string = 'value',
-    patternDescription: string = 'required format'
-  ): void {
-    if (!value) {
-      throw new InvariantViolationError(
-        entityType,
-        `${fieldName} cannot be empty`
-      )
-    }
+    entityType: string
+  ): Result<string, InvariantViolationError> {
+    const PATTERN = /^[a-zA-Z0-9-_]+$/
     
-    if (!pattern.test(value)) {
-      throw new InvariantViolationError(
+    if (!PATTERN.test(value)) {
+      return err(new InvariantViolationError(
         entityType,
-        `${fieldName} must match ${patternDescription}`
-      )
+        'must contain only alphanumeric characters, dashes and underscores'
+      ))
     }
+    return ok(value)
   }
   
   /**
-   * Проверка что строка не пустая (после trim)
+   * Проверка: slug формат (lowercase, дефисы)
+   * Используется для URL-friendly идентификаторов
    */
-  static ensureNotEmpty(
+  static validateSlug(
     value: string,
-    entityType: string,
-    fieldName: string = 'value'
-  ): void {
-    if (!value || value.trim().length === 0) {
-      throw new InvariantViolationError(
+    entityType: string
+  ): Result<string, InvariantViolationError> {
+    const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+    
+    if (!PATTERN.test(value)) {
+      return err(new InvariantViolationError(
         entityType,
-        `${fieldName} cannot be empty or whitespace`
-      )
+        'must be a valid slug (lowercase letters, numbers, and dashes)'
+      ))
     }
+    return ok(value)
+  }
+}
+```
+
+**Файл: `app/domain/shared/invariants/IdentifierInvariant.ts`**
+
+```typescript
+import { Result } from 'neverthrow'
+import { InvariantViolationError } from '../errors'
+import { StringInvariant } from './StringInvariant'
+
+/**
+ * Композитный инвариант для идентификаторов
+ * Применяет набор правил валидации как единое целое
+ */
+export class IdentifierInvariant {
+  /**
+   * Валидация длинного идентификатора (для ресурсов)
+   * Применяет:
+   * - Длина: 1-100 символов
+   * - Формат: буквы, цифры, дефис, подчеркивание
+   */
+  static validateResourceIdentifier(
+    value: string,
+    entityType: string
+  ): Result<string, InvariantViolationError> {
+    return StringInvariant.validateLength(value, 1, 100, entityType)
+      .andThen(v => 
+        StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
+      )
+  }
+  
+  /**
+   * Валидация короткого идентификатора (для namespace, labels)
+   * Применяет:
+   * - Длина: 1-50 символов
+   * - Формат: буквы, цифры, дефис, подчеркивание
+   */
+  static validateShortIdentifier(
+    value: string,
+    entityType: string
+  ): Result<string, InvariantViolationError> {
+    return StringInvariant.validateLength(value, 1, 50, entityType)
+      .andThen(v => 
+        StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
+      )
   }
 }
 ```
@@ -256,6 +303,7 @@ export class StringInvariant {
 ```typescript
 export { UuidInvariant } from './UuidInvariant'
 export { StringInvariant } from './StringInvariant'
+export { IdentifierInvariant } from './IdentifierInvariant'
 ```
 
 **Файл: `app/domain/shared/index.ts`**
@@ -269,32 +317,268 @@ export * from './invariants'
 
 ### Шаг 3: Использование в Value Objects
 
-**Файл: `app/domain/value-objects/ResourceId.ts`** (обновленный)
+> **Принцип DDD**: Value Objects должны быть **self-validating** (самовалидирующимися).
+> Инварианты - это **переиспользуемые утилиты**, которые Value Object использует ВНУТРИ себя.
+
+**Файл: `app/domain/resource/ResourceName.ts`**
 
 ```typescript
-import { UuidInvariant } from '../shared/invariants'
+import { Result } from 'neverthrow'
+import { InvariantViolationError } from '~/domain/shared/errors'
+import { IdentifierInvariant } from '~/domain/shared/invariants'
 
 /**
- * Value Object для ID ресурса
- * Инвариант: должен быть валидным UUID v4
+ * Value Object для имени ресурса
+ * Self-validating: гарантирует валидность при создании
+ * 
+ * Инварианты:
+ * - Длина: 1-100 символов
+ * - Формат: буквы, цифры, дефис, подчеркивание
  */
-export class ResourceId {
-  private constructor(private readonly _value: string) {}
+export class ResourceName {
+  private constructor(private readonly value: string) {}
   
   /**
-   * Создать ResourceId из существующего UUID
-   * @throws InvariantViolationError если UUID невалиден
+   * Фабричный метод с валидацией (self-validation)
+   * 
+   * ВАЖНО: Валидация происходит ВНУТРИ Value Object.
+   * IdentifierInvariant - это утилита для переиспользования логики,
+   * не внешний валидатор.
    */
-  static create(value: string): ResourceId {
-    // ✅ Инвариант вынесен в переиспользуемый класс
-    UuidInvariant.ensureValidUuid(value, 'ResourceId')
-    return new ResourceId(value)
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
+    // ✅ Value Object использует утилиту ВНУТРИ себя
+    // ✅ Конструктор private → невозможно обойти валидацию
+    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
+      .map(validValue => new ResourceName(validValue))
   }
   
-  /**
-   * Сгенерировать новый ResourceId
-   */
-  static generate(): ResourceId {
+  getValue(): string {
+    return this.value
+  }
+}
+```
+
+**Файл: `app/domain/resource/Namespace.ts`**
+
+```typescript
+import { Result } from 'neverthrow'
+import { InvariantViolationError } from '~/domain/shared/errors'
+import { IdentifierInvariant } from '~/domain/shared/invariants'
+
+export class Namespace {
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): Result<Namespace, InvariantViolationError> {
+    // ✅ Переиспользуем композитный инвариант!
+    return IdentifierInvariant.validateShortIdentifier(value, 'Namespace')
+      .map(validValue => new Namespace(validValue))
+  }
+  
+  getValue(): string {
+    return this.value
+  }
+}
+```
+
+---
+
+## 🏛️ Self-Validating Value Objects (принцип DDD)
+
+### Ключевой принцип
+
+**Value Object отвечает за свою валидность**. Если объект `ResourceName` существует, он **гарантированно валиден**.
+
+### ✅ ПРАВИЛЬНО: Валидация ВНУТРИ Value Object
+
+```typescript
+class ResourceName {
+  // ✅ Private конструктор - критически важно!
+  private constructor(private readonly value: string) {}
+  
+  // ✅ Валидация происходит ВНУТРИ Value Object
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
+    // Value Object использует инварианты как УТИЛИТЫ
+    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
+      .map(validValue => new ResourceName(validValue))
+      // ✅ Конструктор вызывается ПОСЛЕ успешной валидации
+  }
+}
+
+// Использование
+const result = ResourceName.create(input)
+// Если result.isOk() → объект гарантированно валиден
+```
+
+### ❌ НЕПРАВИЛЬНО: Валидация СНАРУЖИ Value Object
+
+```typescript
+class ResourceName {
+  // ❌ Public конструктор - можно обойти валидацию!
+  constructor(private readonly value: string) {}
+}
+
+// ❌ Валидация снаружи - нарушение инкапсуляции
+function createResourceName(value: string): Result<ResourceName, InvariantViolationError> {
+  return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
+    .map(v => new ResourceName(v))
+}
+
+// Проблема: можно создать невалидный объект
+const invalid = new ResourceName('') // ❌ Никакой валидации!
+```
+
+### Роль инвариантов
+
+**Инварианты - это переиспользуемые утилиты**, а не внешние валидаторы:
+
+```typescript
+// ✅ StringInvariant - это утилита (как Math.max)
+class StringInvariant {
+  static validateLength(value: string, min: number, max: number, entityType: string) {
+    // Переиспользуемая логика проверки
+  }
+}
+
+// ✅ Value Object использует утилиту ВНУТРИ себя
+class ResourceName {
+  static create(value: string) {
+    // Это НЕ внешняя валидация, это использование утилиты
+    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
+      .map(v => new ResourceName(v))
+  }
+}
+```
+
+**Аналогия**: Использование `StringInvariant` - это как использование `Math.max()` внутри класса. Это не нарушает инкапсуляцию, это переиспользование логики.
+
+### Гарантии self-validation
+
+1. **Невозможно создать невалидный объект** - конструктор `private`
+2. **Валидность на протяжении всей жизни** - immutability
+3. **Не нужно валидировать повторно** - если объект существует, он валиден
+4. **Type safety** - компилятор заставит обработать ошибку создания
+
+```typescript
+// ✅ Если у вас есть ResourceName, он точно валиден
+function processResource(name: ResourceName) {
+  // Не нужна валидация - объект уже валиден!
+  console.log(name.getValue())
+}
+
+// Валидация только при создании
+const result = ResourceName.create(userInput)
+result.match(
+  (validName) => processResource(validName), // ✅ Гарантированно валиден
+  (error) => console.error(error)            // Обработка ошибки
+)
+```
+
+---
+
+## 🎯 Композитные инварианты
+
+### Зачем нужны?
+
+**Проблема**: Одна и та же композиция валидаций повторяется в разных Value Objects.
+
+```typescript
+// ❌ ПРОБЛЕМА: Дублирование
+class ResourceName {
+  static create(value: string) {
+    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
+      .andThen(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName'))
+      .map(v => new ResourceName(v))
+  }
+}
+
+class Namespace {
+  static create(value: string) {
+    return StringInvariant.validateLength(value, 1, 50, 'Namespace')  // Та же композиция!
+      .andThen(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'Namespace'))
+      .map(v => new Namespace(v))
+  }
+}
+```
+
+**Решение**: Композитный инвариант инкапсулирует повторяющуюся композицию:
+
+```typescript
+// ✅ РЕШЕНИЕ: Композитный инвариант
+class ResourceName {
+  static create(value: string) {
+    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
+      .map(v => new ResourceName(v))
+  }
+}
+
+class Namespace {
+  static create(value: string) {
+    return IdentifierInvariant.validateShortIdentifier(value, 'Namespace')
+      .map(v => new Namespace(v))
+  }
+}
+```
+
+### Преимущества композитных инвариантов
+
+1. **DRY** - композиция определена один раз
+2. **Ubiquitous Language** - `validateResourceIdentifier` говорит ЧТО проверяется
+3. **Читаемость** - одна строка вместо цепочки
+4. **Изменяемость** - изменил правила в одном месте → изменилось везде
+5. **Тестируемость** - один тест для композиции
+
+### Когда использовать?
+
+✅ **Используй композитный инвариант, если:**
+- Повторяющаяся композиция в разных местах
+- Бизнес-концепция («идентификатор ресурса»)
+- Сложная логика (больше 2-3 проверки)
+
+❌ **НЕ используй, если:**
+- Уникальная композиция (только в одном месте)
+- Простая проверка (одна-две операции)
+
+---
+
+## 📚 Ключевые преимущества
+
+### 1. **Ubiquitous Language**
+- `validateAlphanumericWithDashUnderscore` - понятно что это
+- Не нужно знать regex
+
+### 2. **DRY (Don't Repeat Yourself)**
+- Изменил в одном месте → изменилось везде
+- ResourceName и Namespace используют один инвариант
+
+### 3. **Type Safety**
+- `Result<T, E>` делает ошибки явными
+- Компилятор заставит обработать
+
+### 4. **Читаемость**
+```typescript
+// Понятно что проверяется
+StringInvariant.validateAlphanumericWithDashUnderscore(value, 'ResourceName')
+
+// vs magic regex
+if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
+```
+
+---
+
+## 🎯 Рекомендации
+
+1. **Всегда именуй regex** - не используй magic patterns
+2. **Result вместо throw** - type-safe обработка ошибок
+3. **Переиспользуй** - общие инварианты в Shared Kernel
+4. **Документируй** - описывай что проверяет инвариант
+
+---
+
+## 🔗 См. также
+
+- [ERROR_HANDLING.md](./ERROR_HANDLING.md) - Иерархия ошибок
+- [ERROR_ESCALATION.md](./ERROR_ESCALATION.md) - Result Pattern и neverthrow
+- [../DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md) - DDD паттерны
     return new ResourceId(crypto.randomUUID())
   }
   

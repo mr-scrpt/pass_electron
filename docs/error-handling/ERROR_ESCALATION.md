@@ -143,11 +143,17 @@ export const failure = <E>(error: E): Failure<E> => new Failure(error)
 
 // Value Object возвращает Result
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value || value.length < 1) {
       return failure(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
     return success(new ResourceName(value))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 
@@ -213,11 +219,17 @@ npm install neverthrow
 import { Result, ok, err } from 'neverthrow'
 
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) {
       return err(new InvariantViolationError('ResourceName', 'empty'))
     }
     return ok(new ResourceName(value))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```
@@ -362,9 +374,15 @@ import { pipe } from 'fp-ts/function'
 import * as E from 'fp-ts/Either'
 
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value) return left(new InvariantViolationError('ResourceName', 'empty'))
     return right(new ResourceName(value))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 
@@ -439,9 +457,15 @@ export type Result<T, E = Error> = Success<T> | Failure<E>
 
 // Value Objects возвращают нативный Result
 class ResourceName {
+  private constructor(private readonly value: string) {}
+  
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) return failure(new InvariantViolationError(...))
     return success(new ResourceName(value))
+  }
+  
+  getValue(): string {
+    return this.value
   }
 }
 ```

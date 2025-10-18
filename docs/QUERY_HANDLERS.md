@@ -46,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### 1. Query Interfaces (Application Layer)
 
-**`app/application/queries/IQueryHandler.ts`**
+**`src/application/queries/IQueryHandler.ts`**
 
 ```typescript
 export interface IQuery {
@@ -63,7 +63,7 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {
 }
 ```
 
-**`app/application/queries/IQueryBus.ts`**
+**`src/application/queries/IQueryBus.ts`**
 
 ```typescript
 export interface IQueryBus {
@@ -80,7 +80,7 @@ export interface IQueryBus {
 
 ### 2. Query Classes
 
-**`app/application/queries/ResourceQueries.ts`**
+**`src/application/queries/ResourceQueries.ts`**
 
 ```typescript
 export class ListResourcesQuery implements IQuery {
@@ -96,7 +96,7 @@ export class GetResourceByIdQuery implements IQuery {
 
 ### 3. Query Handlers
 
-**`app/application/queries/handlers/ListResourcesQueryHandler.ts`**
+**`src/application/queries/handlers/ListResourcesQueryHandler.ts`**
 
 ```typescript
 export class ListResourcesQueryHandler 
@@ -160,12 +160,12 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ### 5. Facade (Composition Root)
 
-**`app/composition/queries.ts`**
+**`src/composition/queries.ts`**
 
 ```typescript
 import { json } from 'react-router';
 import { getQueryBus } from './ServiceContainer';
-import { ListResourcesQuery, GetResourceByIdQuery } from '~/application/queries';
+import { ListResourcesQuery, GetResourceByIdQuery } from '~application/queries';
 
 /**
  * Facade: инкапсулирует QueryBus, парсинг Request, сериализацию
@@ -197,7 +197,7 @@ export const queries = {
 };
 ```
 
-**`app/composition/ServiceContainer.ts`** (обновление)
+**`src/composition/ServiceContainer.ts`** (обновление)
 
 ```typescript
 static getQueryBus(): IQueryBus {
@@ -221,8 +221,8 @@ static getQueryBus(): IQueryBus {
 ### Список ресурсов
 
 ```typescript
-// app/routes/_index.tsx
-import { queries } from '~/composition';
+// src/presentation/web/react/src/routes/_index.tsx
+import { queries } from '~composition';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.resources.list(request);  // ✅ Одна строка!
@@ -232,8 +232,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ### Детальная страница
 
 ```typescript
-// app/routes/resources.$id.tsx
-import { queries } from '~/composition';
+// src/presentation/web/react/src/routes/resources.$id.tsx
+import { queries } from '~composition';
 
 export async function loader({ params }: LoaderFunctionArgs) {
   return queries.resources.getById(params.id!);  // ✅ Одна строка!

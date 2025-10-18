@@ -2,42 +2,48 @@
 
 ## 🎯 Цель
 
-Подготовить проект с нуля: установить все необходимые зависимости, настроить TypeScript, React Router v7, Electron, Tailwind CSS и создать базовую структуру.
+Подготовить проект с правильной DDD структурой:
+- **`src/`** - Domain, Application, Infrastructure, Composition (DDD слои)
+- **`src/presentation/web/react/`** - React Router + Vite (UI framework изолирован)
+- **pnpm workspaces** - управление зависимостями
+- **TypeScript paths** - алиасы для удобных импортов
 
 > **📦 Менеджер пакетов**: В этом проекте используется **pnpm**. Если он не установлен:
 > ```bash
 > npm install -g pnpm
 > ```
 
+> **📚 Обоснование структуры**: [.docs-meta/PROJECT_STRUCTURE_RATIONALE.md](../../.docs-meta/PROJECT_STRUCTURE_RATIONALE.md)
+
 ---
 
-## 💡 Как и Next.js, React Router CLI делает все за вас!
+## 🏗️ Архитектурный подход
 
-> **📌 Важно**: Remix v2 теперь является частью React Router v7! Все возможности Remix (SSR, loaders, actions, file-based routing) теперь в React Router.
+### Почему НЕ используем React Router CLI?
 
-### ✅ Что React Router CLI создает автоматически (одной командой):
+React Router CLI создает структуру `app/` что противоречит Clean Architecture:
 
-- TypeScript + `tsconfig.json`
-- React + React DOM + все типы
-- React Router v7 (react-router - все в одном пакете)
-- Vite + `vite.config.ts`
-- ESLint + `.eslintrc.cjs`
-- `.gitignore`
-- `app/root.tsx` (root layout)
-- `app/routes/_index.tsx` (главная страница)
-- `package.json` с готовыми scripts
-- **SSR из коробки** ✨
+```
+app/              # ❌ Framework директория
+├── domain/       # ❌ Domain внутри framework!
+└── routes/
+```
 
-### 🔧 Что нужно добавить **для нашего проекта**:
+**Наш подход**: Domain в центре, Framework снаружи
 
-- **Electron** (desktop-специфично)
-- **Tailwind CSS** (опционально, можно выбрать при инициализации)
-- **Concurrently + wait-on** (для запуска Electron с React Router dev server)
-- **Prettier** (опционально)
-- **Структура папок DDD** (Domain, Application, Infrastructure, Composition)
-- **Electron main process** (`electron/main.ts`)
+```
+src/
+├── domain/           # ✅ DDD: Domain Layer
+├── application/      # ✅ DDD: Application Layer
+├── infrastructure/   # ✅ DDD: Infrastructure Layer
+├── composition/      # ✅ DDD: Composition Root
+└── presentation/     # ✅ DDD: Presentation Layer
+    └── web/react/    # ✅ React Router изолирован
+        ├── vite.config.ts   # ✅ Build tool здесь
+        └── package.json     # ✅ Web dependencies здесь
+```
 
-> **Итого:** React Router CLI уже настроил ~90% проекта. Нам нужно только добавить Electron и DDD структуру!
+> **Принцип**: "Framework — деталь реализации, не часть бизнес-логики"
 
 ---
 
@@ -57,38 +63,44 @@
 
 ---
 
-## 🚀 Шаг 1: Инициализация проекта
+## 🚀 Шаг 1: Создание структуры проекта
 
-### 1.1 Создать React Router проект (все в одной команде!)
+### 1.1 Создать директории
 
 ```bash
-# Создаем проект с React Router v7
-npx create-react-router@latest
+# Создаем корень проекта
+mkdir password-manager
+cd password-manager
 
-# Выбираем опции:
-# ✅ Where should we create your new project? ./password-manager (или .)
-# ✅ What type of app do you want to create? Just the basics
-# ✅ TypeScript or JavaScript? TypeScript
-# ✅ Do you want me to run `npm install`? Yes (или используйте pnpm)
+# Создаем DDD структуру
+mkdir -p src/{domain,application,infrastructure,composition,shared}
+mkdir -p src/domain/{resource,shared/{errors,invariants}}
+mkdir -p src/application/{queries,commands,ports,services}
+mkdir -p src/infrastructure/{persistence,services,event-bus}
+
+# Создаем Presentation Layer с React Router
+mkdir -p src/presentation/web/react/src/{routes,components,hooks,styles}
+
+# Electron packaging
+mkdir -p electron
+
+# Документация
+mkdir -p docs
 ```
 
-> **💡 Если используете pnpm**: После создания проекта выполните `pnpm install` в директории проекта
+### 1.2 Инициализировать Git
 
-**🎉 Готово! React Router CLI уже установил:**
-- ✅ TypeScript
-- ✅ React + React DOM
-- ✅ React Router v7 (react-router - включает SSR, loaders, actions)
-- ✅ Vite
-- ✅ ESLint
-- ✅ Все TypeScript типы (@types/react, @types/react-dom)
-
-> **Как и Next.js**, React Router создает полностью готовый к работе проект одной командой!
+```bash
+git init
+```
 
 ---
 
-## 📥 Шаг 2: Установка дополнительных зависимостей
+## 📥 Шаг 2: Настройка package.json
 
-React Router уже установил все базовое. Теперь добавим **специфичные для нашего проекта** зависимости:
+### 2.1 Корневой package.json (root workspace)
+
+Создаем главный `package.json` для DDD слоев:
 
 ### 2.1 Electron (для desktop приложения)
 
@@ -490,95 +502,156 @@ app.on('window-all-closed', () => {
 
 ---
 
-## 📁 Шаг 4: Создание базовой структуры папок
+## 📁 Шаг 4: Package.json и зависимости
+
+**Детальная инструкция**: [`PACKAGE_JSON_SETUP.md`](./PACKAGE_JSON_SETUP.md)
+
+### 4.1 Создать корневой package.json
+
+**Файл**: `password-manager/package.json`
 
 ```bash
-# Создаем структуру директорий
-mkdir -p app/domain/entities
-mkdir -p app/domain/value-objects
-mkdir -p app/domain/repositories
-mkdir -p app/domain/services
-mkdir -p app/domain/events
-mkdir -p app/application/queries
-mkdir -p app/application/queries/handlers
-mkdir -p app/application/commands
-mkdir -p app/application/commands/handlers
-mkdir -p app/application/ports
-mkdir -p app/infrastructure/api
-mkdir -p app/infrastructure/repositories
-mkdir -p app/infrastructure/queries
-mkdir -p app/infrastructure/commands
-mkdir -p app/infrastructure/request-parsers
-mkdir -p app/infrastructure/mocks
-mkdir -p app/infrastructure/event-bus
-mkdir -p app/infrastructure/storage
-mkdir -p app/infrastructure/clipboard
-mkdir -p app/composition/modules
-mkdir -p app/composition/queries
-mkdir -p app/composition/commands
-mkdir -p app/composition/config
-mkdir -p app/core/modal
-mkdir -p app/core/keymap
-mkdir -p app/core/focus
-mkdir -p app/core/notification
-mkdir -p app/components
-mkdir -p app/hooks
-mkdir -p app/types
-mkdir -p app/styles
+cd password-manager
+pnpm init
 ```
 
-Итоговая структура:
+Скопируйте содержимое из `PACKAGE_JSON_SETUP.md` секция 1.
 
+### 4.2 Создать web presentation package.json
+
+**Файл**: `password-manager/src/presentation/web/react/package.json`
+
+```bash
+cd src/presentation/web/react
+pnpm init
 ```
-app/
-├── routes/                    # React Router routes (будут создаваться)
-├── components/                # React компоненты
-├── composition/               # Composition Root (DI Container)
-│   ├── modules/               # DI Modules по сущностям
-│   ├── queries/               # Query Facades
-│   ├── commands/              # Command Facades
-│   └── config/                # Константы (Environment)
-├── core/                      # Основные системы
-│   ├── modal/
-│   ├── keymap/
-│   ├── focus/
-│   └── notification/
-├── domain/                    # Domain Layer
-│   ├── entities/              # Entities
-│   ├── value-objects/         # Value Objects
-│   ├── repositories/          # Repository Interfaces
-│   ├── services/              # Domain Services
-│   └── events/                # Domain Events
-├── application/               # Application Layer (CQRS)
-│   ├── queries/               # Query (CQRS - Read)
-│   │   └── handlers/
-│   ├── commands/              # Commands (CQRS - Write)
-│   │   └── handlers/
-│   └── ports/                 # Ports (Hexagonal Architecture)
-├── infrastructure/            # Infrastructure Layer
-│   ├── api/                   # API Client
-│   ├── repositories/          # Repository Implementations
-│   ├── queries/               # Query Bus Implementation
-│   ├── commands/              # Command Bus Implementation
-│   ├── request-parsers/       # Request Parsers (Web/CLI/Desktop)
-│   ├── mocks/                 # Mock Data
-│   ├── event-bus/             # Event Bus Implementation
-│   ├── storage/               # Local Storage
-│   └── clipboard/             # Clipboard Service
-├── hooks/                     # React Hooks
-├── types/                     # TypeScript Types
-├── styles/                    # Стили
-├── root.tsx                   # Root layout
-└── entry.client.tsx           # Client entry (создается автоматически)
+
+Скопируйте содержимое из `PACKAGE_JSON_SETUP.md` секция 2.
+
+### 4.3 Настроить pnpm workspaces
+
+**Файл**: `password-manager/pnpm-workspace.yaml`
+
+```yaml
+packages:
+  - 'src/presentation/web/react'
+```
+
+### 4.4 Установить зависимости
+
+```bash
+# Из корня проекта
+cd password-manager
+pnpm install
 ```
 
 ---
 
-## 🎨 Шаг 5: Настройка стилей (Tailwind CSS)
+## ⚙️ Шаг 5: TypeScript и Vite конфигурация
 
-### 5.1 Создать глобальные стили Tailwind
+**Детальная инструкция**: [`TYPESCRIPT_VITE_CONFIG.md`](./TYPESCRIPT_VITE_CONFIG.md)
 
-**Файл: `app/styles/tailwind.css`** (создать вручную)
+### 5.1 TypeScript paths (корень проекта)
+
+**Файл**: `password-manager/tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~domain/*": ["./src/domain/*"],
+      "~application/*": ["./src/application/*"],
+      "~infrastructure/*": ["./src/infrastructure/*"],
+      "~composition/*": ["./src/composition/*"]
+    }
+  }
+}
+```
+
+Полный пример в `TYPESCRIPT_VITE_CONFIG.md` секция 1.
+
+### 5.2 Vite config (presentation)
+
+**Файл**: `password-manager/src/presentation/web/react/vite.config.ts`
+
+```typescript
+import { reactRouter } from "@react-router/dev/vite"
+import path from "path"
+
+const projectRoot = path.resolve(__dirname, '../../../..')
+
+export default defineConfig({
+  root: projectRoot,
+  plugins: [reactRouter({ appDirectory: "src/presentation/web/react/src" })],
+  resolve: {
+    alias: {
+      '~domain': path.resolve(projectRoot, 'src/domain'),
+      // ...
+    }
+  }
+})
+```
+
+Полный пример в `TYPESCRIPT_VITE_CONFIG.md` секция 2.
+
+---
+
+## 🎨 Шаг 6: Tailwind CSS
+
+### 6.1 Tailwind config
+
+**Файл**: `password-manager/src/presentation/web/react/tailwind.config.js`
+
+```javascript
+export default {
+  content: ["./src/**/*.{ts,tsx}"],
+  plugins: [
+    require("@catppuccin/tailwindcss")({
+      prefix: "ctp",
+      defaultFlavour: "mocha",
+    }),
+  ],
+}
+```
+
+### 6.2 PostCSS config
+
+**Файл**: `password-manager/src/presentation/web/react/postcss.config.js`
+
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### 6.3 Глобальные стили
+
+**Файл**: `password-manager/src/presentation/web/react/src/styles/tailwind.css`
+
+```css
+@import "tailwindcss";
+@import "@catppuccin/tailwindcss/mocha.css";
+
+@layer base {
+  body {
+    @apply bg-ctp-base text-ctp-text;
+  }
+}
+```
+
+> **📚 Детали**: [../../docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md)
+
+---
+
+## 🚀 Шаг 7: Создание базовых файлов React Router
+
+### 7.1 Root layout
+
+**Файл**: `password-manager/src/presentation/web/react/src/root.tsx`
 
 ```css
 @import "tailwindcss";
@@ -629,16 +702,9 @@ app/
 **Файл: `app/root.tsx`** (уже создан React Router CLI, нужно добавить импорт стилей)
 
 ```typescript
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "react-router";
-import type { LinksFunction } from "./+types/root";
-
-import styles from "~/styles/tailwind.css?url";
+import { Links, Meta, Outlet, Scripts } from "react-router"
+import type { LinksFunction } from "./+types/root"
+import styles from "./styles/tailwind.css?url"
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },

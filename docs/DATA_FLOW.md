@@ -30,7 +30,7 @@
 ### ❌ Распространенное заблуждение
 
 ```typescript
-// app/routes/_index.tsx
+// src/presentation/web/react/src/routes/_index.tsx
 export async function loader() {  // ← НЕ клиент, это СЕРВЕР!
   // ⚠️ Старый подход - теперь используем Query Facade
   const service = getResourceService()
@@ -118,17 +118,17 @@ export async function loader() {
 
 Все зависимости создаются в **одном месте** - DI Container в Composition Root.
 
-> **🎯 Важно**: Composition Root находится на верхнем уровне `app/composition/`, а НЕ в `infrastructure/`. Он знает обо всех слоях и связывает их, но сам не является частью ни одного слоя.
+> **🎯 Важно**: Composition Root находится на верхнем уровне `src/composition/`, а НЕ в `infrastructure/`. Он знает обо всех слоях и связывает их, но сам не является частью ни одного слоя.
 
 > **📘 Полное описание внедрения внешних зависимостей см. в [ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)**
 
-**Файл: `app/composition/ServiceContainer.ts`**
+**Файл: `src/composition/ServiceContainer.ts`**
 
 ```typescript
-import { InMemoryQueryBus } from '~/infrastructure/queries'
+import { InMemoryQueryBus } from '~/src/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
-import type { IQueryBus, IRequestParser } from '~/application'
-import type { IClipboardService } from '~/application/ports'
+import type { IQueryBus, IRequestParser } from '~application'
+import type { IClipboardService } from '~application/ports'
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
@@ -189,7 +189,7 @@ class ServiceContainer {
 **Public API:**
 
 ```typescript
-// app/composition/index.ts
+// src/composition/index.ts
 export { queries } from './queries'
 export { commands } from './commands'
 export { ServiceContainer } from './ServiceContainer'
@@ -205,10 +205,10 @@ export { ServiceContainer } from './ServiceContainer'
 
 ### Query Facades (упрощенный API для UI)
 
-**Файл: `app/composition/queries/ResourceQueries.ts`**
+**Файл: `src/composition/queries/ResourceQueries.ts`**
 
 ```typescript
-import { ListResourcesQuery } from '~/application/queries'
+import { ListResourcesQuery } from '~application/queries'
 import { ServiceContainer } from '../ServiceContainer'
 
 /**
@@ -243,7 +243,7 @@ export const resourceQueries = {
 **Public API:**
 
 ```typescript
-// app/composition/queries/index.ts
+// src/composition/queries/index.ts
 export { resourceQueries } from './ResourceQueries'
 
 export const queries = {
@@ -298,9 +298,9 @@ export const queries = {
 **Route Handler (Presentation Layer):**
 
 ```typescript
-// app/routes/_index.tsx
+// src/presentation/web/react/src/routes/_index.tsx
 import type { Route } from './+types/_index'
-import { queries } from '~/composition'
+import { queries } from '~composition'
 
 /**
  * ✅ ИДЕАЛЬНО: Loader в одну строку
@@ -314,7 +314,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 **Что происходит внутри Facade:**
 
 ```typescript
-// app/composition/queries/ResourceQueries.ts
+// src/composition/queries/ResourceQueries.ts
 export const resourceQueries = {
   async list(request: Request) {
     // 1. Парсим request
@@ -334,7 +334,7 @@ export const resourceQueries = {
 **Query Handler (Application Layer):**
 
 ```typescript
-// app/application/queries/handlers/ListResourcesQueryHandler.ts
+// src/application/queries/handlers/ListResourcesQueryHandler.ts
 export class ListResourcesQueryHandler {
   constructor(private repository: IResourceRepository) {}
   
@@ -416,10 +416,10 @@ export default function Index() {
 **Пример:**
 
 ```typescript
-// app/routes/resources.new.tsx
+// src/presentation/web/react/src/routes/resources.new.tsx
 import { redirect } from 'react-router'
 import type { Route } from './+types/resources.new'
-import { commands } from '~/composition'
+import { commands } from '~composition'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (action для мутаций)
@@ -446,7 +446,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```typescript
 // ✅ РЕКОМЕНДУЕТСЯ: Используй Query Facade
-import { queries } from '~/composition'
+import { queries } from '~composition'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.listResources(request)
@@ -492,7 +492,7 @@ export default function ResourceItem() {
 **Используй для:** Переиспользуемой UI логики
 
 ```typescript
-// app/hooks/useResourceActions.ts
+// src/domain/useResourceActions.ts
 import { useFetcher, useNavigate } from 'react-router'
 
 /**
@@ -575,7 +575,7 @@ export default function ResourceList() {
 
 1. **Используй `loader()` для загрузки данных через Query Facade**
    ```typescript
-   import { queries } from '~/composition'
+   import { queries } from '~composition'
    
    export async function loader({ request }: LoaderFunctionArgs) {
      return queries.listResources(request)  // ✅ Одна строка
@@ -585,13 +585,13 @@ export default function ResourceList() {
 2. **Используй Facades для чтения и записи**
    ```typescript
    // ✅ Для чтения (Queries)
-   import { queries } from '~/composition'
+   import { queries } from '~composition'
    export async function loader({ request }) {
      return queries.resources.list(request)
    }
    
    // ✅ Для записи (Commands)
-   import { commands } from '~/composition'
+   import { commands } from '~composition'
    export async function action({ request }) {
      return commands.resources.create(request)
    }
@@ -599,7 +599,7 @@ export default function ResourceList() {
 
 3. **Composition Root для всех зависимостей**
    ```typescript
-   // Все зависимости в одном месте (app/composition/)
+   // Все зависимости в одном месте (src/composition/)
    export { queries } from './queries'
    export { commands } from './commands'
    ```

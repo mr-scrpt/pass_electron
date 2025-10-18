@@ -16,45 +16,84 @@
 ## Общая структура
 
 ```
-project/
+password-manager/
+├── package.json                   # Root: общие зависимости для DDD слоев
+├── tsconfig.json                  # TypeScript для ВСЕГО проекта
+├── pnpm-workspace.yaml           # pnpm workspaces configuration
+│
 ├── docs/                          # Документация
 │   ├── concepts/                  # Концептуальные документы
 │   ├── contracts/                 # Типы и контракты
-│   ├── GETTING_STARTED.md        # Руководство по началу работы
-│   ├── README.md                 # Обзор документации
+│   ├── error-handling/            # Документация по обработке ошибок
+│   ├── GETTING_STARTED.md
+│   ├── README.md
 │   └── PROJECT_STRUCTURE.md      # ← Этот файл
 │
-├── app/                           # Remix приложение
-│   ├── composition/               # Composition Root - DI Container
-│   ├── routes/                    # Presentation Layer - Remix routes
-│   ├── components/                # Presentation Layer - React компоненты
-│   ├── core/                      # Application/Domain Layer - Системы
-│   ├── domain/                    # Domain Layer - Бизнес-логика
-│   ├── application/               # Application Layer - Query/Command Handlers
-│   ├── infrastructure/            # Infrastructure Layer - Внешние системы
-│   ├── hooks/                     # Presentation Layer - React Hooks
-│   ├── types/                     # Типы (re-exports)
-│   └── root.tsx                   # Root layout
+├── electron/                      # Electron (packaging layer, вне архитектуры)
+│   ├── main.ts
+│   └── preload.ts
 │
-├── electron/                      # Electron main process
-├── public/                        # Static assets
-├── tests/                         # Тесты
-├── package.json
-├── tsconfig.json
-└── remix.config.js
+└── src/                           # Application code
+    │
+    ├── domain/                    # Domain Layer (DDD)
+    │   ├── resource/
+    │   └── shared/
+    │
+    ├── application/               # Application Layer (DDD)
+    │   ├── queries/
+    │   ├── commands/
+    │   ├── ports/
+    │   └── services/
+    │
+    ├── infrastructure/            # Infrastructure Layer (DDD)
+    │   ├── persistence/
+    │   ├── services/
+    │   └── event-bus/
+    │
+    ├── composition/                # Composition Root (DI Container)
+    │   ├── ServiceContainer.ts
+    │   ├── modules/
+    │   ├── queries/               # Query Facades
+    │   └── commands/              # Command Facades
+    │
+    ├── shared/                    # Shared utilities (framework-agnostic)
+    │   └── types/
+    │
+    └── presentation/              # Presentation Layer (DDD)
+        │
+        └── web/                   # Web presentations
+            └── react/             # React Router implementation
+                ├── package.json   # Web-specific dependencies
+                ├── vite.config.ts # Vite build tool config
+                ├── tailwind.config.js
+                ├── postcss.config.js
+                │
+                └── src/           # React Router code
+                    ├── routes/
+                    ├── components/
+                    ├── hooks/
+                    ├── styles/
+                    ├── root.tsx
+                    └── entry.client.tsx
 ```
 
 ---
 
 ## Архитектурные слои
 
-### 0. Composition Root (`app/composition/`)
+### 0. Composition Root (`src/composition/`)
 
 **Назначение**: Единая точка управления зависимостями (DI Container).
 
 ```
-app/composition/
+src/composition/
 ├── ServiceContainer.ts    # DI Container для всех сервисов
+├── modules/
+│   └── ResourceModule.ts
+├── queries/                # Query Facades
+│   └── ResourceQueries.ts
+├── commands/               # Command Facades
+│   └── ResourceCommands.ts
 └── index.ts               # Public API
 ```
 
@@ -65,12 +104,12 @@ app/composition/
 - Единственное место где слои пересекаются
 - Переключение Mock ↔ Real через конфигурацию
 
-### 1. Domain Layer (`app/domain/`)
+### 1. Domain Layer (`src/domain/`)
 
 **Назначение**: Бизнес-логика, независимая от фреймворков и внешних систем.
 
 ```
-app/domain/
+src/domain/
 ├── shared/                # Shared Kernel (переиспользуемые компоненты)
 │   ├── errors/            # Domain Errors
 │   │   ├── DomainError.ts
@@ -113,12 +152,12 @@ app/domain/
 - Публикует Domain Events
 - Содержит Shared Kernel с переиспользуемыми компонентами (errors, invariants)
 
-### 2. Application Layer (`app/application/`)
+### 2. Application Layer (`src/application/`)
 
 **Назначение**: Оркестрация бизнес-логики через CQRS (Query/Command Handlers).
 
 ```
-app/application/
+src/application/
 ├── queries/               # Queries (CQRS - Read)
 │   ├── QueryTypes.ts      # Константы типов Query
 │   ├── IQuery.ts          # Базовый интерфейс Query
@@ -167,36 +206,31 @@ app/application/
 - Реализует CQRS (Command Query Responsibility Segregation)
 - Предоставляет высокоуровневый API для Presentation Layer через Facades
 
-### 3. Core Systems (`app/core/`)
+### 3. Application Services (`src/application/services/`)
 
 **Назначение**: Основные системы приложения (Modal, Keymap, Focus, Notification).
 
 ```
-app/core/
+src/application/services/
 ├── modal/                 # Система модальности
-│   ├── ModalManager.ts    # Domain Service
-│   ├── ModalContext.tsx   # React Context
+│   ├── ModalManager.ts    # Application Service
+│   ├── IModalManager.ts   # Interface
 │   ├── types.ts           # Типы
 │   └── index.ts           # Public API
 ├── keymap/                # Система кеймапов
-│   ├── KeymapRegistry.ts  # Domain Service
+│   ├── KeymapRegistry.ts  # Application Service
 │   ├── KeymapExecutor.ts  # Application Service
-│   ├── KeymapContext.tsx  # React Context
-│   ├── keymaps/          # Определения кеймапов
-│   │   ├── navigation.ts
-│   │   ├── editing.ts
-│   │   ├── resource.ts
-│   │   └── index.ts
+│   ├── IKeymapRegistry.ts # Interface
 │   ├── types.ts
 │   └── index.ts           # Public API
 ├── focus/                 # Система фокуса
 │   ├── FocusManager.ts
-│   ├── FocusContext.tsx
+│   ├── IFocusManager.ts
 │   ├── types.ts
 │   └── index.ts           # Public API
 └── notification/          # Система уведомлений
     ├── NotificationManager.ts
-    ├── NotificationContext.tsx
+    ├── INotificationManager.ts
     ├── types.ts
     └── index.ts           # Public API
 ```
@@ -204,15 +238,15 @@ app/core/
 **Характеристики**:
 - Каждая система изолирована
 - Общаются через Event Bus
-- Предоставляют React Context для UI
 - Имеют четкий Public API
+- React Context для UI находится в Presentation Layer
 
-### 4. Infrastructure Layer (`app/infrastructure/`)
+### 4. Infrastructure Layer (`src/infrastructure/`)
 
 **Назначение**: Реализация интерфейсов Domain Layer, работа с внешними системами.
 
 ```
-app/infrastructure/
+src/infrastructure/
 ├── commands/              # Command Bus (Adapters)
 │   ├── InMemoryCommandBus.ts  # Adapter: CommandBus реализация
 │   └── index.ts
@@ -253,61 +287,57 @@ app/infrastructure/
 - Адаптирует внешние системы
 - НЕ знает о Application Layer (зависит только от Domain)
 
-### 5. Presentation Layer (`app/routes/`, `app/components/`)
+### 5. Presentation Layer (`src/presentation/`)
 
-**Назначение**: UI компоненты и маршрутизация.
+**Назначение**: UI фреймворки и компоненты.
 
 ```
-app/
-├── routes/                # Remix routes
-│   ├── _index.tsx         # GET /
-│   ├── resources.$id.tsx  # GET /resources/:id
-│   ├── resources.new.tsx  # GET /resources/new
-│   └── generator.tsx      # GET /generator
-│
-└── components/            # React компоненты
-    ├── ResourceList/
-    │   ├── ResourceList.tsx
-    │   ├── ResourceListItem.tsx
-    │   ├── ResourceSearch.tsx
-    │   └── index.ts
-    ├── ResourceDetail/
-    │   ├── ResourceDetail.tsx
-    │   ├── FieldEditor.tsx
-    │   ├── DynamicFieldList.tsx
-    │   └── index.ts
-    ├── NamespaceCloud/
-    │   ├── NamespaceCloud.tsx
-    │   └── index.ts
-    ├── PasswordGenerator/
-    │   ├── GeneratorForm.tsx
-    │   ├── PasswordStrength.tsx
-    │   └── index.ts
-    ├── KeymapStatusBar/
-    │   ├── KeymapStatusBar.tsx
-    │   └── index.ts
-    └── NotificationToast/
-        ├── NotificationToast.tsx
-        └── index.ts
+src/presentation/
+└── web/                   # Web presentations
+    └── react/             # React Router implementation
+        ├── package.json   # ✅ Web-specific dependencies (react, react-router, vite)
+        ├── vite.config.ts # ✅ Vite build tool (ONLY for web)
+        ├── tailwind.config.js  # ✅ Tailwind CSS config
+        ├── postcss.config.js   # ✅ PostCSS config
+        │
+        └── src/           # React Router code
+            ├── routes/    # React Router file-based routing
+            │   ├── _index.tsx         # GET /
+            │   ├── resources.$id.tsx  # GET /resources/:id
+            │   ├── resources.new.tsx  # GET /resources/new
+            │   └── generator.tsx      # GET /generator
+            │
+            ├── components/   # React components
+            │   ├── ResourceList/
+            │   │   ├── ResourceList.tsx
+            │   │   ├── ResourceListItem.tsx
+            │   │   └── index.ts
+            │   ├── ResourceDetail/
+            │   └── PasswordGenerator/
+            │
+            ├── hooks/        # React hooks
+            │   ├── useModal.ts
+            │   ├── useKeymap.ts
+            │   ├── useFocus.ts
+            │   ├── useNotification.ts
+            │   └── index.ts
+            │
+            ├── styles/       # Global styles
+            │   └── tailwind.css
+            │
+            ├── root.tsx      # React Router root layout
+            └── entry.client.tsx  # React Router client entry
 ```
 
 **Характеристики**:
+- ✅ **UI фреймворк изолирован** - все React Router/Vite конфиги здесь
+- ✅ **Собственные зависимости** - package.json только для web UI
+- ✅ **Build tool здесь** - vite.config.ts рядом с кодом
+- ✅ **Легко добавить другие UI** - CLI, Mobile, Next.js, etc.
 - НЕ содержит бизнес-логику
-- Использует hooks для доступа к системам
-- Вызывает Queries/Commands через Facades
-- Подписывается на события через Event Bus
-
-### 6. React Hooks (`app/hooks/`)
-
-```
-app/hooks/
-├── useModal.ts            # Hook для Modal System
-├── useKeymap.ts           # Hook для Keymap System
-├── useFocus.ts            # Hook для Focus System
-├── useFocusable.ts        # Hook для регистрации focusable элементов
-├── useNotification.ts     # Hook для Notification System
-└── index.ts               # Public API
-```
+- Использует hooks для доступа к Application Services
+- Вызывает Queries/Commands через Composition Facades
+- Импортирует Domain типы через алиасы (~domain/*)
 
 ---
 
@@ -384,7 +414,7 @@ app/hooks/
 ### Composition Root
 
 ```typescript
-// app/composition/index.ts
+// src/composition/index.ts
 export { queries } from './queries'  // Facade для Loaders
 export { getResourceService, getCommandBus, getQueryBus } from './ServiceContainer'
 export { resetContainer } from './ServiceContainer'
@@ -393,7 +423,7 @@ export { resetContainer } from './ServiceContainer'
 ### Domain Layer
 
 ```typescript
-// app/domain/index.ts
+// src/domain/index.ts
 export * from './shared'
 export * from './resource'
 export * from './repositories'
@@ -401,13 +431,13 @@ export * from './events'
 ```
 
 ```typescript
-// app/domain/shared/index.ts
+// src/domain/shared/index.ts
 export * from './errors'
 export * from './invariants'
 ```
 
 ```typescript
-// app/domain/shared/errors/index.ts
+// src/domain/shared/errors/index.ts
 export { DomainError } from './DomainError'
 export { InvariantViolationError } from './InvariantViolationError'
 export { NotFoundError } from './NotFoundError'
@@ -416,7 +446,7 @@ export { InvalidOperationError } from './InvalidOperationError'
 ```
 
 ```typescript
-// app/domain/shared/invariants/index.ts
+// src/domain/shared/invariants/index.ts
 export { UuidInvariant } from './UuidInvariant'
 export { StringInvariant } from './StringInvariant'        // Атомарные операции
 export { EmailInvariant } from './EmailInvariant'
@@ -424,7 +454,7 @@ export { IdentifierInvariant } from './IdentifierInvariant'  // Композит
 ```
 
 ```typescript
-// app/domain/resource/index.ts
+// src/domain/resource/index.ts
 export { Resource } from './Resource'
 export { ResourceName } from './ResourceName'
 export { Namespace } from './Namespace'
@@ -435,7 +465,7 @@ export type { ResourceId, FieldId } from './types'
 ```
 
 ```typescript
-// app/domain/resource/errors/index.ts
+// src/domain/resource/errors/index.ts
 export { ResourceLockedError } from './ResourceLockedError'
 export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 ```
@@ -443,14 +473,14 @@ export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 ### Core Systems
 
 ```typescript
-// app/core/modal/index.ts
+// src/application/services/modal/index.ts
 export { ModalManager, modalManager } from './ModalManager'
 export { ModalProvider, useModalContext } from './ModalContext'
 export type { AppMode, ModeContext, EditingState } from './types'
 ```
 
 ```typescript
-// app/core/keymap/index.ts
+// src/application/services/keymap/index.ts
 export { KeymapRegistry, keymapRegistry } from './KeymapRegistry'
 export { KeymapExecutor } from './KeymapExecutor'
 export { KeymapProvider, useKeymapContext } from './KeymapContext'
@@ -459,14 +489,14 @@ export type { Keymap, KeyBinding, ActionContext } from './types'
 ```
 
 ```typescript
-// app/core/focus/index.ts
+// src/application/services/focus/index.ts
 export { FocusManager, focusManager } from './FocusManager'
 export { FocusProvider, useFocusContext } from './FocusContext'
 export type { FocusableElement, FocusableMetadata } from './types'
 ```
 
 ```typescript
-// app/core/notification/index.ts
+// src/application/services/notification/index.ts
 export { NotificationManager, notificationManager } from './NotificationManager'
 export { NotificationProvider, useNotificationContext } from './NotificationContext'
 export type { Notification, NotificationType } from './types'
@@ -475,7 +505,7 @@ export type { Notification, NotificationType } from './types'
 ### Application Layer
 
 ```typescript
-// app/application/commands/index.ts
+// src/application/commands/index.ts
 export type { ICommand } from './ICommand'
 export type { ICommandHandler } from './ICommandHandler'
 export type { ICommandBus } from './ICommandBus'
@@ -483,7 +513,7 @@ export * from './UICommands'
 ```
 
 ```typescript
-// app/application/queries/index.ts
+// src/application/queries/index.ts
 export type { IQuery, IQueryHandler, QueryResult } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export * from './ResourceQueries'
@@ -502,7 +532,7 @@ export { CreateResourceCommandHandler } from './handlers/CreateResourceCommandHa
 ### Infrastructure Layer
 
 ```typescript
-// app/infrastructure/index.ts
+// src/infrastructure/index.ts
 export * from './api'
 export * from './repositories'
 export * from './commands'
@@ -513,17 +543,17 @@ export * from './clipboard'
 ```
 
 ```typescript
-// app/infrastructure/commands/index.ts
+// src/infrastructure/commands/index.ts
 export { InMemoryCommandBus } from './InMemoryCommandBus'
 ```
 
 ```typescript
-// app/infrastructure/queries/index.ts
+// src/infrastructure/queries/index.ts
 export { InMemoryQueryBus } from './InMemoryQueryBus'
 ```
 
 ```typescript
-// app/infrastructure/repositories/index.ts
+// src/infrastructure/repositories/index.ts
 export { MockResourceRepository } from './MockResourceRepository'
 export { ApiResourceRepository } from './ApiResourceRepository'
 ```
@@ -531,7 +561,7 @@ export { ApiResourceRepository } from './ApiResourceRepository'
 ### Components
 
 ```typescript
-// app/components/ResourceList/index.ts
+// src/presentation/web/react/src/components/ResourceList/index.ts
 export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
 export { ResourceSearch } from './ResourceSearch'
@@ -540,7 +570,7 @@ export { ResourceSearch } from './ResourceSearch'
 ### Hooks
 
 ```typescript
-// app/hooks/index.ts
+// src/presentation/web/react/src/hooks/index.ts
 export { useModal } from './useModal'
 export { useKeymap } from './useKeymap'
 export { useFocus } from './useFocus'
@@ -562,8 +592,8 @@ import { KeymapRegistry } from '~/core/keymap/KeymapRegistry'
 
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
-import { ModalManager } from '~/core/modal'
-import { KeymapRegistry } from '~/core/keymap'
+import { ModalManager } from '~application/services/modal'
+import { KeymapRegistry } from '~application/services/keymap'
 ```
 
 ### 2. Core Systems не импортируют друг друга
@@ -571,7 +601,7 @@ import { KeymapRegistry } from '~/core/keymap'
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В KeymapExecutor.ts
-import { focusManager } from '~/core/focus'  // ❌ Прямой импорт
+import { focusManager } from '~application/services/focus'  // ✖️ Прямой импорт
 ```
 
 ✅ **ДЕЛАТЬ ТАК**:
@@ -591,21 +621,21 @@ const keymap: Keymap = {
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В Route Loader
-import { MockResourceRepository } from '~/infrastructure/repositories'
-import { ListResourcesQueryHandler } from '~/application/queries/handlers'
+import { MockResourceRepository } from '~infrastructure/repositories'
+import { ListResourcesQueryHandler } from '~application/queries/handlers'
 
 export async function loader({ request }) {
-  const repository = new MockResourceRepository()  // ❌ Прямая зависимость
+  const repository = new MockResourceRepository()  // ✖️ Прямая зависимость
   const handler = new ListResourcesQueryHandler(repository)
   const query = new ListResourcesQuery()
-  return handler.handle(query)  // ❌ Обходим Facade
+  return handler.handle(query)  // ✖️ Обходим Facade
 }
 ```
 
 ✅ **ДЕЛАТЬ ТАК**:
 ```typescript
 // В Route Loader - используем Facade
-import { queries } from '~/composition'
+import { queries } from '~composition'
 
 export async function loader({ request }) {
   return queries.resources.list(request)  // ✅ Одна строка!
@@ -619,8 +649,8 @@ export async function loader({ request }) {
 ❌ **НЕ ДЕЛАТЬ ТАК**:
 ```typescript
 // В domain/resource/Resource.ts
-import { eventBus } from '~/infrastructure/event-bus'  // ❌
-import { apiClient } from '~/infrastructure/api'      // ❌
+import { eventBus } from '~infrastructure/event-bus'  // ✖️
+import { apiClient } from '~infrastructure/api'      // ✖️❌
 ```
 
 ✅ **ДЕЛАТЬ ТАК**:
@@ -637,13 +667,13 @@ class EventBus implements IEventBus { ... }
 ### 5. Типы централизованы
 
 ```typescript
-// app/types/domain.ts - Re-export domain types
-export type { Resource, Namespace, SecretField } from '~/domain'
+// src/shared/types/domain.ts - Re-export domain types
+export type { Resource, Namespace, SecretField } from '~domain'
 
-// app/types/infrastructure.ts - Re-export infrastructure types
-export type { ApiResponse, ApiError } from '~/infrastructure'
+// src/shared/types/infrastructure.ts - Re-export infrastructure types
+export type { ApiResponse, ApiError } from '~infrastructure'
 
-// app/types/index.ts - Single entry point
+// src/shared/types/index.ts - Single entry point
 export * from './domain'
 export * from './infrastructure'
 export * from './api'
@@ -656,11 +686,11 @@ export * from './api'
 ### Пример 1: Получение данных через Application Service
 
 ```typescript
-// app/routes/_index.tsx
+// src/presentation/web/react/src/routes/_index.tsx
 import type { Route } from './+types/_index'
 import { useLoaderData } from 'react-router'
-import { queries } from '~/composition'
-import { ResourceList } from '~/components/ResourceList'
+import { queries } from '~composition'
+import { ResourceList } from '../components/ResourceList'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (НОВЫЙ ПОДХОД - CQRS)
@@ -686,8 +716,8 @@ export default function Index() {
 ### Пример 2: Взаимодействие систем через Event Bus
 
 ```typescript
-// app/core/notification/NotificationManager.ts
-import { IEventBus } from '~/domain'
+// src/application/services/notification/NotificationManager.ts
+import { IEventBus } from '~domain'
 
 export class NotificationManager {
   constructor(private eventBus: IEventBus) {
@@ -711,8 +741,8 @@ export class NotificationManager {
 ### Пример 3: Keymap использует Focus через колбэк
 
 ```typescript
-// app/core/keymap/keymaps/navigation.ts
-import type { Keymap } from '~/core/keymap'
+// src/application/services/keymap/keymaps/navigation.ts
+import type { Keymap } from '../types'
 
 // FocusManager НЕ импортируется напрямую
 // Вместо этого используется через ActionContext
@@ -736,8 +766,8 @@ export const navigationKeymaps: Keymap[] = [
 ### Пример 4: React Component использует hooks
 
 ```typescript
-// app/components/ResourceList/ResourceList.tsx
-import { useModal, useFocus, useKeymap } from '~/hooks'
+// src/presentation/web/react/src/components/ResourceList/ResourceList.tsx
+import { useModal, useFocus, useKeymap } from '../hooks'
 import { useLoaderData } from 'react-router'
 
 export function ResourceList() {
@@ -763,11 +793,12 @@ export function ResourceList() {
 ### Пример 5: Providers в root.tsx
 
 ```typescript
-// app/root.tsx
-import { ModalProvider } from '~/core/modal'
-import { KeymapProvider } from '~/core/keymap'
-import { FocusProvider } from '~/core/focus'
-import { NotificationProvider } from '~/core/notification'
+// src/presentation/web/react/src/root.tsx
+// React Context providers (UI layer)
+import { ModalProvider } from './contexts/ModalContext'
+import { KeymapProvider } from './contexts/KeymapContext'
+import { FocusProvider } from './contexts/FocusContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 
 /**
  * ✅ ПРАВИЛЬНО: Презентационный слой использует только Public API систем

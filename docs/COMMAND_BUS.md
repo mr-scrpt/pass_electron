@@ -170,7 +170,7 @@ Command Handlers (Presentation)
 
 ### 1. Ports (Application Layer)
 
-**Файл: `app/application/commands/ICommand.ts`**
+**Файл: `src/application/commands/ICommand.ts`**
 
 ```typescript
 /**
@@ -181,7 +181,7 @@ export interface ICommand {
 }
 ```
 
-**Файл: `app/application/commands/ICommandHandler.ts`**
+**Файл: `src/application/commands/ICommandHandler.ts`**
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -194,7 +194,7 @@ export interface ICommandHandler<T extends ICommand> {
 }
 ```
 
-**Файл: `app/application/commands/ICommandBus.ts`**
+**Файл: `src/application/commands/ICommandBus.ts`**
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -227,7 +227,7 @@ export interface ICommandBus {
 }
 ```
 
-**Файл: `app/application/commands/UICommands.ts`**
+**Файл: `src/application/commands/UICommands.ts`**
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -272,7 +272,7 @@ export class CopyToClipboardCommand implements ICommand {
 }
 ```
 
-**Файл: `app/application/commands/index.ts`**
+**Файл: `src/application/commands/index.ts`**
 
 ```typescript
 export type { ICommand } from './ICommand';
@@ -292,7 +292,7 @@ import type {
   ICommandBus, 
   ICommand, 
   ICommandHandler 
-} from '~/application/commands';
+} from '~application/commands';
 
 /**
  * In-Memory реализация Command Bus
@@ -345,11 +345,11 @@ export { InMemoryCommandBus } from './InMemoryCommandBus';
 
 ### 3. Composition Root
 
-**Файл: `app/composition/ServiceContainer.ts`**
+**Файл: `src/composition/ServiceContainer.ts`**
 
 ```typescript
 import { InMemoryCommandBus } from '~/infrastructure/commands';
-import type { ICommandBus } from '~/application/commands';
+import type { ICommandBus } from '~application/commands';
 
 class ServiceContainer {
   private static commandBus: ICommandBus | null = null;
@@ -379,7 +379,7 @@ export const getCommandBus = () => ServiceContainer.getCommandBus();
 **Файл: `app/core/keymap/types.ts`**
 
 ```typescript
-import type { ICommandBus } from '~/application/commands';
+import type { ICommandBus } from '~application/commands';
 
 export interface ActionContext {
   mode: AppMode;
@@ -401,7 +401,7 @@ import { Keymap } from '../types';
 import { 
   DeleteResourceCommand,
   ShowNotificationCommand 
-} from '~/application/commands';
+} from '~application/commands';
 
 /**
  * ✅ ПРАВИЛЬНО: Использует CommandBus через абстракцию
@@ -436,7 +436,7 @@ export const resourceKeymaps: Keymap[] = [
 **Файл: `app/core/keymap/KeymapExecutor.ts`**
 
 ```typescript
-import type { ICommandBus } from '~/application/commands';
+import type { ICommandBus } from '~application/commands';
 
 export class KeymapExecutor {
   constructor(
@@ -472,17 +472,17 @@ export class KeymapExecutor {
 
 ### 3. В Presentation Layer (Command Handlers)
 
-**Файл: `app/routes/resources.$id.tsx`**
+**Файл: `src/presentation/web/react/src/routes/resources.$id.tsx`**
 
 ```typescript
 import { useEffect } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
-import { getCommandBus } from '~/composition';
+import { getCommandBus } from '~composition';
 import { 
   DeleteResourceCommand,
   NavigateToCommand,
   type ICommandHandler 
-} from '~/application/commands';
+} from '~application/commands';
 
 /**
  * Handler для удаления ресурса

@@ -1,7 +1,7 @@
 # ✅ Обновлен подход: Используем React Router CLI
 
 **Дата**: 2025-01-18  
-**Изменение**: Вместо ручного создания `package.json` используем `npx create-react-router@latest`
+**Изменение**: Вместо ручного создания `package.json` используем `pnpm create react-router@latest`
 
 ---
 
@@ -28,7 +28,7 @@ pnpm init
 cd src/presentation/web
 
 # Создать временный проект через CLI
-npx create-react-router@latest temp
+pnpm create react-router@latest temp
 
 # CLI создаст проект с актуальными версиями:
 # - react@latest
@@ -87,7 +87,7 @@ pnpm install
 
 ```bash
 cd src/presentation/web
-npx create-react-router@latest temp
+pnpm create react-router@latest temp
 
 # Выбрать опции:
 # - Template: Basic
@@ -120,7 +120,7 @@ npx create-react-router@latest temp
 3. **Создать web `package.json` через React Router CLI** ⭐
    ```bash
    cd src/presentation/web
-   npx create-react-router@latest temp
+   pnpm create react-router@latest temp
    cp temp/package.json react/package.json
    rm -rf temp
    ```
@@ -138,7 +138,7 @@ mkdir -p src/presentation/web/react
 
 # 2. Использовать CLI
 cd src/presentation/web
-npx create-react-router@latest temp
+pnpm create react-router@latest temp
 
 # 3. Скопировать нужное
 cp temp/package.json react/package.json
@@ -159,7 +159,7 @@ rm -rf temp
 ```bash
 # Заново создать через CLI
 cd src/presentation/web
-npx create-react-router@latest temp-new
+pnpm create react-router@latest temp-new
 
 # Сравнить package.json
 diff temp-new/package.json react/package.json

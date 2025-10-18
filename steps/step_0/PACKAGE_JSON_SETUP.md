@@ -1,369 +1,263 @@
-# Package.json Setup - Настройка зависимостей
+# Package.json Setup - Композиция шагов настройки
 
-Детальная инструкция по настройке package.json для проекта с DDD структурой и workspaces.
+Высокоуровневое описание последовательности настройки package.json для проекта с DDD структурой и pnpm workspaces.
+
+---
 
 ## 📦 Стратегия управления зависимостями
 
+### Разделение по уровням архитектуры
+
+**Root package.json** (обязательно)
+- **Что**: Общие зависимости для DDD слоев (domain, application, infrastructure)
+- **Почему**: DDD слои должны быть независимы от UI framework
+- **Зависимости**: neverthrow, typescript, testing tools
+
+**presentation/web/react/package.json** (обязательно)
+- **Что**: Зависимости только для web UI
+- **Почему**: Framework as Implementation Detail (Clean Architecture)
+- **Зависимости**: React Router, Vite, Tailwind, UI-specific libraries
+
+**Мотивация**: Легко добавить CLI, Mobile, Desktop без влияния на Domain/Application слои.
+
+---
+
+## 🎯 Последовательность настройки
+
+### 1. Root package.json (обязательно)
+
+**Файл**: `package.json` в корне проекта
+
+**Что настроить**:
+- ✅ `name`, `version`, `private: true`, `type: "module"`
+- ✅ Scripts для запуска workspaces (`dev:web`, `build:web`)
+- ✅ Общие зависимости (neverthrow, typescript)
+- ✅ Dev tools (eslint, prettier, vitest)
+- ✅ Engines (node, pnpm версии)
+
+**Детальная инструкция**: См. раздел "Root package.json" ниже
+
+**Критично**: НЕ добавлять поле `workspaces` — используем `pnpm-workspace.yaml`!
+
+---
+
+### 2. pnpm Workspaces (обязательно)
+
+**Файл**: `pnpm-workspace.yaml` в корне проекта
+
+**Что настроить**:
+- ✅ Путь к web presentation: `src/presentation/web/react`
+- ⚠️ Опционально: пути для будущих presentations (CLI, Mobile)
+
+**Детальная инструкция**: См. раздел "pnpm Workspaces" ниже
+
+**Мотивация**: 
+- Shared зависимости hoisted в root (экономия места)
+- Изолированные зависимости для каждого presentation
+- Команды для конкретных workspaces: `pnpm --filter`
+
+---
+
+### 3. Web Presentation package.json (обязательно)
+
+**Файл**: `src/presentation/web/react/package.json`
+
+**Метод**: Использовать React Router CLI (автоматически создает актуальные версии)
+
+**Последовательность**:
+1. ✅ Создать проект через CLI во временной папке
+2. ✅ Скопировать сгенерированные файлы в `react/`
+3. ✅ Изменить `name` на `@password-manager/web`
+4. ✅ Добавить Catppuccin для Tailwind
+5. ✅ Адаптировать конфиги под DDD структуру
+6. ✅ Удалить временную папку
+
+**Детальная инструкция**: См. раздел "Web Presentation" ниже
+
+**Критично**: Не копировать версии пакетов вручную — CLI всегда создает актуальные!
+
+---
+
+### 4. TypeScript paths и Vite алиасы (обязательно)
+
+**Файлы**: 
+- Root `tsconfig.json`
+- `src/presentation/web/react/tsconfig.json`
+- `src/presentation/web/react/vite.config.ts`
+
+**Что настроить**:
+- ✅ Алиасы: `@domain`, `@api`, `@client/*`, `@internal/*`
+- ✅ Paths в TypeScript
+- ✅ Resolve в Vite
+
+**Детальная инструкция**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
+
+**Мотивация**: Clean imports без относительных путей (`../../../`)
+
+---
+
+### 5. Tailwind конфигурация (обязательно)
+
+**Файл**: `src/presentation/web/react/tailwind.config.js`
+
+**Что настроить**:
+- ✅ Catppuccin Mocha theme
+- ✅ Content paths для React Router
+- ✅ Плагины (@catppuccin/tailwindcss)
+
+**Детальная инструкция**: [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
+
+**Мотивация**: Консистентный дизайн системы, тёмная тема из коробки
+
+---
+
+### 6. ESLint конфигурация (обязательно)
+
+**Файл**: `eslint.config.js` в корне проекта
+
+**Что настроить**:
+- ✅ Flat Config (новый формат ESLint 9)
+- ✅ TypeScript правила
+- ✅ Ignore patterns
+- ✅ Архитектурные границы (опционально, см. ESLINT_SETUP.md)
+
+**Детальная инструкция**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
+
+**Мотивация**: Enforce архитектурных правил на уровне линтера
+
+---
+
+### 7. Финальная установка (обязательно)
+
+**Команда**: `pnpm install` из корня проекта
+
+**Что происходит**:
+- ✅ Устанавливаются root зависимости
+- ✅ Устанавливаются зависимости всех workspaces
+- ✅ Hoisting общих зависимостей в root node_modules
+
+**Проверка**: `pnpm list --depth=0` должен показать workspaces
+
+---
+
+## 📋 Детальные инструкции
+
 ### Root package.json
-- Общие зависимости для **DDD слоев** (domain, application, infrastructure)
-- pnpm workspaces конфигурация
-- Scripts для запуска всего проекта
 
-### presentation/web/react/package.json
-- **Только** зависимости для web UI
-- React Router, Vite, Tailwind
-- Scripts для dev/build web presentation
+Создать файл вручную или через `pnpm init`, затем настроить:
 
----
+**Обязательные поля**:
+- `name`, `version`, `private: true`, `type: "module"`
+- `scripts`: команды для workspaces
+- `engines`: версии node и pnpm
 
-## 1️⃣ Корневой package.json
+**Обязательные зависимости**:
+- `neverthrow` - error handling для Application Layer
+- `typescript` - компилятор
+- `@types/node` - типы Node.js
 
-**Файл: `package.json`** (в корне проекта)
+**Обязательные devDependencies**:
+- `eslint`, `@eslint/js`, `typescript-eslint` - линтинг
+- `prettier` - форматирование
+- `vitest` - тестирование
 
-```json
-{
-  "name": "password-manager",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  
-  "scripts": {
-    "dev:web": "pnpm --filter @password-manager/web dev",
-    "build:web": "pnpm --filter @password-manager/web build",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\""
-  },
-  
-  "dependencies": {
-    "neverthrow": "^8.1.2"
-  },
-  
-  "devDependencies": {
-    "@types/node": "^22.10.5",
-    "typescript": "^5.7.2",
-    "eslint": "^9.18.0",
-    "@eslint/js": "^9.18.0",
-    "typescript-eslint": "^8.20.0",
-    "prettier": "^3.4.2",
-    "vitest": "^2.1.8"
-  },
-  
-  "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
-  }
-}
-```
-
-**Команды установки:**
-
-```bash
-cd password-manager
-pnpm init
-# Скопировать содержимое выше в package.json
-pnpm install
-```
+**Опциональные**:
+- `axios` - HTTP client (если нужно в Infrastructure Layer)
 
 ---
 
-## 2️⃣ Web Presentation package.json (через React Router CLI)
+### pnpm Workspaces
 
-> **💡 Используем React Router CLI** — он создаст проект с актуальными версиями пакетов.  
-> Мы адаптируем его под нашу структуру.
+Создать `pnpm-workspace.yaml` в корне:
 
-### Шаг 1: Создать проект через CLI во временной папке
-
-```bash
-# Из корня проекта
-cd src/presentation/web
-
-# Создать React Router проект (временно в папке "temp")
-pnpm dlx create-react-router@latest temp
-
-# Выбрать опции:
-# - Template: Basic
-# - TypeScript: Yes
-# - Package manager: pnpm
-```
-
-### Шаг 2: Скопировать нужные файлы
-
-CLI создает готовые конфиги, берем их:
-
-```bash
-# 1. Package.json (изменим name)
-cp temp/package.json react/package.json
-
-# 2. TypeScript конфиг (адаптируем paths)
-cp temp/tsconfig.json react/tsconfig.json
-
-# 3. Vite конфиг (добавим алиасы для DDD)
-cp temp/vite.config.ts react/vite.config.ts
-
-# 4. React Router конфиг (можем взять как есть)
-cp temp/react-router.config.ts react/react-router.config.ts
-```
-
-**Изменить `react/package.json`:**
-```bash
-# Открыть и изменить:
-# "name": "temp" → "name": "@password-manager/web"
-```
-
-### Шаг 3: Удалить временную папку
-
-```bash
-rm -rf temp
-```
-
-### Шаг 4: Добавить Catppuccin для Tailwind
-
-> **📝 Примечание**: CLI уже добавил Tailwind v4 через `@tailwindcss/vite`!  
-> Нужно только добавить Catppuccin тему.
-
-```bash
-cd react
-
-# Catppuccin для Tailwind
-pnpm add -D @catppuccin/tailwindcss
-```
-
-### Шаг 5: Адаптировать конфиги под DDD структуру
-
-⚠️ **Важно!** CLI создает структуру `app/`, но у нас DDD с `src/`.
-
-**5.1. Изменить `package.json` name:**
-
-```bash
-# Открыть react/package.json и изменить:
-# "name": "temp" → "name": "@password-manager/web"
-```
-
-**5.2. Настроить TypeScript paths и Vite алиасы:**
-
-> **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
-> 
-> Там описано как настроить:
-> - Root `tsconfig.json` paths для алиасов `@domain`, `@api`, `@client/*`, `@internal/*`
-> - `vite.config.ts` с DDD алиасами
-> - `tailwind.config.js` с Catppuccin темой
-
-### Что получаем из CLI
-
-CLI создает готовые конфиги с актуальными версиями. **Не копируй примеры руками** — используй файлы из `temp/`!
-
-> **💡 Главное:** CLI всегда создает актуальные версии пакетов и конфигов.  
-> Мы только **модифицируем** их под DDD структуру:
-> 1. `package.json` — изменить `name` (см. шаг 5.1)
-> 2. `tsconfig.json` + `vite.config.ts` — настроить алиасы (см. [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md))
-> 3. `react-router.config.ts` — можно оставить как есть
->
-> **⚠️ Не вставляй версии из этой документации** — они устареют!  
-> Всегда используй файлы созданные CLI.
-
----
-
-## 3️⃣ pnpm Workspaces
-
-**Файл: `pnpm-workspace.yaml`** (в корне проекта)
-
+**Обязательно**:
 ```yaml
 packages:
   - 'src/presentation/web/react'
-  # Future presentations:
+```
+
+**Опционально** (для будущего):
+```yaml
   # - 'src/presentation/cli'
   # - 'src/presentation/mobile/expo'
 ```
 
-**Зачем workspaces?**
-- ✅ Shared зависимости hoisted в корень (neverthrow, typescript)
-- ✅ Каждый presentation имеет свои зависимости
-- ✅ Команды для конкретных workspaces: `pnpm --filter`
+---
+
+### Web Presentation
+
+**Метод**: React Router CLI (рекомендуется)
+
+**Шаги**:
+1. Из `src/presentation/web/` запустить: `pnpm dlx create-react-router@latest temp`
+2. Выбрать: Template=Basic, TypeScript=Yes, Package manager=pnpm
+3. Скопировать файлы:
+   - `temp/package.json` → `react/package.json`
+   - `temp/tsconfig.json` → `react/tsconfig.json`
+   - `temp/vite.config.ts` → `react/vite.config.ts`
+   - `temp/react-router.config.ts` → `react/react-router.config.ts`
+4. Изменить `"name"` на `"@password-manager/web"` в `react/package.json`
+5. Установить Catppuccin: `cd react && pnpm add -D @catppuccin/tailwindcss`
+6. Настроить TypeScript paths и Vite алиасы (см. TYPESCRIPT_VITE_CONFIG.md)
+7. Удалить временную папку: `rm -rf temp`
+
+**Почему CLI**:
+- ✅ Всегда актуальные версии пакетов
+- ✅ Готовые конфиги без ошибок
+- ✅ Не нужно копировать устаревшие примеры
 
 ---
 
-## 4️⃣ Финальная установка зависимостей
+### Правило разделения зависимостей
 
-После создания всех package.json и workspaces:
-
+**Root package.json** (если используется в domain/application/infrastructure):
 ```bash
-# Вернуться в корень проекта
-cd password-manager
-
-# Установить ВСЕ зависимости (root + workspaces)
-pnpm install
+pnpm add <package>              # dependency
+pnpm add -D <package>           # devDependency
 ```
 
-### Проверка:
-
-```bash
-# Проверить что workspaces настроены
-pnpm list --depth=0
-
-# Должно показать:
-# password-manager@1.0.0
-#   @password-manager/web -> src/presentation/web/react
-```
-
-### Запуск dev сервера:
-
-```bash
-# Из корня проекта
-pnpm dev:web
-
-# Или напрямую из presentation
-cd src/presentation/web/react
-pnpm dev
-```
-
-Откройте браузер на `http://localhost:5173`
-
----
-
-## 5️⃣ Какие пакеты куда устанавливать?
-
-### Root package.json (для DDD слоев)
-
-```bash
-# Application Layer - error handling
-pnpm add neverthrow
-
-# Infrastructure Layer - HTTP client (если нужно)
-pnpm add axios
-
-# Dev tools для ВСЕГО проекта
-pnpm add -D typescript @types/node vitest
-```
-
-**Правило**: Если зависимость используется в `src/domain/`, `src/application/`, или `src/infrastructure/` — устанавливайте в root.
-
-### presentation/web/react/package.json (для UI)
-
+**presentation/web/react/package.json** (если используется только в UI):
 ```bash
 cd src/presentation/web/react
-
-# React ecosystem
-pnpm add react react-dom react-router
-
-# Build tools
-pnpm add -D vite @react-router/dev
-
-# Styling
-pnpm add -D tailwindcss postcss autoprefixer
+pnpm add <package>              # dependency
+pnpm add -D <package>           # devDependency
 ```
 
-**Правило**: Если зависимость используется только в `src/presentation/web/react/src/` — устанавливайте там.
+**Примеры**:
+- `neverthrow` → root (используется в Application Layer)
+- `react` → web presentation (только UI)
+- `typescript` → root (используется везде)
+- `vite` → web presentation (только для web build)
 
 ---
 
-## 6️⃣ Проверка установки
+## ✅ Чеклист настройки
 
-```bash
-# Проверить что workspaces настроены
-pnpm list --depth=0
-
-# Должно показать:
-# password-manager (root)
-#   @password-manager/web -> src/presentation/web/react
-
-# Проверить зависимости root
-pnpm list --depth=0
-# neverthrow, typescript, etc.
-
-# Проверить зависимости web
-pnpm --filter @password-manager/web list --depth=0
-# react, react-router, vite, etc.
-```
-
----
-
-## 📊 Итоговая структура node_modules
-
-```
-password-manager/
-├── node_modules/                 # ← Root dependencies (shared)
-│   ├── neverthrow/               # ← Application Layer использует
-│   ├── typescript/               # ← Все используют
-│   └── @types/node/              # ← Все используют
-│
-└── src/presentation/web/react/
-    └── node_modules/             # ← Web-specific
-        ├── react/                # ← ТОЛЬКО для web
-        ├── react-router/         # ← ТОЛЬКО для web
-        └── vite/                 # ← ТОЛЬКО для web
-```
-
-**pnpm делает hoisting** - общие пакеты поднимаются в root node_modules.
-
----
-
-## 7️⃣ ESLint 9 конфигурация (Flat Config)
-
-> **⚠️ ВАЖНО**: ESLint 9 использует новый формат конфигурации (Flat Config).  
-> Старый `.eslintrc.cjs` больше не поддерживается.
-
-**Файл: `eslint.config.js`** (в корне проекта)
-
-```javascript
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
-
-export default tseslint.config(
-  js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
-  {
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_' },
-      ],
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
-  {
-    ignores: [
-      '**/node_modules/**',
-      '**/build/**',
-      '**/dist/**',
-      '**/.cache/**',
-      'eslint.config.js',
-    ],
-  }
-)
-```
-
-**Ключевые изменения в ESLint 9:**
-- ✅ Flat Config вместо `.eslintrc.*`
-- ✅ `typescript-eslint` вместо отдельных `@typescript-eslint/*` пакетов
-- ✅ `projectService: true` для автоматического определения tsconfig
-- ✅ Native `ignores` вместо `.eslintignore`
-
-**Запуск:**
-```bash
-pnpm lint
-# Исправить автоматически:
-pnpm lint --fix
-```
-
----
-
-## ✅ Чеклист
-
+**Обязательные шаги**:
 - [ ] Создан `package.json` в корне (без поля `workspaces`!)
 - [ ] Создан `pnpm-workspace.yaml`
-- [ ] Создан `src/presentation/web/react/package.json`
-- [ ] Создан `eslint.config.js` (Flat Config для ESLint 9)
+- [ ] Создан `src/presentation/web/react/package.json` через CLI
+- [ ] Настроены TypeScript paths и Vite алиасы (см. TYPESCRIPT_VITE_CONFIG.md)
+- [ ] Настроен Tailwind с Catppuccin (см. TAILWIND_SETUP.md)
+- [ ] Создан `eslint.config.js` (см. ESLINT_SETUP.md)
 - [ ] Установлены зависимости: `pnpm install`
-- [ ] Проверка: `pnpm list --depth=0` показывает workspaces
-- [ ] Команда `pnpm dev:web` работает (после настройки vite.config)
+
+**Проверка**:
+- [ ] `pnpm list --depth=0` показывает `@password-manager/web` workspace
+- [ ] `pnpm dev:web` запускает dev сервер
+- [ ] `pnpm lint` проверяет код без ошибок
+- [ ] Импорты с алиасами работают (`@domain`, `@api`, etc.)
 
 ---
 
-**Следующий шаг**: [TypeScript и Vite конфигурация](./TYPESCRIPT_VITE_CONFIG.md)
+## 📚 Связанные документы
+
+**Обязательные для прочтения**:
+1. [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) - настройка алиасов и paths
+2. [TAILWIND_SETUP.md](./TAILWIND_SETUP.md) - настройка Tailwind с Catppuccin
+3. [ESLINT_SETUP.md](./ESLINT_SETUP.md) - настройка ESLint и архитектурных границ
+
+**Контекст**:
+- `../docs/PROJECT_STRUCTURE.md` - полная структура проекта
+- `../docs/ARCHITECTURE_BOUNDARIES.md` - правила импортов между слоями
+- `.docs-meta/PROJECT_STRUCTURE_RATIONALE.md` - обоснование структуры

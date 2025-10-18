@@ -96,7 +96,7 @@ git init
 
 ## 📥 Шаг 2: Настройка package.json и pnpm Workspaces
 
-> **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
+> **📚 КОМПОЗИЦИЯ ШАГОВ**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
 
 В этом проекте используется **pnpm workspaces** для разделения зависимостей:
 
@@ -122,30 +122,14 @@ password-manager/
 - Tailwind CSS, PostCSS
 - **Изолирован** от других presentation layers
 
-### Быстрый старт
-
-1. **Создать `pnpm-workspace.yaml`** в корне
-2. **Создать root `package.json`** (DDD слои — neverthrow, typescript, etc.)
-3. **Создать web конфиги через React Router CLI** ⭐
-   ```bash
-   cd src/presentation/web
-   pnpm dlx create-react-router@latest temp
-   # Копируем: package.json, tsconfig.json, vite.config.ts, react-router.config.ts
-   cp temp/{package.json,tsconfig.json,vite.config.ts,react-router.config.ts} react/
-   rm -rf temp
-   ```
-4. **Установить зависимости**:
-   ```bash
-   # Из корня проекта
-   pnpm install
-   ```
+**Мотивация**: DDD слои независимы от UI framework → легко добавить CLI, Mobile, Desktop
 
 > **💡 Используем React Router CLI** — он создает конфиги с актуальными версиями!  
 > Мы только модифицируем их под DDD структуру.
 >
 > **⚠️ ВАЖНО**: Tailwind, Vite, React устанавливаются ТОЛЬКО в `src/presentation/web/react/package.json`, НЕ в root!
 
-**Полная инструкция со всеми командами**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
+**Полная композиция с последовательностью настройки**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
 
 ---
 

@@ -126,11 +126,12 @@ password-manager/
 
 1. **Создать `pnpm-workspace.yaml`** в корне
 2. **Создать root `package.json`** (DDD слои — neverthrow, typescript, etc.)
-3. **Создать web `package.json` через React Router CLI** ⭐
+3. **Создать web конфиги через React Router CLI** ⭐
    ```bash
    cd src/presentation/web
-   pnpm create react-router@latest temp
-   cp temp/package.json react/package.json
+   pnpm dlx create-react-router@latest temp
+   # Копируем: package.json, tsconfig.json, vite.config.ts, react-router.config.ts
+   cp temp/{package.json,tsconfig.json,vite.config.ts,react-router.config.ts} react/
    rm -rf temp
    ```
 4. **Установить зависимости**:
@@ -139,7 +140,9 @@ password-manager/
    pnpm install
    ```
 
-> **💡 Используем React Router CLI** для создания `package.json` с актуальными версиями!  
+> **💡 Используем React Router CLI** — он создает конфиги с актуальными версиями!  
+> Мы только модифицируем их под DDD структуру.
+>
 > **⚠️ ВАЖНО**: Tailwind, Vite, React устанавливаются ТОЛЬКО в `src/presentation/web/react/package.json`, НЕ в root!
 
 **Полная инструкция со всеми командами**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)

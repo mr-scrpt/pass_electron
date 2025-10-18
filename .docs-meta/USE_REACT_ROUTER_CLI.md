@@ -1,7 +1,7 @@
 # ✅ Обновлен подход: Используем React Router CLI
 
 **Дата**: 2025-01-18  
-**Изменение**: Вместо ручного создания `package.json` используем `pnpm create react-router@latest`
+**Изменение**: Вместо ручного создания используем `pnpm dlx create-react-router@latest`
 
 ---
 
@@ -27,35 +27,44 @@ pnpm init
 ```bash
 cd src/presentation/web
 
-# Создать временный проект через CLI
-pnpm create react-router@latest temp
+# Создать временный проект через CLI (аналог npx)
+pnpm dlx create-react-router@latest temp
 
 # CLI создаст проект с актуальными версиями:
 # - react@latest
 # - react-router@latest
 # - vite@latest
+# - tailwindcss@latest (через @tailwindcss/vite)
 # - typescript@latest
-# - все правильные scripts
+# - все правильные scripts + готовые конфиги!
 
-# Скопировать package.json
+# Скопировать нужные файлы
 cp temp/package.json react/package.json
+cp temp/tsconfig.json react/tsconfig.json
+cp temp/vite.config.ts react/vite.config.ts
+cp temp/react-router.config.ts react/react-router.config.ts
 
-# Изменить name на "@password-manager/web"
+# Изменить name на "@password-manager/web" в package.json
+# Изменить paths в tsconfig.json: "./app/*" → "./src/*"
+# Добавить DDD алиасы в vite.config.ts
+
 # Удалить временную папку
 rm -rf temp
 
-# Добавить Tailwind
+# Добавить только Catppuccin (Tailwind v4 уже установлен!)
 cd react
-pnpm add -D tailwindcss postcss autoprefixer @catppuccin/tailwindcss
-pnpm dlx tailwindcss init -p
+pnpm add -D @catppuccin/tailwindcss
 ```
 
 **Преимущества:**
 - ✅ **Актуальные версии** всегда (из CLI)
-- ✅ **Правильные scripts** для React Router v7
-- ✅ **Официальный инструмент** React Router
-- ✅ **Меньше ошибок** — не нужно копировать вручную
+- ✅ **Не завязаны на версии в документации** — CLI всегда даст latest
+- ✅ **Правильные scripts** для React Router
+- ✅ **Официальный инструмент** — не устареет
+- ✅ **Меньше ошибок** — не копируем руками
 - ✅ **Легко обновлять** — просто запустить CLI заново
+
+🎉 **Бонус:** CLI использует современный стек (Tailwind v4 через `@tailwindcss/vite`, Vite 7+, React 19+)
 
 ---
 

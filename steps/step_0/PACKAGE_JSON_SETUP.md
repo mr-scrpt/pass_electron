@@ -79,7 +79,7 @@ pnpm install
 cd src/presentation/web
 
 # Создать React Router проект (временно в папке "temp")
-pnpm create react-router@latest temp
+pnpm dlx create-react-router@latest temp
 
 # Выбрать опции:
 # - Template: Basic
@@ -87,13 +87,27 @@ pnpm create react-router@latest temp
 # - Package manager: pnpm
 ```
 
-### Шаг 2: Скопировать package.json
+### Шаг 2: Скопировать нужные файлы
+
+CLI создает готовые конфиги, берем их:
 
 ```bash
-# Скопировать package.json в правильное место
+# 1. Package.json (изменим name)
 cp temp/package.json react/package.json
 
-# Открыть react/package.json и изменить name:
+# 2. TypeScript конфиг (адаптируем paths)
+cp temp/tsconfig.json react/tsconfig.json
+
+# 3. Vite конфиг (добавим алиасы для DDD)
+cp temp/vite.config.ts react/vite.config.ts
+
+# 4. React Router конфиг (можем взять как есть)
+cp temp/react-router.config.ts react/react-router.config.ts
+```
+
+**Изменить `react/package.json`:**
+```bash
+# Открыть и изменить:
 # "name": "temp" → "name": "@password-manager/web"
 ```
 
@@ -103,62 +117,80 @@ cp temp/package.json react/package.json
 rm -rf temp
 ```
 
-### Шаг 4: Установить дополнительные зависимости
+### Шаг 4: Добавить Catppuccin для Tailwind
+
+> **📝 Примечание**: CLI уже добавил Tailwind v4 через `@tailwindcss/vite`!  
+> Нужно только добавить Catppuccin тему.
 
 ```bash
 cd react
 
-# Tailwind CSS + Catppuccin
-pnpm add -D tailwindcss postcss autoprefixer
+# Catppuccin для Tailwind
 pnpm add -D @catppuccin/tailwindcss
-
-# Инициализировать Tailwind
-pnpm dlx tailwindcss init -p
 ```
 
-### Результат: package.json с актуальными версиями
+### Шаг 5: Адаптировать конфиги под DDD структуру
 
-**Файл: `src/presentation/web/react/package.json`** (после CLI)
+⚠️ **Важно!** CLI создает структуру `app/`, но у нас DDD с `src/`.
+
+**5.1. Изменить `tsconfig.json` paths:**
+
+Файл: `src/presentation/web/react/tsconfig.json`
 
 ```json
-{
-  "name": "@password-manager/web",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  
-  "scripts": {
-    "dev": "react-router dev",
-    "build": "react-router build",
-    "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc"
-  },
-  
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router": "^7.5.0",
-    "isbot": "^5.1.0"
-  },
-  
-  "devDependencies": {
-    "@react-router/dev": "^7.5.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.7",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8.4.49",
-    "autoprefixer": "^10.4.20",
-    "@catppuccin/tailwindcss": "^1.0.3"
-  }
+"paths": {
+  "~/*": ["./src/*"]  // было: "./app/*"
 }
 ```
 
-> **✅ Преимущества подхода:**
-> - Актуальные версии всех пакетов из CLI
-> - Правильные scripts для React Router v7
-> - Нет ручного копирования версий
+**5.2. Модифицировать `vite.config.ts` для DDD алиасов:**
+
+Файл: `src/presentation/web/react/vite.config.ts`
+
+```typescript
+import { reactRouter } from "@react-router/dev/vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
+import path from "path";
+
+const projectRoot = path.resolve(__dirname, "../../../..");
+
+export default defineConfig({
+  root: projectRoot,
+  plugins: [
+    tailwindcss(),
+    reactRouter({
+      appDirectory: "src/presentation/web/react/src",
+    }),
+    tsconfigPaths(),
+  ],
+  resolve: {
+    alias: {
+      "~domain": path.resolve(projectRoot, "src/domain"),
+      "~application": path.resolve(projectRoot, "src/application"),
+      "~infrastructure": path.resolve(projectRoot, "src/infrastructure"),
+      "~composition": path.resolve(projectRoot, "src/composition"),
+    },
+  },
+});
+```
+
+> **📚 Детали**: См. [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) для полного объяснения
+
+### Что получаем из CLI
+
+CLI создает готовые конфиги с актуальными версиями. **Не копируй примеры руками** — используй файлы из `temp/`!
+
+> **💡 Главное:** CLI всегда создает актуальные версии пакетов и конфигов.  
+> Мы только **модифицируем** их под DDD структуру:
+> 1. `package.json` — изменить `name`
+> 2. `tsconfig.json` — изменить `paths` (см. шаг 5.1)
+> 3. `vite.config.ts` — добавить DDD алиасы (см. шаг 5.2)
+> 4. `react-router.config.ts` — можно оставить как есть
+>
+> **⚠️ Не вставляй версии из этой документации** — они устареют!  
+> Всегда используй файлы созданные CLI.
 
 ---
 

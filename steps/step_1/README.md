@@ -8,7 +8,7 @@
 
 **Поток данных (CQRS)**:
 ```
-MockRepository → Query Handler → Query Bus → Facade → Remix Loader → React Component → UI
+MockRepository → Query Handler → Query Bus → Facade → React Router Loader → React Component → UI
 ```
 
 ## 📊 Визуализация архитектуры
@@ -844,12 +844,12 @@ export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
 ```
 
-#### 6.4 Создать Remix Route
+#### 6.4 Создать React Router Route
 
 **Файл: `app/routes/_index.tsx`**
 ```typescript
-import { useLoaderData } from '@remix-run/react'
-import type { LoaderFunctionArgs } from '@remix-run/node'
+import { useLoaderData } from 'react-router'
+import type { Route } from './+types/_index'
 import { queries } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
@@ -864,7 +864,7 @@ import { ResourceList } from '~/components/ResourceList'
  * - Loader не знает о Query Bus, Query Handlers, Repository
  * - Вся сложность скрыта в Composition Layer
  */
-export async function loader({ request }: LoaderFunctionArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   // ✅ ОДНА СТРОКА! Facade инкапсулирует всё
   return queries.resources.list(request)
 }
@@ -905,7 +905,7 @@ export default function Index() {
 }
 ```
 
-**Ключевые моменты Remix + CQRS:**
+**Ключевые моменты React Router + CQRS:**
 
 1. **`loader()` - это СЕРВЕР**, не клиент
    - Выполняется на Node.js
@@ -1073,10 +1073,10 @@ app/
    - Service Container координация
    - Facade Pattern для упрощения
 
-5. **Remix Framework**:
-   - Loader функции (server-side)
+5. **React Router v7 Framework**:
+   - Server Loaders (SSR)
    - Facade упрощает loader до 1 строки
-   - Type-safe data flow
+   - Type-safe data flow с автоматическими типами
 
 6. **Паттерны**:
    - Facade Pattern

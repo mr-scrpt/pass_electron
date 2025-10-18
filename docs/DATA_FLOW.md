@@ -299,7 +299,7 @@ export const queries = {
 
 ```typescript
 // app/routes/_index.tsx
-import { type LoaderFunctionArgs } from '@remix-run/node'
+import type { Route } from './+types/_index'
 import { queries } from '~/composition'
 
 /**
@@ -417,7 +417,8 @@ export default function Index() {
 
 ```typescript
 // app/routes/resources.new.tsx
-import { redirect, type ActionFunctionArgs } from '@remix-run/node'
+import { redirect } from 'react-router'
+import type { Route } from './+types/resources.new'
 import { commands } from '~/composition'
 
 /**
@@ -492,7 +493,7 @@ export default function ResourceItem() {
 
 ```typescript
 // app/hooks/useResourceActions.ts
-import { useFetcher, useNavigate } from '@remix-run/react'
+import { useFetcher, useNavigate } from 'react-router'
 
 /**
  * Hook для действий с ресурсами

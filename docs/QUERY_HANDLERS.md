@@ -163,7 +163,7 @@ export class InMemoryQueryBus implements IQueryBus {
 **`app/composition/queries.ts`**
 
 ```typescript
-import { json } from '@remix-run/node';
+import { json } from 'react-router';
 import { getQueryBus } from './ServiceContainer';
 import { ListResourcesQuery, GetResourceByIdQuery } from '~/application/queries';
 

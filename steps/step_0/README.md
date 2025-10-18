@@ -2,7 +2,7 @@
 
 ## 🎯 Цель
 
-Подготовить проект с нуля: установить все необходимые зависимости, настроить TypeScript, Remix, Electron, Tailwind CSS и создать базовую структуру.
+Подготовить проект с нуля: установить все необходимые зависимости, настроить TypeScript, React Router v7, Electron, Tailwind CSS и создать базовую структуру.
 
 > **📦 Менеджер пакетов**: В этом проекте используется **pnpm**. Если он не установлен:
 > ```bash
@@ -11,44 +11,47 @@
 
 ---
 
-## 💡 Как и Next.js, Remix CLI делает все за вас!
+## 💡 Как и Next.js, React Router CLI делает все за вас!
 
-### ✅ Что Remix CLI создает автоматически (одной командой):
+> **📌 Важно**: Remix v2 теперь является частью React Router v7! Все возможности Remix (SSR, loaders, actions, file-based routing) теперь в React Router.
+
+### ✅ Что React Router CLI создает автоматически (одной командой):
 
 - TypeScript + `tsconfig.json`
 - React + React DOM + все типы
-- Remix (@remix-run/node, @remix-run/react, @remix-run/dev, @remix-run/serve)
+- React Router v7 (react-router - все в одном пакете)
 - Vite + `vite.config.ts`
 - ESLint + `.eslintrc.cjs`
 - `.gitignore`
 - `app/root.tsx` (root layout)
 - `app/routes/_index.tsx` (главная страница)
 - `package.json` с готовыми scripts
+- **SSR из коробки** ✨
 
 ### 🔧 Что нужно добавить **для нашего проекта**:
 
 - **Electron** (desktop-специфично)
 - **Tailwind CSS** (опционально, можно выбрать при инициализации)
-- **Concurrently + wait-on** (для запуска Electron с Remix dev server)
+- **Concurrently + wait-on** (для запуска Electron с React Router dev server)
 - **Prettier** (опционально)
 - **Структура папок DDD** (Domain, Application, Infrastructure, Composition)
 - **Electron main process** (`electron/main.ts`)
 
-> **Итого:** Remix CLI уже настроил ~90% проекта. Нам нужно только добавить Electron и DDD структуру!
+> **Итого:** React Router CLI уже настроил ~90% проекта. Нам нужно только добавить Electron и DDD структуру!
 
 ---
 
 ## 📦 Технологический стек
 
 ### Основные зависимости
-- **Remix** - Full-stack фреймворк для React
+- **React Router v7** - Full-stack фреймворк для React (SSR, loaders, actions)
 - **Electron** - Desktop приложение
 - **React** - UI библиотека
 - **TypeScript** - Типизация
 - **Tailwind CSS** - Стили
 
 ### Dev зависимости
-- **Vite** - Сборщик (используется Remix)
+- **Vite** - Сборщик (используется React Router)
 - **ESLint** - Линтер
 - **Prettier** - Форматирование кода
 
@@ -56,43 +59,44 @@
 
 ## 🚀 Шаг 1: Инициализация проекта
 
-### 1.1 Создать Remix проект (все в одной команде!)
+### 1.1 Создать React Router проект (все в одной команде!)
 
 ```bash
-# Создаем проект с Remix
-pnpm create remix@latest
+# Создаем проект с React Router v7
+npx create-react-router@latest
 
 # Выбираем опции:
 # ✅ Where should we create your new project? ./password-manager (или .)
 # ✅ What type of app do you want to create? Just the basics
-# ✅ Where do you want to deploy? Choose Remix App Server
 # ✅ TypeScript or JavaScript? TypeScript
-# ✅ Do you want me to run `pnpm install`? Yes
+# ✅ Do you want me to run `npm install`? Yes (или используйте pnpm)
 ```
 
-**🎉 Готово! Remix CLI уже установил:**
+> **💡 Если используете pnpm**: После создания проекта выполните `pnpm install` в директории проекта
+
+**🎉 Готово! React Router CLI уже установил:**
 - ✅ TypeScript
 - ✅ React + React DOM
-- ✅ Remix (@remix-run/node, @remix-run/react, @remix-run/dev, @remix-run/serve)
+- ✅ React Router v7 (react-router - включает SSR, loaders, actions)
 - ✅ Vite
 - ✅ ESLint
 - ✅ Все TypeScript типы (@types/react, @types/react-dom)
 
-> **Как и Next.js**, Remix создает полностью готовый к работе проект одной командой!
+> **Как и Next.js**, React Router создает полностью готовый к работе проект одной командой!
 
 ---
 
 ## 📥 Шаг 2: Установка дополнительных зависимостей
 
-Remix уже установил все базовое. Теперь добавим **специфичные для нашего проекта** зависимости:
+React Router уже установил все базовое. Теперь добавим **специфичные для нашего проекта** зависимости:
 
 ### 2.1 Electron (для desktop приложения)
 
 ```bash
-# Electron - это не входит в Remix по умолчанию (desktop-специфично)
+# Electron - это не входит в React Router по умолчанию (desktop-специфично)
 pnpm add -D electron @types/electron
 
-# Утилиты для запуска Electron вместе с Remix dev сервером
+# Утилиты для запуска Electron вместе с React Router dev сервером
 pnpm add -D concurrently wait-on
 ```
 
@@ -136,25 +140,23 @@ pnpm add -D cross-env
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "remix vite:build",
-    "dev": "remix vite:dev",
+    "build": "react-router build",
+    "dev": "react-router dev",
     "dev:electron": "concurrently \"pnpm dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "start": "remix-serve ./build/server/index.js",
+    "start": "react-router-serve ./build/server/index.js",
     "typecheck": "tsc",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@remix-run/node": "^2.x.x",
-    "@remix-run/react": "^2.x.x",
-    "@remix-run/serve": "^2.x.x",
+    "react-router": "^7.x.x",
     "cross-env": "^7.0.3",
     "electron": "^28.x.x",
     "react": "^18.x.x",
     "react-dom": "^18.x.x"
   },
   "devDependencies": {
-    "@remix-run/dev": "^2.x.x",
+    "@react-router/dev": "^7.x.x",
     "@types/node": "^20.x.x",
     "@types/react": "^18.x.x",
     "@types/react-dom": "^18.x.x",
@@ -181,13 +183,13 @@ pnpm add -D cross-env
 
 ## ⚙️ Шаг 3: Настройка конфигурационных файлов
 
-> **✅ Remix CLI уже создал:** `tsconfig.json`, `vite.config.ts`, `.gitignore`, `app/root.tsx`, `app/routes/_index.tsx`
+> **✅ React Router CLI уже создал:** `tsconfig.json`, `vite.config.ts`, `.gitignore`, `app/root.tsx`, `app/routes/_index.tsx`
 > 
 > Нужно только **дополнить** конфиги для наших нужд (Electron, Tailwind, алиасы путей)
 
 ### 3.1 TypeScript конфигурация (проверить/дополнить)
 
-**Файл: `tsconfig.json`** (уже создан Remix CLI)
+**Файл: `tsconfig.json`** (уже создан React Router CLI)
 
 ```json
 {
@@ -201,7 +203,7 @@ pnpm add -D cross-env
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["@remix-run/node", "vite/client"],
+    "types": ["@react-router/node", "vite/client"],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
@@ -229,22 +231,16 @@ pnpm add -D cross-env
 
 ### 3.2 Vite конфигурация (дополнить для алиасов путей)
 
-**Файл: `vite.config.ts`** (уже создан Remix CLI, нужно дополнить)
+**Файл: `vite.config.ts`** (уже создан React Router CLI, нужно дополнить)
 
 ```typescript
-import { vitePlugin as remix } from "@remix-run/dev";
+import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-      },
-    }),
+    reactRouter(),
     tsconfigPaths(),
   ],
 });
@@ -321,7 +317,7 @@ export default {
 
 ### 3.4 ESLint конфигурация (уже создан Remix CLI)
 
-**Файл: `.eslintrc.cjs`** - уже существует, можно дополнить
+**Файл: `.eslintrc.cjs`** (уже создан React Router CLI)
 
 ```javascript
 /** @type {import('eslint').Linter.Config} */
@@ -535,7 +531,7 @@ mkdir -p app/styles
 
 ```
 app/
-├── routes/                    # Remix routes (будут создаваться)
+├── routes/                    # React Router routes (будут создаваться)
 ├── components/                # React компоненты
 ├── composition/               # Composition Root (DI Container)
 │   ├── modules/               # DI Modules по сущностям
@@ -630,7 +626,7 @@ app/
 
 ### 5.2 Обновить root layout (подключить Tailwind)
 
-**Файл: `app/root.tsx`** (уже создан Remix CLI, нужно добавить импорт стилей)
+**Файл: `app/root.tsx`** (уже создан React Router CLI, нужно добавить импорт стилей)
 
 ```typescript
 import {
@@ -639,8 +635,8 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+} from "react-router";
+import type { LinksFunction } from "./+types/root";
 
 import styles from "~/styles/tailwind.css?url";
 
@@ -748,7 +744,7 @@ yarn-error.log*
 **Файл: `app/routes/_index.tsx`**
 
 ```typescript
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "./+types/_index";
 
 export const meta: MetaFunction = () => {
   return [
@@ -837,7 +833,7 @@ pnpm lint
 - [ ] Проект инициализирован
 - [ ] Все зависимости установлены (`pnpm install`)
 - [ ] `tsconfig.json` настроен с алиасами
-- [ ] `remix.config.js` создан
+- [ ] `react-router.config.ts` создан (опционально)
 - [ ] `vite.config.ts` настроен
 - [ ] `tailwind.config.js` настроен
 - [ ] `postcss.config.js` создан
@@ -863,7 +859,8 @@ pnpm lint
 
 ✅ Полностью настроенное окружение разработки  
 ✅ TypeScript с строгой типизацией  
-✅ Remix + Vite для быстрой разработки  
+✅ React Router v7 + Vite для быстрой разработки  
+✅ SSR из коробки (server loaders и actions)  
 ✅ Tailwind CSS для стилей  
 ✅ Electron для desktop приложения  
 ✅ Готовая структура папок по Clean Architecture  
@@ -894,25 +891,26 @@ pnpm add -D vite-tsconfig-paths
 2. В `tailwind.config.js` правильно указан `content`
 3. Dev сервер перезапущен (`pnpm dev`)
 
-### Ошибка: TypeScript не видит типы Remix
+### Ошибка: TypeScript не видит типы React Router
 
 **Решение**: 
 ```bash
-pnpm add -D @remix-run/node
+pnpm add -D @react-router/node
 ```
 
 ### Electron не запускается
 
 **Решение**: Убедитесь что:
 1. В `package.json` указано `"main": "electron/main.ts"`
-2. Dev сервер Remix запущен на порту 5173
+2. Dev сервер React Router запущен на порту 5173
 3. Установлен `wait-on` и `concurrently`: `pnpm add -D wait-on concurrently`
 
 ---
 
 ## 📚 Полезные ссылки
 
-- [Remix Documentation](https://remix.run/docs)
+- [React Router v7 Documentation](https://reactrouter.com/)
+- [Upgrading from Remix](https://reactrouter.com/upgrading/remix)
 - [Electron Documentation](https://www.electronjs.org/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)

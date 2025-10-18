@@ -657,8 +657,8 @@ export * from './api'
 
 ```typescript
 // app/routes/_index.tsx
-import { type LoaderFunctionArgs } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import type { Route } from './+types/_index'
+import { useLoaderData } from 'react-router'
 import { queries } from '~/composition'
 import { ResourceList } from '~/components/ResourceList'
 
@@ -738,7 +738,7 @@ export const navigationKeymaps: Keymap[] = [
 ```typescript
 // app/components/ResourceList/ResourceList.tsx
 import { useModal, useFocus, useKeymap } from '~/hooks'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData } from 'react-router'
 
 export function ResourceList() {
   const resources = useLoaderData<Resource[]>()

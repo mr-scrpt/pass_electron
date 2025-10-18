@@ -412,7 +412,7 @@ export class ClipboardServiceFactory {
 ```typescript
 // app/entry.client.tsx
 import { hydrateRoot } from 'react-dom/client'
-import { RemixBrowser } from '@remix-run/react'
+import { HydratedRouter } from 'react-router/dom'
 import { ServiceContainer } from '~/composition'
 import { RequestParserFactory } from '~/infrastructure/request-parsers'
 import { ClipboardServiceFactory } from '~/infrastructure/clipboard'

@@ -633,7 +633,7 @@ export class ServiceContainer {
 ```typescript
 // app/entry.client.tsx (для Web)
 import { hydrateRoot } from 'react-dom/client'
-import { RemixBrowser } from '@remix-run/react'
+import { HydratedRouter } from 'react-router/dom'
 import { ServiceContainer } from '~/composition'
 import { ClipboardServiceFactory } from '~/infrastructure/clipboard'
 

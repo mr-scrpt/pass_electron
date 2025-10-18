@@ -476,7 +476,7 @@ export class KeymapExecutor {
 
 ```typescript
 import { useEffect } from 'react';
-import { useFetcher, useNavigate } from '@remix-run/react';
+import { useFetcher, useNavigate } from 'react-router';
 import { getCommandBus } from '~/composition';
 import { 
   DeleteResourceCommand,

@@ -36,8 +36,11 @@ password-manager/
 └── src/                           # Application code
     │
     ├── domain/                    # Domain Layer (DDD)
-    │   ├── resource/
-    │   └── shared/
+    │   ├── shared/                # Shared Kernel
+    │   ├── resource/              # Resource Aggregate (основная сущность)
+    │   ├── user/                  # User Aggregate (пример второй сущности)
+    │   ├── repositories/          # Repository Interfaces
+    │   └── events/                # Domain Events
     │
     ├── application/               # Application Layer (DDD)
     │   ├── queries/
@@ -161,7 +164,8 @@ src/domain/
 │   │   ├── IdentifierInvariant.ts      # Композитные правила
 │   │   └── index.ts
 │   └── index.ts
-├── resource/              # Resource Aggregate
+│
+├── resource/              # Resource Aggregate (основная бизнес-сущность)
 │   ├── Resource.ts        # Aggregate Root
 │   ├── SecretField.ts     # Entity
 │   ├── CustomField.ts     # Entity
@@ -172,14 +176,53 @@ src/domain/
 │   │   ├── DuplicateFieldLabelError.ts
 │   │   └── index.ts
 │   └── index.ts
-├── repositories/          # Repository Interfaces
+│
+├── user/                  # User Aggregate (пример второй бизнес-сущности)
+│   ├── User.ts            # Aggregate Root
+│   ├── UserId.ts          # Value Object
+│   ├── Email.ts           # Value Object
+│   ├── Password.ts        # Value Object
+│   ├── errors/
+│   │   ├── InvalidCredentialsError.ts
+│   │   └── index.ts
+│   └── index.ts
+│
+├── repositories/          # Repository Interfaces (Dependency Inversion)
 │   ├── IResourceRepository.ts
-│   └── INamespaceRepository.ts
+│   ├── INamespaceRepository.ts
+│   ├── IUserRepository.ts
+│   └── index.ts
+│
 └── events/                # Domain Events
     ├── ResourceCreated.ts
     ├── ResourceUpdated.ts
+    ├── ResourceDeleted.ts
+    ├── UserRegistered.ts
+    ├── UserLoggedIn.ts
     └── index.ts
 ```
+
+**📌 Что говорит DDD о структуре Domain Layer:**
+
+1. **Aggregates** (`resource/`, `user/`) - бизнес-сущности с границами транзакций
+   - Каждый Aggregate в отдельной папке
+   - Содержит Aggregate Root, Entities, Value Objects
+   - Aggregate-specific errors внутри
+
+2. **Shared Kernel** (`shared/`) - переиспользуемые компоненты между Aggregates
+   - Domain Errors (базовые)
+   - Invariants (правила валидации)
+   - Базовые Value Objects (если нужны)
+
+3. **Repository Interfaces** (`repositories/`) - контракты для хранилищ
+   - ⚠️ **ИНТЕРФЕЙСЫ**, НЕ реализации! (Dependency Inversion Principle)
+   - Реализации в Infrastructure Layer
+
+4. **Domain Events** (`events/`) - события, которые происходят в домене
+   - Публикуются Aggregates при изменении состояния
+   - Обрабатываются в Application/Infrastructure
+
+**🎯 Ключевой принцип DDD**: Domain Layer знает **ЧТО** нужно сделать (интерфейсы), но НЕ знает **КАК** (реализации в Infrastructure).
 
 **📋 Правила импортов:**
 - ✅ **МОЖЕТ импортировать:** НИЧЕГО! Полностью изолирован

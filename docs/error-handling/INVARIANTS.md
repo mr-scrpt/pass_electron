@@ -55,7 +55,7 @@ class Resource {
 Для **общих правил валидации** создаем **Shared Kernel**:
 
 ```
-app/domain/
+src/domain/
 ├── shared/                      # Shared Kernel
 │   ├── invariants/              # Переиспользуемые инварианты
 │   │   ├── UuidInvariant.ts     # Валидация UUID
@@ -79,7 +79,7 @@ app/domain/
 
 ### Шаг 1: Domain Error
 
-**Файл: `app/domain/shared/errors/DomainError.ts`**
+**Файл: `src/domain/shared/errors/DomainError.ts`**
 
 ```typescript
 /**
@@ -97,7 +97,7 @@ export abstract class DomainError extends Error {
 }
 ```
 
-**Файл: `app/domain/shared/errors/InvariantViolationError.ts`**
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -118,7 +118,7 @@ export class InvariantViolationError extends DomainError {
 }
 ```
 
-**Файл: `app/domain/shared/errors/index.ts`**
+**Файл: `src/domain/shared/errors/index.ts`**
 
 ```typescript
 export { DomainError } from './DomainError'
@@ -129,7 +129,7 @@ export { InvariantViolationError } from './InvariantViolationError'
 
 ### Шаг 2: Переиспользуемые инварианты
 
-**Файл: `app/domain/shared/invariants/UuidInvariant.ts`**
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
 
 ```typescript
 import { InvariantViolationError } from '../errors'
@@ -174,7 +174,7 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `app/domain/shared/invariants/StringInvariant.ts`**
+**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
 
 ```typescript
 import { Result, ok, err } from 'neverthrow'
@@ -252,7 +252,7 @@ export class StringInvariant {
 }
 ```
 
-**Файл: `app/domain/shared/invariants/IdentifierInvariant.ts`**
+**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**
 
 ```typescript
 import { Result } from 'neverthrow'
@@ -298,7 +298,7 @@ export class IdentifierInvariant {
 }
 ```
 
-**Файл: `app/domain/shared/invariants/index.ts`**
+**Файл: `src/domain/shared/invariants/index.ts`**
 
 ```typescript
 export { UuidInvariant } from './UuidInvariant'
@@ -306,7 +306,7 @@ export { StringInvariant } from './StringInvariant'
 export { IdentifierInvariant } from './IdentifierInvariant'
 ```
 
-**Файл: `app/domain/shared/index.ts`**
+**Файл: `src/domain/shared/index.ts`**
 
 ```typescript
 export * from './errors'
@@ -320,12 +320,12 @@ export * from './invariants'
 > **Принцип DDD**: Value Objects должны быть **self-validating** (самовалидирующимися).
 > Инварианты - это **переиспользуемые утилиты**, которые Value Object использует ВНУТРИ себя.
 
-**Файл: `app/domain/resource/ResourceName.ts`**
+**Файл: `src/domain/resource/ResourceName.ts`**
 
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~/domain/shared/errors'
-import { IdentifierInvariant } from '~/domain/shared/invariants'
+import { InvariantViolationError } from '~domain/shared/errors'
+import { IdentifierInvariant } from '~domain/shared/invariants'
 
 /**
  * Value Object для имени ресурса
@@ -358,12 +358,12 @@ export class ResourceName {
 }
 ```
 
-**Файл: `app/domain/resource/Namespace.ts`**
+**Файл: `src/domain/resource/Namespace.ts`**
 
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~/domain/shared/errors'
-import { IdentifierInvariant } from '~/domain/shared/invariants'
+import { InvariantViolationError } from '~domain/shared/errors'
+import { IdentifierInvariant } from '~domain/shared/invariants'
 
 export class Namespace {
   private constructor(private readonly value: string) {}
@@ -596,7 +596,7 @@ if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
 }
 ```
 
-**Файл: `app/domain/value-objects/Namespace.ts`** (обновленный)
+**Файл: `src/domain/value-objects/Namespace.ts`** (обновленный)
 
 ```typescript
 import { StringInvariant } from '../shared/invariants'
@@ -640,7 +640,7 @@ export class Namespace {
 }
 ```
 
-**Файл: `app/domain/value-objects/ResourceName.ts`** (обновленный)
+**Файл: `src/domain/value-objects/ResourceName.ts`** (обновленный)
 
 ```typescript
 import { StringInvariant } from '../shared/invariants'
@@ -796,7 +796,7 @@ export class NumericInvariant {
 ## 🧪 Тестирование
 
 ```typescript
-import { UuidInvariant, InvariantViolationError } from '~/domain/shared'
+import { UuidInvariant, InvariantViolationError } from '~domain/shared'
 
 describe('UuidInvariant', () => {
   describe('ensureValidUuid', () => {

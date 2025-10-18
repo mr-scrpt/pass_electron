@@ -451,7 +451,7 @@ const createResource = (command: CreateResourceCommand): TaskEither<DomainError,
 ### Domain Layer — нативный Result
 
 ```typescript
-// app/domain/shared/result/Result.ts
+// src/domain/shared/result/Result.ts
 export type Result<T, E = Error> = Success<T> | Failure<E>
 // ... реализация
 

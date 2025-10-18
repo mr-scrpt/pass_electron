@@ -100,7 +100,7 @@ Domain Layer полностью построен на тактических п�
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// app/domain/resource/Resource.ts
+// src/domain/resource/Resource.ts
 import { Result, ok, err } from 'neverthrow'
 import { ResourceLockedError } from './errors'
 
@@ -153,10 +153,10 @@ export class Resource {
 Неизменяемый объект без идентичности, определяется значением.
 
 ```typescript
-// app/domain/resource/ResourceName.ts
+// src/domain/resource/ResourceName.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~/domain/shared/errors'
-import { StringInvariant } from '~/domain/shared/invariants'
+import { InvariantViolationError } from '~domain/shared/errors'
+import { StringInvariant } from '~domain/shared/invariants'
 
 export class ResourceName {
   private constructor(private readonly value: string) {}
@@ -192,7 +192,7 @@ export class ResourceName {
 Группа связанных объектов с единой границей консистентности. Aggregate Root контролирует доступ.
 
 ```typescript
-// app/domain/aggregates/Resource.ts
+// src/domain/aggregates/Resource.ts
 
 export class Resource {  // Aggregate Root
   private _entries: Entry[] = []  // Часть Aggregate
@@ -235,7 +235,7 @@ export class Resource {  // Aggregate Root
 Абстракция для получения и сохранения Aggregates.
 
 ```typescript
-// app/domain/repositories/IResourceRepository.ts
+// src/domain/repositories/IResourceRepository.ts
 
 export interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>
@@ -257,7 +257,7 @@ export interface IResourceRepository {
 Бизнес-операции между несколькими Entities/Aggregates.
 
 ```typescript
-// app/domain/services/ResourceDuplicationService.ts
+// src/domain/services/ResourceDuplicationService.ts
 
 export class ResourceDuplicationService {
   canDuplicate(source: Resource, targetNamespace: Namespace): boolean {
@@ -284,7 +284,7 @@ export class ResourceDuplicationService {
 События, произошедшие в домене.
 
 ```typescript
-// app/domain/events/ResourceEvents.ts
+// src/domain/events/ResourceEvents.ts
 
 export class ResourceCreatedEvent extends DomainEvent {
   readonly eventType = 'ResourceCreated'

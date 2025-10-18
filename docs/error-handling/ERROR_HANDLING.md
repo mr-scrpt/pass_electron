@@ -11,13 +11,13 @@
 - Часть Ubiquitous Language
 - Должны быть понятны бизнесу
 - **Место**: 
-  - **Общие**: `app/domain/shared/errors/` (Shared Kernel)
-  - **Aggregate-specific**: `app/domain/{aggregate}/errors/`
+  - **Общие**: `src/domain/shared/errors/` (Shared Kernel)
+  - **Aggregate-specific**: `src/domain/{aggregate}/errors/`
 
 ### 2. **Application Errors** — ошибки use case
 - Ошибки валидации команд/запросов
 - Ошибки координации
-- **Место**: `app/application/errors/`
+- **Место**: `src/application/errors/`
 
 ### 3. **Infrastructure Errors** — технические ошибки
 - Сетевые ошибки
@@ -75,7 +75,7 @@ app/
 
 ### Базовая доменная ошибка
 
-**Файл: `app/domain/shared/errors/DomainError.ts`**
+**Файл: `src/domain/shared/errors/DomainError.ts`**
 
 ```typescript
 /**
@@ -111,7 +111,7 @@ export abstract class DomainError extends Error {
 
 ### InvariantViolationError
 
-**Файл: `app/domain/shared/errors/InvariantViolationError.ts`**
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -156,7 +156,7 @@ class ResourceName {
 
 ### NotFoundError
 
-**Файл: `app/domain/shared/errors/NotFoundError.ts`**
+**Файл: `src/domain/shared/errors/NotFoundError.ts`**
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -195,7 +195,7 @@ class MockResourceRepository implements IResourceRepository {
 
 ### DuplicateError
 
-**Файл: `app/domain/shared/errors/DuplicateError.ts`**
+**Файл: `src/domain/shared/errors/DuplicateError.ts`**
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -241,7 +241,7 @@ class Resource {
 
 ### InvalidOperationError
 
-**Файл: `app/domain/shared/errors/InvalidOperationError.ts`**
+**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -289,10 +289,10 @@ class Resource {
 
 ### ResourceLockedError
 
-**Файл: `app/domain/resource/errors/ResourceLockedError.ts`**
+**Файл: `src/domain/resource/errors/ResourceLockedError.ts`**
 
 ```typescript
-import { DomainError } from '~/domain/shared/errors'
+import { DomainError } from '~domain/shared/errors'
 import { ResourceId } from '../types'
 
 /**
@@ -327,10 +327,10 @@ class Resource {
 
 ### DuplicateFieldLabelError
 
-**Файл: `app/domain/resource/errors/DuplicateFieldLabelError.ts`**
+**Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**
 
 ```typescript
-import { DomainError } from '~/domain/shared/errors'
+import { DomainError } from '~domain/shared/errors'
 
 /**
  * Ошибка дублирования метки поля
@@ -347,7 +347,7 @@ export class DuplicateFieldLabelError extends DomainError {
 
 ### Public API (для aggregate errors)
 
-**Файл: `app/domain/resource/errors/index.ts`**
+**Файл: `src/domain/resource/errors/index.ts`**
 
 ```typescript
 export { ResourceLockedError } from './ResourceLockedError'
@@ -358,7 +358,7 @@ export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 
 ### Public API (Shared Kernel)
 
-**Файл: `app/domain/shared/errors/index.ts`**
+**Файл: `src/domain/shared/errors/index.ts`**
 
 ```typescript
 export { DomainError } from './DomainError'
@@ -374,7 +374,7 @@ export { InvalidOperationError } from './InvalidOperationError'
 
 ### ValidationError
 
-**Файл: `app/application/errors/ValidationError.ts`**
+**Файл: `src/application/errors/ValidationError.ts`**
 
 ```typescript
 /**
@@ -413,7 +413,7 @@ class CreateResourceCommandHandler {
 
 ### CommandError
 
-**Файл: `app/application/errors/CommandError.ts`**
+**Файл: `src/application/errors/CommandError.ts`**
 
 ```typescript
 /**
@@ -435,7 +435,7 @@ export class CommandError extends Error {
 
 ### QueryError
 
-**Файл: `app/application/errors/QueryError.ts`**
+**Файл: `src/application/errors/QueryError.ts`**
 
 ```typescript
 /**
@@ -565,7 +565,7 @@ export class StorageError extends Error {
 
 ```typescript
 import { Component, ReactNode } from 'react'
-import { DomainError } from '~/domain/shared/errors'
+import { DomainError } from '~domain/shared/errors'
 
 interface Props {
   children: ReactNode
@@ -622,7 +622,7 @@ export class ErrorBoundary extends Component<Props, State> {
 import { 
   InvariantViolationError, 
   DuplicateError 
-} from '~/domain/shared/errors'
+} from '~domain/shared/errors'
 import { ValidationError } from '~/application/errors'
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -771,8 +771,8 @@ Error (JavaScript)
 
 ```typescript
 // ✅ ХОРОШО: Domain ошибка в Domain Layer
-// app/domain/value-objects/ResourceName.ts
-import { InvariantViolationError } from '~/domain/shared/errors'
+// src/domain/value-objects/ResourceName.ts
+import { InvariantViolationError } from '~domain/shared/errors'
 
 class ResourceName {
   private constructor(private readonly value: string) {}
@@ -897,8 +897,8 @@ try {
 ## 🧪 Тестирование ошибок
 
 ```typescript
-import { InvariantViolationError } from '~/domain/shared/errors'
-import { ResourceName } from '~/domain/value-objects'
+import { InvariantViolationError } from '~domain/shared/errors'
+import { ResourceName } from '~domain/value-objects'
 
 describe('ResourceName', () => {
   it('должен выбросить InvariantViolationError для пустой строки', () => {

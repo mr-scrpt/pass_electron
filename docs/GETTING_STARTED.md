@@ -53,13 +53,12 @@
 
 Краткий обзор основных директорий:
 
-- **`app/domain/`** - Domain Layer (бизнес-логика, entities, value objects)
-- **`app/application/`** - Application Layer (Query/Command Handlers, CQRS)
-- **`app/core/`** - Core Systems (modal, keymap, focus, notification)
-- **`app/infrastructure/`** - Infrastructure Layer (API, repositories, storage)
-- **`app/routes/`** - Presentation Layer (Remix routes)
-- **`app/components/`** - Presentation Layer (React компоненты)
-- **`app/hooks/`** - React Hooks для доступа к системам
+- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects)
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage)
+- **`src/composition/`** - Composition Root (DI Container)
+- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI)
 - **`docs/`** - Документация проекта
 - **`tests/`** - Unit, integration и e2e тесты
 

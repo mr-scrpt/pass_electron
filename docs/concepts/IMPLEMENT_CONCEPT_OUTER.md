@@ -88,14 +88,14 @@
 
 Основные директории приложения:
 
-- **`app/routes/`** - Remix routes (Presentation Layer)
-- **`app/components/`** - React компоненты (Presentation Layer)
-- **`app/core/`** - Core Systems (modal, keymap, focus, notification)
-- **`app/domain/`** - Domain Layer (entities, aggregates, events)
-- **`app/application/`** - Application Layer (Query/Command Handlers, CQRS)
-- **`app/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)
-- **`app/hooks/`** - React Hooks
-- **`app/types/`** - TypeScript типы (re-exports)
+- **`src/presentation/web/react/src/routes/`** - React Router routes (Presentation Layer)
+- **`src/presentation/web/react/src/components/`** - React компоненты (Presentation Layer)
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
+- **`src/domain/`** - Domain Layer (entities, aggregates, events)
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)
+- **`src/composition/`** - Composition Root (DI Container)
+- **`src/presentation/web/react/src/hooks/`** - React Hooks
 
 См. [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) для полной информации о модулях, архитектурных границах и правилах импорта
 

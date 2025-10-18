@@ -285,7 +285,7 @@ export * from './UICommands';
 
 ### 2. Adapter (Infrastructure Layer)
 
-**Файл: `app/infrastructure/commands/InMemoryCommandBus.ts`**
+**Файл: `src/infrastructure/commands/InMemoryCommandBus.ts`**
 
 ```typescript
 import type { 
@@ -335,7 +335,7 @@ export class InMemoryCommandBus implements ICommandBus {
 }
 ```
 
-**Файл: `app/infrastructure/commands/index.ts`**
+**Файл: `src/infrastructure/commands/index.ts`**
 
 ```typescript
 export { InMemoryCommandBus } from './InMemoryCommandBus';
@@ -376,7 +376,7 @@ export const getCommandBus = () => ServiceContainer.getCommandBus();
 
 ### 1. В Core Systems (Keymaps)
 
-**Файл: `app/core/keymap/types.ts`**
+**Файл: `src/application/services/keymap/types.ts`**
 
 ```typescript
 import type { ICommandBus } from '~application/commands';
@@ -394,7 +394,7 @@ export interface ActionContext {
 }
 ```
 
-**Файл: `app/core/keymap/keymaps/resource.ts`**
+**Файл: `src/application/services/keymap/keymaps/resource.ts`**
 
 ```typescript
 import { Keymap } from '../types';
@@ -433,7 +433,7 @@ export const resourceKeymaps: Keymap[] = [
 
 ### 2. В KeymapExecutor (передача CommandBus)
 
-**Файл: `app/core/keymap/KeymapExecutor.ts`**
+**Файл: `src/application/services/keymap/KeymapExecutor.ts`**
 
 ```typescript
 import type { ICommandBus } from '~application/commands';

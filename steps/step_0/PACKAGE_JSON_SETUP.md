@@ -133,67 +133,21 @@ pnpm add -D @catppuccin/tailwindcss
 
 ⚠️ **Важно!** CLI создает структуру `app/`, но у нас DDD с `src/`.
 
-**5.1. Изменить Root `tsconfig.json` paths:**
+**5.1. Изменить `package.json` name:**
 
-Файл: `tsconfig.json` (в корне проекта)
-
-```json
-"paths": {
-  "@domain": ["./src/domain/index.ts"],
-  "@domain/*": ["./src/domain/*"],
-  "@api": ["./src/composition/index.ts"],
-  "@client/*": ["./src/presentation/web/react/src/*"],
-  "@internal/application/*": ["./src/application/*"],
-  "@internal/infrastructure/*": ["./src/infrastructure/*"]
-}
+```bash
+# Открыть react/package.json и изменить:
+# "name": "temp" → "name": "@password-manager/web"
 ```
 
-> **💡 Зачем разные алиасы:**
-> - `@domain` — Public API типов (только index.ts)
-> - `@api` — Facades из Composition (queries, commands)
-> - `@client/*` — Локальные компоненты внутри React
-> - `@internal/*` — Для внутреннего использования в Composition Layer
+**5.2. Настроить TypeScript paths и Vite алиасы:**
 
-**5.2. Модифицировать `vite.config.ts` для DDD алиасов:**
-
-Файл: `src/presentation/web/react/vite.config.ts`
-
-```typescript
-import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
-import path from "path";
-
-const projectRoot = path.resolve(__dirname, "../../../..");
-
-export default defineConfig({
-  root: projectRoot,
-  plugins: [
-    tailwindcss(),
-    reactRouter({
-      appDirectory: "src/presentation/web/react/src",
-    }),
-    tsconfigPaths(),
-  ],
-  resolve: {
-    alias: {
-      // Public API - указывают на index.ts
-      "@domain": path.resolve(projectRoot, "src/domain/index.ts"),
-      "@api": path.resolve(projectRoot, "src/composition/index.ts"),
-      
-      // Локальные алиасы
-      "@client": path.resolve(projectRoot, "src/presentation/web/react/src"),
-      
-      // Internal - только для Composition Layer
-      "@internal/application": path.resolve(projectRoot, "src/application"),
-      "@internal/infrastructure": path.resolve(projectRoot, "src/infrastructure"),
-    },
-  },
-});
-```
-
-> **📚 Детали**: См. [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) для полного объяснения
+> **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
+> 
+> Там описано как настроить:
+> - Root `tsconfig.json` paths для алиасов `@domain`, `@api`, `@client/*`, `@internal/*`
+> - `vite.config.ts` с DDD алиасами
+> - `tailwind.config.js` с Catppuccin темой
 
 ### Что получаем из CLI
 
@@ -201,10 +155,9 @@ CLI создает готовые конфиги с актуальными ве�
 
 > **💡 Главное:** CLI всегда создает актуальные версии пакетов и конфигов.  
 > Мы только **модифицируем** их под DDD структуру:
-> 1. `package.json` — изменить `name`
-> 2. `tsconfig.json` — изменить `paths` (см. шаг 5.1)
-> 3. `vite.config.ts` — добавить DDD алиасы (см. шаг 5.2)
-> 4. `react-router.config.ts` — можно оставить как есть
+> 1. `package.json` — изменить `name` (см. шаг 5.1)
+> 2. `tsconfig.json` + `vite.config.ts` — настроить алиасы (см. [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md))
+> 3. `react-router.config.ts` — можно оставить как есть
 >
 > **⚠️ Не вставляй версии из этой документации** — они устареют!  
 > Всегда используй файлы созданные CLI.

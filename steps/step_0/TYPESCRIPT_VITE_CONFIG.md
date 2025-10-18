@@ -1,5 +1,9 @@
 # TypeScript & Vite Configuration
 
+> **Тип**: Обязательная настройка
+> 
+> **Зачем**: Алиасы для DDD слоев, сборка проекта
+
 Настройка TypeScript paths и Vite с алиасами для доступа к DDD слоям из presentation layer.
 
 ## 🎯 Цель
@@ -133,44 +137,11 @@ export default defineConfig({
    - `@client` → `src/presentation/web/react/src` (локальные компоненты)
    - `@internal/*` → директории (для Composition Layer)
 
----
-
-## 3️⃣ Tailwind CSS Configuration
-
-**Файл: `src/presentation/web/react/tailwind.config.js`**
-
-```javascript
-/** 
- * Tailwind CSS configuration for Web Presentation Layer
- * Used only in: src/presentation/web/react/
- */
-export default {
-  content: [
-    "./src/**/*.{ts,tsx}",  // ← Относительно vite.config.ts
-  ],
-  plugins: [
-    require("@catppuccin/tailwindcss")({
-      prefix: "ctp",
-      defaultFlavour: "mocha",
-    }),
-  ],
-}
-```
-
-**Файл: `src/presentation/web/react/postcss.config.js`**
-
-```javascript
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-```
+> **💡 Tailwind CSS**: Если хочешь использовать Tailwind, см. [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
 
 ---
 
-## 4️⃣ Примеры импортов
+## 3️⃣ Примеры импортов
 
 ### В presentation/web/react/src/routes/_index.tsx
 
@@ -237,7 +208,7 @@ export const queries = {
 
 ---
 
-## 5️⃣ Проверка конфигурации
+## 4️⃣ Проверка конфигурации
 
 ### TypeScript
 
@@ -280,7 +251,7 @@ console.log('✅ Все импорты работают!')
 
 ---
 
-## 6️⃣ Troubleshooting
+## 5️⃣ Troubleshooting
 
 ### Ошибка: Cannot find module '@domain' или '@api'
 
@@ -319,8 +290,7 @@ reactRouter({
 - [ ] Создан `vite.config.ts` в `src/presentation/web/react/`
 - [ ] Алиасы в vite совпадают с tsconfig paths
 - [ ] `projectRoot` в vite.config указывает на корень проекта
-- [ ] Создан `tailwind.config.js` в presentation
-- [ ] Создан `postcss.config.js` в presentation
+- [ ] (Опционально) Tailwind CSS настроен (см. [TAILWIND_SETUP.md](./TAILWIND_SETUP.md))
 - [ ] `pnpm typecheck` проходит без ошибок
 - [ ] `pnpm dev:web` запускается
 - [ ] Импорты `@domain`, `@api`, `@client` работают в routes
@@ -328,4 +298,8 @@ reactRouter({
 
 ---
 
-**Следующий шаг**: Создание базовых файлов React Router (root.tsx, routes, etc.)
+## 🔗 Связанные документы
+
+- [TAILWIND_SETUP.md](./TAILWIND_SETUP.md) - настройка Tailwind CSS (опционально)
+- [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) - правила импортов
+- [docs/PROJECT_STRUCTURE.md](../../docs/PROJECT_STRUCTURE.md) - структура проекта

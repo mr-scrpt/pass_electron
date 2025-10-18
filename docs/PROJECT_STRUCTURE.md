@@ -81,9 +81,26 @@ password-manager/
 
 ## Архитектурные слои
 
-### 0. Composition Root (`src/composition/`)
+### 0. Composition Root (`src/composition/`) ⚠️
 
-**Назначение**: Единая точка управления зависимостями (DI Container).
+**📚 Откуда:** НЕ из классического DDD! Это паттерн из:
+- **Dependency Injection Principles** (Mark Seemann) - Composition Root
+- **Clean Architecture** (Uncle Bob) - место сборки приложения
+- **Hexagonal Architecture** - Bootstrap layer
+
+**🎯 Назначение**: Единая точка управления зависимостями (DI Container).
+
+**❓ Почему отдельный слой:**
+- DDD не говорит ГДЕ делать DI
+- Clean Architecture требует: Infrastructure НЕ должен зависеть от Application
+- **Dependency Rule**: зависимости направлены к Domain
+- Если DI в Infrastructure → Infrastructure зависит от Application = **нарушение!**
+
+**✅ Что решает:**
+- Упрощает Presentation (одна строка вместо 10 строк DI кода)
+- Изолирует DI логику от бизнес-логики
+- Единственное место переключения Mock ↔ Real
+- Позволяет иметь разные DI для Web/CLI/Mobile
 
 ```
 src/composition/
@@ -97,16 +114,35 @@ src/composition/
 └── index.ts               # Public API
 ```
 
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** Domain, Application, Infrastructure (ВСЁ!)
+- ❌ **НЕ МОЖЕТ импортировать:** Presentation
+- ✅ **Public API:** Только `queries`, `commands` facades
+- 🔒 **Внутренности:** DI логика, ServiceContainer - ПРИВАТНЫЕ
+
 **Характеристики**:
-- Знает обо ВСЕХ слоях приложения
+- Знает обо ВСЕХ слоях приложения (единственное исключение Dependency Rule)
 - Создает и связывает зависимости
-- Не является частью ни одного слоя
+- Не является частью классического DDD
 - Единственное место где слои пересекаются
 - Переключение Mock ↔ Real через конфигурацию
 
-### 1. Domain Layer (`src/domain/`)
+### 1. Domain Layer (`src/domain/`) 📘
 
-**Назначение**: Бизнес-логика, независимая от фреймворков и внешних систем.
+**📚 Откуда:** Классический DDD (Eric Evans - "Domain-Driven Design")
+
+**🎯 Назначение**: Бизнес-логика, независимая от фреймворков и внешних систем.
+
+**❓ Почему нужен:**
+- Бизнес-правила не должны зависеть от технологий
+- Домен должен жить дольше чем фреймворки
+- Ubiquitous Language (единый язык с бизнесом)
+
+**✅ Что решает:**
+- Изоляция бизнес-логики
+- Переиспользуемость доменных объектов
+- Легкость тестирования (нет внешних зависимостей)
+- Возможность сменить UI/DB без изменения домена
 
 ```
 src/domain/
@@ -145,16 +181,39 @@ src/domain/
     └── index.ts
 ```
 
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** НИЧЕГО! Полностью изолирован
+- ✅ **Внутренние импорты:** Только другие Domain объекты через `@domain/*`
+- ❌ **НЕ МОЖЕТ импортировать:** Application, Infrastructure, Presentation, React, HTTP, etc.
+- ✅ **Public API:** Entities, Value Objects, Domain Events, Repository Interfaces, Domain Errors
+- 🔒 **Внутренности:** Приватные методы entities - НЕ экспортируются
+
 **Характеристики**:
-- НЕ зависит ни от какого другого слоя
-- Определяет интерфейсы для Infrastructure
+- НЕ зависит ни от какого другого слоя (центр архитектуры)
+- Определяет интерфейсы для Infrastructure (Dependency Inversion)
 - Содержит бизнес-инварианты
 - Публикует Domain Events
 - Содержит Shared Kernel с переиспользуемыми компонентами (errors, invariants)
 
-### 2. Application Layer (`src/application/`)
+### 2. Application Layer (`src/application/`) 📗
 
-**Назначение**: Оркестрация бизнес-логики через CQRS (Query/Command Handlers).
+**📚 Откуда:** 
+- **DDD** (Eric Evans) - Application Services
+- **CQRS** (Greg Young) - Query/Command Handlers вместо Services
+- **Hexagonal Architecture** (Alistair Cockburn) - Ports (интерфейсы адаптеров)
+
+**🎯 Назначение**: Оркестрация бизнес-логики через CQRS (Query/Command Handlers).
+
+**❓ Почему нужен:**
+- Domain не должен знать о UI или API
+- Нужен слой оркестрации use cases
+- Разделение чтения (Query) и записи (Command)
+
+**✅ Что решает:**
+- Оркестрация Domain объектов
+- Трансакционные границы
+- Валидация команд/запросов
+- Преобразование DTO ↔ Domain
 
 ```
 src/application/
@@ -197,8 +256,14 @@ src/application/
 └── index.ts               # Public API
 ```
 
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** Domain (`@domain`)
+- ❌ **НЕ МОЖЕТ импортировать:** Infrastructure, Presentation, Composition, React, HTTP
+- ✅ **Public API:** Query/Command типы, Result типы, Ports (интерфейсы)
+- 🔒 **Внутренности:** Handlers реализации - доступны ТОЛЬКО через `@internal/application/*` (для Composition)
+
 **Характеристики**:
-- Зависит только от Domain Layer
+- Зависит только от Domain Layer (Dependency Rule)
 - **Queries** - чтение данных (CQRS - Read)
 - **Commands** - запись данных (CQRS - Write)
 - **Query/Command Handlers** - содержат бизнес-логику операций
@@ -241,9 +306,24 @@ src/application/services/
 - Имеют четкий Public API
 - React Context для UI находится в Presentation Layer
 
-### 4. Infrastructure Layer (`src/infrastructure/`)
+### 4. Infrastructure Layer (`src/infrastructure/`) 📙
 
-**Назначение**: Реализация интерфейсов Domain Layer, работа с внешними системами.
+**📚 Откуда:**
+- **DDD** (Eric Evans) - Infrastructure Layer
+- **Hexagonal Architecture** (Alistair Cockburn) - Adapters (внешний слой)
+- **Clean Architecture** (Uncle Bob) - Frameworks & Drivers
+
+**🎯 Назначение**: Реализация интерфейсов Domain Layer, работа с внешними системами.
+
+**❓ Почему нужен:**
+- Изоляция технических деталей от домена
+- Возможность сменить DB/API без изменения бизнес-логики
+- Dependency Inversion (Domain определяет интерфейсы, Infrastructure реализует)
+
+**✅ Что решает:**
+- Работа с внешними API
+- Персистентность данных
+- Реализация технических сервисов
 
 ```
 src/infrastructure/
@@ -281,15 +361,40 @@ src/infrastructure/
     └── index.ts
 ```
 
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** Domain (`@domain`) - ТОЛЬКО интерфейсы
+- ❌ **НЕ МОЖЕТ импортировать:** Application, Presentation, Composition
+- ✅ **Public API:** Repository реализации, Service реализации, Factories
+- 🔒 **Внутренности:** Приватные методы адаптеров - доступны ТОЛЬКО через `@internal/infrastructure/*` (для Composition)
+
+**⚠️ КРИТИЧНО:** Infrastructure НЕ должен зависеть от Application!
+Это нарушение Dependency Rule. DI логика должна быть в Composition.
+
 **Характеристики**:
-- Реализует интерфейсы из Domain Layer
+- Реализует интерфейсы из Domain Layer (Dependency Inversion)
 - НЕ содержит бизнес-логику
-- Адаптирует внешние системы
+- Адаптирует внешние системы (Adapter Pattern)
 - НЕ знает о Application Layer (зависит только от Domain)
 
-### 5. Presentation Layer (`src/presentation/`)
+### 5. Presentation Layer (`src/presentation/`) 🎨
 
-**Назначение**: UI фреймворки и компоненты.
+**📚 Откуда:**
+- **DDD** (Eric Evans) - Presentation Layer (внешний слой)
+- **Clean Architecture** (Uncle Bob) - Web/UI Layer
+- **Hexagonal Architecture** (Alistair Cockburn) - Primary Adapters (входящие)
+
+**🎯 Назначение**: UI фреймворки и компоненты.
+
+**❓ Почему отдельно:**
+- Framework as Implementation Detail (фреймворк - деталь реализации)
+- UI меняется чаще чем бизнес-логика
+- Возможность иметь несколько UI (Web, CLI, Mobile)
+
+**✅ Что решает:**
+- Отображение данных пользователю
+- Сбор пользовательского ввода
+- Навигация
+- UI состояние
 
 ```
 src/presentation/
@@ -329,6 +434,17 @@ src/presentation/
             └── entry.client.tsx  # React Router client entry
 ```
 
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** 
+  - Domain (`@domain`) - ТОЛЬКО типы через Public API
+  - Composition (`@api`) - ТОЛЬКО facades (queries, commands)
+  - Локальные компоненты (`@client/*`)
+- ❌ **НЕ МОЖЕТ импортировать:**
+  - Application handlers напрямую (`@internal/application/*`) ← ESLint запретит!
+  - Infrastructure напрямую (`@internal/infrastructure/*`) ← ESLint запретит!
+- ✅ **Public API:** React компоненты, hooks (для других Presentation слоев)
+- 🔒 **Внутренности:** Приватные компоненты, утилиты - НЕ экспортируются
+
 **Характеристики**:
 - ✅ **UI фреймворк изолирован** - все React Router/Vite конфиги здесь
 - ✅ **Собственные зависимости** - package.json только для web UI
@@ -336,8 +452,8 @@ src/presentation/
 - ✅ **Легко добавить другие UI** - CLI, Mobile, Next.js, etc.
 - НЕ содержит бизнес-логику
 - Использует hooks для доступа к Application Services
-- Вызывает Queries/Commands через Composition Facades
-- Импортирует Domain типы через алиасы (~domain/*)
+- Вызывает Queries/Commands через Composition Facades (`@api`)
+- Импортирует Domain типы через алиасы (`@domain`)
 
 ---
 
@@ -369,17 +485,17 @@ src/presentation/
 
 **Главный принцип**: Зависимости направлены ТОЛЬКО внутрь (к Domain Layer).
 
-### ✅ Разрешенные зависимости
+### ✅ Разрешенные зависимости (через алиасы)
 
-| Слой | Может импортировать из |
-|------|------------------------|
-| **Composition Root** | ВСЕ слои (это единственное исключение) |
-| **Presentation** | Composition, Application, Domain, Core, Hooks |
-| **Application** | Domain |
-| **Core Systems** | Domain, Infrastructure (только Event Bus) |
-| **Domain** | НИЧЕГО (полностью изолирован) |
-| **Infrastructure** | Domain (только интерфейсы) |
-| **Hooks** | Core, Application, Domain |
+| Слой | Может импортировать | Алиасы | Примечание |
+|------|---------------------|--------|------------|
+| **Domain** | НИЧЕГО | `@domain/*` (только внутри себя) | Полностью изолирован |
+| **Application** | Domain | `@domain` | Только через Public API |
+| **Infrastructure** | Domain (интерфейсы) | `@domain` | Только интерфейсы, НЕ реализации |
+| **Composition** ⭐ | Domain, Application, Infrastructure | `@domain`, `@internal/application/*`, `@internal/infrastructure/*` | **Единственный** кто может импортировать `@internal/*` |
+| **Presentation** | Domain (типы), Composition (facades) | `@domain`, `@api`, `@client/*` | ❌ НЕ может `@internal/*` |
+
+**Ключевое правило:** Только Composition может использовать `@internal/*` алиасы!
 
 ### ❌ Запрещенные зависимости
 
@@ -409,7 +525,22 @@ src/presentation/
 
 ## Public API модулей
 
-Каждый модуль экспортирует свой Public API через `index.ts`.
+**Философия:** Каждый модуль имеет четкую границу между публичным API и внутренней реализацией.
+
+### Правило Public API
+
+- ✅ **Public API** экспортируется через `index.ts`
+- 🔒 **Внутренности** (реализация) НЕ экспортируются
+- ✅ Импортировать **ТОЛЬКО** через `index.ts` (через алиасы)
+- ❌ Импорт напрямую из файлов реализации - **ЗАПРЕЩЕН**
+
+**Почему это важно:**
+- Инкапсуляция - детали реализации скрыты
+- Гибкость - можно менять внутреннюю структуру без влияния на других
+- Контракт - `index.ts` это контракт модуля
+- Безопасность рефакторинга - изменения внутри модуля не ломают других
+
+### Примеры Public API
 
 ### Composition Root
 
@@ -582,80 +713,87 @@ export { useNotification } from './useNotification'
 
 ## Правила импорта
 
-### 1. Всегда импортировать через Public API
+### 1. Public API vs Внутренности
 
-❌ **НЕ ДЕЛАТЬ ТАК**:
+#### ❌ **НЕПРАВИЛЬНО** - Импорт из файлов реализации:
 ```typescript
-import { ModalManager } from '~/core/modal/ModalManager'
-import { KeymapRegistry } from '~/core/keymap/KeymapRegistry'
+// Обход Public API - ЗАПРЕЩЕН!
+import { Resource } from '@/domain/resource/Resource.ts'  // ❌
+import { GetResourcesHandler } from '@/application/queries/handlers/GetResourcesHandler.ts'  // ❌
+import { ApiClient } from '@/infrastructure/api/client.ts'  // ❌
 ```
 
-✅ **ДЕЛАТЬ ТАК**:
+#### ✅ **ПРАВИЛЬНО** - Только через Public API (`index.ts`):
 ```typescript
-import { ModalManager } from '~application/services/modal'
-import { KeymapRegistry } from '~application/services/keymap'
+// Используем алиасы, которые указывают на index.ts
+import { Resource, ResourceId, Namespace } from '@domain'  // ✅ Public API
+import { queries, commands } from '@api'  // ✅ Facades
+import { ResourceList } from '@client/components/ResourceList'  // ✅ Локальные
 ```
 
-### 2. Core Systems не импортируют друг друга
+### 2. Presentation → ТОЛЬКО Public API
 
-❌ **НЕ ДЕЛАТЬ ТАК**:
+#### ❌ **НЕПРАВИЛЬНО** - Прямой импорт handlers:
 ```typescript
-// В KeymapExecutor.ts
-import { focusManager } from '~application/services/focus'  // ✖️ Прямой импорт
+// В Presentation Layer - НАРУШЕНИЕ архитектуры!
+import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'  // ❌ ESLint запретит!
+import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'  // ❌ ESLint запретит!
+
+export async function loader() {
+  const repo = new ApiResourceRepository()  // ❌ Прямая зависимость
+  const handler = new GetResourcesHandler(repo)  // ❌ DI в Presentation
+  return await handler.execute()
+}
 ```
 
-✅ **ДЕЛАТЬ ТАК**:
+#### ✅ **ПРАВИЛЬНО** - Использовать facades:
 ```typescript
-// Keymap действие использует Public API FocusManager
-const keymap: Keymap = {
-  id: 'nav-down',
-  action: () => {
-    // FocusManager передается через ActionContext
-    // или используется через Event Bus
+// В Presentation Layer - Через Public API
+import { queries } from '@api'  // ✅ Facade
+
+export async function loader() {
+  return await queries.resources.list()  // ✅ Одна строка!
+}
+```
+
+### 3. Composition → Единственный место для `@internal/*`
+
+#### ✅ **ПРАВИЛЬНО** - DI в Composition:
+```typescript
+// src/composition/queries.ts - ТОЛЬКО здесь можно @internal/*
+import { Resource } from '@domain'  // ✅ Public API
+import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'  // ✅ Разрешено
+import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'  // ✅ Разрешено
+
+export const queries = {
+  resources: {
+    async list() {
+      // ✅ DI логика здесь!
+      const repository = new ApiResourceRepository()
+      const handler = new GetResourcesHandler(repository)
+      return await handler.execute()
+    }
   }
 }
 ```
 
-### 3. Presentation → Facades (CQRS)
+### 4. Domain → Полная изоляция
 
-❌ **НЕ ДЕЛАТЬ ТАК**:
+#### ❌ **НЕПРАВИЛЬНО** - Импорт из других слоев:
 ```typescript
-// В Route Loader
-import { MockResourceRepository } from '~infrastructure/repositories'
-import { ListResourcesQueryHandler } from '~application/queries/handlers'
-
-export async function loader({ request }) {
-  const repository = new MockResourceRepository()  // ✖️ Прямая зависимость
-  const handler = new ListResourcesQueryHandler(repository)
-  const query = new ListResourcesQuery()
-  return handler.handle(query)  // ✖️ Обходим Facade
-}
+// src/domain/resource/Resource.ts
+import { queries } from '@api'  // ❌ ЗАПРЕЩЕНО!
+import { ApiClient } from '@internal/infrastructure/api/ApiClient'  // ❌ ЗАПРЕЩЕНО!
 ```
 
-✅ **ДЕЛАТЬ ТАК**:
+#### ✅ **ПРАВИЛЬНО** - Только другие Domain объекты:
 ```typescript
-// В Route Loader - используем Facade
-import { queries } from '~composition'
+// src/domain/resource/Resource.ts
+import { ResourceId } from './ResourceId'  // ✅ Локальный импорт
+import { Namespace } from './Namespace'  // ✅
+import { DomainError } from '@domain/shared/errors/DomainError'  // ✅ Через @domain/*
 
-export async function loader({ request }) {
-  return queries.resources.list(request)  // ✅ Одна строка!
-}
-```
-
----
-
-## 4. Domain Layer изолирован
-
-❌ **НЕ ДЕЛАТЬ ТАК**:
-```typescript
-// В domain/resource/Resource.ts
-import { eventBus } from '~infrastructure/event-bus'  // ✖️
-import { apiClient } from '~infrastructure/api'      // ✖️❌
-```
-
-✅ **ДЕЛАТЬ ТАК**:
-```typescript
-// Domain только определяет интерфейсы
+// Domain определяет интерфейсы, не зная о реализации
 interface IEventBus {
   publish<T>(event: T): void
 }
@@ -893,9 +1031,50 @@ const { mode, enterEditingMode } = useModal()
 
 ---
 
+## 📚 Итоговая таблица: Откуда каждый слой
+
+| Слой | Источник | Почему нужен | Что решает | Public API | Внутренности |
+|------|----------|--------------|------------|------------|--------------|
+| **Domain** | DDD (Eric Evans) | Бизнес-логика не зависит от технологий | Изоляция бизнес-правил | Entities, VOs, Events, Errors | Приватные методы |
+| **Application** | DDD + CQRS + Hexagonal | Оркестрация use cases | Валидация, трансакции, DTO↔Domain | Query/Command типы, Ports | Handlers (через `@internal/*`) |
+| **Infrastructure** | DDD + Hexagonal + Clean | Изоляция технических деталей | Работа с API/DB/внешними системами | Репозитории, Services, Factories | Приватные методы (через `@internal/*`) |
+| **Composition** ⭐ | DI Principles + Clean + Hexagonal | Соблюдение Dependency Rule | DI, сборка приложения, упрощение Presentation | queries, commands facades | DI логика, ServiceContainer |
+| **Presentation** | DDD + Clean + Hexagonal | Framework as Detail | UI, навигация, пользовательский ввод | React компоненты, hooks | Приватные компоненты |
+
+**Ключевое отличие Composition от классического DDD:**
+- В классическом DDD нет явного слоя для DI
+- Clean Architecture требует: Infrastructure НЕ зависит от Application
+- Composition Root решает эту проблему, являясь единственным местом, где слои пересекаются
+
+---
+
+## 🎯 Главные правила
+
+### 1. Dependency Rule (Clean Architecture)
+Зависимости направлены только внутрь → к Domain Layer
+
+### 2. Public API через `index.ts`
+- ✅ Импортировать **ТОЛЬКО** через `index.ts` (через алиасы)
+- 🔒 Внутренности модулей - ПРИВАТНЫЕ
+
+### 3. Алиасы строго разделены
+- `@domain` - Public API типов (указывает на `index.ts`)
+- `@api` - Facades (указывает на `index.ts`)  
+- `@client/*` - Локальные компоненты Presentation
+- `@internal/*` - ТОЛЬКО для Composition Layer!
+
+### 4. ESLint enforcement
+- Presentation НЕ может импортировать `@internal/*`
+- Domain полностью изолирован
+- Infrastructure НЕ зависит от Application
+
+---
+
 ## См. также
 
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
+- [Architecture Boundaries](./ARCHITECTURE_BOUNDARIES.md) - Детали правил импортов и ESLint
+- [Composition Layer](./COMPOSITION_LAYER.md) - Подробнее о Composition Root
 - [Error Handling](./error-handling/README.md) - Обработка ошибок, инварианты и Result Pattern
 - [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
 - [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд (CQRS - Commands)

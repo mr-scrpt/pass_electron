@@ -14,6 +14,7 @@
   - **[ERROR_ESCALATION_EXTENDED.md](./error-handling/ERROR_ESCALATION_EXTENDED.md)** - Расширенное сравнение всех библиотек (@sweet-monads/either, fp-ts)
 
 ### 🏗️ Архитектура и паттерны
+- **[ARCHITECTURE_BOUNDARIES.md](./ARCHITECTURE_BOUNDARIES.md)** - Правила импортов между слоями, алиасы, ESLint enforcement ⭐
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, CQRS + Facades, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)
@@ -58,15 +59,16 @@
 4. `error-handling/INVARIANTS.md` - Инварианты и Shared Kernel (важно для понимания Domain Layer)
 5. `error-handling/ERROR_HANDLING.md` - Обработка ошибок (Domain/Application/Infrastructure)
 6. `PROJECT_STRUCTURE.md` - Структура проекта и архитектурные границы
-7. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
-8. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
-9. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
-10. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
-11. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
-12. `contracts/domain-types.md` - Типы предметной области
-13. `contracts/system-interfaces.md` - Интерфейсы систем
-14. `contracts/api-contracts.md` - API контракты
-15. `contracts/events.md` - События системы
+7. `ARCHITECTURE_BOUNDARIES.md` - Правила импортов, алиасы, ESLint enforcement ⭐
+8. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
+9. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
+10. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
+11. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
+12. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
+13. `contracts/domain-types.md` - Типы предметной области
+14. `contracts/system-interfaces.md` - Интерфейсы систем
+15. `contracts/api-contracts.md` - API контракты
+16. `contracts/events.md` - События системы
 
 ## Технический стек
 

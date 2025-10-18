@@ -133,15 +133,26 @@ pnpm add -D @catppuccin/tailwindcss
 
 ⚠️ **Важно!** CLI создает структуру `app/`, но у нас DDD с `src/`.
 
-**5.1. Изменить `tsconfig.json` paths:**
+**5.1. Изменить Root `tsconfig.json` paths:**
 
-Файл: `src/presentation/web/react/tsconfig.json`
+Файл: `tsconfig.json` (в корне проекта)
 
 ```json
 "paths": {
-  "~/*": ["./src/*"]  // было: "./app/*"
+  "@domain": ["./src/domain/index.ts"],
+  "@domain/*": ["./src/domain/*"],
+  "@api": ["./src/composition/index.ts"],
+  "@client/*": ["./src/presentation/web/react/src/*"],
+  "@internal/application/*": ["./src/application/*"],
+  "@internal/infrastructure/*": ["./src/infrastructure/*"]
 }
 ```
+
+> **💡 Зачем разные алиасы:**
+> - `@domain` — Public API типов (только index.ts)
+> - `@api` — Facades из Composition (queries, commands)
+> - `@client/*` — Локальные компоненты внутри React
+> - `@internal/*` — Для внутреннего использования в Composition Layer
 
 **5.2. Модифицировать `vite.config.ts` для DDD алиасов:**
 
@@ -167,10 +178,16 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "~domain": path.resolve(projectRoot, "src/domain"),
-      "~application": path.resolve(projectRoot, "src/application"),
-      "~infrastructure": path.resolve(projectRoot, "src/infrastructure"),
-      "~composition": path.resolve(projectRoot, "src/composition"),
+      // Public API - указывают на index.ts
+      "@domain": path.resolve(projectRoot, "src/domain/index.ts"),
+      "@api": path.resolve(projectRoot, "src/composition/index.ts"),
+      
+      // Локальные алиасы
+      "@client": path.resolve(projectRoot, "src/presentation/web/react/src"),
+      
+      // Internal - только для Composition Layer
+      "@internal/application": path.resolve(projectRoot, "src/application"),
+      "@internal/infrastructure": path.resolve(projectRoot, "src/infrastructure"),
     },
   },
 });

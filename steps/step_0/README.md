@@ -154,11 +154,11 @@ password-manager/
 > **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md)
 
 В этом шаге настраиваем:
-- **TypeScript paths** - алиасы для DDD слоёв (`~domain`, `~application`, etc.)
+- **TypeScript paths** - алиасы для DDD слоёв и локальных компонентов
 - **Vite config** - алиасы и build для React Router (в `src/presentation/web/react/`)
 - **Tailwind CSS** - конфигурация в presentation layer
 
-### Быстрый обзор
+### Быстрый обзор алиасов
 
 **Root `tsconfig.json`:**
 ```json
@@ -166,10 +166,11 @@ password-manager/
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "~domain/*": ["src/domain/*"],
-      "~application/*": ["src/application/*"],
-      "~infrastructure/*": ["src/infrastructure/*"],
-      "~composition/*": ["src/composition/*"]
+      "@domain": ["./src/domain/index.ts"],        // Public API типов
+      "@api": ["./src/composition/index.ts"],      // Facades
+      "@client/*": ["./src/presentation/web/react/src/*"],  // Локальные
+      "@internal/application/*": ["./src/application/*"],   // Только для Composition
+      "@internal/infrastructure/*": ["./src/infrastructure/*"]
     }
   }
 }
@@ -188,13 +189,39 @@ password-manager/
 
 ---
 
+## 🛡️ Шаг 4: Настройка ESLint с архитектурными границами
+
+> **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
+> 
+> **📚 ПРАВИЛА АРХИТЕКТУРЫ**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md)
+
+В этом шаге настраиваем **автоматическую проверку архитектурных границ**:
+
+### Что проверяется
+
+- ✅ **Presentation** НЕ может импортировать `@internal/*` (только `@domain`, `@api`, `@client/*`)
+- ✅ **Domain** полностью изолирован (не импортирует другие слои)
+- ✅ **Infrastructure** НЕ зависит от Application
+- ✅ **Composition** - единственный кто может использовать `@internal/*`
+
+### Быстрая установка
+
+```bash
+# Установить ESLint + плагины
+pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescript-eslint/eslint-plugin
+
+# Создать eslint.config.js (см. ESLINT_SETUP.md)
+```
+
+**Полная инструкция**: [ESLINT_SETUP.md](./ESLINT_SETUP.md)
+
 ---
 
-## ✅ Шаг 4: Проверка установки
+## ✅ Шаг 5: Проверка установки
 
 После настройки package.json и конфигов проверь что всё работает:
 
-### 4.1 Установить зависимости
+### 5.1 Установить зависимости
 
 ```bash
 # В корне проекта
@@ -206,7 +233,7 @@ pnpm install
 cd ../../../..
 ```
 
-### 4.2 Создать минимальные файлы для теста
+### 5.2 Создать минимальные файлы для теста
 
 Создай простые файлы чтобы проверить что всё работает:
 
@@ -262,7 +289,7 @@ export default function Index() {
 }
 ```
 
-### 4.3 Запустить dev сервер
+### 5.3 Запустить dev сервер
 
 ```bash
 # Из root presentation директории
@@ -280,10 +307,12 @@ pnpm dev
 - [ ] Root `package.json` создан
 - [ ] Web `package.json` создан  
 - [ ] `pnpm-workspace.yaml` создан
-- [ ] Зависимости установлены
+- [ ] Зависимости установлены (root + web)
 - [ ] `tsconfig.json` с алиасами настроен
 - [ ] `vite.config.ts` настроен
 - [ ] `tailwind.config.js` настроен
+- [ ] **`eslint.config.js` настроен** ⭐
+- [ ] **`pnpm lint` работает** ⭐
 - [ ] Тестовые файлы созданы
 - [ ] `pnpm dev` работает
 - [ ] Браузер показывает страницу с Catppuccin темой
@@ -297,7 +326,8 @@ pnpm dev
 ✅ **DDD структура**: `src/domain/`, `src/application/`, `src/infrastructure/`, `src/composition/`  
 ✅ **Presentation Layer изолирован**: `src/presentation/web/react/`  
 ✅ **pnpm workspaces**: Root + Web зависимости разделены  
-✅ **TypeScript paths**: Алиасы `~domain/`, `~application/`, etc.  
+✅ **TypeScript + Vite алиасы**: `@domain`, `@api`, `@client/*`, `@internal/*` ⭐  
+✅ **ESLint с архитектурными границами**: Автоматическая проверка правил импортов ⭐  
 ✅ **Vite + React Router**: Готово для разработки  
 ✅ **Tailwind CSS + Catppuccin**: Стили настроены  
 
@@ -311,6 +341,11 @@ pnpm dev
 
 ## 📚 Полезные ссылки
 
+### Детальные инструкции (Шаг 0)
 - [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md) — детальная настройка зависимостей
-- [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) — детальная настройка конфигов
+- [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) — детальная настройка конфигов и алиасов
+- [ESLINT_SETUP.md](./ESLINT_SETUP.md) — настройка ESLint с архитектурными правилами ⭐
+
+### Документация архитектуры
 - [docs/PROJECT_STRUCTURE.md](../../docs/PROJECT_STRUCTURE.md) — полная структура проекта
+- [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) — правила импортов и алиасы ⭐

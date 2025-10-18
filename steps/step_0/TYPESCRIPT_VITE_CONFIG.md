@@ -8,8 +8,8 @@
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '~composition'           // ← 4 уровня выше!
-import { Resource } from '~domain/resource/Resource'
+import { queries } from '@/composition'           // ← Единый алиас!
+import { Resource } from '@/domain/resource/Resource'
 ```
 
 **Vite должен знать** где искать эти файлы.
@@ -39,11 +39,12 @@ import { Resource } from '~domain/resource/Resource'
     
     "baseUrl": ".",
     "paths": {
-      "~domain/*": ["./src/domain/*"],
-      "~application/*": ["./src/application/*"],
-      "~infrastructure/*": ["./src/infrastructure/*"],
-      "~composition/*": ["./src/composition/*"],
-      "~shared/*": ["./src/shared/*"]
+      "@domain": ["./src/domain/index.ts"],
+      "@domain/*": ["./src/domain/*"],
+      "@api": ["./src/composition/index.ts"],
+      "@client/*": ["./src/presentation/web/react/src/*"],
+      "@internal/application/*": ["./src/application/*"],
+      "@internal/infrastructure/*": ["./src/infrastructure/*"]
     }
   },
   
@@ -94,15 +95,17 @@ export default defineConfig({
   
   resolve: {
     alias: {
-      // ✅ Алиасы для DDD слоев (абсолютные пути)
-      '~domain': path.resolve(projectRoot, 'src/domain'),
-      '~application': path.resolve(projectRoot, 'src/application'),
-      '~infrastructure': path.resolve(projectRoot, 'src/infrastructure'),
-      '~composition': path.resolve(projectRoot, 'src/composition'),
-      '~shared': path.resolve(projectRoot, 'src/shared'),
+      // ✅ Public API - указывают на index.ts (только экспортированное)
+      '@domain': path.resolve(projectRoot, 'src/domain/index.ts'),
+      '@api': path.resolve(projectRoot, 'src/composition/index.ts'),
       
-      // ✅ Алиас для локальных импортов внутри presentation
-      '~': path.resolve(__dirname, './src'),
+      // ✅ Локальные алиасы для Presentation
+      '@client': path.resolve(projectRoot, 'src/presentation/web/react/src'),
+      
+      // ⚠️ Internal - указывают на директорию (доступ ко всем файлам)
+      // Использовать ТОЛЬКО внутри Composition Layer!
+      '@internal/application': path.resolve(projectRoot, 'src/application'),
+      '@internal/infrastructure': path.resolve(projectRoot, 'src/infrastructure'),
     }
   },
   
@@ -124,7 +127,11 @@ export default defineConfig({
 
 1. **`root: projectRoot`** - Vite знает что корень в `password-manager/`
 2. **`appDirectory`** - React Router ищет routes в `src/presentation/web/react/src/`
-3. **`resolve.alias`** - Vite резолвит `~domain/` → `src/domain/`
+3. **`resolve.alias`** - Vite резолвит алиасы:
+   - `@domain` → `src/domain/index.ts` (только Public API)
+   - `@api` → `src/composition/index.ts` (facades)
+   - `@client` → `src/presentation/web/react/src` (локальные компоненты)
+   - `@internal/*` → директории (для Composition Layer)
 
 ---
 
@@ -170,17 +177,18 @@ export default {
 ```typescript
 import type { Route } from './+types/_index'
 
-// ✅ Импорты из DDD слоев через алиасы
-import { queries } from '~composition'
-import { Resource } from '~domain/resource/Resource'
-import { ResourceId } from '~domain/resource/ResourceId'
+// ✅ Типы из Domain через Public API
+import { Resource, ResourceId } from '@domain'
 
-// ✅ Локальные импорты внутри presentation
-import { ResourceList } from '~/components/ResourceList'
-import { useModal } from '~/hooks/useModal'
+// ✅ Facades из Composition
+import { queries } from '@api'
+
+// ✅ Локальные компоненты через @client
+import { ResourceList } from '@client/components/ResourceList'
+import { useModal } from '@client/hooks/useModal'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // Vite резолвит ~composition → src/composition/
+  // Vite резолвит @api → src/composition/index.ts
   return queries.resources.list(request)
 }
 
@@ -197,24 +205,31 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 // ✅ Domain импортирует ТОЛЬКО других Domain объектов
 import { ResourceId } from './ResourceId'
 import { Namespace } from './Namespace'
-import { DomainError } from '~domain/shared/errors/DomainError'
+import { DomainError } from '@domain/shared/errors/DomainError'
 
 // ❌ Domain НЕ импортирует из других слоев!
-// import { queries } from '~composition'  // ← ЗАПРЕЩЕНО
+// import { queries } from '@api'  // ← ЗАПРЕЩЕНО
+// import { Handler } from '@internal/application'  // ← ЗАПРЕЩЕНО
 ```
 
 ### В src/composition/queries/ResourceQueries.ts
 
 ```typescript
-// ✅ Composition импортирует из всех слоев
-import { ListResourcesQuery } from '~application/queries/ListResourcesQuery'
-import { getQueryBus } from '../ServiceContainer'
+// ✅ Типы из Domain через Public API
+import { Resource } from '@domain'
 
+// ✅ Handlers через @internal (доступ к реализации)
+import { ListResourcesHandler } from '@internal/application/queries/ListResourcesHandler'
+
+// ✅ Инфраструктура через @internal
+import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'
+
+// Facade для упрощения UI
 export const queries = {
   resources: {
-    async list(request: Request) {
-      const query = new ListResourcesQuery()
-      return getQueryBus().execute(query)
+    async list() {
+      const handler = new ListResourcesHandler(new ApiResourceRepository())
+      return await handler.execute()
     }
   }
 }
@@ -250,10 +265,13 @@ pnpm dev:web
 // src/presentation/web/react/src/test-imports.ts
 
 // Тестируем что все алиасы работают
-import { Resource } from '~domain/resource/Resource'
-import { ListResourcesQuery } from '~application/queries/ListResourcesQuery'
-import { MockResourceRepository } from '~infrastructure/persistence/MockResourceRepository'
-import { queries } from '~composition'
+import { Resource } from '@domain'  // Public API
+import { queries } from '@api'      // Facades
+import { ResourceList } from '@client/components/ResourceList'  // Локальные
+
+// ❌ Эти импорты НЕ должны работать в Presentation!
+// import { ListResourcesHandler } from '@internal/application/queries/ListResourcesHandler'
+// import { ApiClient } from '@internal/infrastructure/api/ApiClient'
 
 console.log('✅ Все импорты работают!')
 ```
@@ -264,7 +282,7 @@ console.log('✅ Все импорты работают!')
 
 ## 6️⃣ Troubleshooting
 
-### Ошибка: Cannot find module '~domain/...'
+### Ошибка: Cannot find module '@domain' или '@api'
 
 **Проблема**: Vite не резолвит алиасы.
 
@@ -305,7 +323,8 @@ reactRouter({
 - [ ] Создан `postcss.config.js` в presentation
 - [ ] `pnpm typecheck` проходит без ошибок
 - [ ] `pnpm dev:web` запускается
-- [ ] Импорты `~domain/*` работают в routes
+- [ ] Импорты `@domain`, `@api`, `@client` работают в routes
+- [ ] Импорты `@internal/*` работают ТОЛЬКО в composition
 
 ---
 

@@ -67,9 +67,58 @@ pnpm install
 
 ---
 
-## 2️⃣ Web Presentation package.json
+## 2️⃣ Web Presentation package.json (через React Router CLI)
 
-**Файл: `src/presentation/web/react/package.json`**
+> **💡 Используем React Router CLI** — он создаст проект с актуальными версиями пакетов.  
+> Мы адаптируем его под нашу структуру.
+
+### Шаг 1: Создать проект через CLI во временной папке
+
+```bash
+# Из корня проекта
+cd src/presentation/web
+
+# Создать React Router проект (временно в папке "temp")
+pnpm create react-router@latest temp
+
+# Выбрать опции:
+# - Template: Basic
+# - TypeScript: Yes
+# - Package manager: pnpm
+```
+
+### Шаг 2: Скопировать package.json
+
+```bash
+# Скопировать package.json в правильное место
+cp temp/package.json react/package.json
+
+# Открыть react/package.json и изменить name:
+# "name": "temp" → "name": "@password-manager/web"
+```
+
+### Шаг 3: Удалить временную папку
+
+```bash
+rm -rf temp
+```
+
+### Шаг 4: Установить дополнительные зависимости
+
+```bash
+cd react
+
+# Tailwind CSS + Catppuccin
+pnpm add -D tailwindcss postcss autoprefixer
+pnpm add -D @catppuccin/tailwindcss
+
+# Инициализировать Tailwind
+pnpm dlx tailwindcss init -p
+```
+
+### Результат: package.json с актуальными версиями
+
+**Файл: `src/presentation/web/react/package.json`** (после CLI)
 
 ```json
 {
@@ -79,22 +128,24 @@ pnpm install
   "type": "module",
   
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "dev": "react-router dev",
+    "build": "react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "typecheck": "react-router typegen && tsc"
   },
   
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router": "^7.5.0"
+    "react-router": "^7.5.0",
+    "isbot": "^5.1.0"
   },
   
   "devDependencies": {
     "@react-router/dev": "^7.5.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2",
     "vite": "^6.0.7",
     "tailwindcss": "^3.4.17",
     "postcss": "^8.4.49",
@@ -104,14 +155,10 @@ pnpm install
 }
 ```
 
-**Команды установки:**
-
-```bash
-cd src/presentation/web/react
-pnpm init
-# Скопировать содержимое выше в package.json
-pnpm install
-```
+> **✅ Преимущества подхода:**
+> - Актуальные версии всех пакетов из CLI
+> - Правильные scripts для React Router v7
+> - Нет ручного копирования версий
 
 ---
 
@@ -134,34 +181,41 @@ packages:
 
 ---
 
-## 4️⃣ Установка зависимостей
+## 4️⃣ Финальная установка зависимостей
 
-### Из корня проекта:
+После создания всех package.json и workspaces:
 
 ```bash
+# Вернуться в корень проекта
+cd password-manager
+
 # Установить ВСЕ зависимости (root + workspaces)
 pnpm install
-
-# Установить в root workspace (DDD слои)
-pnpm add neverthrow
-
-# Установить в web presentation
-pnpm --filter @password-manager/web add react react-dom
-
-# Установить dev зависимость в web
-pnpm --filter @password-manager/web add -D vite
 ```
 
-### Запуск:
+### Проверка:
+
+```bash
+# Проверить что workspaces настроены
+pnpm list --depth=0
+
+# Должно показать:
+# password-manager@1.0.0
+#   @password-manager/web -> src/presentation/web/react
+```
+
+### Запуск dev сервера:
 
 ```bash
 # Из корня проекта
 pnpm dev:web
 
-# Или напрямую
+# Или напрямую из presentation
 cd src/presentation/web/react
 pnpm dev
 ```
+
+Откройте браузер на `http://localhost:5173`
 
 ---
 

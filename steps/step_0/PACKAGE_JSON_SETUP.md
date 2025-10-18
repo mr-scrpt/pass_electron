@@ -141,24 +141,50 @@ pnpm list --depth=0
 
 ## 📋 Правило разделения зависимостей
 
-**Root package.json** (если используется в domain/application/infrastructure):
+### Root package.json (для domain/application/infrastructure)
+
 ```bash
+# Из корня проекта
 pnpm add <package>              # dependency
 pnpm add -D <package>           # devDependency
 ```
 
-**presentation/web/react/package.json** (если используется только в UI):
+### Web package.json (только для UI)
+
+**Способ 1: Через --filter (удобнее)**
+```bash
+# Из корня проекта
+pnpm add <package> --filter @password-manager/web
+pnpm add -D <package> --filter @password-manager/web
+```
+
+**Способ 2: Перейти в workspace**
 ```bash
 cd src/presentation/web/react
-pnpm add <package>              # dependency
-pnpm add -D <package>           # devDependency
+pnpm add <package>
+pnpm add -D <package>
 ```
 
-**Примеры**:
-- `neverthrow` → root (используется в Application Layer)
-- `react` → web presentation (только UI)
-- `typescript` → root (используется везде)
-- `vite` → web presentation (только для web build)
+### Примеры
+
+**Root:**
+- `neverthrow` - используется в Application Layer
+- `typescript` - используется везде
+
+**Web workspace:**
+- `react`, `react-router` - только UI
+- `vite`, `tailwindcss` - только для web build
+
+**Команды:**
+```bash
+# Root
+pnpm add neverthrow
+pnpm add -D typescript vitest
+
+# Web (из корня через --filter)
+pnpm add react react-dom --filter @password-manager/web
+pnpm add -D vite @tailwindcss/vite --filter @password-manager/web
+```
 
 ---
 

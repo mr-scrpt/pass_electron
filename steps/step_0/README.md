@@ -13,8 +13,6 @@
 > npm install -g pnpm
 > ```
 
-> **📚 Обоснование структуры**: [.docs-meta/PROJECT_STRUCTURE_RATIONALE.md](../../.docs-meta/PROJECT_STRUCTURE_RATIONALE.md)
-
 ---
 
 ## 🏗️ Архитектурный подход
@@ -316,4 +314,3 @@ pnpm dev
 - [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md) — детальная настройка зависимостей
 - [TYPESCRIPT_VITE_CONFIG.md](./TYPESCRIPT_VITE_CONFIG.md) — детальная настройка конфигов
 - [docs/PROJECT_STRUCTURE.md](../../docs/PROJECT_STRUCTURE.md) — полная структура проекта
-- [.docs-meta/PROJECT_STRUCTURE_RATIONALE.md](../../.docs-meta/PROJECT_STRUCTURE_RATIONALE.md) — обоснование архитектуры

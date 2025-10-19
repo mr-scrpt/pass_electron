@@ -9,29 +9,29 @@
 
 ---
 
-## ❌ Требуют исправления (неправильный формат `#structure:path/`)
+## ✅ ИСПРАВЛЕНО (было неправильно, теперь правильно)
 
 ### Этап 1: Приоритетные файлы (3 файла)
-- [ ] `docs/DDD_AND_CLEAN_ARCHITECTURE.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/COMPOSITION_LAYER.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/TYPES_AND_ENTITIES.md` - заменить `#structure:path/` → `#structure:`
+- [x] `docs/DDD_AND_CLEAN_ARCHITECTURE.md` ✅ исправлено
+- [x] `docs/COMPOSITION_LAYER.md` ✅ исправлено
+- [x] `docs/TYPES_AND_ENTITIES.md` ✅ исправлено
 
 ### Этап 2: Документация по слоям (4 файла)
-- [ ] `docs/COMMAND_BUS.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/QUERY_HANDLERS.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/DATA_FLOW.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/ARCHITECTURE_BOUNDARIES.md` - заменить `#structure:path/` → `#structure:`
+- [x] `docs/COMMAND_BUS.md` ✅ исправлено
+- [x] `docs/QUERY_HANDLERS.md` ✅ исправлено
+- [x] `docs/DATA_FLOW.md` ✅ исправлено
+- [x] `docs/ARCHITECTURE_BOUNDARIES.md` ✅ исправлено
 
 ### Этап 3: Error Handling (3 файла)
-- [ ] `docs/error-handling/ERROR_HANDLING.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/error-handling/INVARIANTS.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/error-handling/ERROR_ESCALATION.md` - заменить `#structure:path/` → `#structure:`
+- [x] `docs/error-handling/ERROR_HANDLING.md` ✅ исправлено
+- [x] `docs/error-handling/INVARIANTS.md` ✅ исправлено
+- [x] `docs/error-handling/ERROR_ESCALATION.md` ✅ исправлено
 
 ### Этап 4: Основные файлы (2 файла)
-- [ ] `docs/GETTING_STARTED.md` - заменить `#structure:path/` → `#structure:`
-- [ ] `docs/concepts/IMPLEMENT_CONCEPT_OUTER.md` - заменить `#structure:path/` → `#structure:`
+- [x] `docs/GETTING_STARTED.md` ✅ исправлено
+- [x] `docs/concepts/IMPLEMENT_CONCEPT_OUTER.md` ✅ исправлено
 
-**ИТОГО требуют исправления: 12 файлов**
+**ИТОГО исправлено: 12 файлов (292 замены через sed)**
 
 ---
 
@@ -39,7 +39,6 @@
 
 ### Steps (приоритетные):
 - [ ] `steps/step_0/PACKAGE_JSON_SETUP.md`
-- [ ] `steps/step_0/TYPESCRIPT_VITE_CONFIG.md`
 - [ ] `steps/step_1/README.md`
 
 ### Steps (опциональные):

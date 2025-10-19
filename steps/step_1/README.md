@@ -101,7 +101,7 @@ mkdir -p src/domain/shared/base
 
 > **📚 Детали**: [docs/error-handling/INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:`
 ```typescript
 export class InvariantViolationError extends Error {
   readonly code = 'INVARIANT_VIOLATION'
@@ -116,7 +116,7 @@ export class InvariantViolationError extends Error {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**  `#structure:`
 ```typescript
 import { Result, ok, err } from 'neverthrow'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
@@ -161,7 +161,7 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/index.ts`**
+**Файл: `src/domain/shared/index.ts`**  `#structure:`
 ```typescript
 export { InvariantViolationError } from './errors/InvariantViolationError'
 export { UuidInvariant } from './invariants/UuidInvariant'
@@ -177,7 +177,7 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы](../../docs/TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы) — Почему класс, а не type alias
 
-**Файл: `src/domain/resource/value-objects/ResourceId.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceId.ts`**  `#structure:`
 ```typescript
 import { Result } from 'neverthrow'
 import { InvariantViolationError } from '@/domain/shared/errors'
@@ -212,7 +212,7 @@ export class ResourceId {
 
 #### 1.3 Создать Value Object: Namespace
 
-**Файл: `src/domain/resource/value-objects/Namespace.ts`**
+**Файл: `src/domain/resource/value-objects/Namespace.ts`**  `#structure:`
 ```typescript
 export class Namespace {
   private constructor(private readonly _value: string) {}
@@ -246,7 +246,7 @@ export class Namespace {
 
 #### 1.4 Создать Value Object: ResourceName
 
-**Файл: `src/domain/resource/value-objects/ResourceName.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`**  `#structure:`
 ```typescript
 export class ResourceName {
   private constructor(private readonly _value: string) {}
@@ -272,7 +272,7 @@ export class ResourceName {
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer) — Зачем нужны DTO
 
-**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**
+**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**  `#structure:`
 ```typescript
 /**
  * DTO для списка ресурсов
@@ -298,7 +298,7 @@ export interface ResourceListItemDTO {
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
 
-**Файл: `src/domain/resource/value-objects/index.ts`**
+**Файл: `src/domain/resource/value-objects/index.ts`**  `#structure:`
 ```typescript
 // Public API для Value Objects
 export { ResourceId } from './ResourceId'
@@ -306,7 +306,7 @@ export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
 ```
 
-**Файл: `src/domain/resource/index.ts`**
+**Файл: `src/domain/resource/index.ts`**  `#structure:`
 ```typescript
 // Public API модуля resource
 export * from './value-objects'
@@ -320,7 +320,7 @@ export * from './value-objects'
 
 #### 1.7 Создать интерфейс репозитория
 
-**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
+**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**  `#structure:`
 ```typescript
 import type { ResourceId } from '../value-objects/ResourceId'
 import type { Namespace } from '../value-objects/Namespace'
@@ -344,7 +344,7 @@ export interface IResourceRepository {
 
 #### 1.7 Создать Public API для repositories
 
-**Файл: `src/domain/repositories/index.ts`**
+**Файл: `src/domain/repositories/index.ts`**  `#structure:`
 ```typescript
 export type { IResourceRepository } from './IResourceRepository'
 ```
@@ -357,7 +357,7 @@ Infrastructure Layer реализует интерфейсы из Domain Layer.
 
 #### 2.1 Создать моковые данные
 
-**Файл: `src/infrastructure/mocks/resources.mock.ts`**
+**Файл: `src/infrastructure/mocks/resources.mock.ts`**  `#structure:`
 ```typescript
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
@@ -407,14 +407,14 @@ export const mockResources: ResourceListItemDTO[] = [
 
 #### 2.2 Создать Public API для mocks
 
-**Файл: `src/infrastructure/mocks/index.ts`**
+**Файл: `src/infrastructure/mocks/index.ts`**  `#structure:`
 ```typescript
 export { mockResources } from './resources.mock'
 ```
 
 #### 2.3 Реализовать Mock Repository
 
-**Файл: `src/infrastructure/repositories/MockResourceRepository.ts`**
+**Файл: `src/infrastructure/repositories/MockResourceRepository.ts`**  `#structure:`
 ```typescript
 import type { IResourceRepository } from '@/domain/repositories'
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
@@ -459,7 +459,7 @@ export class MockResourceRepository implements IResourceRepository {
 
 #### 2.4 Создать Public API для repositories
 
-**Файл: `src/infrastructure/repositories/index.ts`**
+**Файл: `src/infrastructure/repositories/index.ts`**  `#structure:`
 ```typescript
 export { MockResourceRepository } from './MockResourceRepository'
 ```
@@ -472,7 +472,7 @@ Application Layer реализует CQRS паттерн для разделен
 
 #### 3.1 Создать Query Types константы
 
-**Файл: `src/application/queries/QueryTypes.ts`**
+**Файл: `src/application/queries/QueryTypes.ts`**  `#structure:`
 ```typescript
 /**
  * Константы типов Query (нет magic strings!)
@@ -487,14 +487,14 @@ export const QueryTypes = {
 
 #### 3.2 Создать интерфейсы Query и QueryHandler
 
-**Файл: `src/application/queries/IQuery.ts`**
+**Файл: `src/application/queries/IQuery.ts`**  `#structure:`
 ```typescript
 export interface IQuery {
   readonly type: string
 }
 ```
 
-**Файл: `src/application/queries/IQueryHandler.ts`**
+**Файл: `src/application/queries/IQueryHandler.ts`**  `#structure:`
 ```typescript
 import type { IQuery } from './IQuery'
 
@@ -508,7 +508,7 @@ export interface IQueryHandler<Q extends IQuery = IQuery, R = any> {
 }
 ```
 
-**Файл: `src/application/queries/IQueryBus.ts`**
+**Файл: `src/application/queries/IQueryBus.ts`**  `#structure:`
 ```typescript
 import type { IQuery, IQueryHandler, QueryResult } from './'
 
@@ -520,7 +520,7 @@ export interface IQueryBus {
 
 #### 3.3 Создать Query класс
 
-**Файл: `src/application/queries/ListResourcesQuery.ts`**
+**Файл: `src/application/queries/ListResourcesQuery.ts`**  `#structure:`
 ```typescript
 import { QueryTypes } from './QueryTypes'
 import type { IQuery } from './IQuery'
@@ -537,7 +537,7 @@ export class ListResourcesQuery implements IQuery {
 
 #### 3.4 Создать Query Handler
 
-**Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**
+**Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**  `#structure:`
 ```typescript
 import type { IQueryHandler, QueryResult } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
@@ -581,7 +581,7 @@ export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQue
 
 #### 3.5 Создать Public API для queries
 
-**Файл: `src/application/queries/index.ts`**
+**Файл: `src/application/queries/index.ts`**  `#structure:`
 ```typescript
 export { QueryTypes } from './QueryTypes'
 export type { IQuery } from './IQuery'
@@ -600,7 +600,7 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 
 #### 4.1 Создать Query Bus Implementation
 
-**Файл: `src/infrastructure/queries/InMemoryQueryBus.ts`**
+**Файл: `src/infrastructure/queries/InMemoryQueryBus.ts`**  `#structure:`
 ```typescript
 import type { IQueryBus, IQuery, IQueryHandler, QueryResult } from '@/application/queries'
 
@@ -630,7 +630,7 @@ export class InMemoryQueryBus implements IQueryBus {
 }
 ```
 
-**Файл: `src/infrastructure/queries/index.ts`**
+**Файл: `src/infrastructure/queries/index.ts`**  `#structure:`
 ```typescript
 export { InMemoryQueryBus } from './InMemoryQueryBus'
 ```
@@ -643,7 +643,7 @@ Composition Root связывает все слои через декомпоз�
 
 #### 5.1 Создать ResourceModule
 
-**Файл: `src/composition/modules/ResourceModule.ts`**
+**Файл: `src/composition/modules/ResourceModule.ts`**  `#structure:`
 ```typescript
 import type { IResourceRepository } from '@/domain/repositories'
 import type { IQueryBus } from '@/application/queries'
@@ -681,7 +681,7 @@ export class ResourceModule {
 
 #### 5.2 Создать ServiceContainer (упрощенная версия для Шага 1)
 
-**Файл: `src/composition/ServiceContainer.ts`**
+**Файл: `src/composition/ServiceContainer.ts`**  `#structure:`
 ```typescript
 import { InMemoryQueryBus } from '@/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
@@ -734,7 +734,7 @@ export class ServiceContainer {
 
 #### 5.3 Создать Query Facade
 
-**Файл: `src/composition/queries/ResourceQueries.ts`**
+**Файл: `src/composition/queries/ResourceQueries.ts`**  `#structure:`
 ```typescript
 import { ListResourcesQuery } from '@/application/queries'
 import { ServiceContainer } from '../ServiceContainer'
@@ -767,7 +767,7 @@ export const resourceQueries = {
 }
 ```
 
-**Файл: `src/composition/queries/index.ts`**
+**Файл: `src/composition/queries/index.ts`**  `#structure:`
 ```typescript
 export { resourceQueries } from './ResourceQueries'
 
@@ -779,7 +779,7 @@ export const queries = {
 
 #### 5.4 Создать Public API для Composition
 
-**Файл: `src/composition/index.ts`**
+**Файл: `src/composition/index.ts`**  `#structure:`
 ```typescript
 export { queries } from './queries'
 export { ServiceContainer } from './ServiceContainer'
@@ -801,7 +801,7 @@ Presentation Layer отвечает за отображение данных п�
 
 #### 6.1 Создать компонент ResourceListItem
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx`**
+**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx`**  `#structure:`
 ```typescript
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
@@ -845,7 +845,7 @@ export function ResourceListItem({ resource }: Props) {
 
 #### 6.2 Создать компонент ResourceList
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceList.tsx`**
+**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceList.tsx`**  `#structure:`
 ```typescript
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 import { ResourceListItem } from './ResourceListItem'
@@ -879,7 +879,7 @@ export function ResourceList({ resources }: Props) {
 
 #### 6.3 Создать Public API для компонентов
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/index.ts`**
+**Файл: `src/presentation/web/react/src/components/ResourceList/index.ts`**  `#structure:`
 ```typescript
 export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
@@ -887,7 +887,7 @@ export { ResourceListItem } from './ResourceListItem'
 
 #### 6.4 Создать React Router Route
 
-**Файл: `src/presentation/web/react/src/routes/_index.tsx`**
+**Файл: `src/presentation/web/react/src/routes/_index.tsx`**  `#structure:`
 
 > **💡 React Router v7 Type Safety**: Импорт `import type { Route } from './+types/_index'` - это специальная фича React Router v7 для типобезопасности.
 >

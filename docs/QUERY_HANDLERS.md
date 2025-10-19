@@ -1,4 +1,4 @@
-# Query Handlers & Facade Pattern
+# Query Handlers & Facade Pattern `#query-handlers` `#cqrs` `#facade-pattern`
 
 Чтение данных в Remix Loaders через Query Handlers и Facade, следуя CQRS, DDD и Clean Architecture.
 
@@ -49,7 +49,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 **`src/application/queries/IQueryHandler.ts`**
 
 ```typescript
-export interface IQuery {
+export interface IQuery {  // #interface:IQuery
   readonly type: string;
 }
 
@@ -58,7 +58,7 @@ export interface QueryResult<T = any> {
   error?: string;
 }
 
-export interface IQueryHandler<TQuery extends IQuery, TResult> {
+export interface IQueryHandler<TQuery extends IQuery, TResult> {  // #interface:IQueryHandler
   handle(query: TQuery): Promise<QueryResult<TResult>>;
 }
 ```
@@ -66,7 +66,7 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {
 **`src/application/queries/IQueryBus.ts`**
 
 ```typescript
-export interface IQueryBus {
+export interface IQueryBus {  // #interface:IQueryBus
   execute<TQuery extends IQuery, TResult>(
     query: TQuery
   ): Promise<QueryResult<TResult>>;
@@ -83,12 +83,12 @@ export interface IQueryBus {
 **`src/application/queries/ResourceQueries.ts`**
 
 ```typescript
-export class ListResourcesQuery implements IQuery {
+export class ListResourcesQuery implements IQuery {  // #class:ListResourcesQuery
   readonly type = 'ListResourcesQuery';
   constructor(public readonly filters?: { search?: string; namespace?: string }) {}
 }
 
-export class GetResourceByIdQuery implements IQuery {
+export class GetResourceByIdQuery implements IQuery {  // #class:GetResourceByIdQuery
   readonly type = 'GetResourceByIdQuery';
   constructor(public readonly resourceId: string) {}
 }
@@ -99,7 +99,7 @@ export class GetResourceByIdQuery implements IQuery {
 **`src/application/queries/handlers/ListResourcesQueryHandler.ts`**
 
 ```typescript
-export class ListResourcesQueryHandler 
+export class ListResourcesQueryHandler  // #class:ListResourcesQueryHandler
   implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   
   constructor(private resourceService: ResourceService) {}
@@ -123,7 +123,7 @@ export class ListResourcesQueryHandler
   }
 }
 
-export interface ResourceListItemDTO {
+export interface ResourceListItemDTO {  // #interface:ResourceListItemDTO
   id: string;
   namespace: string;
   name: string;
@@ -136,7 +136,7 @@ export interface ResourceListItemDTO {
 **`app/infrastructure/queries/InMemoryQueryBus.ts`**
 
 ```typescript
-export class InMemoryQueryBus implements IQueryBus {
+export class InMemoryQueryBus implements IQueryBus {  // #class:InMemoryQueryBus
   private handlers = new Map<string, IQueryHandler<any, any>>();
   
   register<TQuery extends IQuery, TResult>(
@@ -164,8 +164,8 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ```typescript
 import { json } from 'react-router';
-import { getQueryBus } from './ServiceContainer';
-import { ListResourcesQuery, GetResourceByIdQuery } from '~application/queries';
+import { getQueryBus } from './ServiceContainer';  // #class:ServiceContainer
+import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';  // #alias:@/ #class:ListResourcesQuery #class:GetResourceByIdQuery
 
 /**
  * Facade: инкапсулирует QueryBus, парсинг Request, сериализацию
@@ -222,7 +222,7 @@ static getQueryBus(): IQueryBus {
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '~composition';
+import { queries } from '@/composition';  // #alias:@/
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.resources.list(request);  // ✅ Одна строка!
@@ -233,7 +233,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ```typescript
 // src/presentation/web/react/src/routes/resources.$id.tsx
-import { queries } from '~composition';
+import { queries } from '@/composition';  // #alias:@/
 
 export async function loader({ params }: LoaderFunctionArgs) {
   return queries.resources.getById(params.id!);  // ✅ Одна строка!
@@ -275,16 +275,16 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 ```
 app/
-├── composition/
+├── composition/                  #structure:composition/
 │   ├── queries.ts          # Facade
-│   └── ServiceContainer.ts
-├── application/queries/
-│   ├── IQueryHandler.ts    # Ports
-│   ├── IQueryBus.ts
-│   ├── ResourceQueries.ts
-│   └── handlers/
-└── infrastructure/queries/
-    └── InMemoryQueryBus.ts # Adapter
+│   └── ServiceContainer.ts  #class:ServiceContainer
+├── application/queries/          #structure:application/queries/
+│   ├── IQueryHandler.ts    # Ports #interface:IQueryHandler
+│   ├── IQueryBus.ts        #interface:IQueryBus
+│   ├── ResourceQueries.ts  #class:ListResourcesQuery
+│   └── handlers/           #structure:application/queries/handlers/
+└── infrastructure/queries/       #structure:infrastructure/queries/
+    └── InMemoryQueryBus.ts # Adapter #class:InMemoryQueryBus
 ```
 
 ---

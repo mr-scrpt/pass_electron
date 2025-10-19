@@ -105,16 +105,22 @@ export * from './events'
 // export type ResourceId = string  // НЕТ! У нас класс
 ```
 
+[#code|#structure:path]
+
 ```typescript
 // src/domain/resource/aggregates/index.ts
 export { Resource } from './Resource'
 ```
+
+[#code|#structure:path]
 
 ```typescript
 // src/domain/resource/entities/index.ts
 export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
 ```
+
+[#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/index.ts
@@ -129,7 +135,7 @@ export { FieldValue } from './FieldValue'
 
 ## Value Objects vs TypeScript типы
 
-### ❌ НЕПРАВИЛЬНО - Type Alias
+### ❌ НЕПРАВИЛЬНО - Type Alias [#code]
 
 ```typescript
 // ❌ Просто тип без логики
@@ -193,6 +199,8 @@ export class ResourceId {
 2. **Инкапсуляция** - детали реализации скрыты
 3. **Бизнес-логика** - методы для работы с данными
 4. **Type Safety** - TypeScript различает разные Value Objects
+
+[#code]
 
 ```typescript
 // ✅ Type Safety с Value Objects
@@ -260,6 +268,8 @@ export interface ResourceListItemDTO {
 }
 ```
 
+[#interface:ResourceDetailDTO|#code|#structure:path]
+
 ```typescript
 // src/application/queries/dtos/ResourceDetailDTO.ts
 
@@ -284,6 +294,8 @@ export interface CustomFieldDTO {
   isSecret: boolean
 }
 ```
+
+[#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/index.ts (Public API)

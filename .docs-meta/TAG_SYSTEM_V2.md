@@ -1,0 +1,354 @@
+# Система тегов v2.0 - Правильная концепция
+
+## 🎯 Главный принцип
+
+**Теги = флаги для блоков, а не для строк!**
+
+Тег ставится:
+- В заголовке секции
+- В описании блока кода
+- Перед деревом структуры
+
+**НЕ ставится на каждую строку внутри блока!**
+
+---
+
+## 📋 Типы тегов
+
+### 1. Теги структуры
+
+#### `#structure:tree`
+Полное дерево структуры или его значительная часть
+
+**Пример:**
+```markdown
+## Структура Domain Layer  `#structure:tree`
+
+\`\`\`
+src/domain/
+├── resource/
+│   ├── aggregates/
+│   ├── value-objects/
+│   └── repositories/
+└── shared/
+    ├── errors/
+    └── invariants/
+\`\`\`
+```
+
+#### `#structure:path`
+Упоминание путей к файлам/директориям в коде
+
+**Пример:**
+```markdown
+### Примеры импортов  `#structure:path` `#code`
+
+\`\`\`typescript
+// src/presentation/web/react/src/routes/_index.tsx
+import { Resource } from '@/domain'
+import { queries } from '@/composition'
+\`\`\`
+```
+
+#### `#structure:alias`
+Алиасы и правила импортов
+
+**Пример:**
+```markdown
+## TypeScript Paths  `#structure:alias`
+
+\`\`\`json
+{
+  "paths": {
+    "@/domain": ["./src/domain/index.ts"],
+    "@/composition": ["./src/composition/index.ts"]
+  }
+}
+\`\`\`
+```
+
+---
+
+### 2. Теги кода
+
+#### `#code`
+Блок с примером кода (TypeScript, JavaScript)
+
+**Пример:**
+```markdown
+### Value Object пример  `#code` `#class`
+
+\`\`\`typescript
+export class ResourceId {
+  private constructor(private readonly _value: string) {}
+  static create(value: string): Result<ResourceId, Error>
+}
+\`\`\`
+```
+
+#### `#config`
+Блок с конфигурацией (JSON, YAML, etc.)
+
+**Пример:**
+```markdown
+### Vite конфигурация  `#config`
+
+\`\`\`typescript
+export default defineConfig({
+  plugins: [reactRouter(), tsconfigPaths()]
+})
+\`\`\`
+```
+
+#### `#command`
+Блок с командами терминала
+
+**Пример:**
+```markdown
+### Установка зависимостей  `#command`
+
+\`\`\`bash
+pnpm add neverthrow
+pnpm add -D typescript
+\`\`\`
+```
+
+---
+
+### 3. Теги сущностей
+
+#### `#class:`
+Определение или использование класса
+
+**Пример:**
+```markdown
+### ResourceId Value Object  `#class:ResourceId` `#code`
+
+\`\`\`typescript
+export class ResourceId {
+  // ...
+}
+\`\`\`
+```
+
+#### `#interface:`
+Определение или использование интерфейса
+
+**Пример:**
+```markdown
+### Repository Interface  `#interface:IResourceRepository` `#code`
+
+\`\`\`typescript
+export interface IResourceRepository {
+  findById(id: ResourceId): Promise<Resource | null>
+}
+\`\`\`
+```
+
+#### `#api:`
+API endpoint
+
+**Пример:**
+```markdown
+### GET /api/resources  `#api:GET-resources`
+
+Возвращает список всех ресурсов
+```
+
+---
+
+## ✅ Правильные примеры
+
+### Пример 1: Дерево структуры
+
+```markdown
+## Domain Layer структура  `#structure:tree`
+
+\`\`\`
+src/domain/
+├── resource/
+│   ├── aggregates/
+│   │   └── Resource.ts
+│   └── value-objects/
+│       ├── ResourceId.ts
+│       └── ResourceName.ts
+└── shared/
+    └── errors/
+        └── DomainError.ts
+\`\`\`
+```
+
+### Пример 2: Код с путями
+
+```markdown
+### Примеры импортов в Presentation  `#structure:path` `#code`
+
+\`\`\`typescript
+// src/presentation/web/react/src/routes/_index.tsx
+import { Resource } from '@/domain'
+import { queries } from '@/composition'
+import { ResourceList } from '@/components/ResourceList'
+\`\`\`
+```
+
+### Пример 3: Класс
+
+```markdown
+### ResourceId Value Object  `#class:ResourceId` `#code`
+
+\`\`\`typescript
+export class ResourceId {
+  private constructor(private readonly _value: string) {}
+  
+  static create(value: string): Result<ResourceId, InvariantViolationError> {
+    return UuidInvariant.validate(value, 'ResourceId')
+      .map(validValue => new ResourceId(validValue))
+  }
+  
+  getValue(): string {
+    return this._value
+  }
+}
+\`\`\`
+```
+
+### Пример 4: Конфигурация
+
+```markdown
+### TypeScript paths  `#structure:alias` `#config`
+
+\`\`\`json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/domain": ["./src/domain/index.ts"],
+      "@/composition": ["./src/composition/index.ts"]
+    }
+  }
+}
+\`\`\`
+```
+
+### Пример 5: Команды
+
+```markdown
+### Установка neverthrow  `#command`
+
+\`\`\`bash
+pnpm add neverthrow
+\`\`\`
+```
+
+---
+
+## ❌ Неправильные примеры
+
+### ❌ НЕ ДЕЛАТЬ: Теги на каждой строке
+
+```markdown
+### Примеры импортов
+
+\`\`\`typescript
+import { Resource } from '@/domain'  #structure:
+import { queries } from '@/composition'  #structure:
+import { ResourceList } from '@/components/ResourceList'  #structure:
+\`\`\`
+```
+
+**Проблема:** Избыточность, теги на каждой строке
+
+**Правильно:**
+```markdown
+### Примеры импортов  `#structure:path` `#code`
+
+\`\`\`typescript
+import { Resource } from '@/domain'
+import { queries } from '@/composition'
+import { ResourceList } from '@/components/ResourceList'
+\`\`\`
+```
+
+---
+
+## 🔍 Как использовать теги
+
+### Сценарий 1: Изменение структуры проекта
+
+**Задача:** Переименовать `src/domain/` в `src/core/domain/`
+
+**Действия:**
+1. Найти все блоки: `grep -r "#structure:" docs/ steps/`
+2. Проверить каждый блок с тегом
+3. Обновить пути в примерах кода
+4. Обновить деревья структуры
+
+### Сценарий 2: Изменение класса
+
+**Задача:** Изменить API класса `ResourceId`
+
+**Действия:**
+1. Найти все упоминания: `grep -r "#class:ResourceId" docs/ steps/`
+2. Проверить примеры кода
+3. Обновить сигнатуры методов
+4. Проверить согласованность
+
+### Сценарий 3: Изменение алиасов
+
+**Задача:** Изменить `@/domain` на `@domain`
+
+**Действия:**
+1. Найти все блоки: `grep -r "#structure:alias" docs/ steps/`
+2. Обновить конфигурации
+3. Найти примеры: `grep -r "#structure:path" docs/ steps/`
+4. Обновить импорты в примерах
+
+---
+
+## 📊 Комбинации тегов
+
+Теги можно комбинировать для точности:
+
+| Комбинация | Значение |
+|------------|----------|
+| `#structure:tree` | Дерево структуры |
+| `#structure:path` `#code` | Код с путями к файлам |
+| `#structure:alias` `#config` | Конфигурация алиасов |
+| `#class:ResourceId` `#code` | Код класса ResourceId |
+| `#interface:IRepository` `#code` | Код интерфейса |
+| `#api:GET-resources` | API endpoint GET |
+| `#command` | Команды терминала |
+
+---
+
+## 🎯 Правила
+
+1. **Один тег на блок** - не дублировать на каждую строку
+2. **Теги в заголовках** - в backticks после заголовка
+3. **Комбинируй теги** - для точности (`#structure:path` `#code`)
+4. **Специфичные теги** - `#class:ResourceId` лучше чем просто `#class`
+5. **Консистентность** - один стиль во всей документации
+
+---
+
+## 📝 Обновление .windsurf/rules/tags.md
+
+Нужно обновить файл правил:
+
+```markdown
+#structure:tree - полное дерево структуры
+#structure:path - пути к файлам в коде
+#structure:alias - алиасы и импорты
+#code - блок кода (TypeScript/JavaScript)
+#config - блок конфигурации (JSON/YAML)
+#command - команды терминала
+#class:ClassName - определение/использование класса
+#interface:InterfaceName - определение/использование интерфейса
+#api:METHOD-endpoint - API endpoint
+```
+
+---
+
+**Дата создания**: 2025-10-19  
+**Версия**: 2.0  
+**Статус**: Требует внедрения

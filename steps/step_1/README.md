@@ -63,6 +63,36 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 > - [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - Query Handlers и CQRS паттерн
 > - [DATA_FLOW.md](../../docs/DATA_FLOW.md) - поток данных в React Router
 
+### Этап 0: Создание структуры папок
+
+Перед началом создадим структуру Domain Layer согласно DDD Best Practices:
+
+```bash
+# Создать структуру Domain Layer
+mkdir -p src/domain/resource/aggregates
+mkdir -p src/domain/resource/entities
+mkdir -p src/domain/resource/value-objects
+mkdir -p src/domain/resource/repositories
+mkdir -p src/domain/resource/events
+mkdir -p src/domain/shared/errors
+mkdir -p src/domain/shared/invariants
+mkdir -p src/domain/shared/base
+```
+
+**Структура:**
+- `resource/` - Bounded Context для управления ресурсами
+  - `aggregates/` - Aggregate Roots (главные сущности)
+  - `entities/` - Entities (сущности внутри Aggregate)
+  - `value-objects/` - Value Objects (неизменяемые значения)
+  - `repositories/` - Repository Interfaces
+  - `events/` - Domain Events
+- `shared/` - Shared Kernel (переиспользуемое)
+  - `errors/` - Базовые ошибки
+  - `invariants/` - Переиспользуемые правила валидации
+  - `base/` - Базовые классы/интерфейсы
+
+> **📚 Детали**: [PROJECT_STRUCTURE.md#domain-layer](../../docs/PROJECT_STRUCTURE.md#1-domain-layer-srcdomain-) — Структура Domain Layer
+
 ### Этап 1: Domain Layer (Типы и интерфейсы)
 
 Domain Layer - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
@@ -147,7 +177,7 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы](../../docs/TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы) — Почему класс, а не type alias
 
-**Файл: `src/domain/resource/ResourceId.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceId.ts`**
 ```typescript
 import { Result } from 'neverthrow'
 import { InvariantViolationError } from '@/domain/shared/errors'
@@ -182,7 +212,7 @@ export class ResourceId {
 
 #### 1.3 Создать Value Object: Namespace
 
-**Файл: `src/domain/resource/Namespace.ts`**
+**Файл: `src/domain/resource/value-objects/Namespace.ts`**
 ```typescript
 export class Namespace {
   private constructor(private readonly _value: string) {}
@@ -216,7 +246,7 @@ export class Namespace {
 
 #### 1.4 Создать Value Object: ResourceName
 
-**Файл: `src/domain/resource/ResourceName.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`**
 ```typescript
 export class ResourceName {
   private constructor(private readonly _value: string) {}
@@ -268,21 +298,32 @@ export interface ResourceListItemDTO {
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
 
-**Файл: `src/domain/resource/index.ts`**
+**Файл: `src/domain/resource/value-objects/index.ts`**
 ```typescript
-// Экспортируем Value Objects
+// Public API для Value Objects
 export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
+```
 
-// В будущем здесь появятся Resource Aggregate и CustomField Entity
+**Файл: `src/domain/resource/index.ts`**
+```typescript
+// Public API модуля resource
+export * from './value-objects'
+
+// В будущем здесь появятся:
+// export * from './aggregates'  // Resource
+// export * from './entities'    // CustomField
+// export * from './repositories'
+// export * from './events'
 ```
 
 #### 1.7 Создать интерфейс репозитория
 
-**Файл: `src/domain/repositories/IResourceRepository.ts`**
+**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
 ```typescript
-import type { ResourceListItem, ResourceId, Namespace } from '../resource'
+import type { ResourceId } from '../value-objects/ResourceId'
+import type { Namespace } from '../value-objects/Namespace'
 
 /**
  * Интерфейс репозитория ресурсов
@@ -847,9 +888,20 @@ export { ResourceListItem } from './ResourceListItem'
 #### 6.4 Создать React Router Route
 
 **Файл: `src/presentation/web/react/src/routes/_index.tsx`**
+
+> **💡 React Router v7 Type Safety**: Импорт `import type { Route } from './+types/_index'` - это специальная фича React Router v7 для типобезопасности.
+>
+> **Как это работает:**
+> - React Router **автоматически генерирует** типы для каждого route файла
+> - Виртуальный путь `./+types/_index` создается на лету (не существует физически)
+> - Содержит типы `Route.LoaderArgs`, `Route.ComponentProps`, `Route.ActionArgs`
+> - Обеспечивает type safety между loader/action и компонентом
+>
+> **Подробнее**: [React Router v7 Type Safety](https://reactrouter.com/start/framework/type-safety)
+
 ```typescript
 import { useLoaderData } from 'react-router'
-import type { Route } from './+types/_index'
+import type { Route } from './+types/_index'  // ← Автогенерируемые типы React Router v7
 import { queries } from '@/composition'
 import { ResourceList } from '~/components/ResourceList'
 

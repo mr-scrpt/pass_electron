@@ -36,11 +36,22 @@ password-manager/
 └── src/                           # Application code
     │
     ├── domain/                    # Domain Layer (DDD)
-    │   ├── shared/                # Shared Kernel
-    │   ├── resource/              # Resource Aggregate (основная сущность)
-    │   ├── user/                  # User Aggregate (пример второй сущности)
-    │   ├── repositories/          # Repository Interfaces
-    │   └── events/                # Domain Events
+    │   ├── resource/              # Resource Bounded Context
+    │   │   ├── aggregates/        # Aggregate Roots
+    │   │   ├── entities/          # Entities
+    │   │   ├── value-objects/     # Value Objects
+    │   │   ├── repositories/      # Repository Interfaces
+    │   │   ├── events/            # Domain Events
+    │   │   └── index.ts           # Public API
+    │   │
+    │   ├── user/                  # User Bounded Context (пример)
+    │   │   └── ...
+    │   │
+    │   └── shared/                # Shared Kernel
+    │       ├── errors/            # Domain Errors
+    │       ├── invariants/        # Reusable Invariants
+    │       ├── base/              # Base classes/interfaces
+    │       └── index.ts
     │
     ├── application/               # Application Layer (DDD)
     │   ├── queries/
@@ -149,73 +160,98 @@ src/composition/
 
 ```
 src/domain/
-├── shared/                # Shared Kernel (переиспользуемые компоненты)
-│   ├── errors/            # Domain Errors
-│   │   ├── DomainError.ts
-│   │   ├── InvariantViolationError.ts
-│   │   ├── NotFoundError.ts
-│   │   ├── DuplicateError.ts
-│   │   ├── InvalidOperationError.ts
+├── resource/              # Resource Bounded Context
+│   ├── aggregates/        # Aggregate Roots
+│   │   ├── Resource.ts
 │   │   └── index.ts
-│   ├── invariants/        # Переиспользуемые инварианты
-│   │   ├── UuidInvariant.ts
-│   │   ├── StringInvariant.ts          # Атомарные операции
-│   │   ├── EmailInvariant.ts
-│   │   ├── IdentifierInvariant.ts      # Композитные правила
+│   │
+│   ├── entities/          # Entities (не Aggregate Roots)
+│   │   ├── SecretField.ts
+│   │   ├── CustomField.ts
+│   │   └── index.ts
+│   │
+│   ├── value-objects/     # Value Objects
+│   │   ├── ResourceId.ts
+│   │   ├── ResourceName.ts
+│   │   ├── Namespace.ts
+│   │   ├── FieldValue.ts
+│   │   └── index.ts
+│   │
+│   ├── repositories/      # Repository Interfaces (специфичные для resource)
+│   │   ├── IResourceRepository.ts
+│   │   ├── INamespaceRepository.ts
+│   │   └── index.ts
+│   │
+│   ├── events/            # Domain Events (специфичные для resource)
+│   │   ├── ResourceCreated.ts
+│   │   ├── ResourceUpdated.ts
+│   │   ├── ResourceDeleted.ts
+│   │   └── index.ts
+│   │
+│   └── index.ts           # Public API модуля
+│
+├── user/                  # User Bounded Context (пример)
+│   ├── aggregates/
+│   │   ├── User.ts
+│   │   └── index.ts
+│   ├── value-objects/
+│   │   ├── UserId.ts
+│   │   ├── Email.ts
+│   │   ├── Password.ts
+│   │   └── index.ts
+│   ├── repositories/
+│   │   ├── IUserRepository.ts
+│   │   └── index.ts
+│   ├── events/
+│   │   ├── UserRegistered.ts
+│   │   ├── UserLoggedIn.ts
 │   │   └── index.ts
 │   └── index.ts
 │
-├── resource/              # Resource Aggregate (основная бизнес-сущность)
-│   ├── Resource.ts        # Aggregate Root
-│   ├── SecretField.ts     # Entity
-│   ├── CustomField.ts     # Entity
-│   ├── ResourceName.ts    # Value Object
-│   ├── Namespace.ts       # Value Object
-│   ├── errors/            # Aggregate-specific errors
-│   │   ├── ResourceLockedError.ts
-│   │   ├── DuplicateFieldLabelError.ts
-│   │   └── index.ts
-│   └── index.ts
-│
-├── user/                  # User Aggregate (пример второй бизнес-сущности)
-│   ├── User.ts            # Aggregate Root
-│   ├── UserId.ts          # Value Object
-│   ├── Email.ts           # Value Object
-│   ├── Password.ts        # Value Object
-│   ├── errors/
-│   │   ├── InvalidCredentialsError.ts
-│   │   └── index.ts
-│   └── index.ts
-│
-├── repositories/          # Repository Interfaces (Dependency Inversion)
-│   ├── IResourceRepository.ts
-│   ├── INamespaceRepository.ts
-│   ├── IUserRepository.ts
-│   └── index.ts
-│
-└── events/                # Domain Events
-    ├── ResourceCreated.ts
-    ├── ResourceUpdated.ts
-    ├── ResourceDeleted.ts
-    ├── UserRegistered.ts
-    ├── UserLoggedIn.ts
-    └── index.ts
+└── shared/                # Shared Kernel (только общее)
+    ├── errors/            # Базовые Domain Errors
+    │   ├── DomainError.ts
+    │   ├── InvariantViolationError.ts
+    │   ├── NotFoundError.ts
+    │   ├── DuplicateError.ts
+    │   ├── InvalidOperationError.ts
+    │   └── index.ts
+    │
+    ├── invariants/        # Переиспользуемые инварианты
+    │   ├── UuidInvariant.ts
+    │   ├── StringInvariant.ts
+    │   ├── EmailInvariant.ts
+    │   ├── IdentifierInvariant.ts
+    │   └── index.ts
+    │
+    ├── base/              # Базовые классы/интерфейсы
+    │   ├── IRepository.ts     # Базовый интерфейс репозитория
+    │   ├── DomainEvent.ts     # Базовый класс событий
+    │   ├── Entity.ts          # Базовый класс Entity (опционально)
+    │   ├── ValueObject.ts     # Базовый класс VO (опционально)
+    │   └── index.ts
+    │
+    └── index.ts           # Public API Shared Kernel
 ```
 
 **📌 Что говорит DDD о структуре Domain Layer:**
 
-1. **Aggregates** (`resource/`, `user/`) - бизнес-сущности с границами транзакций
-   - Каждый Aggregate в отдельной папке
-   - Содержит Aggregate Root, Entities, Value Objects
-   - Aggregate-specific errors внутри
+1. **Bounded Context** (`resource/`, `user/`) - автономные бизнес-модули
+   - Каждый контекст содержит ВСЁ необходимое для своей работы
+   - `aggregates/` - Aggregate Roots (главные сущности)
+   - `entities/` - Entities (сущности внутри Aggregate)
+   - `value-objects/` - Value Objects (неизменяемые значения)
+   - `repositories/` - Repository Interfaces (специфичные для контекста)
+   - `events/` - Domain Events (специфичные для контекста)
+   - `index.ts` - Public API модуля
 
-2. **Shared Kernel** (`shared/`) - переиспользуемые компоненты между Aggregates
-   - Domain Errors (базовые)
-   - Invariants (правила валидации)
-   - Базовые Value Objects (если нужны)
+2. **Shared Kernel** (`shared/`) - минимальный общий код
+   - `errors/` - Базовые Domain Errors
+   - `invariants/` - Переиспользуемые правила валидации
+   - `base/` - Базовые классы/интерфейсы (IRepository, DomainEvent)
+   - ⚠️ **Только действительно общее!** Не раздувать Shared Kernel
 
-3. **Repository Interfaces** (`repositories/`) - контракты для хранилищ
-   - ⚠️ **ИНТЕРФЕЙСЫ**, НЕ реализации! (Dependency Inversion Principle)
+3. **Ключевое правило:** Бизнес-домены (resource, user) НЕ смешиваются с техническими концепциями (shared)
    - Реализации в Infrastructure Layer
 
 4. **Domain Events** (`events/`) - события, которые происходят в домене
@@ -495,8 +531,8 @@ src/presentation/
 - ✅ **Легко добавить другие UI** - CLI, Mobile, Next.js, etc.
 - НЕ содержит бизнес-логику
 - Использует hooks для доступа к Application Services
-- Вызывает Queries/Commands через Composition Facades (`@api`)
-- Импортирует Domain типы через алиасы (`@domain`)
+- Вызывает Queries/Commands через Composition Facades (`@/composition`)
+- Импортирует Domain типы через алиасы (`@/domain`)
 
 ---
 
@@ -535,10 +571,10 @@ src/presentation/
 | **Domain** | НИЧЕГО | `@/domain/*` (только внутри себя) | Полностью изолирован |
 | **Application** | Domain | `@/domain` | Только через Public API |
 | **Infrastructure** | Domain (интерфейсы) | `@/domain` | Только интерфейсы, НЕ реализации |
-| **Composition** ⭐ | Domain, Application, Infrastructure | `@/domain`, `@/internal/application/*`, `@/internal/infrastructure/*` | **Единственный** кто может импортировать `@/internal/*` |
-| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/api`, `@/*` | ❌ НЕ может `@/internal/*` |
+| **Composition** ⭐ | Domain, Application, Infrastructure | `@/domain`, `@/application/*`, `@/infrastructure/*` | **Единственный** слой с доступом ко всем |
+| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/composition` | ❌ НЕ может импортировать Application/Infrastructure |
 
-**Ключевое правило:** Только Composition может использовать `@internal/*` алиасы!
+**Ключевое правило:** Все импорты через Public API (`index.ts`). Composition - единственный слой с доступом ко всем остальным.
 
 ### ❌ Запрещенные зависимости
 
@@ -600,14 +636,14 @@ export { resetContainer } from './ServiceContainer'
 // src/domain/index.ts
 export * from './shared'
 export * from './resource'
-export * from './repositories'
-export * from './events'
+export * from './user'
 ```
 
 ```typescript
 // src/domain/shared/index.ts
 export * from './errors'
 export * from './invariants'
+export * from './base'
 ```
 
 ```typescript
@@ -628,20 +664,52 @@ export { IdentifierInvariant } from './IdentifierInvariant'  // Композит
 ```
 
 ```typescript
-// src/domain/resource/index.ts
-export { Resource } from './Resource'
-export { ResourceName } from './ResourceName'
-export { Namespace } from './Namespace'
-export { SecretField } from './SecretField'
-export { CustomField } from './CustomField'
-export * from './errors'
-export type { ResourceId, FieldId } from './types'
+// src/domain/shared/base/index.ts
+export { IRepository } from './IRepository'
+export { DomainEvent } from './DomainEvent'
+export { Entity } from './Entity'
+export { ValueObject } from './ValueObject'
 ```
 
 ```typescript
-// src/domain/resource/errors/index.ts
-export { ResourceLockedError } from './ResourceLockedError'
-export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
+// src/domain/resource/index.ts
+export * from './aggregates'
+export * from './entities'
+export * from './value-objects'
+export * from './repositories'
+export * from './events'
+```
+
+```typescript
+// src/domain/resource/aggregates/index.ts
+export { Resource } from './Resource'
+```
+
+```typescript
+// src/domain/resource/entities/index.ts
+export { SecretField } from './SecretField'
+export { CustomField } from './CustomField'
+```
+
+```typescript
+// src/domain/resource/value-objects/index.ts
+export { ResourceId } from './ResourceId'
+export { ResourceName } from './ResourceName'
+export { Namespace } from './Namespace'
+export { FieldValue } from './FieldValue'
+```
+
+```typescript
+// src/domain/resource/repositories/index.ts
+export { IResourceRepository } from './IResourceRepository'
+export { INamespaceRepository } from './INamespaceRepository'
+```
+
+```typescript
+// src/domain/resource/events/index.ts
+export { ResourceCreated } from './ResourceCreated'
+export { ResourceUpdated } from './ResourceUpdated'
+export { ResourceDeleted } from './ResourceDeleted'
 ```
 
 ### Core Systems
@@ -799,19 +867,19 @@ export async function loader() {
 }
 ```
 
-### 3. Composition → Единственный место для `@internal/*`
+### 3. Composition → Единственный слой с доступом ко всем
 
 #### ✅ **ПРАВИЛЬНО** - DI в Composition:
 ```typescript
-// src/composition/queries.ts - ТОЛЬКО здесь можно @/internal/*
+// src/composition/queries/ResourceQueries.ts
 import { Resource } from '@/domain'  // ✅ Public API
-import { GetResourcesHandler } from '@/internal/application/queries/GetResourcesHandler'  // ✅ Разрешено
-import { ApiResourceRepository } from '@/internal/infrastructure/repositories/ApiResourceRepository'  // ✅ Разрешено
+import { GetResourcesHandler } from '@/application/queries'  // ✅ Через Public API
+import { ApiResourceRepository } from '@/infrastructure/repositories'  // ✅ Через Public API
 
 export const queries = {
   resources: {
     async list() {
-      // ✅ DI логика здесь!
+      // ✅ DI логика здесь! Composition - единственный слой с доступом ко всем
       const repository = new ApiResourceRepository()
       const handler = new GetResourcesHandler(repository)
       return await handler.execute()
@@ -831,10 +899,12 @@ import { ApiClient } from '@/internal/infrastructure/api/ApiClient'  // ❌ ЗА
 
 #### ✅ **ПРАВИЛЬНО** - Только другие Domain объекты:
 ```typescript
-// src/domain/resource/Resource.ts
-import { ResourceId } from './ResourceId'  // ✅ Локальный импорт
-import { Namespace } from './Namespace'  // ✅
-import { DomainError } from '@/domain/shared/errors'  // ✅ Через Public API (index.ts)
+// src/domain/resource/aggregates/Resource.ts
+import { ResourceId } from '../value-objects/ResourceId'  // ✅ Локальный импорт
+import { Namespace } from '../value-objects/Namespace'    // ✅
+import { CustomField } from '../entities/CustomField'     // ✅
+import { DomainError } from '@/domain/shared/errors'      // ✅ Shared Kernel
+import { DomainEvent } from '@/domain/shared/base'        // ✅ Базовый класс
 
 // Domain определяет интерфейсы, не зная о реализации
 interface IEventBus {
@@ -1078,8 +1148,8 @@ const { mode, enterEditingMode } = useModal()
 | Слой | Источник | Почему нужен | Что решает | Public API | Внутренности |
 |------|----------|--------------|------------|------------|--------------|
 | **Domain** | DDD (Eric Evans) | Бизнес-логика не зависит от технологий | Изоляция бизнес-правил | Entities, VOs, Events, Errors | Приватные методы |
-| **Application** | DDD + CQRS + Hexagonal | Оркестрация use cases | Валидация, трансакции, DTO↔Domain | Query/Command типы, Ports | Handlers (через `@internal/*`) |
-| **Infrastructure** | DDD + Hexagonal + Clean | Изоляция технических деталей | Работа с API/DB/внешними системами | Репозитории, Services, Factories | Приватные методы (через `@internal/*`) |
+| **Application** | DDD + CQRS + Hexagonal | Оркестрация use cases | Валидация, транзакции, DTO↔Domain | Query/Command типы, Handlers, Ports | Приватные методы |
+| **Infrastructure** | DDD + Hexagonal + Clean | Изоляция технических деталей | Работа с API/DB/внешними системами | Репозитории, Services, Factories | Приватные методы |
 | **Composition** ⭐ | DI Principles + Clean + Hexagonal | Соблюдение Dependency Rule | DI, сборка приложения, упрощение Presentation | queries, commands facades | DI логика, ServiceContainer |
 | **Presentation** | DDD + Clean + Hexagonal | Framework as Detail | UI, навигация, пользовательский ввод | React компоненты, hooks | Приватные компоненты |
 

@@ -76,68 +76,58 @@ import { Resource } from '@/domain'               // ← Через Public API!
 
 ## 2️⃣ Vite Configuration (Web Presentation)
 
-**Файл: `src/presentation/web/react/vite.config.ts`**
+> **📦 Файл уже создан**: React Router CLI сгенерировал `src/presentation/web/react/vite.config.ts`
+>
+> **Текущее состояние** (сгенерированный файл):
+> ```typescript
+> import { reactRouter } from "@react-router/dev/vite";
+> import tailwindcss from "@tailwindcss/vite";
+> import { defineConfig } from "vite";
+> import tsconfigPaths from "vite-tsconfig-paths";
+> 
+> export default defineConfig({
+>   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+> });
+> ```
+
+### ✅ Что уже настроено
+
+**`vite-tsconfig-paths`** - автоматически синхронизирует алиасы из `tsconfig.json`!
+
+Это значит:
+- ✅ Vite автоматически читает `paths` из `tsconfig.json`
+- ✅ Все алиасы (`@/domain`, `@/composition`, etc.) работают без ручной настройки
+- ✅ Изменения в `tsconfig.json` автоматически применяются в Vite
+
+### 🔧 Что нужно добавить (опционально)
+
+Если нужны дополнительные настройки (порт, CSS, etc.), добавьте их в `defineConfig`:
 
 ```typescript
-import { reactRouter } from "@react-router/dev/vite"
-import { defineConfig } from "vite"
-import path from "path"
-
-// Путь к корню проекта (4 уровня выше)
-const projectRoot = path.resolve(__dirname, '../../../..')
+// src/presentation/web/react/vite.config.ts
+import { reactRouter } from "@react-router/dev/vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  // ✅ Указываем корень проекта
-  root: projectRoot,
+  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   
-  plugins: [
-    reactRouter({
-      // ✅ Где искать React Router код (относительно root)
-      appDirectory: "src/presentation/web/react/src",
-    }),
-  ],
-  
-  resolve: {
-    alias: {
-      // ✅ Public API - указывают на index.ts (только экспортированное)
-      '@domain': path.resolve(projectRoot, 'src/domain/index.ts'),
-      '@api': path.resolve(projectRoot, 'src/composition/index.ts'),
-      
-      // ✅ Локальные алиасы для Presentation
-      '@client': path.resolve(projectRoot, 'src/presentation/web/react/src'),
-      
-      // ⚠️ Internal - указывают на директорию (доступ ко всем файлам)
-      // Использовать ТОЛЬКО внутри Composition Layer!
-      '@internal/application': path.resolve(projectRoot, 'src/application'),
-      '@internal/infrastructure': path.resolve(projectRoot, 'src/infrastructure'),
-    }
-  },
-  
-  css: {
-    postcss: {
-      // ✅ PostCSS config рядом с vite.config.ts
-      config: path.resolve(__dirname),
-    }
-  },
-  
+  // 🔧 ДОБАВИТЬ (если нужно):
   server: {
-    port: 5173,
-    strictPort: true,
+    port: 5173,           // Кастомный порт
+    strictPort: true,     // Не пытаться найти другой порт
   },
-})
+});
 ```
 
 **Как это работает:**
 
-1. **`root: projectRoot`** - Vite знает что корень в `password-manager/`
-2. **`appDirectory`** - React Router ищет routes в `src/presentation/web/react/src/`
-3. **`resolve.alias`** - Vite резолвит алиасы:
-   - `@domain` → `src/domain/index.ts` (только Public API)
-   - `@api` → `src/composition/index.ts` (facades)
-   - `@client` → `src/presentation/web/react/src` (локальные компоненты)
-   - `@internal/*` → директории (для Composition Layer)
+1. **`tsconfigPaths()`** - читает `tsconfig.json` и создает Vite алиасы автоматически
+2. **`reactRouter()`** - настраивает React Router v7
+3. **`tailwindcss()`** - интеграция Tailwind CSS
 
-> **💡 Tailwind CSS**: Если хочешь использовать Tailwind, см. [TAILWIND_SETUP.md](./TAILWIND_SETUP.md)
+> **💡 Важно**: Не нужно вручную настраивать `resolve.alias` - `tsconfigPaths` делает это за вас!
 
 ---
 
@@ -149,17 +139,17 @@ export default defineConfig({
 import type { Route } from './+types/_index'
 
 // ✅ Типы из Domain через Public API
-import { Resource, ResourceId } from '@domain'
+import { Resource, ResourceId } from '@/domain'
 
 // ✅ Facades из Composition
-import { queries } from '@api'
+import { queries } from '@/composition'
 
-// ✅ Локальные компоненты через @client
-import { ResourceList } from '@client/components/ResourceList'
-import { useModal } from '@client/hooks/useModal'
+// ✅ Локальные компоненты через ~ (React Router alias)
+import { ResourceList } from '~/components/ResourceList'
+import { useModal } from '~/hooks/useModal'
 
 export async function loader({ request }: Route.LoaderArgs) {
-  // Vite резолвит @api → src/composition/index.ts
+  // vite-tsconfig-paths резолвит @/composition → src/composition/index.ts
   return queries.resources.list(request)
 }
 
@@ -190,13 +180,13 @@ import { DomainError } from '@/domain/shared/errors'
 
 ```typescript
 // ✅ Типы из Domain через Public API
-import { Resource } from '@domain'
+import { Resource } from '@/domain'
 
-// ✅ Handlers через @internal (доступ к реализации)
-import { ListResourcesHandler } from '@internal/application/queries/ListResourcesHandler'
+// ✅ Handlers напрямую (Composition имеет доступ ко всему)
+import { ListResourcesHandler } from '@/application/queries/handlers/ListResourcesHandler'
 
-// ✅ Инфраструктура через @internal
-import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'
+// ✅ Инфраструктура напрямую
+import { ApiResourceRepository } from '@/infrastructure/repositories/ApiResourceRepository'
 
 // Facade для упрощения UI
 export const queries = {
@@ -239,13 +229,13 @@ pnpm dev:web
 // src/presentation/web/react/src/test-imports.ts
 
 // Тестируем что все алиасы работают
-import { Resource } from '@domain'  // Public API
-import { queries } from '@api'      // Facades
-import { ResourceList } from '@client/components/ResourceList'  // Локальные
+import { Resource } from '@/domain'        // Public API
+import { queries } from '@/composition'    // Facades
+import { ResourceList } from '~/components/ResourceList'  // Локальные (React Router alias)
 
 // ❌ Эти импорты НЕ должны работать в Presentation!
-// import { ListResourcesHandler } from '@internal/application/queries/ListResourcesHandler'
-// import { ApiClient } from '@internal/infrastructure/api/ApiClient'
+// import { ListResourcesHandler } from '@/application/queries/handlers/ListResourcesHandler'
+// import { ApiClient } from '@/infrastructure/api/ApiClient'
 
 console.log('✅ Все импорты работают!')
 ```
@@ -256,48 +246,77 @@ console.log('✅ Все импорты работают!')
 
 ## 5️⃣ Troubleshooting
 
-### Ошибка: Cannot find module '@domain' или '@api'
+### Ошибка: Cannot find module '@/domain' или '@/composition'
 
-**Проблема**: Vite не резолвит алиасы.
+**Проблема**: `vite-tsconfig-paths` не читает `tsconfig.json`.
 
 **Решение**:
-```typescript
-// vite.config.ts - проверить что projectRoot правильный
-const projectRoot = path.resolve(__dirname, '../../../..')
-console.log('Project root:', projectRoot)  // Должен быть /path/to/password-manager
-```
+1. Проверить что `vite-tsconfig-paths` установлен:
+   ```bash
+   pnpm add -D vite-tsconfig-paths
+   ```
+
+2. Проверить что плагин добавлен в `vite.config.ts`:
+   ```typescript
+   import tsconfigPaths from "vite-tsconfig-paths";
+   
+   export default defineConfig({
+     plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],  // ← Должен быть
+   });
+   ```
+
+3. Перезапустить dev server:
+   ```bash
+   pnpm dev:web
+   ```
 
 ### Ошибка: Module not found in routes
 
 **Проблема**: React Router не находит routes.
 
-**Решение**:
-```typescript
-// vite.config.ts
-reactRouter({
-  appDirectory: "src/presentation/web/react/src",  // ← Проверить путь
-})
-```
+**Решение**: React Router CLI автоматически настраивает `appDirectory`. Если проблема осталась:
+
+1. Проверить структуру:
+   ```
+   src/presentation/web/react/
+   ├── vite.config.ts
+   └── src/
+       └── routes/
+           └── _index.tsx
+   ```
+
+2. Перезапустить dev server
 
 ### TypeScript не видит типы
 
-**Проблема**: `tsconfig.json` paths не синхронизирован с Vite.
+**Проблема**: `tsconfig.json` paths не настроены.
 
-**Решение**: Убедиться что пути в `tsconfig.json` и `vite.config.ts` совпадают.
+**Решение**: Проверить что в `tsconfig.json` есть `paths`:
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+`vite-tsconfig-paths` автоматически синхронизирует эти пути с Vite.
 
 ---
 
 ## ✅ Чеклист
 
-- [ ] Создан `tsconfig.json` в корне с paths
-- [ ] Создан `vite.config.ts` в `src/presentation/web/react/`
-- [ ] Алиасы в vite совпадают с tsconfig paths
-- [ ] `projectRoot` в vite.config указывает на корень проекта
-- [ ] (Опционально) Tailwind CSS настроен (см. [TAILWIND_SETUP.md](./TAILWIND_SETUP.md))
+- [ ] Создан `tsconfig.json` в корне с `paths`
+- [ ] ✅ `vite.config.ts` уже создан React Router CLI
+- [ ] ✅ `vite-tsconfig-paths` уже установлен и настроен
+- [ ] (Опционально) Добавлены дополнительные настройки в `vite.config.ts` (порт, etc.)
 - [ ] `pnpm typecheck` проходит без ошибок
 - [ ] `pnpm dev:web` запускается
-- [ ] Импорты `@domain`, `@api`, `@client` работают в routes
-- [ ] Импорты `@internal/*` работают ТОЛЬКО в composition
+- [ ] Импорты `@/domain`, `@/composition` работают в routes
+- [ ] Локальные импорты `~/components` работают (React Router alias)
 
 ---
 

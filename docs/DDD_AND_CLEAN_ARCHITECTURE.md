@@ -100,9 +100,12 @@ Domain Layer полностью построен на тактических п�
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// src/domain/resource/Resource.ts
+// src/domain/resource/aggregates/Resource.ts
 import { Result, ok, err } from 'neverthrow'
-import { ResourceLockedError } from './errors'
+import { ResourceId } from '../value-objects/ResourceId'
+import { ResourceName } from '../value-objects/ResourceName'
+import { Namespace } from '../value-objects/Namespace'
+import { ResourceLockedError } from '../errors/ResourceLockedError'
 
 export class Resource {
   private constructor(
@@ -235,7 +238,9 @@ export class Resource {  // Aggregate Root
 Абстракция для получения и сохранения Aggregates.
 
 ```typescript
-// src/domain/repositories/IResourceRepository.ts
+// src/domain/resource/repositories/IResourceRepository.ts
+import type { ResourceId } from '../value-objects/ResourceId'
+import type { Resource } from '../aggregates/Resource'
 
 export interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>

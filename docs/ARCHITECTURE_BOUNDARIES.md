@@ -54,33 +54,31 @@
 ### Публичные алиасы (доступны всем)
 
 ```typescript
-// vite.config.ts
-resolve: {
-  alias: {
-    // ✅ Public API - указывают на index.ts (только экспортированное)
-    '@domain': path.resolve(projectRoot, 'src/domain/index.ts'),
-    '@api': path.resolve(projectRoot, 'src/composition/index.ts'),
-    
-    // ✅ Локальные алиасы для Presentation
-    '@client': path.resolve(projectRoot, 'src/presentation/web/react/src'),
-    
-    // ⚠️ Internal - указывают на директорию (доступ ко всем файлам)
-    // Использовать ТОЛЬКО внутри разрешенных слоев!
-    '@internal/application': path.resolve(projectRoot, 'src/application'),
-    '@internal/infrastructure': path.resolve(projectRoot, 'src/infrastructure'),
+// Примечание: В проекте используется vite-tsconfig-paths для автоматической
+// синхронизации алиасов из tsconfig.json. Ручная настройка не требуется.
+
+// tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]  // Единый алиас для всех слоев
+    }
   }
 }
 ```
 
-### Таблица назначения
+### Правила импортов через Public API
 
-| Алиас | Указывает на | Кто может использовать | Зачем |
-|-------|--------------|------------------------|-------|
-| `@domain` | `src/domain/index.ts` | Все слои | Типы, entities, value objects |
-| `@api` | `src/composition/index.ts` | Presentation | Facades (queries, commands) |
-| `@client` | `src/presentation/web/react/src` | Только Presentation | Локальные компоненты/hooks |
-| `@internal/application` | `src/application/` (директория) | Composition | Доступ к handlers |
-| `@internal/infrastructure` | `src/infrastructure/` (директория) | Composition | Доступ к адаптерам |
+| Слой | Может импортировать | Через алиас | Примеры |
+|------|-------------------|-------------|--------|
+| **Domain** | Только Domain | `@/domain/shared/*` | Errors, Invariants |
+| **Application** | Domain | `@/domain` | Entities, Value Objects |
+| **Infrastructure** | Domain | `@/domain` | Repository Interfaces |
+| **Composition** | Domain, Application, Infrastructure | `@/domain`, `@/application/*`, `@/infrastructure/*` | Handlers, Repositories |
+| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/composition` | DTO, queries, commands |
+
+**Важно:** Все импорты через Public API (`index.ts`). Composition - единственный слой с доступом ко всем остальным.
 
 ---
 
@@ -92,20 +90,18 @@ resolve: {
 // src/presentation/web/react/src/routes/_index.tsx
 
 // ✅ Типы из Domain через Public API
-import { Resource, ResourceId, Namespace } from '@domain'
+import { Resource, ResourceId, Namespace } from '@/domain'
 
 // ✅ Facades из Composition
-import { queries, commands } from '@api'
+import { queries, commands } from '@/composition'
 
-// ✅ Локальные компоненты через @client
-import { ResourceList } from '@client/components/ResourceList'
-import { useModal } from '@client/hooks/useModal'
+// ✅ Локальные компоненты (React Router alias)
+import { ResourceList } from '~/components/ResourceList'
+import { useModal } from '~/hooks/useModal'
 
-// ❌ НЕЛЬЗЯ импортировать handlers напрямую!
-// import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'
-
-// ❌ НЕЛЬЗЯ импортировать infrastructure!
-// import { ApiClient } from '@internal/infrastructure/api/ApiClient'
+// ❌ НЕЛЬЗЯ импортировать Application/Infrastructure напрямую!
+// import { GetResourcesHandler } from '@/application/queries/handlers/GetResourcesHandler'  // ❌
+// import { ApiClient } from '@/infrastructure/api/ApiClient'  // ❌
 
 export async function loader() {
   // ✅ Используем facade
@@ -116,17 +112,17 @@ export async function loader() {
 ### ✅ Composition Layer (правильно)
 
 ```typescript
-// src/composition/queries.ts
+// src/composition/queries/ResourceQueries.ts
 
 // ✅ Типы из Domain
-import { Resource } from '@domain'
+import { Resource } from '@/domain'
 
-// ✅ Handlers через @internal (доступ к реализации)
-import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'
-import { GetResourceByIdHandler } from '@internal/application/queries/GetResourceByIdHandler'
+// ✅ Handlers через Public API
+import { GetResourcesHandler } from '@/application/queries'
+import { GetResourceByIdHandler } from '@/application/queries'
 
-// ✅ Инфраструктура через @internal
-import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'
+// ✅ Инфраструктура через Public API
+import { ApiResourceRepository } from '@/infrastructure/repositories'
 
 // Facade для упрощения UI
 export const queries = {
@@ -149,7 +145,7 @@ export const queries = {
 // src/application/queries/GetResourcesHandler.ts
 
 // ✅ Только Domain
-import { Resource, IResourceRepository } from '@domain'
+import { Resource, IResourceRepository } from '@/domain'
 
 export class GetResourcesHandler {
   constructor(private repository: IResourceRepository) {}
@@ -163,15 +159,15 @@ export class GetResourcesHandler {
 ### ✅ Domain Layer (правильно)
 
 ```typescript
-// src/domain/resource/Resource.ts
+// src/domain/resource/aggregates/Resource.ts
 
 // ✅ Только другие Domain объекты (относительные пути или через @domain)
-import { ResourceId } from './ResourceId'
+import { ResourceId } from '../value-objects/ResourceId'
 import { Namespace } from './Namespace'
 import { DomainError } from '@domain/shared/errors/DomainError'
 
 // ❌ НЕЛЬЗЯ импортировать из других слоев!
-// import { GetResourcesHandler } from '@internal/application/...'
+// import { GetResourcesHandler } from '@/application/queries'  // ❌
 ```
 
 ---
@@ -239,12 +235,12 @@ export default [
         ],
       }],
       
-      // Запрет использования @internal/* в Presentation
+      // Запрет прямого импорта Application/Infrastructure в Presentation
       'no-restricted-imports': ['error', {
         patterns: [
           {
-            group: ['@internal/*'],
-            message: 'Presentation cannot use @internal/* aliases. Use @domain or @api instead.',
+            group: ['@/application/*', '@/infrastructure/*'],
+            message: 'Presentation cannot import Application/Infrastructure directly. Use @/composition facades instead.',
           },
         ],
       }],
@@ -310,9 +306,9 @@ export type {
 
 ```typescript
 // src/presentation/web/react/src/components/ResourceList.tsx
-import { Resource } from '@domain'
-import { ResourceCard } from '@client/components/ResourceCard'
-import { EmptyState } from '@client/components/EmptyState'
+import { Resource } from '@/domain'
+import { ResourceCard } from '~/components/ResourceCard'
+import { EmptyState } from '~/components/EmptyState'
 
 export function ResourceList({ resources }: { resources: Resource[] }) {
   if (resources.length === 0) {
@@ -352,8 +348,8 @@ export function useModal() {
 ### 1. Прямой импорт handlers в Presentation
 
 ```typescript
-// ❌ НЕПРАВИЛЬНО
-import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'
+// ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Application!
+import { GetResourcesHandler } from '@/application/queries'
 
 export async function loader() {
   const handler = new GetResourcesHandler(???)  // А репозиторий откуда?
@@ -361,7 +357,7 @@ export async function loader() {
 }
 
 // ✅ ПРАВИЛЬНО
-import { queries } from '@api'
+import { queries } from '@/composition'
 
 export async function loader() {
   return await queries.resources.list()  // Всё внутри!
@@ -371,24 +367,24 @@ export async function loader() {
 ### 2. Domain импортирует Application
 
 ```typescript
-// src/domain/resource/Resource.ts
+// src/domain/resource/aggregates/Resource.ts
 
 // ❌ НЕПРАВИЛЬНО - Domain не должен знать об Application!
-import { CreateResourceCommand } from '@internal/application/commands/CreateResourceCommand'
+import { CreateResourceCommand } from '@/application/commands'
 
 // ✅ ПРАВИЛЬНО - только Domain
-import { ResourceId } from './ResourceId'
-import { DomainError } from '@domain/shared/errors/DomainError'
+import { ResourceId } from '../value-objects/ResourceId'
+import { DomainError } from '@/domain/shared/errors'
 ```
 
-### 3. Использование @internal в Presentation
+### 3. Прямой импорт Infrastructure в Presentation
 
 ```typescript
-// ❌ НЕПРАВИЛЬНО
-import { ApiClient } from '@internal/infrastructure/api/ApiClient'
+// ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Infrastructure!
+import { ApiClient } from '@/infrastructure/api'
 
 // ✅ ПРАВИЛЬНО - через Composition facade
-import { queries } from '@api'
+import { queries } from '@/composition'
 ```
 
 ---
@@ -410,19 +406,20 @@ describe('Architecture Boundaries', () => {
     domainFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf-8')
       
-      expect(content).not.toContain('@internal/application')
-      expect(content).not.toContain('@internal/infrastructure')
-      expect(content).not.toContain('@api')
+      expect(content).not.toContain('@/application')
+      expect(content).not.toContain('@/infrastructure')
+      expect(content).not.toContain('@/composition')  // Domain не знает о Composition
     })
   })
   
-  it('Presentation не использует @internal/*', () => {
+  it('Presentation не импортирует Application/Infrastructure', () => {
     const presentationFiles = findTypeScriptFiles('src/presentation')
     
     presentationFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf-8')
       
-      expect(content).not.toContain('@internal/')
+      expect(content).not.toContain('@/application/')
+      expect(content).not.toContain('@/infrastructure/')
     })
   })
 })
@@ -449,18 +446,19 @@ function findTypeScriptFiles(dir: string): string[] {
 │         Composition Layer ⭐              │
 │     (DI Container + Facades)             │
 │                                          │
-│  Imports: @domain, @internal/*           │
-└─────┬────────────────────────────────────┘
+│  Imports: @/domain, @/application,     │
+│           @/infrastructure              │
+└─────┬────────────────────────────────┐
       │
-      ├─→ @internal/application
+      ├─→ @/application (Public API)
       │   ┌────────────────────────────┐
       │   │   Application Layer        │
       │   │  (Query/Command Handlers)  │
       │   │                            │
-      │   │  Imports: @domain          │
-      │   └──────────┬─────────────────┘
+      │   │  Imports: @/domain         │
+      │   └──────┬─────────────────┐
       │              │
-      ├─→ @internal/infrastructure
+      ├─→ @/infrastructure (Public API)
       │   ┌────────────────────────────┐
       │   │   Infrastructure Layer     │
       │   │  (API, Storage, Adapters)  │
@@ -483,12 +481,13 @@ function findTypeScriptFiles(dir: string): string[] {
 
 - [ ] Создан `src/domain/index.ts` с Public API
 - [ ] Создан `src/composition/index.ts` с facades
-- [ ] Алиасы `@domain`, `@api`, `@client`, `@internal/*` в vite.config.ts
-- [ ] Те же алиасы в tsconfig.json paths
+- [ ] Алиас `@/*` в tsconfig.json paths
+- [ ] `vite-tsconfig-paths` установлен и настроен
+- [ ] Созданы Public API (`index.ts`) в каждом слое
 - [ ] Установлен `eslint-plugin-boundaries`
 - [ ] Настроены правила в eslint.config.js
 - [ ] `pnpm lint` проходит без ошибок
-- [ ] Presentation не использует `@internal/*`
+- [ ] Presentation не импортирует Application/Infrastructure
 - [ ] Domain не импортирует из других слоев
 
 ---

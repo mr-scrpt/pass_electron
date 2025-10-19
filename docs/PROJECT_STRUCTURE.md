@@ -117,15 +117,15 @@ password-manager/
 - Позволяет иметь разные DI для Web/CLI/Mobile
 
 ```
-src/composition/
-├── ServiceContainer.ts    # DI Container для всех сервисов
-├── modules/
-│   └── ResourceModule.ts
-├── queries/                # Query Facades
-│   └── ResourceQueries.ts
-├── commands/               # Command Facades
-│   └── ResourceCommands.ts
-└── index.ts               # Public API
+src/composition/                        #structure:composition/
+├── ServiceContainer.ts                 #class:ServiceContainer
+├── modules/                            #structure:composition/modules/
+│   └── ResourceModule.ts               #class:ResourceModule
+├── queries/                            #structure:composition/queries/
+│   └── ResourceQueries.ts              #class:ResourceQueries
+├── commands/                           #structure:composition/commands/
+│   └── ResourceCommands.ts             #class:ResourceCommands
+└── index.ts                            # Public API
 ```
 
 **📋 Правила импортов:**
@@ -159,79 +159,79 @@ src/composition/
 - Возможность сменить UI/DB без изменения домена
 
 ```
-src/domain/
-├── resource/              # Resource Bounded Context
-│   ├── aggregates/        # Aggregate Roots
-│   │   ├── Resource.ts
+src/domain/                                     #structure:domain/
+├── resource/                                   #structure:domain/resource/
+│   ├── aggregates/                             #structure:domain/resource/aggregates/
+│   │   ├── Resource.ts                         #class:Resource
 │   │   └── index.ts
 │   │
-│   ├── entities/          # Entities (не Aggregate Roots)
-│   │   ├── SecretField.ts
-│   │   ├── CustomField.ts
+│   ├── entities/                               #structure:domain/resource/entities/
+│   │   ├── SecretField.ts                      #class:SecretField
+│   │   ├── CustomField.ts                      #class:CustomField
 │   │   └── index.ts
 │   │
-│   ├── value-objects/     # Value Objects
-│   │   ├── ResourceId.ts      #class:ResourceId
-│   │   ├── ResourceName.ts    #class:ResourceName
-│   │   ├── Namespace.ts       #class:Namespace
-│   │   ├── FieldValue.ts      #class:FieldValue
+│   ├── value-objects/                          #structure:domain/resource/value-objects/
+│   │   ├── ResourceId.ts                       #class:ResourceId
+│   │   ├── ResourceName.ts                     #class:ResourceName
+│   │   ├── Namespace.ts                        #class:Namespace
+│   │   ├── FieldValue.ts                       #class:FieldValue
 │   │   └── index.ts
 │   │
-│   ├── repositories/      # Repository Interfaces (специфичные для resource)
-│   │   ├── IResourceRepository.ts    #interface:IResourceRepository
-│   │   ├── INamespaceRepository.ts   #interface:INamespaceRepository
+│   ├── repositories/                           #structure:domain/resource/repositories/
+│   │   ├── IResourceRepository.ts              #interface:IResourceRepository
+│   │   ├── INamespaceRepository.ts             #interface:INamespaceRepository
 │   │   └── index.ts
 │   │
-│   ├── events/            # Domain Events (специфичные для resource)
-│   │   ├── ResourceCreated.ts
-│   │   ├── ResourceUpdated.ts
-│   │   ├── ResourceDeleted.ts
+│   ├── events/                                 #structure:domain/resource/events/
+│   │   ├── ResourceCreated.ts                  #interface:ResourceCreated
+│   │   ├── ResourceUpdated.ts                  #interface:ResourceUpdated
+│   │   ├── ResourceDeleted.ts                  #interface:ResourceDeleted
 │   │   └── index.ts
 │   │
-│   └── index.ts           # Public API модуля
+│   └── index.ts
 │
-├── user/                  # User Bounded Context (пример)
-│   ├── aggregates/
-│   │   ├── User.ts
+├── user/                                       #structure:domain/user/
+│   ├── aggregates/                             #structure:domain/user/aggregates/
+│   │   ├── User.ts                             #class:User
 │   │   └── index.ts
-│   ├── value-objects/
-│   │   ├── UserId.ts
-│   │   ├── Email.ts
-│   │   ├── Password.ts
+│   ├── value-objects/                          #structure:domain/user/value-objects/
+│   │   ├── UserId.ts                           #class:UserId
+│   │   ├── Email.ts                            #class:Email
+│   │   ├── Password.ts                         #class:Password
 │   │   └── index.ts
-│   ├── repositories/
-│   │   ├── IUserRepository.ts
+│   ├── repositories/                           #structure:domain/user/repositories/
+│   │   ├── IUserRepository.ts                  #interface:IUserRepository
 │   │   └── index.ts
-│   ├── events/
-│   │   ├── UserRegistered.ts
-│   │   ├── UserLoggedIn.ts
+│   ├── events/                                 #structure:domain/user/events/
+│   │   ├── UserRegistered.ts                   #interface:UserRegistered
+│   │   ├── UserLoggedIn.ts                     #interface:UserLoggedIn
 │   │   └── index.ts
 │   └── index.ts
 │
-└── shared/                # Shared Kernel (только общее)
-    ├── errors/            # Базовые Domain Errors
-    │   ├── DomainError.ts
-    │   ├── InvariantViolationError.ts
-    │   ├── NotFoundError.ts
-    │   ├── DuplicateError.ts
-    │   ├── InvalidOperationError.ts
+└── shared/                                     #structure:domain/shared/
+    ├── errors/                                 #structure:domain/shared/errors/
+    │   ├── DomainError.ts                      #class:DomainError
+    │   ├── InvariantViolationError.ts          #class:InvariantViolationError
+    │   ├── NotFoundError.ts                    #class:NotFoundError
+    │   ├── DuplicateError.ts                   #class:DuplicateError
+    │   ├── InvalidOperationError.ts            #class:InvalidOperationError
     │   └── index.ts
     │
-    ├── invariants/        # Переиспользуемые инварианты
-    │   ├── UuidInvariant.ts
-    │   ├── StringInvariant.ts
-    │   ├── EmailInvariant.ts
-    │   ├── IdentifierInvariant.ts
+    ├── invariants/                             #structure:domain/shared/invariants/
+    │   ├── UuidInvariant.ts                    #class:UuidInvariant
+    │   ├── StringInvariant.ts                  #class:StringInvariant
+    │   ├── EmailInvariant.ts                   #class:EmailInvariant
+    │   ├── IdentifierInvariant.ts              #class:IdentifierInvariant
     │   └── index.ts
     │
-    ├── base/              # Базовые классы/интерфейсы
-    │   ├── IRepository.ts     # Базовый интерфейс репозитория
-    │   ├── DomainEvent.ts     # Базовый класс событий
-    │   ├── Entity.ts          # Базовый класс Entity (опционально)
-    │   ├── ValueObject.ts     # Базовый класс VO (опционально)
+    ├── base/                                   #structure:domain/shared/base/
+    │   ├── IRepository.ts                      #interface:IRepository
+    │   ├── DomainEvent.ts                      #class:DomainEvent
+    │   ├── Entity.ts                           #class:Entity
+    │   ├── ValueObject.ts                      #class:ValueObject
     │   └── index.ts
     │
-    └── index.ts           # Public API Shared Kernel
+    └── index.ts
 ```
 
 **📌 Что говорит DDD о структуре Domain Layer:**
@@ -295,44 +295,44 @@ src/domain/
 - Преобразование DTO ↔ Domain
 
 ```
-src/application/
-├── queries/               # Queries (CQRS - Read)
-│   ├── QueryTypes.ts      # Константы типов Query
-│   ├── IQuery.ts          # Базовый интерфейс Query
-│   ├── IQueryHandler.ts   # Интерфейс обработчика
-│   ├── IQueryBus.ts       # Query Bus интерфейс
-│   ├── ListResourcesQuery.ts
-│   ├── GetResourceByIdQuery.ts
-│   ├── handlers/          # Query Handlers
-│   │   ├── ListResourcesQueryHandler.ts
-│   │   └── GetResourceByIdQueryHandler.ts
-│   ├── dtos/              # Data Transfer Objects для UI
-│   │   └── ResourceListItemDTO.ts
+src/application/                                        #structure:application/
+├── queries/                                            #structure:application/queries/
+│   ├── QueryTypes.ts
+│   ├── IQuery.ts                                       #interface:IQuery
+│   ├── IQueryHandler.ts                                #interface:IQueryHandler
+│   ├── IQueryBus.ts                                    #interface:IQueryBus
+│   ├── ListResourcesQuery.ts                           #interface:ListResourcesQuery
+│   ├── GetResourceByIdQuery.ts                         #interface:GetResourceByIdQuery
+│   ├── handlers/                                       #structure:application/queries/handlers/
+│   │   ├── ListResourcesQueryHandler.ts                #class:ListResourcesQueryHandler
+│   │   └── GetResourceByIdQueryHandler.ts              #class:GetResourceByIdQueryHandler
+│   ├── dtos/                                           #structure:application/queries/dtos/
+│   │   └── ResourceListItemDTO.ts                      #interface:ResourceListItemDTO
 │   └── index.ts
-├── commands/              # Commands (CQRS - Write)
-│   ├── CommandTypes.ts    # Константы типов команд
-│   ├── ICommand.ts        # Базовый интерфейс команды
-│   ├── ICommandHandler.ts # Интерфейс обработчика
-│   ├── ICommandBus.ts     # Command Bus интерфейс
-│   ├── CreateResourceCommand.ts
-│   ├── UpdateResourceCommand.ts
-│   ├── DeleteResourceCommand.ts
-│   ├── handlers/
-│   │   ├── CreateResourceCommandHandler.ts
-│   │   ├── UpdateResourceCommandHandler.ts
-│   │   └── DeleteResourceCommandHandler.ts
+├── commands/                                           #structure:application/commands/
+│   ├── CommandTypes.ts
+│   ├── ICommand.ts                                     #interface:ICommand
+│   ├── ICommandHandler.ts                              #interface:ICommandHandler
+│   ├── ICommandBus.ts                                  #interface:ICommandBus
+│   ├── CreateResourceCommand.ts                        #interface:CreateResourceCommand
+│   ├── UpdateResourceCommand.ts                        #interface:UpdateResourceCommand
+│   ├── DeleteResourceCommand.ts                        #interface:DeleteResourceCommand
+│   ├── handlers/                                       #structure:application/commands/handlers/
+│   │   ├── CreateResourceCommandHandler.ts             #class:CreateResourceCommandHandler
+│   │   ├── UpdateResourceCommandHandler.ts             #class:UpdateResourceCommandHandler
+│   │   └── DeleteResourceCommandHandler.ts             #class:DeleteResourceCommandHandler
 │   └── index.ts
-├── ports/                 # Ports (Hexagonal Architecture)
-│   ├── IRequestParser.ts  # Парсинг платформо-специфичных запросов
-│   ├── IClipboardService.ts
-│   ├── IStorageService.ts
+├── ports/                                              #structure:application/ports/
+│   ├── IRequestParser.ts                               #interface:IRequestParser
+│   ├── IClipboardService.ts                            #interface:IClipboardService
+│   ├── IStorageService.ts                              #interface:IStorageService
 │   └── index.ts
-├── errors/                # Application Errors
-│   ├── ValidationError.ts
-│   ├── CommandError.ts
-│   ├── QueryError.ts
+├── errors/                                             #structure:application/errors/
+│   ├── ValidationError.ts                              #class:ValidationError
+│   ├── CommandError.ts                                 #class:CommandError
+│   ├── QueryError.ts                                   #class:QueryError
 │   └── index.ts
-└── index.ts               # Public API
+└── index.ts
 ```
 
 **📋 Правила импортов:**
@@ -355,25 +355,25 @@ src/application/
 **Назначение**: Основные системы приложения (Modal, Keymap, Focus, Notification).
 
 ```
-src/application/services/
-├── modal/                 # Система модальности
-│   ├── ModalManager.ts    # Application Service
-│   ├── IModalManager.ts   # Interface
-│   ├── types.ts           # Типы
-│   └── index.ts           # Public API
-├── keymap/                # Система кеймапов
-│   ├── KeymapRegistry.ts  # Application Service
-│   ├── KeymapExecutor.ts  # Application Service
-│   ├── IKeymapRegistry.ts # Interface
+src/application/services/                               #structure:application/services/
+├── modal/                                              #structure:application/services/modal/
+│   ├── ModalManager.ts                                 #class:ModalManager
+│   ├── IModalManager.ts                                #interface:IModalManager
 │   ├── types.ts
-│   └── index.ts           # Public API
-├── focus/                 # Система фокуса
-│   ├── FocusManager.ts
-│   ├── IFocusManager.ts
+│   └── index.ts
+├── keymap/                                             #structure:application/services/keymap/
+│   ├── KeymapRegistry.ts                               #class:KeymapRegistry
+│   ├── KeymapExecutor.ts                               #class:KeymapExecutor
+│   ├── IKeymapRegistry.ts                              #interface:IKeymapRegistry
 │   ├── types.ts
-│   └── index.ts           # Public API
-└── notification/          # Система уведомлений
-    ├── NotificationManager.ts
+│   └── index.ts
+├── focus/                                              #structure:application/services/focus/
+│   ├── FocusManager.ts                                 #class:FocusManager
+│   ├── IFocusManager.ts                                #interface:IFocusManager
+│   ├── types.ts
+│   └── index.ts
+└── notification/                                       #structure:application/services/notification/
+    ├── NotificationManager.ts                          #class:NotificationManager
     ├── INotificationManager.ts
     ├── types.ts
     └── index.ts           # Public API
@@ -405,38 +405,38 @@ src/application/services/
 - Реализация технических сервисов
 
 ```
-src/infrastructure/
-├── commands/              # Command Bus (Adapters)
-│   ├── InMemoryCommandBus.ts  # Adapter: CommandBus реализация
+src/infrastructure/                                     #structure:infrastructure/
+├── commands/                                           #structure:infrastructure/commands/
+│   ├── InMemoryCommandBus.ts                           #class:InMemoryCommandBus
 │   └── index.ts
-├── queries/               # Query Bus (Adapters)
-│   ├── InMemoryQueryBus.ts    # Adapter: QueryBus реализация
+├── queries/                                            #structure:infrastructure/queries/
+│   ├── InMemoryQueryBus.ts                             #class:InMemoryQueryBus
 │   └── index.ts
-├── api/                   # API Client
-│   ├── client.ts          # HTTP Client
-│   ├── ResourceApiClient.ts
-│   ├── NamespaceApiClient.ts
-│   └── index.ts           # Public API
-├── repositories/          # Repository Implementations
-│   ├── MockResourceRepository.ts
-│   ├── ApiResourceRepository.ts
+├── api/                                                #structure:infrastructure/api/
+│   ├── client.ts                                       #class:HttpClient
+│   ├── ResourceApiClient.ts                            #class:ResourceApiClient
+│   ├── NamespaceApiClient.ts                           #class:NamespaceApiClient
 │   └── index.ts
-├── mocks/                 # Mock Data
+├── repositories/                                       #structure:infrastructure/repositories/
+│   ├── MockResourceRepository.ts                       #class:MockResourceRepository
+│   ├── ApiResourceRepository.ts                        #class:ApiResourceRepository
+│   └── index.ts
+├── mocks/                                              #structure:infrastructure/mocks/
 │   ├── resources.mock.ts
 │   └── index.ts
-├── event-bus/             # Event Bus Implementation
-│   ├── EventBus.ts
+├── event-bus/                                          #structure:infrastructure/event-bus/
+│   ├── EventBus.ts                                     #class:EventBus
 │   └── index.ts
-├── storage/               # Local Storage
-│   ├── LocalStorage.ts
+├── storage/                                            #structure:infrastructure/storage/
+│   ├── LocalStorage.ts                                 #class:LocalStorage
 │   └── index.ts
-├── clipboard/             # Clipboard Service
-│   ├── ClipboardService.ts
+├── clipboard/                                          #structure:infrastructure/clipboard/
+│   ├── ClipboardService.ts                             #class:ClipboardService
 │   └── index.ts
-└── errors/                # Infrastructure Errors
-    ├── NetworkError.ts
-    ├── ApiError.ts
-    ├── StorageError.ts
+└── errors/                                             #structure:infrastructure/errors/
+    ├── NetworkError.ts                                 #class:NetworkError
+    ├── ApiError.ts                                     #class:ApiError
+    ├── StorageError.ts                                 #class:StorageError
     └── index.ts
 ```
 

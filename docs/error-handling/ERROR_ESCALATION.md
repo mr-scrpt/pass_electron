@@ -1,4 +1,4 @@
-# Эскалация ошибок (Error Escalation)
+# Эскалация ошибок (Error Escalation) `#error-escalation` `#result-pattern` `#monads`
 
 Документ описывает проблемы традиционного подхода к обработке ошибок через `try-catch` и современные решения с использованием Result Pattern и монад.
 
@@ -104,7 +104,7 @@ catch (error) {
  */
 export type Result<T, E = Error> = Success<T> | Failure<E>
 
-export class Success<T> {
+export class Success<T> {  // #class:Success
   readonly ok = true as const
   
   constructor(readonly value: T) {}
@@ -118,7 +118,7 @@ export class Success<T> {
   }
 }
 
-export class Failure<E> {
+export class Failure<E> {  // #class:Failure
   readonly ok = false as const
   
   constructor(readonly error: E) {}
@@ -142,7 +142,7 @@ export const failure = <E>(error: E): Failure<E> => new Failure(error)
 // ✅ ХОРОШО: Явная обработка ошибок
 
 // Value Object возвращает Result
-class ResourceName {
+class ResourceName {  // #class:ResourceName
   private constructor(private readonly value: string) {}
   
   static create(value: string): Result<ResourceName, InvariantViolationError> {
@@ -158,7 +158,7 @@ class ResourceName {
 }
 
 // Command Handler использует Result
-class CreateResourceCommandHandler {
+class CreateResourceCommandHandler {  // #class:CreateResourceCommandHandler
   async handle(command: CreateResourceCommand): Promise<Result<Resource, DomainError>> {
     const nameResult = ResourceName.create(command.name)
     if (nameResult.isFailure()) {
@@ -210,7 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
 ### Установка
 
 ```bash
-npm install neverthrow
+npm install neverthrow  #command:npm-install-neverthrow
 ```
 
 ### Базовое использование
@@ -218,7 +218,7 @@ npm install neverthrow
 ```typescript
 import { Result, ok, err } from 'neverthrow'
 
-class ResourceName {
+class ResourceName {  // #class:ResourceName
   private constructor(private readonly value: string) {}
   
   static create(value: string): Result<ResourceName, InvariantViolationError> {
@@ -296,7 +296,7 @@ results.match(
 ```typescript
 import { Result, ok, err, combine } from 'neverthrow'
 
-class CreateResourceCommandHandler {
+class CreateResourceCommandHandler {  // #class:CreateResourceCommandHandler
   async handle(
     command: CreateResourceCommand
   ): Promise<Result<Resource, DomainError>> {

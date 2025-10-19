@@ -131,20 +131,20 @@ class InMemoryCommandBus implements ICommandBus {
 
 ```
 app/
-├── composition/                    # Composition Root #structure:
-│   └── ServiceContainer.ts         # Создает CommandBus #class:ServiceContainer
+├── composition/                    # Composition Root
+│   └── ServiceContainer.ts         # Создает CommandBus
 │
-├── application/                    # Application Layer #structure:
-│   └── commands/                   # Commands & Ports #structure:
-│       ├── ICommandBus.ts          # Port (интерфейс) #interface:ICommandBus
-│       ├── ICommand.ts             # Базовый интерфейс команды #interface:ICommand
-│       ├── ICommandHandler.ts      # Интерфейс обработчика #interface:ICommandHandler
+├── application/                    # Application Layer
+│   └── commands/                   # Commands & Ports
+│       ├── ICommandBus.ts          # Port (интерфейс)
+│       ├── ICommand.ts             # Базовый интерфейс команды
+│       ├── ICommandHandler.ts      # Интерфейс обработчика
 │       ├── UICommands.ts           # Конкретные команды
 │       └── index.ts
 │
-├── infrastructure/                 # Infrastructure Layer #structure:
-│   └── commands/                   # Adapters #structure:
-│       ├── InMemoryCommandBus.ts   # Реализация CommandBus #class:InMemoryCommandBus
+├── infrastructure/                 # Infrastructure Layer
+│   └── commands/                   # Adapters
+│       ├── InMemoryCommandBus.ts   # Реализация CommandBus
 │       └── index.ts
 │
 ├── core/                          # Core Systems

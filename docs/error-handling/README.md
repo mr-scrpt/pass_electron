@@ -1,4 +1,4 @@
-# Обработка ошибок# Error Handling - Обработка ошибок `#error-handling` `#ddd` `#result-pattern`
+# Error Handling - Обработка ошибок `#error-handling` `#ddd` `#result-pattern`
 
 Этот раздел содержит полную документацию по обработке ошибок, валидации и инвариантам в проекте.
 

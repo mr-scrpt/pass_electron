@@ -1,4 +1,4 @@
-# Обработка ошибок (Error Handling) `#error-handling` `#domain-errors`
+# Обработка ошибок (Error Handling)
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
@@ -6,18 +6,18 @@
 
 ## 🎯 Принципы
 
-### 1. **Domain Errors** — доменные ошибки `#domain-errors` `#layer-domain`
+### 1. **Domain Errors** — доменные ошибки
 - Нарушение бизнес-правил (инварианты)
 - Часть Ubiquitous Language
 - Должны быть понятны бизнесу
 - **Место**: 
-  - **Общие**: `src/domain/shared/errors/` #file:domain/shared/errors/ (Shared Kernel)
+  - **Общие**: `src/domain/shared/errors/` (Shared Kernel)
   - **Aggregate-specific**: `src/domain/{aggregate}/errors/`
 
-### 2. **Application Errors** — ошибки use case `#application-errors` `#layer-application`
+### 2. **Application Errors** — ошибки use case
 - Ошибки валидации команд/запросов
 - Ошибки координации
-- **Место**: `src/application/errors/` #file:application/errors/
+- **Место**: `src/application/errors/`
 
 ### 3. **Infrastructure Errors** — технические ошибки
 - Сетевые ошибки

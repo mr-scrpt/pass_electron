@@ -1,4 +1,4 @@
-# Password Manager - Архитектура клиентского приложения `#implementation-plan` `#architecture` `#password-manager`
+# Password Manager - Архитектура клиентского приложения
 
 ## Оглавление
 
@@ -33,14 +33,14 @@
 
 ---
 
-## Технологический стек `#tech-stack`
+## Технологический стек
 
-- **Platform**: Electron (desktop) `#electron`
-- **Frontend Framework**: Remix `#remix`
-- **Language**: TypeScript `#typescript`
-- **UI**: React `#react`
-- **Styling**: Tailwind CSS (предполагается) `#tailwind-css`
-- **API Communication**: Fetch API / HTTP `#api-client`
+- **Platform**: Electron (desktop)
+- **Frontend Framework**: Remix
+- **Language**: TypeScript
+- **UI**: React
+- **Styling**: Tailwind CSS (предполагается)
+- **API Communication**: Fetch API / HTTP
 
 ---
 

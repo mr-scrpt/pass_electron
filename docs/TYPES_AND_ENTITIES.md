@@ -54,39 +54,39 @@ export interface ResourceListItemDTO {
 
 ## Структура типов в Domain Layer
 
-### Модуль Resource (Bounded Context) `#bounded-context-resource` `#domain-structure`
+### Модуль Resource (Bounded Context)
 
 ```
-src/domain/resource/  #bounded-context-resource
-├── index.ts                    #file:domain/resource/index.ts #public-api
+src/domain/resource/
+├── index.ts                    # Public API модуля
 │
-├── aggregates/                 #file:domain/resource/aggregates/
-│   ├── index.ts                #file:domain/resource/aggregates/index.ts
-│   └── Resource.ts             #file:domain/resource/aggregates/Resource.ts #aggregate-resource
+├── aggregates/                 # Aggregate Roots
+│   ├── index.ts
+│   └── Resource.ts             # Aggregate Root (класс)
 │
-├── entities/                   #file:domain/resource/entities/
-│   ├── index.ts                #file:domain/resource/entities/index.ts
-│   ├── SecretField.ts          #file:domain/resource/entities/SecretField.ts #entity
-│   └── CustomField.ts          #file:domain/resource/entities/CustomField.ts #entity-customfield
+├── entities/                   # Entities (не Aggregate Roots)
+│   ├── index.ts
+│   ├── SecretField.ts          # Entity (класс)
+│   └── CustomField.ts          # Entity (класс)
 │
-├── value-objects/              #file:domain/resource/value-objects/
-│   ├── index.ts                #file:domain/resource/value-objects/index.ts
-│   ├── ResourceId.ts           #file:domain/resource/value-objects/ResourceId.ts #value-object-resourceid
-│   ├── FieldId.ts              #file:domain/resource/value-objects/FieldId.ts #value-object
-│   ├── ResourceName.ts         #file:domain/resource/value-objects/ResourceName.ts #value-object-resourcename
-│   ├── Namespace.ts            #file:domain/resource/value-objects/Namespace.ts #value-object-namespace
-│   └── FieldValue.ts           #file:domain/resource/value-objects/FieldValue.ts #value-object
+├── value-objects/              # Value Objects
+│   ├── index.ts
+│   ├── ResourceId.ts           # Value Object (класс)
+│   ├── FieldId.ts              # Value Object (класс)
+│   ├── ResourceName.ts         # Value Object (класс)
+│   ├── Namespace.ts            # Value Object (класс)
+│   └── FieldValue.ts           # Value Object (класс)
 │
-├── repositories/               #file:domain/resource/repositories/
-│   ├── index.ts                #file:domain/resource/repositories/index.ts
-│   ├── IResourceRepository.ts  #file:domain/resource/repositories/IResourceRepository.ts #repository-resource
-│   └── INamespaceRepository.ts #file:domain/resource/repositories/INamespaceRepository.ts #repository-interface
+├── repositories/               # Repository Interfaces
+│   ├── index.ts
+│   ├── IResourceRepository.ts
+│   └── INamespaceRepository.ts
 │
-└── events/                     #file:domain/resource/events/
-    ├── index.ts                #file:domain/resource/events/index.ts
-    ├── ResourceCreated.ts      #file:domain/resource/events/ResourceCreated.ts #domain-event
-    ├── ResourceUpdated.ts      #file:domain/resource/events/ResourceUpdated.ts #domain-event
-    └── ResourceDeleted.ts      #file:domain/resource/events/ResourceDeleted.ts #domain-event
+└── events/                     # Domain Events
+    ├── index.ts
+    ├── ResourceCreated.ts
+    ├── ResourceUpdated.ts
+    └── ResourceDeleted.ts
 ```
 
 ### Public API (index.ts)
@@ -141,13 +141,13 @@ export type ResourceId = string
 // - Нет бизнес-логики
 ```
 
-### ✅ ПРАВИЛЬНО - Value Object (класс) `#value-object-resourceid` `#value-object`
+### ✅ ПРАВИЛЬНО - Value Object (класс)
 
 ```typescript
-// #file:domain/resource/value-objects/ResourceId.ts
+// src/domain/resource/value-objects/ResourceId.ts
 import { Result, ok, err } from 'neverthrow'
-import { UuidInvariant } from '@/domain/shared/invariants'  // #file:domain/shared/invariants/UuidInvariant.ts
-import { InvariantViolationError } from '@/domain/shared/errors'  // #file:domain/shared/errors/InvariantViolationError.ts
+import { UuidInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'
 
 /**
  * Value Object для ID ресурса
@@ -326,13 +326,13 @@ export class ListResourcesQueryHandler {
 ### 1. Внутри Domain - Локальные импорты
 
 ```typescript
-// #file:domain/resource/aggregates/Resource.ts
+// src/domain/resource/aggregates/Resource.ts
 
-// ✅ Локальные импорты (внутри модуля) #import-rule-local
-import { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
-import { ResourceName } from '../value-objects/ResourceName'  // #file:domain/resource/value-objects/ResourceName.ts
-import { Namespace } from '../value-objects/Namespace'  // #file:domain/resource/value-objects/Namespace.ts
-import { CustomField } from '../entities/CustomField'  // #file:domain/resource/entities/CustomField.ts
+// ✅ Локальные импорты (внутри модуля)
+import { ResourceId } from '../value-objects/ResourceId'
+import { ResourceName } from '../value-objects/ResourceName'
+import { Namespace } from '../value-objects/Namespace'
+import { CustomField } from '../entities/CustomField'
 
 // ✅ Кросс-модульные импорты (через Public API)
 import { DomainError } from '@/domain/shared/errors'
@@ -386,13 +386,13 @@ import { queries } from '@/composition'
 ### Пример 1: Создание Resource в Domain
 
 ```typescript
-// #file:domain/resource/aggregates/Resource.ts #aggregate-resource
+// src/domain/resource/aggregates/Resource.ts
 import { Result, ok, err } from 'neverthrow'
-import { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
-import { ResourceName } from '../value-objects/ResourceName'  // #file:domain/resource/value-objects/ResourceName.ts
-import { Namespace } from '../value-objects/Namespace'  // #file:domain/resource/value-objects/Namespace.ts
-import { CustomField } from '../entities/CustomField'  // #file:domain/resource/entities/CustomField.ts
-import { DomainError } from '@/domain/shared/errors'  // #file:domain/shared/errors/DomainError.ts
+import { ResourceId } from '../value-objects/ResourceId'
+import { ResourceName } from '../value-objects/ResourceName'
+import { Namespace } from '../value-objects/Namespace'
+import { CustomField } from '../entities/CustomField'
+import { DomainError } from '@/domain/shared/errors'
 
 export class Resource {
   constructor(

@@ -1,8 +1,8 @@
-# Эскалация ошибок (Error Escalation) `#error-escalation` `#result-pattern`
+# Эскалация ошибок (Error Escalation)
 
 Документ описывает проблемы традиционного подхода к обработке ошибок через `try-catch` и современные решения с использованием Result Pattern и монад.
 
-> 📖 **Расширенное сравнение:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) `#file:docs/error-handling/ERROR_ESCALATION_EXTENDED.md` — детальное сравнение всех библиотек (@sweet-monads/either, fp-ts) с объяснением что такое монады и чем они отличаются.
+> 📖 **Расширенное сравнение:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение всех библиотек (@sweet-monads/either, fp-ts) с объяснением что такое монады и чем они отличаются.
 
 ---
 

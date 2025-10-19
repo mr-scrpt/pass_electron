@@ -1,4 +1,4 @@
-# Command Bus Pattern - Паттерн Командной Шины `#command-bus` `#cqrs-command`
+# Command Bus Pattern - Паттерн Командной Шины
 
 Документ описывает использование Command Bus паттерна для изоляции бизнес-логики от UI-специфичных действий в соответствии с DDD и Hexagonal Architecture.
 
@@ -13,15 +13,15 @@
 
 ---
 
-## Зачем нужен Command Bus `#command-bus` `#hexagonal-architecture`
+## Зачем нужен Command Bus
 
 ### Проблема без Command Bus
 
 ```typescript
 // ❌ ПРОБЛЕМА: Core System зависит от Browser API
-// #file:core/keymap/keymaps/resource.ts
+// app/core/keymap/keymaps/resource.ts
 
-import { Keymap } from '../types';  // #file:core/keymap/types.ts
+import { Keymap } from '../types';
 
 export const resourceKeymaps: Keymap[] = [
   {

@@ -46,10 +46,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### 1. Query Interfaces (Application Layer)
 
-**`src/application/queries/IQueryHandler.ts`** `#file:application/queries/IQueryHandler.ts` `#cqrs-query` `#layer-application`
+**`src/application/queries/IQueryHandler.ts`**
 
 ```typescript
-// #file:application/queries/IQueryHandler.ts
 export interface IQuery {
   readonly type: string;
 }
@@ -81,11 +80,10 @@ export interface IQueryBus {
 
 ### 2. Query Classes
 
-**`src/application/queries/ListResourcesQuery.ts`** `#file:application/queries/ListResourcesQuery.ts` `#cqrs-query`
+**`src/application/queries/ResourceQueries.ts`**
 
 ```typescript
-// #file:application/queries/ListResourcesQuery.ts
-import type { IQuery } from './IQueryHandler'  // #file:application/queries/IQueryHandler.tsments IQuery {
+export class ListResourcesQuery implements IQuery {
   readonly type = 'ListResourcesQuery';
   constructor(public readonly filters?: { search?: string; namespace?: string }) {}
 }
@@ -98,13 +96,13 @@ export class GetResourceByIdQuery implements IQuery {
 
 ### 3. Query Handlers
 
-**`src/application/queries/handlers/ListResourcesQueryHandler.ts`** `#file:application/queries/handlers/ListResourcesQueryHandler.ts` `#query-handler` `#cqrs-query`
+**`src/application/queries/handlers/ListResourcesQueryHandler.ts`**
 
 ```typescript
-// #file:application/queries/handlers/ListResourcesQueryHandler.ts
-import type { IQueryHandler, QueryResult } from '../IQueryHandler'  // #file:application/queries/IQueryHandler.ts
-import type { ListResourcesQuery } from '../ListResourcesQuery'  // #file:application/queries/ListResourcesQuery.ts
-import type { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'  // #file:domain/resource/repositories/IResourceRepository.tsvice) {}
+export class ListResourcesQueryHandler 
+  implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
+  
+  constructor(private resourceService: ResourceService) {}
   
   async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
     try {

@@ -6,29 +6,29 @@
 
 ## 🏗️ Слои архитектуры
 
-### 1. Domain Layer `#layer-domain` `#architecture-boundary`
+### 1. Domain Layer
 - **Роль**: Бизнес-логика, инварианты, доменные события
 - **Зависимости**: Никаких! Полностью изолирован
 - **Экспорты**: Entities, Value Objects, Domain Events, Domain Errors, Repository Interfaces
 
-### 2. Application Layer `#layer-application` `#architecture-boundary`
+### 2. Application Layer
 - **Роль**: Use Cases (Query/Command Handlers), валидация, оркестрация
 - **Зависимости**: Domain
 - **Экспорты**: Query/Command типы, Result типы
 
-### 3. Infrastructure Layer `#layer-infrastructure` `#architecture-boundary`
+### 3. Infrastructure Layer
 - **Роль**: Адаптеры (API, Storage, Clipboard, etc.)
 - **Зависимости**: Domain (реализует интерфейсы)
 - **Экспорты**: Repository реализации, Service реализации, Factories
 
-### 4. Composition Layer ⭐ `#layer-composition` `#architecture-boundary`
+### 4. Composition Layer ⭐
 - **Роль**: DI Container + Facades для упрощения UI
 - **Зависимости**: Domain, Application, Infrastructure
 - **Экспорты**: `queries`, `commands` facades
 
 **Примечание:** Это НЕ классический DDD слой! Это **Composition Root** из DI паттернов.
 
-### 5. Presentation Layer `#layer-presentation` `#architecture-boundary`
+### 5. Presentation Layer
 - **Роль**: UI (React Router routes, компоненты)
 - **Зависимости**: Domain (типы), Composition (facades)
 - **Экспорты**: Нет (конечный слой)
@@ -88,7 +88,6 @@
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-// #file:presentation/web/react/src/routes/_index.tsx
 
 // ✅ Типы из Domain через Public API
 import { Resource, ResourceId, Namespace } from '@/domain'
@@ -114,7 +113,6 @@ export async function loader() {
 
 ```typescript
 // src/composition/queries/ResourceQueries.ts
-// #file:composition/queries/ResourceQueries.ts
 
 // ✅ Типы из Domain
 import { Resource } from '@/domain'
@@ -145,7 +143,6 @@ export const queries = {
 
 ```typescript
 // src/application/queries/GetResourcesHandler.ts
-// #file:application/queries/GetResourcesHandler.ts
 
 // ✅ Только Domain
 import { Resource, IResourceRepository } from '@/domain'
@@ -163,12 +160,11 @@ export class GetResourcesHandler {
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-// #file:domain/resource/aggregates/Resource.ts
 
 // ✅ Только другие Domain объекты (относительные пути или через @domain)
-import { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
-import { Namespace } from './Namespace'  // #file:domain/resource/value-objects/Namespace.ts
-import { DomainError } from '@domain/shared/errors/DomainError'  // #file:domain/shared/errors/DomainError.ts
+import { ResourceId } from '../value-objects/ResourceId'
+import { Namespace } from './Namespace'
+import { DomainError } from '@domain/shared/errors/DomainError'
 
 // ❌ НЕЛЬЗЯ импортировать из других слоев!
 // import { GetResourcesHandler } from '@/application/queries'  // ❌

@@ -1,4 +1,4 @@
-# Project Structure - Структура проекта `#project-structure` `#architecture`
+# Project Structure - Структура проекта
 
 Детальное описание структуры проекта Password Manager с архитектурными границами и правилами импорта.
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Общая структура `#domain-structure`
+## Общая структура
 
 ```
 password-manager/
@@ -35,14 +35,14 @@ password-manager/
 │
 └── src/                           # Application code
     │
-    ├── domain/                    # Domain Layer (DDD) #layer-domain
-    │   ├── resource/              # Resource Bounded Context #bounded-context-resource
-    │   │   ├── aggregates/        # Aggregate Roots #aggregate-root
-    │   │   ├── entities/          # Entities #entity
-    │   │   ├── value-objects/     # Value Objects #value-object
-    │   │   ├── repositories/      # Repository Interfaces #repository-interface
-    │   │   ├── events/            # Domain Events #domain-event
-    │   │   └── index.ts           # Public API #public-api
+    ├── domain/                    # Domain Layer (DDD)
+    │   ├── resource/              # Resource Bounded Context
+    │   │   ├── aggregates/        # Aggregate Roots
+    │   │   ├── entities/          # Entities
+    │   │   ├── value-objects/     # Value Objects
+    │   │   ├── repositories/      # Repository Interfaces
+    │   │   ├── events/            # Domain Events
+    │   │   └── index.ts           # Public API
     │   │
     │   ├── user/                  # User Bounded Context (пример)
     │   │   └── ...
@@ -141,7 +141,7 @@ src/composition/
 - Единственное место где слои пересекаются
 - Переключение Mock ↔ Real через конфигурацию
 
-### 1. Domain Layer (`src/domain/`) 🏛️ `#layer-domain` `#domain-structure`
+### 1. Domain Layer (`src/domain/`) 📘
 
 **📚 Откуда:** Классический DDD (Eric Evans - "Domain-Driven Design")
 
@@ -160,35 +160,35 @@ src/composition/
 
 ```
 src/domain/
-├── resource/              # Resource Bounded Context `#bounded-context-resource`
+├── resource/              # Resource Bounded Context
 │   ├── aggregates/        # Aggregate Roots
-│   │   ├── Resource.ts    #file:domain/resource/aggregates/Resource.ts #aggregate-resource
-│   │   └── index.ts       #file:domain/resource/aggregates/index.ts
+│   │   ├── Resource.ts
+│   │   └── index.ts
 │   │
-│   ├── entities/          # Entities
-│   │   ├── SecretField.ts #file:domain/resource/entities/SecretField.ts #entity
-│   │   ├── CustomField.ts #file:domain/resource/entities/CustomField.ts #entity-customfield
-│   │   └── index.ts       #file:domain/resource/entities/index.ts
+│   ├── entities/          # Entities (не Aggregate Roots)
+│   │   ├── SecretField.ts
+│   │   ├── CustomField.ts
+│   │   └── index.ts
 │   │
 │   ├── value-objects/     # Value Objects
-│   │   ├── ResourceId.ts  #file:domain/resource/value-objects/ResourceId.ts #value-object-resourceid
-│   │   ├── ResourceName.ts #file:domain/resource/value-objects/ResourceName.ts #value-object-resourcename
-│   │   ├── Namespace.ts   #file:domain/resource/value-objects/Namespace.ts #value-object-namespace
-│   │   ├── FieldValue.ts  #file:domain/resource/value-objects/FieldValue.ts #value-object
-│   │   └── index.ts       #file:domain/resource/value-objects/index.ts
+│   │   ├── ResourceId.ts
+│   │   ├── ResourceName.ts
+│   │   ├── Namespace.ts
+│   │   ├── FieldValue.ts
+│   │   └── index.ts
 │   │
-│   ├── repositories/      # Repository Interfaces
-│   │   ├── IResourceRepository.ts  #file:domain/resource/repositories/IResourceRepository.ts #repository-resource
-│   │   ├── INamespaceRepository.ts #file:domain/resource/repositories/INamespaceRepository.ts #repository-interface
-│   │   └── index.ts                #file:domain/resource/repositories/index.ts
+│   ├── repositories/      # Repository Interfaces (специфичные для resource)
+│   │   ├── IResourceRepository.ts
+│   │   ├── INamespaceRepository.ts
+│   │   └── index.ts
 │   │
-│   ├── events/            # Domain Events
-│   │   ├── ResourceCreated.ts #file:domain/resource/events/ResourceCreated.ts #domain-event
-│   │   ├── ResourceUpdated.ts #file:domain/resource/events/ResourceUpdated.ts #domain-event
-│   │   ├── ResourceDeleted.ts #file:domain/resource/events/ResourceDeleted.ts #domain-event
-│   │   └── index.ts           #file:domain/resource/events/index.ts
+│   ├── events/            # Domain Events (специфичные для resource)
+│   │   ├── ResourceCreated.ts
+│   │   ├── ResourceUpdated.ts
+│   │   ├── ResourceDeleted.ts
+│   │   └── index.ts
 │   │
-│   └── index.ts           #file:domain/resource/index.ts #public-api
+│   └── index.ts           # Public API модуля
 │
 ├── user/                  # User Bounded Context (пример)
 │   ├── aggregates/
@@ -485,7 +485,7 @@ src/presentation/
         ├── postcss.config.js   # ✅ PostCSS config
         │
         └── src/           # React Router code
-            ├── routes/
+            ├── routes/    # React Router file-based routing
             │   ├── _index.tsx         # GET /
             │   ├── resources.$id.tsx  # GET /resources/:id
             │   ├── resources.new.tsx  # GET /resources/new

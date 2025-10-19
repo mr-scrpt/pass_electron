@@ -1,4 +1,4 @@
-# TypeScript & Vite Configuration `#typescript-config` `#vite-config`
+# TypeScript & Vite Configuration
 
 > **Тип**: Обязательная настройка
 > 
@@ -11,7 +11,7 @@
 Чтобы presentation мог импортировать из DDD слоев:
 
 ```typescript
-// #file:presentation/web/react/src/routes/_index.tsx #layer-presentation
+// src/presentation/web/react/src/routes/_index.tsx
 import { queries } from '@/composition'           // ← Единый алиас!
 import { Resource } from '@/domain'               // ← Через Public API!
 ```
@@ -20,7 +20,7 @@ import { Resource } from '@/domain'               // ← Через Public API!
 
 ---
 
-## 1️⃣ TypeScript Configuration (Root) `#file:tsconfig.json`
+## 1️⃣ TypeScript Configuration (Root)
 
 **Файл: `tsconfig.json`** (в корне проекта)
 

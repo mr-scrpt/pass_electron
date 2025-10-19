@@ -1,4 +1,4 @@
-# Tailwind CSS Setup - Настройка стилей `#tailwind-css` `#ui-styling`
+# Tailwind CSS Setup - Настройка стилей
 
 > **Тип**: Дополнительная библиотека (опционально)
 > 
@@ -40,7 +40,7 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 
 Добавить Tailwind plugin:
 
-**Файл:** `src/presentation/web/react/vite.config.ts` `#file:presentation/web/react/vite.config.ts`
+**Файл:** `src/presentation/web/react/vite.config.ts`
 
 ```typescript
 import { reactRouter } from "@react-router/dev/vite";

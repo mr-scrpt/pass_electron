@@ -1,22 +1,22 @@
-# Getting Started - Начало разработки `#getting-started` `#documentation-guide`
+# Getting Started - Начало разработки
 
 Руководство по началу работы над проектом Password Manager.
 
 ## Обзор документации
 
-### 1. Концепты (concepts/) `#concepts`
+### 1. Концепты (concepts/)
 Изучите концептуальные документы для понимания архитектуры:
 - `THEORETICAL_CONCEPT.md` - исходная концепция
-- `ARCHITECTURE_DESIGN.md` - детальная архитектура с DDD #file:docs/concepts/ARCHITECTURE_DESIGN.md
-- `IMPLEMENT_CONCEPT_OUTER.md` - план реализации #file:docs/concepts/IMPLEMENT_CONCEPT_OUTER.md
+- `ARCHITECTURE_DESIGN.md` - детальная архитектура с DDD
+- `IMPLEMENT_CONCEPT_OUTER.md` - план реализации
 
-### 2. Контракты (contracts/) `#contracts`
+### 2. Контракты (contracts/)
 Детальные спецификации типов и интерфейсов:
-- `domain-types.md` - все доменные типы #file:docs/contracts/domain-types.md
-- `system-interfaces.md` - интерфейсы систем #file:docs/contracts/system-interfaces.md
-- `api-contracts.md` - REST API спецификация #file:docs/contracts/api-contracts.md
-- `events.md` - все события системы #file:docs/contracts/events.md
-- `infrastructure-types.md` - типы инфраструктуры #file:docs/contracts/infrastructure-types.md
+- `domain-types.md` - все доменные типы
+- `system-interfaces.md` - интерфейсы систем
+- `api-contracts.md` - REST API спецификация
+- `events.md` - все события системы
+- `infrastructure-types.md` - типы инфраструктуры
 
 ---
 

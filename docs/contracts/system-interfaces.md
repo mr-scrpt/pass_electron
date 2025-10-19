@@ -1,10 +1,10 @@
-# System Interfaces - Интерфейсы систем `#system-interfaces` `#repository-interface`
+# System Interfaces - Интерфейсы систем
 
 Контракты для всех систем приложения.
 
-## Repository Interfaces (Domain Layer) `#repository-interface` `#layer-domain`
+## Repository Interfaces (Domain Layer)
 
-### IResourceRepository `#repository-resource` `#file:domain/repositories/IResourceRepository.ts`
+### IResourceRepository
 
 ```typescript
 /**

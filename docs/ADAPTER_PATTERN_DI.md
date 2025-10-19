@@ -1,4 +1,4 @@
-# Adapter Pattern + Dependency Injection `#adapter-pattern` `#di-pattern` `#hexagonal-architecture`
+# Adapter Pattern + Dependency Injection
 
 **Канонический подход к внедрению внешних зависимостей** (платформо-специфичных сервисов, HTTP клиентов, etc.) в приложение.
 
@@ -27,7 +27,7 @@ class ServiceContainer {
 
 ---
 
-## Решение: Adapter Pattern + DI `#adapter-pattern` `#factory-pattern`
+## Решение: Adapter Pattern + DI
 
 **Ключевая идея:**
 1. **Application Layer** → Port (интерфейс)
@@ -56,7 +56,6 @@ Infrastructure Adapters
 
 ```typescript
 // app/application/ports/IMyService.ts
-// #file:application/ports/IMyService.ts
 export interface IMyService {
   doSomething(param: string): Promise<Result>
 }
@@ -66,7 +65,6 @@ export interface IMyService {
 
 ```typescript
 // app/infrastructure/my-service/WebMyService.ts
-// #file:infrastructure/my-service/WebMyService.ts
 export class WebMyService implements IMyService {
   async doSomething(param: string): Promise<Result> {
     // Web-специфичная реализация
@@ -74,7 +72,6 @@ export class WebMyService implements IMyService {
 }
 
 // app/infrastructure/my-service/ElectronMyService.ts
-// #file:infrastructure/my-service/ElectronMyService.ts
 export class ElectronMyService implements IMyService {
   async doSomething(param: string): Promise<Result> {
     // Electron-специфичная реализация
@@ -86,7 +83,6 @@ export class ElectronMyService implements IMyService {
 
 ```typescript
 // app/infrastructure/my-service/MyServiceFactory.ts
-// #file:infrastructure/my-service/MyServiceFactory.ts
 export class MyServiceFactory {
   static createForWeb(): IMyService {
     return new WebMyService()
@@ -102,7 +98,6 @@ export class MyServiceFactory {
 
 ```typescript
 // app/composition/modules/SystemModule.ts
-// #file:composition/modules/SystemModule.ts
 export class SystemModule {
   private static myService: IMyService | null = null
 
@@ -121,7 +116,6 @@ export class SystemModule {
 
 ```typescript
 // app/composition/ServiceContainer.ts
-// #file:composition/ServiceContainer.ts
 export class ServiceContainer {
   static initialize(services: { myService: IMyService }) {
     SystemModule.initialize({ myService: services.myService })

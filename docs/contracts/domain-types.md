@@ -2,12 +2,11 @@
 
 Все типы предметной области (Domain Layer).
 
-## Resource Context `#bounded-context-resource`
+## Resource Context
 
-### Resource Aggregate `#aggregate-resource` `#entity`
+### Resource Aggregate
 
 ```typescript
-// #file:domain/resource/aggregates/Resource.ts
 /**
  * Ресурс - основная сущность приложения
  * Содержит набор секретов для конкретного сервиса
@@ -24,7 +23,6 @@ interface Resource {
 
 type ResourceId = string  // UUID
 
-// #file:domain/resource/value-objects/ResourceName.ts #value-object-resourcename
 /**
  * Value Object для имени ресурса
  * Invariants: длина от 1 до 100 символов

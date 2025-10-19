@@ -30,7 +30,7 @@
 ### ❌ Распространенное заблуждение
 
 ```typescript
-// #file:presentation/web/react/src/routes/_index.tsx #layer-presentation
+// src/presentation/web/react/src/routes/_index.tsx
 export async function loader() {  // ← НЕ клиент, это СЕРВЕР!
   // ⚠️ Старый подход - теперь используем Query Facade
   const service = getResourceService()
@@ -38,7 +38,7 @@ export async function loader() {  // ← НЕ клиент, это СЕРВЕР!
   return json({ data })
 }
 
-// ✅ Новый подход (CQRS) #cqrs-query #facade-pattern
+// ✅ Новый подход (CQRS)
 export async function loader({ request }) {
   return queries.listResources(request)  // Одна строка!
 }
@@ -48,7 +48,7 @@ export async function loader({ request }) {
 
 ---
 
-## CQRS + Facades `#cqrs` `#facade-pattern`
+## CQRS + Facades
 
 **Проблема без Facades:**
 

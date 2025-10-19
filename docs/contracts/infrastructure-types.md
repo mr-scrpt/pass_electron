@@ -1,4 +1,4 @@
-# Infrastructure Types - Типы инфраструктурного слоя `#infrastructure-types` `#layer-infrastructure`
+# Infrastructure Types - Типы инфраструктурного слоя
 
 Типы для Infrastructure Layer (API, Storage, External Services).
 
@@ -33,7 +33,7 @@ interface FeatureFlags {
 
 ---
 
-## API Client Types `#api-client` `#layer-infrastructure`
+## API Client Types
 
 ### API Response Types
 

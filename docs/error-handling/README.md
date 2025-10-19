@@ -1,4 +1,4 @@
-# Обработка ошибок (Error Handling) `#error-handling` `#navigation`
+# Обработка ошибок (Error Handling)
 
 Этот раздел содержит полную документацию по обработке ошибок, валидации и инвариантам в проекте.
 
@@ -6,7 +6,7 @@
 
 ## 📚 Содержание
 
-### 1. **[INVARIANTS.md](./INVARIANTS.md)** `#file:docs/error-handling/INVARIANTS.md` — Инварианты и валидация
+### 1. **[INVARIANTS.md](./INVARIANTS.md)** — Инварианты и валидация
 
 Документ описывает:
 - Что такое инварианты в DDD
@@ -24,7 +24,7 @@
 
 ---
 
-### 2. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** `#file:docs/error-handling/ERROR_HANDLING.md` — Иерархия ошибок
+### 2. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Иерархия ошибок
 
 Документ описывает:
 - Разделение ошибок по архитектурным слоям
@@ -43,7 +43,7 @@
 
 ---
 
-### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** `#file:docs/error-handling/ERROR_ESCALATION.md` — Эскалация ошибок через Result Pattern
+### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Result Pattern
 
 Документ описывает:
 - Проблемы традиционного `try-catch` подхода (Try-Catch Hell)
@@ -62,7 +62,7 @@
 
 ---
 
-### 4. **[ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md)** `#file:docs/error-handling/ERROR_ESCALATION_EXTENDED.md` — Детальное сравнение библиотек
+### 4. **[ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md)** — Детальное сравнение библиотек
 
 Расширенный документ с полным сравнением:
 - Что такое монады и как они работают
@@ -142,10 +142,10 @@ function findUser(id: string): Result<User, NotFoundError> {
 
 ## 🔗 Связанные документы
 
-- **[../DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md)** `#file:docs/DDD_AND_CLEAN_ARCHITECTURE.md` — Value Objects и Entities
-- **[../PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)** `#file:docs/PROJECT_STRUCTURE.md` — Структура Domain Layer
-- **[../contracts/domain-types.md](../contracts/domain-types.md)** `#file:docs/contracts/domain-types.md` — Контракты доменных типов
-- **[../../steps/step_1/README.md](../../steps/step_1/README.md)** `#file:steps/step_1/README.md` — Реализация Value Objects (Step 1)
+- **[../DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md)** — Value Objects и Entities
+- **[../PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)** — Структура Domain Layer
+- **[../contracts/domain-types.md](../contracts/domain-types.md)** — Контракты доменных типов
+- **[../../steps/step_1/README.md](../../steps/step_1/README.md)** — Реализация Value Objects (Step 1)
 
 ---
 

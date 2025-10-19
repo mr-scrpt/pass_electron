@@ -55,22 +55,22 @@ class Resource {
 Для **общих правил валидации** создаем **Shared Kernel**:
 
 ```
-src/domain/  #layer-domain
-├── shared/                      #file:domain/shared/ #shared-kernel
-│   ├── invariants/              #file:domain/shared/invariants/
-│   │   ├── UuidInvariant.ts     #file:domain/shared/invariants/UuidInvariant.ts #invariant
-│   │   ├── StringInvariant.ts   #file:domain/shared/invariants/StringInvariant.ts #invariant
-│   │   ├── EmailInvariant.ts    #file:domain/shared/invariants/EmailInvariant.ts #invariant
-│   │   └── index.ts             #file:domain/shared/invariants/index.ts
-│   ├── errors/                  #file:domain/shared/errors/
-│   │   ├── InvariantViolationError.ts  #file:domain/shared/errors/InvariantViolationError.ts #domain-error
-│   │   ├── DomainError.ts       #file:domain/shared/errors/DomainError.ts #domain-error
-│   │   └── index.ts             #file:domain/shared/errors/index.ts
-│   └── index.ts                 #file:domain/shared/index.ts
-├── value-objects/               #file:domain/resource/value-objects/
-│   ├── ResourceId.ts            #file:domain/resource/value-objects/ResourceId.ts #value-object-resourceid
-│   ├── Namespace.ts             #file:domain/resource/value-objects/Namespace.ts #value-object-namespace
-│   └── index.ts                 #file:domain/resource/value-objects/index.ts
+src/domain/
+├── shared/                      # Shared Kernel
+│   ├── invariants/              # Переиспользуемые инварианты
+│   │   ├── UuidInvariant.ts     # Валидация UUID
+│   │   ├── StringInvariant.ts   # Валидация строк
+│   │   ├── EmailInvariant.ts    # Валидация email
+│   │   └── index.ts
+│   ├── errors/                  # Domain ошибки
+│   │   ├── InvariantViolationError.ts
+│   │   ├── DomainError.ts
+│   │   └── index.ts
+│   └── index.ts
+├── value-objects/
+│   ├── ResourceId.ts            # Использует UuidInvariant
+│   ├── Namespace.ts
+│   └── index.ts
 ```
 
 ---

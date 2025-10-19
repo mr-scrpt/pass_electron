@@ -1,6 +1,6 @@
-# Эскалация ошибок — Расширенное сравнение библиотек
+# Эскалация ошибок — Расширенное сравнение библиотек `#error-escalation` `#result-pattern` `#monads`
 
-Дополнение к **ERROR_ESCALATION.md** с детальным сравнением всех библиотек для работы с Result/Either.
+Дополнение к **ERROR_ESCALATION.md** `#file:docs/error-handling/ERROR_ESCALATION.md` с детальным сравнением всех библиотек для работы с Result/Either.
 
 ---
 

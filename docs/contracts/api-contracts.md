@@ -1,4 +1,4 @@
-# API Contracts - API Контракты
+# API Contracts - API Контракты `#api-contracts` `#layer-infrastructure`
 
 Контракты для взаимодействия с backend API.
 
@@ -52,7 +52,7 @@ interface ErrorResponse {
 
 ---
 
-## Resource Endpoints
+## Resource Endpoints `#api-resource-endpoints`
 
 ### GET /api/resources
 

@@ -1,4 +1,4 @@
-# Package.json Setup - Настройка package.json и workspaces
+# Package.json Setup - Настройка package.json и workspaces `#package-json` `#pnpm-workspaces`
 
 Инструкция по настройке package.json и pnpm workspaces для проекта с DDD структурой.
 
@@ -12,7 +12,7 @@
 
 ---
 
-## 1️⃣ Root package.json
+## 1️⃣ Root package.json `#file:package.json`
 
 **Файл**: `package.json` в корне проекта
 

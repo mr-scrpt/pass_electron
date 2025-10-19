@@ -1,4 +1,4 @@
-# Composition Layer - Декомпозиция и масштабирование
+# Composition Layer - Декомпозиция и масштабирование `#layer-composition` `#di-container`
 
 Документ описывает структуру Composition Layer, декомпозицию при росте количества сущностей, и паттерны для поддержки нескольких типов UI (Web, CLI, Desktop).
 
@@ -25,23 +25,23 @@ class ServiceContainer {
 ### Структура
 
 ```
-src/composition/
-├── index.ts                      # Public API
-├── ServiceContainer.ts           # Root Container
+src/composition/  #file:composition/ #layer-composition
+├── index.ts                      #file:composition/index.ts
+├── ServiceContainer.ts           #file:composition/ServiceContainer.ts #di-container
 ├── config/
-│   └── Environment.ts            # Константы окружений
-├── modules/                      # DI Modules по сущностям
-│   ├── ResourceModule.ts
-│   ├── EntryModule.ts
-│   └── SecretModule.ts
-├── queries/                      # Query Facades по сущностям
-│   ├── index.ts
-│   ├── ResourceQueries.ts
-│   └── EntryQueries.ts
-└── commands/                     # Command Facades по сущностям
-    ├── index.ts
-    ├── ResourceCommands.ts
-    └── EntryCommands.ts
+│   └── Environment.ts            #file:composition/config/Environment.ts
+├── modules/                      #file:composition/modules/ #di-module
+│   ├── ResourceModule.ts         #file:composition/modules/ResourceModule.ts
+│   ├── EntryModule.ts            #file:composition/modules/EntryModule.ts
+│   └── SecretModule.ts           #file:composition/modules/SecretModule.ts
+├── queries/                      #file:composition/queries/ #facade-pattern #cqrs-query
+│   ├── index.ts                  #file:composition/queries/index.ts
+│   ├── ResourceQueries.ts        #file:composition/queries/ResourceQueries.ts
+│   └── EntryQueries.ts           #file:composition/queries/EntryQueries.ts
+└── commands/                     #file:composition/commands/ #facade-pattern #cqrs-command
+    ├── index.ts                  #file:composition/commands/index.ts
+    ├── ResourceCommands.ts       #file:composition/commands/ResourceCommands.ts
+    └── EntryCommands.ts          #file:composition/commands/EntryCommands.ts
 ```
 
 ---

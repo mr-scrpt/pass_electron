@@ -30,15 +30,15 @@ app/              # ❌ Framework директория
 **Наш подход**: Domain в центре, Framework снаружи
 
 ```
-src/
-├── domain/           # ✅ DDD: Domain Layer
-├── application/      # ✅ DDD: Application Layer
-├── infrastructure/   # ✅ DDD: Infrastructure Layer
-├── composition/      # ✅ DDD: Composition Root
-└── presentation/     # ✅ DDD: Presentation Layer
-    └── web/react/    # ✅ React Router изолирован
-        ├── vite.config.ts   # ✅ Build tool здесь
-        └── package.json     # ✅ Web dependencies здесь
+src/  #project-structure
+├── domain/           #file:domain/ #layer-domain
+├── application/      #file:application/ #layer-application
+├── infrastructure/   #file:infrastructure/ #layer-infrastructure
+├── composition/      #file:composition/ #layer-composition
+└── presentation/     #file:presentation/ #layer-presentation
+    └── web/react/    #file:presentation/web/react/
+        ├── vite.config.ts   #file:presentation/web/react/vite.config.ts
+        └── package.json     #file:presentation/web/react/package.json
 ```
 
 > **Принцип**: "Framework — деталь реализации, не часть бизнес-логики"

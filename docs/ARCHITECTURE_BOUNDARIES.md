@@ -6,29 +6,29 @@
 
 ## 🏗️ Слои архитектуры
 
-### 1. Domain Layer
+### 1. Domain Layer `#layer-domain` `#architecture-boundary`
 - **Роль**: Бизнес-логика, инварианты, доменные события
 - **Зависимости**: Никаких! Полностью изолирован
 - **Экспорты**: Entities, Value Objects, Domain Events, Domain Errors, Repository Interfaces
 
-### 2. Application Layer
+### 2. Application Layer `#layer-application` `#architecture-boundary`
 - **Роль**: Use Cases (Query/Command Handlers), валидация, оркестрация
 - **Зависимости**: Domain
 - **Экспорты**: Query/Command типы, Result типы
 
-### 3. Infrastructure Layer
+### 3. Infrastructure Layer `#layer-infrastructure` `#architecture-boundary`
 - **Роль**: Адаптеры (API, Storage, Clipboard, etc.)
 - **Зависимости**: Domain (реализует интерфейсы)
 - **Экспорты**: Repository реализации, Service реализации, Factories
 
-### 4. Composition Layer ⭐
+### 4. Composition Layer ⭐ `#layer-composition` `#architecture-boundary`
 - **Роль**: DI Container + Facades для упрощения UI
 - **Зависимости**: Domain, Application, Infrastructure
 - **Экспорты**: `queries`, `commands` facades
 
 **Примечание:** Это НЕ классический DDD слой! Это **Composition Root** из DI паттернов.
 
-### 5. Presentation Layer
+### 5. Presentation Layer `#layer-presentation` `#architecture-boundary`
 - **Роль**: UI (React Router routes, компоненты)
 - **Зависимости**: Domain (типы), Composition (facades)
 - **Экспорты**: Нет (конечный слой)

@@ -1,6 +1,6 @@
-# ESLint Setup - Настройка линтера с архитектурными правилами
+# ESLint Setup - Настройка линтера с архитектурными правилами `#eslint-config` `#architecture-boundaries`
 
-> **См. также**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) - полное описание архитектурных границ
+> **См. также**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) `#file:docs/ARCHITECTURE_BOUNDARIES.md` - полное описание архитектурных границ
 
 ---
 
@@ -34,7 +34,7 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 
 ## ⚙️ Конфигурация ESLint
 
-### Создать `eslint.config.js` (в корне проекта)
+### Создать `eslint.config.js` (в корне проекта) `#file:eslint.config.js`
 
 ```javascript
 import boundaries from 'eslint-plugin-boundaries'

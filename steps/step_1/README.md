@@ -101,8 +101,10 @@ Domain Layer - это основа архитектуры. Здесь опред
 
 > **📚 Детали**: [docs/error-handling/INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`** `#file:domain/shared/errors/InvariantViolationError.ts` `#domain-error` `#shared-kernel`
+
 ```typescript
+// #file:domain/shared/errors/InvariantViolationError.ts
 export class InvariantViolationError extends Error {
   readonly code = 'INVARIANT_VIOLATION'
   
@@ -116,10 +118,12 @@ export class InvariantViolationError extends Error {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`** `#file:domain/shared/invariants/UuidInvariant.ts` `#invariant` `#shared-kernel`
+
 ```typescript
+// #file:domain/shared/invariants/UuidInvariant.ts
 import { Result, ok, err } from 'neverthrow'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+import { InvariantViolationError } from '../errors/InvariantViolationError'  // #file:domain/shared/errors/InvariantViolationError.ts
 
 /**
  * Инварианты для UUID
@@ -177,11 +181,13 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы](../../docs/TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы) — Почему класс, а не type alias
 
-**Файл: `src/domain/resource/value-objects/ResourceId.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceId.ts`** `#file:domain/resource/value-objects/ResourceId.ts` `#value-object-resourceid` `#value-object`
+
 ```typescript
+// #file:domain/resource/value-objects/ResourceId.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
-import { UuidInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'  // #file:domain/shared/errors/InvariantViolationError.ts
+import { UuidInvariant } from '@/domain/shared/invariants'  // #file:domain/shared/invariants/UuidInvariant.ts
 
 /**
  * Value Object для ID ресурса
@@ -212,8 +218,10 @@ export class ResourceId {
 
 #### 1.3 Создать Value Object: Namespace
 
-**Файл: `src/domain/resource/value-objects/Namespace.ts`**
+**Файл: `src/domain/resource/value-objects/Namespace.ts`** `#file:domain/resource/value-objects/Namespace.ts` `#value-object-namespace` `#value-object`
+
 ```typescript
+// #file:domain/resource/value-objects/Namespace.ts
 export class Namespace {
   private constructor(private readonly _value: string) {}
   
@@ -246,8 +254,10 @@ export class Namespace {
 
 #### 1.4 Создать Value Object: ResourceName
 
-**Файл: `src/domain/resource/value-objects/ResourceName.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`** `#file:domain/resource/value-objects/ResourceName.ts` `#value-object-resourcename` `#value-object`
+
 ```typescript
+// #file:domain/resource/value-objects/ResourceName.ts
 export class ResourceName {
   private constructor(private readonly _value: string) {}
   
@@ -272,8 +282,10 @@ export class ResourceName {
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer) — Зачем нужны DTO
 
-**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**
+**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`** `#file:application/queries/dtos/ResourceListItemDTO.ts` `#dto-resource-list` `#dto` `#layer-application`
+
 ```typescript
+// #file:application/queries/dtos/ResourceListItemDTO.ts
 /**
  * DTO для списка ресурсов
  * Простые примитивы для UI (не Value Objects!)
@@ -298,16 +310,20 @@ export interface ResourceListItemDTO {
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
 
-**Файл: `src/domain/resource/value-objects/index.ts`**
+**Файл: `src/domain/resource/value-objects/index.ts`** `#file:domain/resource/value-objects/index.ts` `#public-api` `#bounded-context-resource`
+
 ```typescript
+// #file:domain/resource/value-objects/index.ts
 // Public API для Value Objects
 export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
 ```
 
-**Файл: `src/domain/resource/index.ts`**
+**Файл: `src/domain/resource/index.ts`** `#file:domain/resource/index.ts` `#public-api` `#bounded-context-resource`
+
 ```typescript
+// #file:domain/resource/index.ts
 // Public API модуля resource
 export * from './value-objects'
 
@@ -320,10 +336,12 @@ export * from './value-objects'
 
 #### 1.7 Создать интерфейс репозитория
 
-**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
+**Файл: `src/domain/resource/repositories/IResourceRepository.ts`** `#file:domain/resource/repositories/IResourceRepository.ts` `#repository-resource` `#repository-interface` `#layer-domain`
+
 ```typescript
-import type { ResourceId } from '../value-objects/ResourceId'
-import type { Namespace } from '../value-objects/Namespace'
+// #file:domain/resource/repositories/IResourceRepository.ts
+import type { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
+import type { Namespace } from '../value-objects/Namespace'  // #file:domain/resource/value-objects/Namespace.ts
 
 /**
  * Интерфейс репозитория ресурсов

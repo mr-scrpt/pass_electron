@@ -95,17 +95,17 @@
 
 Domain Layer полностью построен на тактических паттернах DDD и НЕ зависит от других слоев.
 
-### Entity (DDD)
+### Entity (DDD) `#entity` `#ddd-pattern`
 
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts
+// #file:domain/resource/aggregates/Resource.ts #aggregate-resource #entity
 import { Result, ok, err } from 'neverthrow'
-import { ResourceId } from '../value-objects/ResourceId'
-import { ResourceName } from '../value-objects/ResourceName'
-import { Namespace } from '../value-objects/Namespace'
-import { ResourceLockedError } from '../errors/ResourceLockedError'
+import { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
+import { ResourceName } from '../value-objects/ResourceName'  // #file:domain/resource/value-objects/ResourceName.ts
+import { Namespace } from '../value-objects/Namespace'  // #file:domain/resource/value-objects/Namespace.ts
+import { ResourceLockedError } from '../errors/ResourceLockedError'  // #file:domain/resource/errors/ResourceLockedError.ts
 
 export class Resource {
   private constructor(
@@ -233,14 +233,14 @@ export class Resource {  // Aggregate Root
 - Изменения только через Root
 - Root обеспечивает консистентность
 
-### Repository Interface (DDD)
+### Repository Interface (DDD) `#repository` `#ddd-pattern`
 
 Абстракция для получения и сохранения Aggregates.
 
 ```typescript
-// src/domain/resource/repositories/IResourceRepository.ts
-import type { ResourceId } from '../value-objects/ResourceId'
-import type { Resource } from '../aggregates/Resource'
+// #file:domain/resource/repositories/IResourceRepository.ts #repository-resource #repository-interface
+import type { Resource } from '../aggregates/Resource'  // #file:domain/resource/aggregates/Resource.ts
+import type { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
 
 export interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>

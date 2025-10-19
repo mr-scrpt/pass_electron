@@ -1,4 +1,4 @@
-# Архитектурный дизайн Password Manager
+# Архитектурный дизайн Password Manager `#architecture-design` `#ddd` `#clean-architecture`
 
 ## Содержание
 
@@ -311,7 +311,7 @@ export const MOCK_NAMESPACES: Namespace[] = [
 
 ---
 
-## Domain-Driven Design
+## Domain-Driven Design `#ddd` `#bounded-context`
 
 ### Ubiquitous Language
 
@@ -479,7 +479,7 @@ class NotificationManager {
 
 ---
 
-## Архитектурные слои
+## Архитектурные слои `#architecture-layers` `#clean-architecture`
 
 ### 1. Presentation Layer
 

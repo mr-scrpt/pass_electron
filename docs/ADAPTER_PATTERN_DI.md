@@ -1,4 +1,4 @@
-# Adapter Pattern + Dependency Injection
+# Adapter Pattern + Dependency Injection `#adapter-pattern` `#di-pattern` `#hexagonal-architecture`
 
 **Канонический подход к внедрению внешних зависимостей** (платформо-специфичных сервисов, HTTP клиентов, etc.) в приложение.
 
@@ -27,7 +27,7 @@ class ServiceContainer {
 
 ---
 
-## Решение: Adapter Pattern + DI
+## Решение: Adapter Pattern + DI `#adapter-pattern` `#factory-pattern`
 
 **Ключевая идея:**
 1. **Application Layer** → Port (интерфейс)

@@ -1,4 +1,4 @@
-# Domain Events - События предметной области
+# Domain Events - События предметной области `#domain-events` `#event-driven`
 
 Все события, которые происходят в системе.
 
@@ -18,7 +18,7 @@ interface DomainEvent {
 
 ---
 
-## Resource Context Events
+## Resource Context Events `#bounded-context-resource` `#domain-events`
 
 ### ResourceCreated
 

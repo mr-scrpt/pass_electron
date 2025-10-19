@@ -1,4 +1,4 @@
-# Инварианты (Domain Invariants)
+# Инварианты (Domain Invariants) `#invariants` `#ddd` `#validation`
 
 **Инвариант** — это бизнес-правило, которое должно **всегда** соблюдаться. В DDD инварианты обеспечивают консистентность данных и защищают границы модели.
 
@@ -17,7 +17,7 @@ if (name.length < 1 || name.length > 100) {
 }
 
 // ✅ ХОРОШО: инвариант в Value Object
-class ResourceName {
+class ResourceName {  // #class:ResourceName
   private constructor(private readonly _value: string) {}
   
   static create(value: string): ResourceName {
@@ -35,7 +35,7 @@ class ResourceName {
 Aggregates **защищают инварианты** между своими entities:
 
 ```typescript
-class Resource {
+class Resource {  // #class:Resource
   // Инвариант: ресурс не может иметь дубликаты полей
   addCustomField(field: CustomField): void {
     if (this._customFields.some(f => f.label === field.label)) {
@@ -55,21 +55,21 @@ class Resource {
 Для **общих правил валидации** создаем **Shared Kernel**:
 
 ```
-src/domain/
-├── shared/                      # Shared Kernel
-│   ├── invariants/              # Переиспользуемые инварианты
-│   │   ├── UuidInvariant.ts     # Валидация UUID
-│   │   ├── StringInvariant.ts   # Валидация строк
-│   │   ├── EmailInvariant.ts    # Валидация email
+src/domain/                      #structure:domain/
+├── shared/                      # Shared Kernel #structure:domain/shared/
+│   ├── invariants/              # Переиспользуемые инварианты #structure:domain/shared/invariants/
+│   │   ├── UuidInvariant.ts     # Валидация UUID #class:UuidInvariant
+│   │   ├── StringInvariant.ts   # Валидация строк #class:StringInvariant
+│   │   ├── EmailInvariant.ts    # Валидация email #class:EmailInvariant
 │   │   └── index.ts
-│   ├── errors/                  # Domain ошибки
-│   │   ├── InvariantViolationError.ts
-│   │   ├── DomainError.ts
+│   ├── errors/                  # Domain ошибки #structure:domain/shared/errors/
+│   │   ├── InvariantViolationError.ts  #class:InvariantViolationError
+│   │   ├── DomainError.ts         #class:DomainError
 │   │   └── index.ts
 │   └── index.ts
-├── value-objects/
-│   ├── ResourceId.ts            # Использует UuidInvariant
-│   ├── Namespace.ts
+├── value-objects/               #structure:domain/value-objects/
+│   ├── ResourceId.ts            # Использует UuidInvariant #class:ResourceId
+│   ├── Namespace.ts             #class:Namespace
 │   └── index.ts
 ```
 
@@ -84,7 +84,7 @@ src/domain/
 ```typescript
 /**
  * Базовая ошибка домена
- */
+ */ // #class:DomainError
 export abstract class DomainError extends Error {
   abstract readonly code: string
   
@@ -105,7 +105,7 @@ import { DomainError } from './DomainError'
 /**
  * Ошибка нарушения инварианта
  * Выбрасывается когда не соблюдено бизнес-правило
- */
+ */ // #class:InvariantViolationError
 export class InvariantViolationError extends DomainError {
   readonly code = 'INVARIANT_VIOLATION'
   
@@ -139,7 +139,7 @@ import { InvariantViolationError } from '../errors'
  * 
  * UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
  * где x - любая hex цифра, y - одна из [8, 9, a, b]
- */
+ */ // #class:UuidInvariant
 export class UuidInvariant {
   private static readonly UUID_V4_REGEX = 
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -183,7 +183,7 @@ import { InvariantViolationError } from '../errors'
 /**
  * Инварианты для строк
  * Переиспользуемые правила валидации строк
- */
+ */ // #class:StringInvariant
 export class StringInvariant {
   /**
    * Проверка длины строки
@@ -262,7 +262,7 @@ import { StringInvariant } from './StringInvariant'
 /**
  * Композитный инвариант для идентификаторов
  * Применяет набор правил валидации как единое целое
- */
+ */ // #class:IdentifierInvariant
 export class IdentifierInvariant {
   /**
    * Валидация длинного идентификатора (для ресурсов)

@@ -16,11 +16,13 @@
 
 ## Основные понятия
 
-### Три типа "типов" в проекте [#code]
+### Три типа "типов" в проекте
 
 1. **Value Objects (классы)** - Domain Layer, содержат бизнес-логику
 2. **Entities (классы)** - Domain Layer, имеют идентичность
 3. **DTO (интерфейсы)** - Application Layer, простые объекты для UI
+
+#### Примеры трех типов [#class:ResourceId|#class:CustomField|#interface:ResourceListItemDTO|#code]
 
 ```typescript
 // 1. Value Object (класс с логикой)
@@ -89,30 +91,32 @@ src/domain/resource/
     └── ResourceDeleted.ts
 ```
 
-### Public API (index.ts) [#code|#structure:path]
+### Public API (index.ts)
+
+#### Главный index.ts модуля [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/index.ts
 
 // ✅ Экспортируем через подмодули (Public API)
-export * from './aggregates'      //
-export * from './entities'        //
-export * from './value-objects'   //
-export * from './repositories'    //
+export * from './aggregates'
+export * from './entities'
+export * from './value-objects'
+export * from './repositories'
 export * from './events'
 
 // ❌ НЕ экспортируем TypeScript type aliases
 // export type ResourceId = string  // НЕТ! У нас класс
 ```
 
-[#code|#structure:path]
+#### Public API для Aggregates [#class:Resource|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/index.ts
 export { Resource } from './Resource'
 ```
 
-[#code|#structure:path]
+#### Public API для Entities [#class:SecretField|#class:CustomField|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/entities/index.ts
@@ -120,7 +124,7 @@ export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
 ```
 
-[#code|#structure:path]
+#### Public API для Value Objects [#class:ResourceId|#class:FieldId|#class:ResourceName|#class:Namespace|#class:FieldValue|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/index.ts
@@ -250,7 +254,9 @@ src/application/
         └── UpdateResourceDTO.ts
 ```
 
-### Примеры DTO [#interface:ResourceListItemDTO|#code|#structure:path]
+### Примеры DTO
+
+#### DTO для списка ресурсов [#interface:ResourceListItemDTO|#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/ResourceListItemDTO.ts
@@ -268,7 +274,7 @@ export interface ResourceListItemDTO {
 }
 ```
 
-[#interface:ResourceDetailDTO|#code|#structure:path]
+#### DTO для детальной страницы [#interface:ResourceDetailDTO|#interface:CustomFieldDTO|#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/ResourceDetailDTO.ts
@@ -295,7 +301,7 @@ export interface CustomFieldDTO {
 }
 ```
 
-[#code|#structure:path]
+#### Public API для DTO [#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/index.ts (Public API)

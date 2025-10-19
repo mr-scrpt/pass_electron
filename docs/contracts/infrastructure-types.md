@@ -1,4 +1,4 @@
-# Infrastructure Types - Типы инфраструктурного слоя `#infrastructure-types` `#api` `#storage`
+# Infrastructure Types - Типы инфраструктурного слоя
 
 Типы для Infrastructure Layer (API, Storage, External Services).
 

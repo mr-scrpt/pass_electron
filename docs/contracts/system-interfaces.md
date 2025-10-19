@@ -1,4 +1,4 @@
-# System Interfaces - Интерфейсы систем `#system-interfaces` `#interfaces` `#contracts`
+# System Interfaces - Интерфейсы систем
 
 Контракты для всех систем приложения.
 

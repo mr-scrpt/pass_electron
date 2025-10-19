@@ -1,4 +1,4 @@
-# Domain Types - Доменные типы `#domain-types` `#ddd` `#value-objects`
+# Domain Types - Доменные типы
 
 Все типы предметной области (Domain Layer).
 

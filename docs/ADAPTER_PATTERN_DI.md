@@ -1,4 +1,4 @@
-# Adapter Pattern + Dependency Injection `#adapter-pattern` `#di` `#hexagonal-architecture`
+# Adapter Pattern + Dependency Injection
 
 **Канонический подход к внедрению внешних зависимостей** (платформо-специфичных сервисов, HTTP клиентов, etc.) в приложение.
 

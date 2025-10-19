@@ -1,4 +1,4 @@
-# Password Manager - Архитектура клиентского приложения `#client-architecture` `#electron` `#modal-system` `#keyboard-first`
+# Password Manager - Архитектура клиентского приложения
 
 ## Оглавление
 

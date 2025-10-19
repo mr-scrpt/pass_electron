@@ -1,4 +1,4 @@
-# Contracts - Контракты приложения `#contracts` `#interfaces` `#types`
+# Contracts - Контракты приложения
 
 Полная спецификация типов, интерфейсов и контрактов для Password Manager.
 

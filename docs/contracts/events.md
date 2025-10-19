@@ -1,4 +1,4 @@
-# Domain Events - События предметной области `#domain-events` `#event-driven` `#ddd`
+# Domain Events - События предметной области
 
 Все события, которые происходят в системе.
 

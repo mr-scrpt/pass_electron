@@ -1,4 +1,4 @@
-# Project Structure - Структура проекта `#project-structure` `#architecture`
+# Project Structure - Структура проекта
 
 Детальное описание структуры проекта Password Manager с архитектурными границами и правилами импорта.
 

@@ -1,4 +1,4 @@
-# Эскалация ошибок (Error Escalation) `#error-escalation` `#result-pattern` `#monads`
+# Эскалация ошибок (Error Escalation)
 
 Документ описывает проблемы традиционного подхода к обработке ошибок через `try-catch` и современные решения с использованием Result Pattern и монад.
 

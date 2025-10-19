@@ -1,4 +1,4 @@
-# Query Handlers & Facade Pattern `#query-handlers` `#cqrs` `#facade-pattern`
+# Query Handlers & Facade Pattern
 
 Чтение данных в Remix Loaders через Query Handlers и Facade, следуя CQRS, DDD и Clean Architecture.
 

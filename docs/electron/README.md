@@ -1,4 +1,4 @@
-# Electron - Packaging Layer `#electron` `#packaging` `#desktop`
+# Electron - Packaging Layer
 
 > **⚠️ Ключевая концепция**: Electron **НЕ является частью архитектуры приложения**. Это **packaging layer** - способ упаковки веб-приложения в desktop формат.
 

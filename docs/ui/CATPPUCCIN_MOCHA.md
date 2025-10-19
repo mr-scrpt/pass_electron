@@ -1,4 +1,4 @@
-# Catppuccin Mocha - Цветовая схема `#ui` `#catppuccin` `#theme` `#tailwind`
+# Catppuccin Mocha - Цветовая схема
 
 Проект использует цветовую схему Catppuccin Mocha.** — популярную темную цветовую схему с пастельными оттенками.
 

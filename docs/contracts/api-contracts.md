@@ -1,4 +1,4 @@
-# API Contracts - API Контракты `#api-contracts` `#rest-api` `#http`
+# API Contracts - API Контракты
 
 Контракты для взаимодействия с backend API.
 

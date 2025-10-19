@@ -1,4 +1,4 @@
-# Command Bus Pattern - Паттерн Командной Шины `#command-bus` `#cqrs` `#hexagonal-architecture`
+# Command Bus Pattern - Паттерн Командной Шины
 
 Документ описывает использование Command Bus паттерна для изоляции бизнес-логики от UI-специфичных действий в соответствии с DDD и Hexagonal Architecture.
 

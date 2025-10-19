@@ -1,4 +1,4 @@
-# Обработка ошибок (Error Handling) `#error-handling` `#ddd` `#clean-architecture`
+# Обработка ошибок (Error Handling)
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 

@@ -20,7 +20,7 @@
 
 ---
 
-## Порядок изучения
+## Порядок изучения [#structure:tree]
 
 ```
 1. concepts/THEORETICAL_CONCEPT.md

@@ -88,6 +88,7 @@
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
+// #file:presentation/web/react/src/routes/_index.tsx
 
 // ✅ Типы из Domain через Public API
 import { Resource, ResourceId, Namespace } from '@/domain'
@@ -113,6 +114,7 @@ export async function loader() {
 
 ```typescript
 // src/composition/queries/ResourceQueries.ts
+// #file:composition/queries/ResourceQueries.ts
 
 // ✅ Типы из Domain
 import { Resource } from '@/domain'
@@ -143,6 +145,7 @@ export const queries = {
 
 ```typescript
 // src/application/queries/GetResourcesHandler.ts
+// #file:application/queries/GetResourcesHandler.ts
 
 // ✅ Только Domain
 import { Resource, IResourceRepository } from '@/domain'
@@ -160,11 +163,12 @@ export class GetResourcesHandler {
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
+// #file:domain/resource/aggregates/Resource.ts
 
 // ✅ Только другие Domain объекты (относительные пути или через @domain)
-import { ResourceId } from '../value-objects/ResourceId'
-import { Namespace } from './Namespace'
-import { DomainError } from '@domain/shared/errors/DomainError'
+import { ResourceId } from '../value-objects/ResourceId'  // #file:domain/resource/value-objects/ResourceId.ts
+import { Namespace } from './Namespace'  // #file:domain/resource/value-objects/Namespace.ts
+import { DomainError } from '@domain/shared/errors/DomainError'  // #file:domain/shared/errors/DomainError.ts
 
 // ❌ НЕЛЬЗЯ импортировать из других слоев!
 // import { GetResourcesHandler } from '@/application/queries'  // ❌

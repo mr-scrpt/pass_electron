@@ -1,10 +1,10 @@
-# Contracts - Контракты приложения
+# Contracts - Контракты приложения `#contracts` `#types`
 
 Полная спецификация типов, интерфейсов и контрактов для Password Manager.
 
 ## Файлы контрактов
 
-### 📘 [domain-types.md](./domain-types.md)
+### 📘 [domain-types.md](./domain-types.md) `#file:docs/contracts/domain-types.md`
 **Доменные типы предметной области**
 
 Содержит:
@@ -19,7 +19,7 @@
 
 ---
 
-### 🔌 [system-interfaces.md](./system-interfaces.md)
+### 🔌 [system-interfaces.md](./system-interfaces.md) `#file:docs/contracts/system-interfaces.md`
 **Интерфейсы систем и сервисов**
 
 Содержит:
@@ -35,7 +35,7 @@
 
 ---
 
-### 🌐 [api-contracts.md](./api-contracts.md)
+### 🌐 [api-contracts.md](./api-contracts.md) `#file:docs/contracts/api-contracts.md`
 **REST API контракты**
 
 Содержит:
@@ -51,7 +51,7 @@
 
 ---
 
-### 📡 [events.md](./events.md)
+### 📡 [events.md](./events.md) `#file:docs/contracts/events.md`
 **Domain Events**
 
 Содержит:
@@ -66,7 +66,7 @@
 
 ---
 
-### 🛠️ [infrastructure-types.md](./infrastructure-types.md)
+### 🛠️ [infrastructure-types.md](./infrastructure-types.md) `#file:docs/contracts/infrastructure-types.md`
 **Типы инфраструктурного слоя**
 
 Содержит:
@@ -406,7 +406,7 @@ class Namespace {
 }
 ```
 
-> **📚 См. также**: [INVARIANTS.md](../error-handling/INVARIANTS.md) — Полное описание паттерна Invariants и Shared Kernel
+> **📚 См. также**: [INVARIANTS.md](../error-handling/INVARIANTS.md) `#file:docs/error-handling/INVARIANTS.md` — Полное описание паттерна Invariants и Shared Kernel
 
 ---
 

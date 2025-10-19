@@ -1,17 +1,17 @@
-# Password Manager - Документация
+# Password Manager - Документация `#documentation` `#navigation`
 
 ## Структура документации
 
 ### 🚀 Начало работы
-- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Руководство по началу разработки
-- **[DDD_AND_CLEAN_ARCHITECTURE.md](./DDD_AND_CLEAN_ARCHITECTURE.md)** - Обзор: как DDD и Clean Architecture сочетаются в проекте
-- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта, архитектурные границы и правила импорта
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** `#file:docs/GETTING_STARTED.md` - Руководство по началу разработки
+- **[DDD_AND_CLEAN_ARCHITECTURE.md](./DDD_AND_CLEAN_ARCHITECTURE.md)** `#file:docs/DDD_AND_CLEAN_ARCHITECTURE.md` - Обзор: как DDD и Clean Architecture сочетаются в проекте
+- **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** `#file:docs/PROJECT_STRUCTURE.md` - Структура проекта, архитектурные границы и правила импорта
 
 ### 🚨 Обработка ошибок (`error-handling/`)
-- **[INVARIANTS.md](./error-handling/INVARIANTS.md)** - Инварианты и Shared Kernel для переиспользуемых правил валидации
-- **[ERROR_HANDLING.md](./error-handling/ERROR_HANDLING.md)** - Обработка ошибок: Domain/Application/Infrastructure Errors
-- **[ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** - Эскалация ошибок: Result Pattern и монады (neverthrow)
-  - **[ERROR_ESCALATION_EXTENDED.md](./error-handling/ERROR_ESCALATION_EXTENDED.md)** - Расширенное сравнение всех библиотек (@sweet-monads/either, fp-ts)
+- **[INVARIANTS.md](./error-handling/INVARIANTS.md)** `#file:docs/error-handling/INVARIANTS.md` - Инварианты и Shared Kernel для переиспользуемых правил валидации
+- **[ERROR_HANDLING.md](./error-handling/ERROR_HANDLING.md)** `#file:docs/error-handling/ERROR_HANDLING.md` - Обработка ошибок: Domain/Application/Infrastructure Errors
+- **[ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** `#file:docs/error-handling/ERROR_ESCALATION.md` - Эскалация ошибок: Result Pattern и монады (neverthrow)
+  - **[ERROR_ESCALATION_EXTENDED.md](./error-handling/ERROR_ESCALATION_EXTENDED.md)** `#file:docs/error-handling/ERROR_ESCALATION_EXTENDED.md` - Расширенное сравнение всех библиотек (@sweet-monads/either, fp-ts)
 
 ### 🏗️ Архитектура и паттерны
 - **[TYPES_AND_ENTITIES.md](./TYPES_AND_ENTITIES.md)** - Типизация в DDD: Value Objects, Entities, DTO ⭐

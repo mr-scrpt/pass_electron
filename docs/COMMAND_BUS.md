@@ -15,11 +15,11 @@
 
 ## Зачем нужен Command Bus
 
-### Проблема без Command Bus
+### Проблема без Command Bus [#code|#structure:path]
 
 ```typescript
 // ❌ ПРОБЛЕМА: Core System зависит от Browser API
-// app/core/keymap/keymaps/resource.ts  #structure:
+// app/core/keymap/keymaps/resource.ts
 
 import { Keymap } from '../types';
 
@@ -73,16 +73,22 @@ Command Bus - это посредник между Core Systems и UI Layer, к�
 
 ### Command Bus в Hexagonal Architecture
 
+#### Port - интерфейс [#interface:ICommandBus|#code]
+
 **Port** (интерфейс) - определяет ЧТО нужно Application Core:
+
 ```typescript
-interface ICommandBus {  // #interface:ICommandBus
+interface ICommandBus {
   dispatch<T extends ICommand>(command: T): Promise<void>;
 }
 ```
 
+#### Adapter - реализация [#class:InMemoryCommandBus|#code]
+
 **Adapter** (реализация) - определяет КАК это сделать:
+
 ```typescript
-class InMemoryCommandBus implements ICommandBus {  // #class:InMemoryCommandBus
+class InMemoryCommandBus implements ICommandBus {
   // Конкретная реализация
 }
 ```
@@ -121,7 +127,7 @@ class InMemoryCommandBus implements ICommandBus {  // #class:InMemoryCommandBus
 
 ## Архитектура
 
-### Структура слоев
+### Структура слоев [#structure:tree]
 
 ```
 app/
@@ -170,7 +176,7 @@ Command Handlers (Presentation)
 
 ### 1. Ports (Application Layer)
 
-**Файл: `src/application/commands/ICommand.ts`**  `#structure:
+#### ICommand - базовый интерфейс [#interface:ICommand|#code|#structure:path]
 
 ```typescript
 /**
@@ -181,7 +187,7 @@ export interface ICommand {
 }
 ```
 
-**Файл: `src/application/commands/ICommandHandler.ts`**  `#structure:
+#### ICommandHandler - обработчик команды [#interface:ICommandHandler|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -194,7 +200,7 @@ export interface ICommandHandler<T extends ICommand> {
 }
 ```
 
-**Файл: `src/application/commands/ICommandBus.ts`**  `#structure:
+#### ICommandBus - шина команд [#interface:ICommandBus|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -227,7 +233,7 @@ export interface ICommandBus {
 }
 ```
 
-**Файл: `src/application/commands/UICommands.ts`**  `#structure:
+#### UI Команды [#class:DeleteResourceCommand|#class:NavigateToCommand|#class:ShowNotificationCommand|#class:CopyToClipboardCommand|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -272,7 +278,7 @@ export class CopyToClipboardCommand implements ICommand {
 }
 ```
 
-**Файл: `src/application/commands/index.ts`**  `#structure:
+#### Public API для Commands [#code|#structure:path]
 
 ```typescript
 export type { ICommand } from './ICommand';
@@ -285,14 +291,14 @@ export * from './UICommands';
 
 ### 2. Adapter (Infrastructure Layer)
 
-**Файл: `src/infrastructure/commands/InMemoryCommandBus.ts`**  `#structure:
+#### InMemoryCommandBus - реализация [#class:InMemoryCommandBus|#code|#structure:path]
 
 ```typescript
 import type { 
   ICommandBus, 
   ICommand, 
   ICommandHandler 
-} from '@/application/commands';  #structure:
+} from '@/application/commands';
 
 /**
  * In-Memory реализация Command Bus
@@ -335,7 +341,7 @@ export class InMemoryCommandBus implements ICommandBus {
 }
 ```
 
-**Файл: `src/infrastructure/commands/index.ts`**  `#structure:
+#### Public API для Infrastructure Commands [#code|#structure:path]
 
 ```typescript
 export { InMemoryCommandBus } from './InMemoryCommandBus';
@@ -345,11 +351,11 @@ export { InMemoryCommandBus } from './InMemoryCommandBus';
 
 ### 3. Composition Root
 
-**Файл: `src/composition/ServiceContainer.ts`**  `#structure:
+#### Регистрация CommandBus [#code|#structure:path]
 
 ```typescript
-import { InMemoryCommandBus } from '@/infrastructure/commands';  #structure:
-import type { ICommandBus } from '@/application/commands';  #structure:
+import { InMemoryCommandBus } from '@/infrastructure/commands';
+import type { ICommandBus } from '@/application/commands';
 
 class ServiceContainer {
   private static commandBus: ICommandBus | null = null;
@@ -376,10 +382,10 @@ export const getCommandBus = () => ServiceContainer.getCommandBus();
 
 ### 1. В Core Systems (Keymaps)
 
-**Файл: `src/application/services/keymap/types.ts`**  `#structure:
+#### Определение Keymap с CommandBus [#code|#structure:path]
 
 ```typescript
-import type { ICommandBus } from '@/application/commands';  #structure:
+import type { ICommandBus } from '@/application/commands';
 
 export interface ActionContext {
   mode: AppMode;
@@ -394,14 +400,14 @@ export interface ActionContext {
 }
 ```
 
-**Файл: `src/application/services/keymap/keymaps/resource.ts`**  `#structure:
+#### Пример Keymap с командами [#code|#structure:path]
 
 ```typescript
 import { Keymap } from '../types';
 import { 
   DeleteResourceCommand,
   ShowNotificationCommand 
-} from '@/application/commands';  #structure:
+} from '@/application/commands';
 
 /**
  * ✅ ПРАВИЛЬНО: Использует CommandBus через абстракцию
@@ -433,10 +439,10 @@ export const resourceKeymaps: Keymap[] = [
 
 ### 2. В KeymapExecutor (передача CommandBus)
 
-**Файл: `src/application/services/keymap/KeymapExecutor.ts`**  `#structure:
+#### KeymapExecutor с CommandBus [#code|#structure:path]
 
 ```typescript
-import type { ICommandBus } from '@/application/commands';  #structure:
+import type { ICommandBus } from '@/application/commands';
 
 export class KeymapExecutor {
   constructor(
@@ -472,17 +478,17 @@ export class KeymapExecutor {
 
 ### 3. В Presentation Layer (Command Handlers)
 
-**Файл: `src/presentation/web/react/src/routes/resources.$id.tsx`**  `#structure:
+#### Регистрация Handlers [#code|#structure:path]
 
 ```typescript
 import { useEffect } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
-import { getCommandBus } from '@/composition';  #structure:
+import { getCommandBus } from '@/composition';
 import { 
   DeleteResourceCommand,
   NavigateToCommand,
   type ICommandHandler 
-} from '@/application/commands';  #structure:
+} from '@/application/commands';
 
 /**
  * Handler для удаления ресурса
@@ -540,76 +546,82 @@ export default function ResourceDetail() {
 
 ### ✅ DO: Правильные практики
 
-1. **Команды как Value Objects**
-   ```typescript
+#### 1. Команды как Value Objects [#code]
+
+```typescript
    // ✅ Immutable, содержит только данные
    export class DeleteResourceCommand implements ICommand {
      readonly type = 'DeleteResourceCommand';
      constructor(public readonly resourceId: string) {}
    }
-   ```
+```
 
-2. **Type-safe dispatch**
-   ```typescript
+#### 2. Type-safe dispatch [#code]
+
+```typescript
    // ✅ TypeScript проверяет типы
    await commandBus.dispatch(new DeleteResourceCommand('123'));
-   ```
+```
 
-3. **Регистрация handlers в useEffect**
-   ```typescript
+#### 3. Регистрация handlers в Composition Root [#code]
+
+```typescript
    // ✅ С cleanup
    useEffect(() => {
      commandBus.register('MyCommand', handler);
      return () => commandBus.unregister('MyCommand');
    }, []);
-   ```
+```
 
-4. **Один handler на команду**
-   ```typescript
+#### 4. Один handler на команду [#code]
+
+```typescript
    // ✅ Четкая ответственность
    class DeleteResourceHandler implements ICommandHandler<DeleteResourceCommand> {
      async handle(command: DeleteResourceCommand): Promise<void> {
        // Только логика удаления
      }
    }
-   ```
+```
 
-5. **Команды именуются в повелительном наклонении**
-   ```typescript
+#### 5. Команды именуются в повелительном наклонении [#code]
+
+```typescript
    // ✅ Выражают намерение
    DeleteResourceCommand
    NavigateToCommand
    ShowNotificationCommand
-   ```
+```
 
 ---
 
 ### ❌ DON'T: Антипаттерны
 
-1. **НЕ обходить CommandBus**
-   ```typescript
+#### 1. НЕ обходить CommandBus
+
+```typescript
    // ❌ Прямой вызов DOM API
    window.dispatchEvent(new CustomEvent('delete'));
    
    // ✅ Через CommandBus
    commandBus.dispatch(new DeleteResourceCommand(id));
-   ```
+```
 
-2. **НЕ создавать богатые команды**
-   ```typescript
-   // ❌ Логика в команде
-   class DeleteResourceCommand {
-     async execute() { /* логика */ }
-   }
-   
-   // ✅ Только данные
+#### 2. НЕ создавать богатые команды [#code]
+
+```typescript
+   // ❌ Богатая команда с логикой
    class DeleteResourceCommand {
      constructor(public readonly resourceId: string) {}
+     async handle(): Promise<void> {
+       // Логика удаления
+     }
    }
-   ```
+```
 
-3. **НЕ регистрировать handlers в render**
-   ```typescript
+#### 3. НЕ регистрировать handlers в render [#code]
+
+```typescript
    // ❌ Регистрация при каждом рендере
    function Component() {
      commandBus.register('MyCommand', handler);
@@ -620,10 +632,31 @@ export default function ResourceDetail() {
      commandBus.register('MyCommand', handler);
      return () => commandBus.unregister('MyCommand');
    }, []);
-   ```
+```
 
-4. **НЕ игнорировать ошибки**
-   ```typescript
+#### 4. НЕ делать команды мутабельными [#code]
+
+```typescript
+   // ❌ Мутабельная команда
+   class DeleteResourceCommand {
+     public resourceId: string;
+     constructor(resourceId: string) {
+       this.resourceId = resourceId;
+     }
+   }
+   
+   // ✅ Immutable команда
+   class DeleteResourceCommand {
+     public readonly resourceId: string;
+     constructor(resourceId: string) {
+       this.resourceId = resourceId;
+     }
+   }
+```
+
+#### 5. НЕ игнорировать ошибки [#code]
+
+```typescript
    // ❌ Без обработки
    await commandBus.dispatch(command);
    

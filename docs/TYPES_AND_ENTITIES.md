@@ -109,14 +109,14 @@ export * from './events'
 // export type ResourceId = string  // НЕТ! У нас класс
 ```
 
-#### Public API для Aggregates [#class:Resource|#code|#structure:path]
+#### Public API для Aggregates [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/index.ts
 export { Resource } from './Resource'
 ```
 
-#### Public API для Entities [#class:SecretField|#class:CustomField|#code|#structure:path]
+#### Public API для Entities [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/entities/index.ts
@@ -124,7 +124,7 @@ export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
 ```
 
-#### Public API для Value Objects [#class:ResourceId|#class:FieldId|#class:ResourceName|#class:Namespace|#class:FieldValue|#code|#structure:path]
+#### Public API для Value Objects [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/index.ts

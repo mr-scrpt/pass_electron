@@ -1,6 +1,6 @@
-# Catppuccin Mocha — Цветовая палитра
+# Catppuccin Mocha - Цветовая схема `#ui` `#catppuccin` `#theme` `#tailwind`
 
-Проект использует **Catppuccin Mocha** — популярную темную цветовую схему с пастельными оттенками.
+Проект использует цветовую схему Catppuccin Mocha.** — популярную темную цветовую схему с пастельными оттенками.
 
 > **📚 Официальная документация**: [catppuccin/tailwindcss](https://github.com/catppuccin/tailwindcss)  
 > **🎨 Интерактивная палитра**: [tailwindcss.catppuccin.com](https://tailwindcss.catppuccin.com/)

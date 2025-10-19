@@ -461,7 +461,7 @@ function findTypeScriptFiles(dir: string): string[] {
 
 ---
 
-## 📊 Визуализация зависимостей
+## 📊 Визуализация зависимостей [#diagram:architecture]
 
 ```
 ┌─────────────────────────────────────────┐

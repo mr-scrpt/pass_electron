@@ -95,6 +95,8 @@ class InMemoryCommandBus implements ICommandBus {
 
 **Правило:** Ports принадлежат Application Core, Adapters - Infrastructure.
 
+#### Hexagonal Architecture - Ports & Adapters [#diagram:architecture]
+
 ```
 ┌─────────────────────────────────────────┐
 │     Application Core                    │
@@ -156,7 +158,7 @@ app/
     └── resources.$id.tsx           # Регистрирует Handlers
 ```
 
-### Направление зависимостей
+### Направление зависимостей [#diagram:flow]
 
 ```
 Core Systems (keymap)

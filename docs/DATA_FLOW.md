@@ -81,7 +81,7 @@ export async function loader() {
 - **Facades** - предоставляют простой API для UI (queries.resources.list())
 - **Request Parser** - парсит платформенно-специфичные запросы в DTO
 
-### Архитектура с CQRS + Facades
+### Архитектура с CQRS + Facades [#diagram:flow]
 
 ```
 ┌─────────────────────────────────────────────────┐
@@ -261,7 +261,7 @@ export const queries = {
 
 ## Полный поток данных
 
-### GET Request (загрузка данных с CQRS)
+### GET Request (загрузка данных с CQRS) [#diagram:sequence]
 
 ```
 1. Browser → GET /
@@ -388,7 +388,7 @@ export default function Index() {
 }
 ```
 
-### POST Request (мутации данных с Commands)
+### POST Request (мутации данных с Commands) [#diagram:sequence]
 
 ```
 1. Browser → Form Submit (POST)

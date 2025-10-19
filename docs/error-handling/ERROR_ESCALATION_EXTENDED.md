@@ -1,4 +1,4 @@
-# Эскалация ошибок — Расширенное сравнение библиотек
+# Эскалация ошибок — Расширенное сравнение библиотек `#error-escalation` `#monads` `#result-pattern` `#either-pattern`
 
 Дополнение к **ERROR_ESCALATION.md** с детальным сравнением всех библиотек для работы с Result/Either.
 
@@ -176,7 +176,7 @@ const result: Result<number, Error> = success(42)
 **Библиотека:** [@sweet-monads/either](https://github.com/JSMonk/sweet-monads) (~2.1k ⭐, 0 deps)
 
 ```bash
-npm install @sweet-monads/either
+npm install @sweet-monads/either  #command:npm-install-sweet-monads-either
 ```
 
 ### Основное использование

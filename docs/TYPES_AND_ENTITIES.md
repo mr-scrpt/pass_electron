@@ -57,19 +57,19 @@ export interface ResourceListItemDTO {
 ### Модуль Resource (Bounded Context)
 
 ```
-src/domain/resource/            #structure:domain/resource/
+src/domain/resource/            #structure:
 ├── index.ts                    # Public API модуля
 │
-├── aggregates/                 # Aggregate Roots #structure:domain/resource/aggregates/
+├── aggregates/                 # Aggregate Roots #structure:
 │   ├── index.ts
 │   └── Resource.ts             # Aggregate Root (класс) #class:Resource
 │
-├── entities/                   # Entities (не Aggregate Roots) #structure:domain/resource/entities/
+├── entities/                   # Entities (не Aggregate Roots) #structure:
 │   ├── index.ts
 │   ├── SecretField.ts          # Entity (класс) #class:SecretField
 │   └── CustomField.ts          # Entity (класс) #class:CustomField
 │
-├── value-objects/              # Value Objects #structure:domain/resource/value-objects/
+├── value-objects/              # Value Objects #structure:
 │   ├── index.ts
 │   ├── ResourceId.ts           # Value Object (класс) #class:ResourceId
 │   ├── FieldId.ts              # Value Object (класс) #class:FieldId
@@ -77,7 +77,7 @@ src/domain/resource/            #structure:domain/resource/
 │   ├── Namespace.ts            # Value Object (класс) #class:Namespace
 │   └── FieldValue.ts           # Value Object (класс) #class:FieldValue
 │
-├── repositories/               # Repository Interfaces #structure:domain/resource/repositories/
+├── repositories/               # Repository Interfaces #structure:
 │   ├── index.ts
 │   ├── IResourceRepository.ts  #interface:IResourceRepository
 │   └── INamespaceRepository.ts #interface:INamespaceRepository
@@ -92,7 +92,7 @@ src/domain/resource/            #structure:domain/resource/
 ### Public API (index.ts)
 
 ```typescript
-// src/domain/resource/index.ts  #structure:domain/resource/
+// src/domain/resource/index.ts  #structure:
 
 // ✅ Экспортируем через подмодули (Public API)
 export * from './aggregates'      // #class:Resource
@@ -106,18 +106,18 @@ export * from './events'
 ```
 
 ```typescript
-// src/domain/resource/aggregates/index.ts  #structure:domain/resource/aggregates/
+// src/domain/resource/aggregates/index.ts  #structure:
 export { Resource } from './Resource'
 ```
 
 ```typescript
-// src/domain/resource/entities/index.ts  #structure:domain/resource/entities/
+// src/domain/resource/entities/index.ts  #structure:
 export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
 ```
 
 ```typescript
-// src/domain/resource/value-objects/index.ts  #structure:domain/resource/value-objects/
+// src/domain/resource/value-objects/index.ts  #structure:
 export { ResourceId } from './ResourceId'
 export { FieldId } from './FieldId'
 export { ResourceName } from './ResourceName'
@@ -144,10 +144,10 @@ export type ResourceId = string
 ### ✅ ПРАВИЛЬНО - Value Object (класс)
 
 ```typescript
-// src/domain/resource/value-objects/ResourceId.ts  #structure:domain/resource/value-objects/
+// src/domain/resource/value-objects/ResourceId.ts  #structure:
 import { Result, ok, err } from 'neverthrow'
-import { UuidInvariant } from '@/domain/shared/invariants'  // #alias:@/ #structure:domain/shared/invariants/
-import { InvariantViolationError } from '@/domain/shared/errors'  // #alias:@/ #structure:domain/shared/errors/
+import { UuidInvariant } from '@/domain/shared/invariants'  // #alias:@/ #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'  // #alias:@/ #structure:
 
 /**
  * Value Object для ID ресурса
@@ -226,17 +226,17 @@ Domain (классы)  →  Application (DTO)  →  Presentation (JSON)
 ### Структура DTO
 
 ```
-src/application/                                  #structure:application/
-├── queries/                                      #structure:application/queries/
-│   └── dtos/                                     #structure:application/queries/dtos/
+src/application/                                  #structure:
+├── queries/                                      #structure:
+│   └── dtos/                                     #structure:
 │       ├── index.ts                              # Public API
 │       ├── ResourceListItemDTO.ts                # Для списка
 │       ├── ResourceDetailDTO.ts                  # Для детальной страницы
 │       ├── CustomFieldDTO.ts                     # Для полей
 │       └── NamespaceDTO.ts                       # Для неймспейсов
 │
-└── commands/                                     #structure:application/commands/
-    └── dtos/                                     #structure:application/commands/dtos/
+└── commands/                                     #structure:
+    └── dtos/                                     #structure:
         ├── index.ts
         ├── CreateResourceDTO.ts
         └── UpdateResourceDTO.ts
@@ -245,7 +245,7 @@ src/application/                                  #structure:application/
 ### Примеры DTO
 
 ```typescript
-// src/application/queries/dtos/ResourceListItemDTO.ts  #structure:application/queries/dtos/
+// src/application/queries/dtos/ResourceListItemDTO.ts  #structure:
 
 /**
  * DTO для списка ресурсов
@@ -261,7 +261,7 @@ export interface ResourceListItemDTO {
 ```
 
 ```typescript
-// src/application/queries/dtos/ResourceDetailDTO.ts  #structure:application/queries/dtos/
+// src/application/queries/dtos/ResourceDetailDTO.ts  #structure:
 
 /**
  * DTO для детальной страницы ресурса
@@ -286,7 +286,7 @@ export interface CustomFieldDTO {
 ```
 
 ```typescript
-// src/application/queries/dtos/index.ts (Public API)  #structure:application/queries/dtos/
+// src/application/queries/dtos/index.ts (Public API)  #structure:
 
 export type { ResourceListItemDTO } from './ResourceListItemDTO'
 export type { ResourceDetailDTO, CustomFieldDTO } from './ResourceDetailDTO'
@@ -296,7 +296,7 @@ export type { NamespaceDTO } from './NamespaceDTO'
 ### Преобразование Domain → DTO
 
 ```typescript
-// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:application/queries/handlers/
+// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:
 import { Resource } from '@/domain'
 import type { ResourceListItemDTO } from '../dtos'
 
@@ -326,23 +326,23 @@ export class ListResourcesQueryHandler {
 ### 1. Внутри Domain - Локальные импорты
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
+// src/domain/resource/aggregates/Resource.ts  #structure:
 
 // ✅ Локальные импорты (внутри модуля)
-import { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
-import { ResourceName } from '../value-objects/ResourceName'  #structure:domain/resource/value-objects/
-import { Namespace } from '../value-objects/Namespace'  #structure:domain/resource/value-objects/
-import { CustomField } from '../entities/CustomField'  #structure:domain/resource/entities/
+import { ResourceId } from '../value-objects/ResourceId'  #structure:
+import { ResourceName } from '../value-objects/ResourceName'  #structure:
+import { Namespace } from '../value-objects/Namespace'  #structure:
+import { CustomField } from '../entities/CustomField'  #structure:
 
 // ✅ Кросс-модульные импорты (через Public API)
-import { DomainError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
-import { UuidInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
+import { DomainError } from '@/domain/shared/errors'  #structure:
+import { UuidInvariant } from '@/domain/shared/invariants'  #structure:
 ```
 
 ### 2. Application Layer - Импорт из Domain
 
 ```typescript
-// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:application/queries/handlers/
+// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:
 
 // ✅ Импортируем классы из Domain через Public API
 import { Resource } from '@/domain'
@@ -351,19 +351,19 @@ import { Resource } from '@/domain'
 import type { IResourceRepository } from '@/domain/resource'
 
 // ✅ Импортируем DTO
-import type { ResourceListItemDTO } from '../dtos'  #structure:application/queries/dtos/
+import type { ResourceListItemDTO } from '../dtos'  #structure:
 ```
 
 ### 3. Presentation Layer - Только DTO
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
+// src/presentation/web/react/src/routes/_index.tsx  #structure:
 
 // ✅ Импортируем DTO из Application
-import type { ResourceListItemDTO } from '@/application/queries/dtos'  #structure:application/queries/dtos/
+import type { ResourceListItemDTO } from '@/application/queries/dtos'  #structure:
 
 // ✅ Импортируем facades из Composition
-import { queries } from '@/composition'  #structure:composition/
+import { queries } from '@/composition'  #structure:
 
 // ❌ НЕ импортируем Domain классы напрямую
 // import { Resource, ResourceId } from '@/domain'  // ЗАПРЕЩЕНО!
@@ -386,13 +386,13 @@ import { queries } from '@/composition'  #structure:composition/
 ### Пример 1: Создание Resource в Domain
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
+// src/domain/resource/aggregates/Resource.ts  #structure:
 import { Result, ok, err } from 'neverthrow'
-import { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
-import { ResourceName } from '../value-objects/ResourceName'  #structure:domain/resource/value-objects/
-import { Namespace } from '../value-objects/Namespace'  #structure:domain/resource/value-objects/
-import { CustomField } from '../entities/CustomField'  #structure:domain/resource/entities/
-import { DomainError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+import { ResourceId } from '../value-objects/ResourceId'  #structure:
+import { ResourceName } from '../value-objects/ResourceName'  #structure:
+import { Namespace } from '../value-objects/Namespace'  #structure:
+import { CustomField } from '../entities/CustomField'  #structure:
+import { DomainError } from '@/domain/shared/errors'  #structure:
 
 export class Resource {
   constructor(
@@ -458,9 +458,9 @@ export class Resource {
 ### Пример 2: Handler преобразует Domain → DTO
 
 ```typescript
-// src/application/queries/handlers/GetResourceByIdQueryHandler.ts  #structure:application/queries/handlers/
+// src/application/queries/handlers/GetResourceByIdQueryHandler.ts  #structure:
 import { Resource, IResourceRepository } from '@/domain/resource'
-import type { ResourceDetailDTO, CustomFieldDTO } from '../dtos'  #structure:application/queries/dtos/
+import type { ResourceDetailDTO, CustomFieldDTO } from '../dtos'  #structure:
 
 export class GetResourceByIdQueryHandler {
   constructor(private repository: IResourceRepository) {}
@@ -500,12 +500,12 @@ export class GetResourceByIdQueryHandler {
 ### Пример 3: Presentation использует DTO
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.$id.tsx  #structure:presentation/web/react/src/routes/
+// src/presentation/web/react/src/routes/resources.$id.tsx  #structure:
 import { useLoaderData } from 'react-router'
-import { queries } from '@/composition'  #structure:composition/
+import { queries } from '@/composition'  #structure:
 
 // ✅ Импортируем DTO тип
-import type { ResourceDetailDTO } from '@/application/queries/dtos'  #structure:application/queries/dtos/
+import type { ResourceDetailDTO } from '@/application/queries/dtos'  #structure:
 
 export async function loader({ params }: Route.LoaderArgs) {
   // Получаем DTO через facade

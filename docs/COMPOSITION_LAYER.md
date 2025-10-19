@@ -25,20 +25,20 @@ class ServiceContainer {
 ### Структура
 
 ```
-src/composition/                  #structure:composition/
+src/composition/                  #structure:
 ├── index.ts                      # Public API
 ├── ServiceContainer.ts           # Root Container #class:ServiceContainer
-├── config/                       #structure:composition/config/
+├── config/                       #structure:
 │   └── Environment.ts            # Константы окружений
-├── modules/                      # DI Modules по сущностям #structure:composition/modules/
+├── modules/                      # DI Modules по сущностям #structure:
 │   ├── ResourceModule.ts         #class:ResourceModule
 │   ├── EntryModule.ts            #class:EntryModule
 │   └── SecretModule.ts           #class:SecretModule
-├── queries/                      # Query Facades по сущностям #structure:composition/queries/
+├── queries/                      # Query Facades по сущностям #structure:
 │   ├── index.ts
 │   ├── ResourceQueries.ts
 │   └── EntryQueries.ts
-└── commands/                     # Command Facades по сущностям #structure:composition/commands/
+└── commands/                     # Command Facades по сущностям #structure:
     ├── index.ts
     ├── ResourceCommands.ts
     └── EntryCommands.ts
@@ -51,7 +51,7 @@ src/composition/                  #structure:composition/
 ### Environment
 
 ```typescript
-// src/composition/config/Environment.ts  #structure:composition/config/
+// src/composition/config/Environment.ts  #structure:
 export const Environment = {
   WEB: 'web',
   CLI: 'cli',
@@ -64,7 +64,7 @@ export type EnvironmentType = typeof Environment[keyof typeof Environment]
 ### QueryTypes
 
 ```typescript
-// src/application/queries/QueryTypes.ts  #structure:application/queries/
+// src/application/queries/QueryTypes.ts  #structure:
 export const QueryTypes = {
   RESOURCE: {
     LIST: 'ListResourcesQuery',
@@ -80,7 +80,7 @@ export const QueryTypes = {
 ### CommandTypes
 
 ```typescript
-// src/application/commands/CommandTypes.ts  #structure:application/commands/
+// src/application/commands/CommandTypes.ts  #structure:
 export const CommandTypes = {
   RESOURCE: {
     CREATE: 'CreateResourceCommand',
@@ -93,7 +93,7 @@ export const CommandTypes = {
 ### RequestParamKeys
 
 ```typescript
-// src/application/ports/RequestParamKeys.ts  #structure:application/ports/
+// src/application/ports/RequestParamKeys.ts  #structure:
 export const RequestParamKeys = {
   RESOURCE: {
     NAMESPACE: 'namespace',
@@ -138,7 +138,7 @@ export interface ListResourcesParams {
 **Adapters (Infrastructure Layer):**
 
 ```typescript
-// src/infrastructure/request-parsers/WebRequestParser.ts  #structure:infrastructure/request-parsers/
+// src/infrastructure/request-parsers/WebRequestParser.ts  #structure:
 export class WebRequestParser implements IRequestParser {  // #class:WebRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const url = new URL((input as Request).url)
@@ -151,7 +151,7 @@ export class WebRequestParser implements IRequestParser {  // #class:WebRequestP
 ```
 
 ```typescript
-// src/infrastructure/request-parsers/CLIRequestParser.ts  #structure:infrastructure/request-parsers/
+// src/infrastructure/request-parsers/CLIRequestParser.ts  #structure:
 export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const options = input as Record<string, any>
@@ -168,7 +168,7 @@ export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestP
 ## DI Modules
 
 ```typescript
-// src/composition/modules/ResourceModule.ts  #structure:composition/modules/
+// src/composition/modules/ResourceModule.ts  #structure:
 export class ResourceModule {  // #class:ResourceModule
   private static repository: IResourceRepository | null = null
   private static service: ResourceService | null = null
@@ -192,7 +192,7 @@ export class ResourceModule {  // #class:ResourceModule
 ```
 
 ```typescript
-// src/composition/modules/SystemModule.ts  #structure:composition/modules/
+// src/composition/modules/SystemModule.ts  #structure:
 import type { IClipboardService, IStorageService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService #interface:IStorageService
 
 /**
@@ -317,7 +317,7 @@ export class ServiceContainer {  // #class:ServiceContainer
 ## Query Facades
 
 ```typescript
-// src/composition/queries/ResourceQueries.ts  #structure:composition/queries/
+// src/composition/queries/ResourceQueries.ts  #structure:
 export const resourceQueries = {
   async list(input: unknown) {
     const parser = ServiceContainer.getRequestParser()
@@ -336,7 +336,7 @@ export const resourceQueries = {
 ```
 
 ```typescript
-// src/composition/queries/index.ts  #structure:composition/queries/
+// src/composition/queries/index.ts  #structure:
 export { resourceQueries } from './ResourceQueries'
 export { entryQueries } from './EntryQueries'
 
@@ -351,7 +351,7 @@ export const queries = {
 ## Public API
 
 ```typescript
-// src/composition/index.ts  #structure:composition/
+// src/composition/index.ts  #structure:
 export { queries } from './queries'
 export { commands } from './commands'
 export { ServiceContainer } from './ServiceContainer'
@@ -365,7 +365,7 @@ export { Environment, type EnvironmentType } from './config/Environment'
 **Знание о платформах изолировано в Infrastructure:**
 
 ```typescript
-// src/infrastructure/request-parsers/RequestParserFactory.ts  #structure:infrastructure/request-parsers/
+// src/infrastructure/request-parsers/RequestParserFactory.ts  #structure:
 import type { IRequestParser } from '@/application/ports'  // #alias:@/ #interface:IRequestParser
 import { RemixRequestParser } from './RemixRequestParser'  // #class:RemixRequestParser
 import { CLIRequestParser } from './CLIRequestParser'  // #class:CLIRequestParser
@@ -387,7 +387,7 @@ export class RequestParserFactory {  // #class:RequestParserFactory
 ```
 
 ```typescript
-// src/infrastructure/clipboard/ClipboardServiceFactory.ts  #structure:infrastructure/clipboard/
+// src/infrastructure/clipboard/ClipboardServiceFactory.ts  #structure:
 import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService
 import { WebClipboardService } from './WebClipboardService'  // #class:WebClipboardService
 import { ElectronClipboardService } from './ElectronClipboardService'  // #class:ElectronClipboardService
@@ -410,7 +410,7 @@ export class ClipboardServiceFactory {  // #class:ClipboardServiceFactory
 ### Web (Remix)
 
 ```typescript
-// src/presentation/web/react/src/entry.client.tsx  #structure:presentation/web/react/src/
+// src/presentation/web/react/src/entry.client.tsx  #structure:
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
 import { ServiceContainer } from '@/composition'  // #alias:@/ #class:ServiceContainer
@@ -444,7 +444,7 @@ export async function loader({ request }) {
 ### CLI
 
 ```typescript
-// cli/index.ts  #structure:cli/
+// cli/index.ts  #structure:
 import { program } from 'commander'
 import { ServiceContainer, queries } from '@/composition'  // #alias:@/ #class:ServiceContainer
 import { RequestParserFactory } from '@/infrastructure/request-parsers'  // #alias:@/ #class:RequestParserFactory
@@ -472,7 +472,7 @@ program.command('list')
 ### Desktop (Electron)
 
 ```typescript
-// electron/main.ts  #structure:electron/
+// electron/main.ts  #structure:
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { ServiceContainer, queries } from '@/composition'
 import { RequestParserFactory } from '@/infrastructure/request-parsers'

@@ -96,7 +96,7 @@ catch (error) {
 
 ### Базовая реализация
 
-**Файл: `src/domain/shared/result/Result.ts`**  `#structure:domain/shared/result/`
+**Файл: `src/domain/shared/result/Result.ts`**  `#structure:
 
 ```typescript
 /**
@@ -451,7 +451,7 @@ const createResource = (command: CreateResourceCommand): TaskEither<DomainError,
 ### Domain Layer — нативный Result
 
 ```typescript
-// src/domain/shared/result/Result.ts  #structure:domain/shared/result/
+// src/domain/shared/result/Result.ts  #structure:
 export type Result<T, E = Error> = Success<T> | Failure<E>
 // ... реализация
 
@@ -477,8 +477,8 @@ pnpm add neverthrow  #command:pnpm-add-neverthrow
 ```
 
 ```typescript
-// src/application/shared/adapters.ts  #structure:application/shared/
-import { Result as NativeResult } from '@/domain/shared/result'  #structure:domain/shared/result/
+// src/application/shared/adapters.ts  #structure:
+import { Result as NativeResult } from '@/domain/shared/result'  #structure:
 import { Result, ok, err } from 'neverthrow'
 
 export function toNeverthrow<T, E>(result: NativeResult<T, E>): Result<T, E> {

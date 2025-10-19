@@ -36,30 +36,30 @@
 
 ```
 app/
-├── domain/                          #structure:domain/
-│   ├── shared/                      # Shared Kernel #structure:domain/shared/
-│   │   └── errors/                  # ← Общие Domain Errors #structure:domain/shared/errors/
+├── domain/                          #structure:
+│   ├── shared/                      # Shared Kernel #structure:
+│   │   └── errors/                  # ← Общие Domain Errors #structure:
 │   │       ├── DomainError.ts       # Базовая доменная ошибка #class:DomainError
 │   │       ├── InvariantViolationError.ts  #class:InvariantViolationError
 │   │       ├── NotFoundError.ts     #class:NotFoundError
 │   │       ├── DuplicateError.ts    #class:DuplicateError
 │   │       ├── InvalidOperationError.ts  #class:InvalidOperationError
 │   │       └── index.ts
-│   └── resource/                   # Resource Aggregate #structure:domain/resource/
+│   └── resource/                   # Resource Aggregate #structure:
 │       ├── Resource.ts              #class:Resource
 │       ├── ResourceName.ts          #class:ResourceName
-│       └── errors/                 # ← Aggregate-specific errors #structure:domain/resource/errors/
+│       └── errors/                 # ← Aggregate-specific errors #structure:
 │           ├── ResourceLockedError.ts  #class:ResourceLockedError
 │           ├── DuplicateFieldLabelError.ts  #class:DuplicateFieldLabelError
 │           └── index.ts
-├── application/                     #structure:application/
-│   └── errors/                        # ← Application Errors #structure:application/errors/
+├── application/                     #structure:
+│   └── errors/                        # ← Application Errors #structure:
 │       ├── ValidationError.ts       #class:ValidationError
 │       ├── CommandError.ts          #class:CommandError
 │       ├── QueryError.ts            #class:QueryError
 │       └── index.ts
-├── infrastructure/                  #structure:infrastructure/
-│   └── errors/                        # ← Infrastructure Errors #structure:infrastructure/errors/
+├── infrastructure/                  #structure:
+│   └── errors/                        # ← Infrastructure Errors #structure:
 │       ├── NetworkError.ts          #class:NetworkError
 │       ├── ApiError.ts              #class:ApiError
 │       ├── StorageError.ts          #class:StorageError
@@ -75,7 +75,7 @@ app/
 
 ### Базовая доменная ошибка
 
-**Файл: `src/domain/shared/errors/DomainError.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/DomainError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -111,7 +111,7 @@ export abstract class DomainError extends Error {
 
 ### InvariantViolationError
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -156,7 +156,7 @@ class ResourceName {  // #class:ResourceName
 
 ### NotFoundError
 
-**Файл: `src/domain/shared/errors/NotFoundError.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/NotFoundError.ts`**  `#structure:
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -195,7 +195,7 @@ class MockResourceRepository implements IResourceRepository {
 
 ### DuplicateError
 
-**Файл: `src/domain/shared/errors/DuplicateError.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/DuplicateError.ts`**  `#structure:
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -241,7 +241,7 @@ class Resource {  // #class:Resource
 
 ### InvalidOperationError
 
-**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**  `#structure:
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -289,11 +289,11 @@ class Resource {
 
 ### ResourceLockedError
 
-**Файл: `src/domain/resource/errors/ResourceLockedError.ts`**  `#structure:domain/resource/errors/`
+**Файл: `src/domain/resource/errors/ResourceLockedError.ts`**  `#structure:
 
 ```typescript
-import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:domain/shared/errors/
-import { ResourceId } from '../value-objects/ResourceId'  // #class:ResourceId #structure:domain/resource/value-objects/
+import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:
+import { ResourceId } from '../value-objects/ResourceId'  // #class:ResourceId #structure:
 
 /**
  * Ошибка заблокированного ресурса
@@ -327,10 +327,10 @@ class Resource {
 
 ### DuplicateFieldLabelError
 
-**Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**  `#structure:domain/resource/errors/`
+**Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**  `#structure:
 
 ```typescript
-import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:domain/shared/errors/
+import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:
 
 /**
  * Ошибка дублирования метки поля
@@ -347,7 +347,7 @@ export class DuplicateFieldLabelError extends DomainError {
 
 ### Public API (для aggregate errors)
 
-**Файл: `src/domain/resource/errors/index.ts`**  `#structure:domain/resource/errors/`
+**Файл: `src/domain/resource/errors/index.ts`**  `#structure:
 
 ```typescript
 export { ResourceLockedError } from './ResourceLockedError'
@@ -358,7 +358,7 @@ export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 
 ### Public API (Shared Kernel)
 
-**Файл: `src/domain/shared/errors/index.ts`**  `#structure:domain/shared/errors/`
+**Файл: `src/domain/shared/errors/index.ts`**  `#structure:
 
 ```typescript
 export { DomainError } from './DomainError'
@@ -374,7 +374,7 @@ export { InvalidOperationError } from './InvalidOperationError'
 
 ### ValidationError
 
-**Файл: `src/application/errors/ValidationError.ts`**  `#structure:application/errors/`
+**Файл: `src/application/errors/ValidationError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -413,7 +413,7 @@ class CreateResourceCommandHandler {
 
 ### CommandError
 
-**Файл: `src/application/errors/CommandError.ts`**  `#structure:application/errors/`
+**Файл: `src/application/errors/CommandError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -435,7 +435,7 @@ export class CommandError extends Error {
 
 ### QueryError
 
-**Файл: `src/application/errors/QueryError.ts`**  `#structure:application/errors/`
+**Файл: `src/application/errors/QueryError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -461,7 +461,7 @@ export class QueryError extends Error {
 
 ### NetworkError
 
-**Файл: `src/infrastructure/errors/NetworkError.ts`**  `#structure:infrastructure/errors/`
+**Файл: `src/infrastructure/errors/NetworkError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -513,7 +513,7 @@ class HttpClient {
 
 ### ApiError
 
-**Файл: `src/infrastructure/errors/ApiError.ts`**  `#structure:infrastructure/errors/`
+**Файл: `src/infrastructure/errors/ApiError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -535,7 +535,7 @@ export class ApiError extends Error {
 
 ### StorageError
 
-**Файл: `src/infrastructure/errors/StorageError.ts`**  `#structure:infrastructure/errors/`
+**Файл: `src/infrastructure/errors/StorageError.ts`**  `#structure:
 
 ```typescript
 /**
@@ -561,11 +561,11 @@ export class StorageError extends Error {
 
 ### ErrorBoundary
 
-**Файл: `src/presentation/web/react/src/components/ErrorBoundary.tsx`**  `#structure:presentation/web/react/src/components/`
+**Файл: `src/presentation/web/react/src/components/ErrorBoundary.tsx`**  `#structure:
 
 ```typescript
 import { Component, ReactNode } from 'react'
-import { DomainError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+import { DomainError } from '@/domain/shared/errors'  #structure:
 
 interface Props {
   children: ReactNode
@@ -617,13 +617,13 @@ export class ErrorBoundary extends Component<Props, State> {
 ### Обработка в Remix Action
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.new.tsx  #structure:presentation/web/react/src/routes/
+// src/presentation/web/react/src/routes/resources.new.tsx  #structure:
 
 import { 
   InvariantViolationError, 
   DuplicateError 
-} from '@/domain/shared/errors'  #structure:domain/shared/errors/
-import { ValidationError } from '@/application/errors'  #structure:application/errors/
+} from '@/domain/shared/errors'  #structure:
+import { ValidationError } from '@/application/errors'  #structure:
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -678,7 +678,7 @@ export async function action({ request }: ActionFunctionArgs) {
 ```typescript
 // Infrastructure Layer перехватывает технические ошибки
 // и может преобразовать их в доменные
-// src/infrastructure/repositories/ApiResourceRepository.ts  #structure:infrastructure/repositories/
+// src/infrastructure/repositories/ApiResourceRepository.ts  #structure:
 
 class ApiResourceRepository implements IResourceRepository {
   async findById(id: ResourceId): Promise<Resource> {
@@ -704,7 +704,7 @@ class ApiResourceRepository implements IResourceRepository {
 ```typescript
 // Application Layer перехватывает Domain ошибки
 // и оборачивает в CommandResult/QueryResult
-// src/application/commands/handlers/CreateResourceCommandHandler.ts  #structure:application/commands/handlers/
+// src/application/commands/handlers/CreateResourceCommandHandler.ts  #structure:
 
 class CreateResourceCommandHandler {
   async handle(command: CreateResourceCommand): Promise<CommandResult> {
@@ -773,8 +773,8 @@ Error (JavaScript)
 
 ```typescript
 // ✅ ХОРОШО: Domain ошибка в Domain Layer
-// src/domain/resource/value-objects/ResourceName.ts  #structure:domain/resource/value-objects/
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+// src/domain/resource/value-objects/ResourceName.ts  #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
 
 class ResourceName {
   private constructor(private readonly value: string) {}
@@ -899,8 +899,8 @@ try {
 ## 🧪 Тестирование ошибок
 
 ```typescript
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
-import { ResourceName } from '@/domain/resource/value-objects'  #structure:domain/resource/value-objects/
+import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
+import { ResourceName } from '@/domain/resource/value-objects'  #structure:
 
 describe('ResourceName', () => {
   it('должен выбросить InvariantViolationError для пустой строки', () => {

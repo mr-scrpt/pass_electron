@@ -1,4 +1,4 @@
-# DDD и Clean Architecture в проекте
+# DDD и Clean Architecture в проекте `#ddd` `#clean-architecture`
 
 Документ описывает, как в проекте сочетаются Domain-Driven Design (Eric Evans) и Clean Architecture (Robert C. Martin).
 
@@ -70,10 +70,10 @@
 │                    ↓ зависит от Domain              │
 │  ┌─────────────────▼─────────────────────────────┐ │
 │  │ Domain Layer (DDD Tactical Patterns)          │ │
-│  │ - Entities (Resource, Entry)                  │ │
-│  │ - Value Objects (ResourceId, ResourceName)    │ │
-│  │ - Aggregates (Resource как Root)              │ │
-│  │ - Repository Interfaces (IResourceRepository) │ │
+│  │ - Entities (Resource, Entry) #entity          │ │
+│  │ - Value Objects (ResourceId, ResourceName) #value-object #class:ResourceId #class:ResourceName │ │
+│  │ - Aggregates (Resource как Root) #aggregate-root #class:Resource │ │
+│  │ - Repository Interfaces (IResourceRepository) #interface:IResourceRepository │ │
 │  │ - Domain Services                             │ │
 │  │ - Domain Events                               │ │
 │  └───────────────────────────────────────────────┘ │

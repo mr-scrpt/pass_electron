@@ -1,4 +1,4 @@
-# Getting Started - Начало разработки
+# Getting Started - Начало разработки `#getting-started` `#guide`
 
 Руководство по началу работы над проектом Password Manager.
 
@@ -53,12 +53,12 @@
 
 Краткий обзор основных директорий:
 
-- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects)
-- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
-- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
-- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage)
-- **`src/composition/`** - Composition Root (DI Container)
-- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI)
+- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects) `#structure:domain/`
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS) `#structure:application/`
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification) `#structure:application/services/`
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage) `#structure:infrastructure/`
+- **`src/composition/`** - Composition Root (DI Container) `#structure:composition/`
+- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI) `#structure:presentation/web/react/`
 - **`docs/`** - Документация проекта
 - **`tests/`** - Unit, integration и e2e тесты
 
@@ -180,13 +180,13 @@
 
 ### Краткий обзор:
 
-1. **Инициализация** — `pnpm create remix@latest` (Remix CLI создаст всё за вас!)
+1. **Инициализация** — `pnpm create remix@latest` (Remix CLI создаст всё за вас!) `#command:pnpm-create-remix`
 2. **Зависимости** — установить Electron, Tailwind CSS, Catppuccin
 3. **Конфигурация** — настроить `tsconfig.json`, `vite.config.ts`, `tailwind.config.js`
-4. **Структура папок** — создать DDD структуру (Domain, Application, Infrastructure, etc.)
+4. **Структура папок** — создать DDD структуру (Domain, Application, Infrastructure, etc.) `#structure-tree`
 5. **Electron setup** — создать `electron/main.ts` и `electron/config.ts`
 6. **Стили** — настроить Tailwind CSS с Catppuccin Mocha темой
-7. **Проверка** — запустить `pnpm dev` и убедиться что всё работает
+7. **Проверка** — запустить `pnpm dev` и убедиться что всё работает `#command:pnpm-dev`
 
 **Следуйте шагу 0 для детальных инструкций** ⬆️
 

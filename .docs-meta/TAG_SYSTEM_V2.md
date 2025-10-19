@@ -159,6 +159,71 @@ API endpoint
 
 ---
 
+### 4. Теги диаграмм
+
+#### `#diagram:architecture`
+Архитектурные схемы слоев (Hexagonal, Clean Architecture, Ports & Adapters)
+
+**Пример:**
+```markdown
+## Hexagonal Architecture - Ports & Adapters [#diagram:architecture]
+
+\`\`\`
+┌─────────────────────────────────────────┐
+│     Application Core                    │
+│  ┌────────────────────────────────┐     │
+│  │  ICommandBus (Port)            │←────┼───
+│  └────────────────────────────────┘     │
+└──────────────┬──────────────────────────┘
+               │ implements
+┌──────────────▼──────────────────────────┐
+│     Infrastructure                       │
+\`\`\`
+```
+
+#### `#diagram:flow`
+Потоки данных между компонентами и слоями
+
+**Пример:**
+```markdown
+## Поток данных CQRS [#diagram:flow]
+
+\`\`\`
+┌─────────────────────────────────────────────────┐
+│  Presentation Layer (Route Handler)              │
+└────────────┬────────────────────────────────────┘
+             ↓
+┌────────────┴────────────────────────────────────┐
+│  Composition Layer (Facades)                     │
+└────────────┬────────────────────────────────────┘
+             ↓
+┌────────────┴────────────────────────────────────┐
+│  Application Layer (Query/Command Handlers)      │
+\`\`\`
+```
+
+#### `#diagram:sequence`
+Последовательности вызовов (шаги выполнения)
+
+**Пример:**
+```markdown
+## GET Request - последовательность [#diagram:sequence]
+
+\`\`\`
+1. Browser → GET /
+   ↓
+2. Remix вызывает loader() ← СЕРВЕР
+   ↓
+3. loader() → queries.list()
+   ↓
+4. Query Handler → Repository
+   ↓
+5. Return DTO → Browser
+\`\`\`
+```
+
+---
+
 ## ✅ Правильные примеры
 
 ### Пример 1: Дерево структуры
@@ -320,6 +385,9 @@ import { ResourceList } from '@/components/ResourceList'
 | `[#interface:IRepository\|#code]` | Код интерфейса |
 | `[#api:GET-resources]` | API endpoint GET |
 | `[#command]` | Команды терминала |
+| `[#diagram:architecture]` | Архитектурная схема |
+| `[#diagram:flow]` | Диаграмма потока данных |
+| `[#diagram:sequence]` | Последовательность вызовов |
 
 ---
 
@@ -365,6 +433,11 @@ import { ResourceList } from '@/components/ResourceList'
 - #class:ClassName - определение/использование класса
 - #interface:InterfaceName - определение/использование интерфейса
 - #api:METHOD-endpoint - API endpoint
+
+Диаграммы:
+- #diagram:architecture - архитектурные схемы слоев
+- #diagram:flow - потоки данных между компонентами
+- #diagram:sequence - последовательности вызовов
 
 **Правила:**
 - Теги ставятся на блок, НЕ на каждую строку

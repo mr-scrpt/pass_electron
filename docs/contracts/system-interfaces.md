@@ -1,4 +1,4 @@
-# System Interfaces - Интерфейсы систем
+# System Interfaces - Интерфейсы систем `#system-interfaces` `#interfaces` `#contracts`
 
 Контракты для всех систем приложения.
 
@@ -12,7 +12,7 @@
  * Интерфейс определен в Domain Layer
  * Реализации в Infrastructure Layer
  */
-interface IResourceRepository {
+interface IResourceRepository {  // #interface:IResourceRepository
   /**
    * Найти ресурс по ID
    */
@@ -57,7 +57,7 @@ interface IResourceRepository {
 /**
  * Репозиторий для работы с неймспейсами
  */
-interface INamespaceRepository {
+interface INamespaceRepository {  // #interface:INamespaceRepository
   /**
    * Получить все неймспейсы
    */
@@ -81,7 +81,7 @@ interface INamespaceRepository {
 /**
  * Сервис для генерации паролей
  */
-interface IPasswordGeneratorService {
+interface IPasswordGeneratorService {  // #interface:IPasswordGeneratorService
   /**
    * Сгенерировать пароль
    */
@@ -109,7 +109,7 @@ interface IPasswordGeneratorService {
 /**
  * Менеджер режимов приложения
  */
-interface IModalManager {
+interface IModalManager {  // #interface:IModalManager
   /**
    * Получить текущий режим
    */
@@ -160,7 +160,7 @@ type Unsubscribe = () => void
 /**
  * Реестр кеймапов
  */
-interface IKeymapRegistry {
+interface IKeymapRegistry {  // #interface:IKeymapRegistry
   /**
    * Зарегистрировать кеймап
    */
@@ -206,7 +206,7 @@ type KeymapChangeListener = () => void
 /**
  * Исполнитель кеймапов
  */
-interface IKeymapExecutor {
+interface IKeymapExecutor {  // #interface:IKeymapExecutor
   /**
    * Обработать нажатие клавиши
    */
@@ -234,7 +234,7 @@ interface IKeymapExecutor {
 /**
  * Менеджер фокуса для навигации
  */
-interface IFocusManager {
+interface IFocusManager {  // #interface:IFocusManager
   /**
    * Зарегистрировать элемент для фокуса
    */
@@ -304,7 +304,7 @@ type FocusChangeListener = (focused: FocusableElement | null) => void
 /**
  * Менеджер уведомлений
  */
-interface INotificationManager {
+interface INotificationManager {  // #interface:INotificationManager
   /**
    * Показать уведомление об успехе
    */
@@ -367,7 +367,7 @@ type NotificationChangeListener = (notifications: Notification[]) => void
  * Базовый интерфейс для всех команд
  * Commands выражают намерение выполнить UI действие (изменение состояния)
  */
-interface ICommand {
+interface ICommand {  // #interface:ICommand
   readonly type: string;
 }
 ```
@@ -379,7 +379,7 @@ interface ICommand {
  * Обработчик команды
  * Реализуется в Presentation Layer
  */
-interface ICommandHandler<T extends ICommand> {
+interface ICommandHandler<T extends ICommand> {  // #interface:ICommandHandler
   handle(command: T): Promise<void> | void;
 }
 ```
@@ -395,7 +395,7 @@ interface ICommandHandler<T extends ICommand> {
  * 
  * Используется для изоляции Core Systems от Browser API
  */
-interface ICommandBus {
+interface ICommandBus {  // #interface:ICommandBus
   /**
    * Отправить команду на выполнение
    */
@@ -466,7 +466,7 @@ class CopyToClipboardCommand implements ICommand {
  * Базовый интерфейс для всех Queries
  * Queries выражают намерение получить данные (read-only)
  */
-interface IQuery {
+interface IQuery {  // #interface:IQuery
   readonly type: string;
 }
 ```
@@ -478,7 +478,7 @@ interface IQuery {
  * Обработчик Query
  * Реализуется в Application Layer
  */
-interface IQueryHandler<TQuery extends IQuery, TResult> {
+interface IQueryHandler<TQuery extends IQuery, TResult> {  // #interface:IQueryHandler
   handle(query: TQuery): Promise<QueryResult<TResult>>;
 }
 

@@ -1,4 +1,4 @@
-# Data Flow - Поток данных в приложении
+# Data Flow - Поток данных в приложении `#data-flow` `#cqrs` `#remix`
 
 Этот документ описывает, как данные перемещаются между слоями архитектуры в Remix приложении с использованием DDD подхода и CQRS паттерна.
 
@@ -94,13 +94,13 @@ export async function loader() {
              ↓
 ┌────────────┴────────────────────────────────────┐
 │  Application Layer (Query/Command Handlers)      │
-│  - ListResourcesQueryHandler                     │
-│  - CreateResourceCommandHandler                  │
+│  - ListResourcesQueryHandler #class:ListResourcesQueryHandler │
+│  - CreateResourceCommandHandler #class:CreateResourceCommandHandler │
 └────────────┬────────────────────────────────────┘
              ↓
 ┌────────────┴────────────────────────────────────┐
 │  Repository Interface (Domain)                   │
-│  - IResourceRepository                           │
+│  - IResourceRepository #interface:IResourceRepository │
 └────────────┬────────────────────────────────────┘
              ↑ реализует
 ┌────────────┴────────────────────────────────────┐
@@ -125,16 +125,16 @@ export async function loader() {
 **Файл: `src/composition/ServiceContainer.ts`**
 
 ```typescript
-import { InMemoryQueryBus } from '@/infrastructure/queries'
-import { ResourceModule } from './modules/ResourceModule'
-import type { IQueryBus, IRequestParser } from '@/application'
-import type { IClipboardService } from '@/application/ports'
+import { InMemoryQueryBus } from '@/infrastructure/queries'  // #alias:@/ #class:InMemoryQueryBus
+import { ResourceModule } from './modules/ResourceModule'  // #class:ResourceModule
+import type { IQueryBus, IRequestParser } from '@/application'  // #alias:@/ #interface:IQueryBus #interface:IRequestParser
+import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
  * ✅ НЕ знает о конкретных адаптерах (Web/CLI/Desktop)
  * ✅ Принимает готовые реализации при инициализации
- */
+ */ // #class:ServiceContainer
 class ServiceContainer {
   private static queryBus: IQueryBus | null = null
   private static requestParser: IRequestParser | null = null

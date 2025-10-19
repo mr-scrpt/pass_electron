@@ -53,12 +53,12 @@
 
 Краткий обзор основных директорий:
 
-- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects) `#structure:domain/`
-- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS) `#structure:application/`
-- **`src/application/services/`** - Application Services (modal, keymap, focus, notification) `#structure:application/services/`
-- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage) `#structure:infrastructure/`
-- **`src/composition/`** - Composition Root (DI Container) `#structure:composition/`
-- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI) `#structure:presentation/web/react/`
+- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects)  #structure:domain/
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)  #structure:application/
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)  #structure:application/services/
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage)  #structure:infrastructure/
+- **`src/composition/`** - Composition Root (DI Container)  #structure:composition/
+- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI)  #structure:presentation/web/react/
 - **`docs/`** - Документация проекта
 - **`tests/`** - Unit, integration и e2e тесты
 

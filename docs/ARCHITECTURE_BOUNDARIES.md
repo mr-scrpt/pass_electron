@@ -87,17 +87,17 @@
 ### ✅ Presentation Layer (правильно)
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx
+// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
 
 // ✅ Типы из Domain через Public API
-import { Resource, ResourceId, Namespace } from '@/domain'
+import { Resource, ResourceId, Namespace } from '@/domain'  #structure:domain/
 
 // ✅ Facades из Composition
-import { queries, commands } from '@/composition'
+import { queries, commands } from '@/composition'  #structure:composition/
 
 // ✅ Локальные компоненты (React Router alias)
-import { ResourceList } from '~/components/ResourceList'
-import { useModal } from '~/hooks/useModal'
+import { ResourceList } from '~/components/ResourceList'  #structure:presentation/web/react/src/components/
+import { useModal } from '~/hooks/useModal'  #structure:presentation/web/react/src/hooks/
 
 // ❌ НЕЛЬЗЯ импортировать Application/Infrastructure напрямую!
 // import { GetResourcesHandler } from '@/application/queries/handlers/GetResourcesHandler'  // ❌
@@ -112,17 +112,17 @@ export async function loader() {
 ### ✅ Composition Layer (правильно)
 
 ```typescript
-// src/composition/queries/ResourceQueries.ts
+// src/composition/queries/ResourceQueries.ts  #structure:composition/queries/
 
 // ✅ Типы из Domain
-import { Resource } from '@/domain'
+import { Resource } from '@/domain'  #structure:domain/
 
 // ✅ Handlers через Public API
-import { GetResourcesHandler } from '@/application/queries'
-import { GetResourceByIdHandler } from '@/application/queries'
+import { GetResourcesHandler } from '@/application/queries'  #structure:application/queries/
+import { GetResourceByIdHandler } from '@/application/queries'  #structure:application/queries/
 
 // ✅ Инфраструктура через Public API
-import { ApiResourceRepository } from '@/infrastructure/repositories'
+import { ApiResourceRepository } from '@/infrastructure/repositories'  #structure:infrastructure/repositories/
 
 // Facade для упрощения UI
 export const queries = {
@@ -142,10 +142,10 @@ export const queries = {
 ### ✅ Application Layer (правильно)
 
 ```typescript
-// src/application/queries/GetResourcesHandler.ts
+// src/application/queries/handlers/GetResourcesHandler.ts  #structure:application/queries/handlers/
 
 // ✅ Только Domain
-import { Resource, IResourceRepository } from '@/domain'
+import { Resource, IResourceRepository } from '@/domain'  #structure:domain/
 
 export class GetResourcesHandler {
   constructor(private repository: IResourceRepository) {}
@@ -159,12 +159,12 @@ export class GetResourcesHandler {
 ### ✅ Domain Layer (правильно)
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts
+// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
 
-// ✅ Только другие Domain объекты (относительные пути или через @domain)
-import { ResourceId } from '../value-objects/ResourceId'
-import { Namespace } from './Namespace'
-import { DomainError } from '@domain/shared/errors/DomainError'
+// ✅ Только другие Domain объекты (относительные пути или через @/domain)
+import { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
+import { Namespace } from '../value-objects/Namespace'  #structure:domain/resource/value-objects/
+import { DomainError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
 
 // ❌ НЕЛЬЗЯ импортировать из других слоев!
 // import { GetResourcesHandler } from '@/application/queries'  // ❌
@@ -258,24 +258,24 @@ export default [
 ### Domain Layer Public API
 
 ```typescript
-// src/domain/index.ts
+// src/domain/index.ts  #structure:domain/
 
 // Entities
-export { Resource } from './resource/Resource'
+export { Resource } from './resource/aggregates/Resource'  #structure:domain/resource/aggregates/
 
 // Value Objects
-export { ResourceId } from './resource/ResourceId'
-export { ResourceName } from './resource/ResourceName'
-export { Namespace } from './resource/Namespace'
-export { SecretField } from './resource/SecretField'
+export { ResourceId } from './resource/value-objects/ResourceId'  #structure:domain/resource/value-objects/
+export { ResourceName } from './resource/value-objects/ResourceName'  #structure:domain/resource/value-objects/
+export { Namespace } from './resource/value-objects/Namespace'  #structure:domain/resource/value-objects/
+export { SecretField } from './resource/entities/SecretField'  #structure:domain/resource/entities/
 
 // Repository Interfaces
-export type { IResourceRepository } from './repositories/IResourceRepository'
-export type { IPasswordGeneratorService } from './services/IPasswordGeneratorService'
+export type { IResourceRepository } from './resource/repositories/IResourceRepository'  #structure:domain/resource/repositories/
+export type { IPasswordGeneratorService } from './resource/services/IPasswordGeneratorService'  #structure:domain/resource/services/
 
 // Domain Events
-export { ResourceCreated } from './events/ResourceCreated'
-export { ResourceUpdated } from './events/ResourceUpdated'
+export { ResourceCreated } from './resource/events/ResourceCreated'  #structure:domain/resource/events/
+export { ResourceUpdated } from './resource/events/ResourceUpdated'  #structure:domain/resource/events/
 
 // Domain Errors
 export { DomainError } from './shared/errors/DomainError'
@@ -285,10 +285,10 @@ export { InvariantViolationError } from './shared/errors/InvariantViolationError
 ### Composition Layer Public API
 
 ```typescript
-// src/composition/index.ts
+// src/composition/index.ts  #structure:composition/
 
-export { queries } from './queries'
-export { commands } from './commands'
+export { queries } from './queries'  #structure:composition/queries/
+export { commands } from './commands'  #structure:composition/commands/
 
 // Опционально: типы для удобства
 export type { 
@@ -305,10 +305,10 @@ export type {
 ### Компоненты
 
 ```typescript
-// src/presentation/web/react/src/components/ResourceList.tsx
-import { Resource } from '@/domain'
-import { ResourceCard } from '~/components/ResourceCard'
-import { EmptyState } from '~/components/EmptyState'
+// src/presentation/web/react/src/components/ResourceList.tsx  #structure:presentation/web/react/src/components/
+import { Resource } from '@/domain'  #structure:domain/
+import { ResourceCard } from '~/components/ResourceCard'  #structure:presentation/web/react/src/components/
+import { EmptyState } from '~/components/EmptyState'  #structure:presentation/web/react/src/components/
 
 export function ResourceList({ resources }: { resources: Resource[] }) {
   if (resources.length === 0) {
@@ -328,9 +328,9 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
 ### Hooks
 
 ```typescript
-// src/presentation/web/react/src/hooks/useModal.ts
+// src/presentation/web/react/src/hooks/useModal.ts  #structure:presentation/web/react/src/hooks/
 import { useContext } from 'react'
-import { ModalContext } from '@client/contexts/ModalContext'
+import { ModalContext } from '~/contexts/ModalContext'  #structure:presentation/web/react/src/contexts/
 
 export function useModal() {
   const context = useContext(ModalContext)
@@ -349,7 +349,7 @@ export function useModal() {
 
 ```typescript
 // ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Application!
-import { GetResourcesHandler } from '@/application/queries'
+import { GetResourcesHandler } from '@/application/queries'  #structure:application/queries/
 
 export async function loader() {
   const handler = new GetResourcesHandler(???)  // А репозиторий откуда?
@@ -357,7 +357,7 @@ export async function loader() {
 }
 
 // ✅ ПРАВИЛЬНО
-import { queries } from '@/composition'
+import { queries } from '@/composition'  #structure:composition/
 
 export async function loader() {
   return await queries.resources.list()  // Всё внутри!
@@ -367,21 +367,21 @@ export async function loader() {
 ### 2. Domain импортирует Application
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts
+// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
 
 // ❌ НЕПРАВИЛЬНО - Domain не должен знать об Application!
-import { CreateResourceCommand } from '@/application/commands'
+import { CreateResourceCommand } from '@/application/commands'  #structure:application/commands/
 
 // ✅ ПРАВИЛЬНО - только Domain
-import { ResourceId } from '../value-objects/ResourceId'
-import { DomainError } from '@/domain/shared/errors'
+import { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
+import { DomainError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
 ```
 
 ### 3. Прямой импорт Infrastructure в Presentation
 
 ```typescript
 // ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Infrastructure!
-import { ApiClient } from '@/infrastructure/api'
+import { ApiClient } from '@/infrastructure/api'  #structure:infrastructure/api/
 
 // ✅ ПРАВИЛЬНО - через Composition facade
 import { queries } from '@/composition'

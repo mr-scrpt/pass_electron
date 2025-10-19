@@ -22,21 +22,21 @@
 React Router CLI создает структуру `app/` что противоречит Clean Architecture:
 
 ```
-app/              # ❌ Framework директория
-├── domain/       # ❌ Domain внутри framework!
-└── routes/
+app/              # ❌ Framework директория  #structure:
+├── domain/       # ❌ Domain внутри framework!  #structure:
+└── routes/       #structure:
 ```
 
 **Наш подход**: Domain в центре, Framework снаружи
 
 ```
-src/
-├── domain/           # ✅ DDD: Domain Layer
-├── application/      # ✅ DDD: Application Layer
-├── infrastructure/   # ✅ DDD: Infrastructure Layer
-├── composition/      # ✅ DDD: Composition Root
-└── presentation/     # ✅ DDD: Presentation Layer
-    └── web/react/    # ✅ React Router изолирован
+src/                      #structure:
+├── domain/               # ✅ DDD: Domain Layer  #structure:
+├── application/          # ✅ DDD: Application Layer  #structure:
+├── infrastructure/       # ✅ DDD: Infrastructure Layer  #structure:
+├── composition/          # ✅ DDD: Composition Root  #structure:
+└── presentation/         # ✅ DDD: Presentation Layer  #structure:
+    └── web/react/        # ✅ React Router изолирован  #structure:
         ├── vite.config.ts   # ✅ Build tool здесь
         └── package.json     # ✅ Web dependencies здесь
 ```
@@ -109,10 +109,10 @@ git init
 
 **Структура:**
 ```
-password-manager/
+password-manager/             #structure:
 ├── package.json              # Root: DDD слои
 ├── pnpm-workspace.yaml       # Workspaces
-└── src/presentation/web/react/
+└── src/presentation/web/react/  #structure:
     └── package.json          # Web: React Router, Vite
 ```
 

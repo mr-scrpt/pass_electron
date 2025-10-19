@@ -96,7 +96,7 @@ catch (error) {
 
 ### Базовая реализация
 
-**Файл: `app/shared/result/Result.ts`**
+**Файл: `src/domain/shared/result/Result.ts`**  `#structure:domain/shared/result/`
 
 ```typescript
 /**
@@ -210,7 +210,7 @@ export async function action({ request }: ActionFunctionArgs) {
 ### Установка
 
 ```bash
-npm install neverthrow  #command:npm-install-neverthrow
+pnpm add neverthrow  #command:pnpm-add-neverthrow
 ```
 
 ### Базовое использование
@@ -363,7 +363,7 @@ class ApiResourceRepository implements IResourceRepository {
 **Библиотека**: [fp-ts](https://github.com/gcanti/fp-ts) (~10k ⭐)
 
 ```bash
-npm install fp-ts
+pnpm add fp-ts  #command:pnpm-add-fp-ts
 ```
 
 ### Either (аналог Result)
@@ -451,7 +451,7 @@ const createResource = (command: CreateResourceCommand): TaskEither<DomainError,
 ### Domain Layer — нативный Result
 
 ```typescript
-// src/domain/shared/result/Result.ts
+// src/domain/shared/result/Result.ts  #structure:domain/shared/result/
 export type Result<T, E = Error> = Success<T> | Failure<E>
 // ... реализация
 
@@ -473,12 +473,12 @@ class ResourceName {
 ### Application Layer — neverthrow для композиции
 
 ```bash
-npm install neverthrow
+pnpm add neverthrow  #command:pnpm-add-neverthrow
 ```
 
 ```typescript
-// app/application/shared/adapters.ts
-import { Result as NativeResult } from '~/domain/shared/result'
+// src/application/shared/adapters.ts  #structure:application/shared/
+import { Result as NativeResult } from '@/domain/shared/result'  #structure:domain/shared/result/
 import { Result, ok, err } from 'neverthrow'
 
 export function toNeverthrow<T, E>(result: NativeResult<T, E>): Result<T, E> {

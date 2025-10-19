@@ -46,7 +46,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### 1. Query Interfaces (Application Layer)
 
-**`src/application/queries/IQueryHandler.ts`**
+**`src/application/queries/IQueryHandler.ts`**  `#structure:application/queries/`
 
 ```typescript
 export interface IQuery {  // #interface:IQuery
@@ -63,7 +63,7 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {  // #interface:
 }
 ```
 
-**`src/application/queries/IQueryBus.ts`**
+**`src/application/queries/IQueryBus.ts`**  `#structure:application/queries/`
 
 ```typescript
 export interface IQueryBus {  // #interface:IQueryBus
@@ -80,7 +80,7 @@ export interface IQueryBus {  // #interface:IQueryBus
 
 ### 2. Query Classes
 
-**`src/application/queries/ResourceQueries.ts`**
+**`src/application/queries/ResourceQueries.ts`**  `#structure:application/queries/`
 
 ```typescript
 export class ListResourcesQuery implements IQuery {  // #class:ListResourcesQuery
@@ -96,7 +96,7 @@ export class GetResourceByIdQuery implements IQuery {  // #class:GetResourceById
 
 ### 3. Query Handlers
 
-**`src/application/queries/handlers/ListResourcesQueryHandler.ts`**
+**`src/application/queries/handlers/ListResourcesQueryHandler.ts`**  `#structure:application/queries/handlers/`
 
 ```typescript
 export class ListResourcesQueryHandler  // #class:ListResourcesQueryHandler
@@ -133,7 +133,7 @@ export interface ResourceListItemDTO {  // #interface:ResourceListItemDTO
 
 ### 4. QueryBus Adapter (Infrastructure)
 
-**`app/infrastructure/queries/InMemoryQueryBus.ts`**
+**`src/infrastructure/queries/InMemoryQueryBus.ts`**  `#structure:infrastructure/queries/`
 
 ```typescript
 export class InMemoryQueryBus implements IQueryBus {  // #class:InMemoryQueryBus
@@ -160,12 +160,12 @@ export class InMemoryQueryBus implements IQueryBus {  // #class:InMemoryQueryBus
 
 ### 5. Facade (Composition Root)
 
-**`src/composition/queries.ts`**
+**`src/composition/queries/index.ts`**  `#structure:composition/queries/`
 
 ```typescript
 import { json } from 'react-router';
-import { getQueryBus } from './ServiceContainer';  // #class:ServiceContainer
-import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';  // #alias:@/ #class:ListResourcesQuery #class:GetResourceByIdQuery
+import { getQueryBus } from '../ServiceContainer';  // #class:ServiceContainer #structure:composition/
+import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';  // #alias:@/ #class:ListResourcesQuery #class:GetResourceByIdQuery #structure:application/queries/
 
 /**
  * Facade: инкапсулирует QueryBus, парсинг Request, сериализацию
@@ -197,7 +197,7 @@ export const queries = {
 };
 ```
 
-**`src/composition/ServiceContainer.ts`** (обновление)
+**`src/composition/ServiceContainer.ts`** (обновление)  `#structure:composition/`
 
 ```typescript
 static getQueryBus(): IQueryBus {
@@ -221,8 +221,8 @@ static getQueryBus(): IQueryBus {
 ### Список ресурсов
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '@/composition';  // #alias:@/
+// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
+import { queries } from '@/composition';  // #alias:@/ #structure:composition/
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.resources.list(request);  // ✅ Одна строка!
@@ -232,8 +232,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ### Детальная страница
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.$id.tsx
-import { queries } from '@/composition';  // #alias:@/
+// src/presentation/web/react/src/routes/resources.$id.tsx  #structure:presentation/web/react/src/routes/
+import { queries } from '@/composition';  // #alias:@/ #structure:composition/
 
 export async function loader({ params }: LoaderFunctionArgs) {
   return queries.resources.getById(params.id!);  // ✅ Одна строка!

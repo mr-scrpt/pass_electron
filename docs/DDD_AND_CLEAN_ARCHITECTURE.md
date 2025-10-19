@@ -100,12 +100,12 @@ Domain Layer полностью построен на тактических п�
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts
+// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
 import { Result, ok, err } from 'neverthrow'
-import { ResourceId } from '../value-objects/ResourceId'
-import { ResourceName } from '../value-objects/ResourceName'
-import { Namespace } from '../value-objects/Namespace'
-import { ResourceLockedError } from '../errors/ResourceLockedError'
+import { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
+import { ResourceName } from '../value-objects/ResourceName'  #structure:domain/resource/value-objects/
+import { Namespace } from '../value-objects/Namespace'  #structure:domain/resource/value-objects/
+import { ResourceLockedError } from '../errors/ResourceLockedError'  #structure:domain/resource/errors/
 
 export class Resource {
   private constructor(
@@ -156,10 +156,10 @@ export class Resource {
 Неизменяемый объект без идентичности, определяется значением.
 
 ```typescript
-// src/domain/resource/ResourceName.ts
+// src/domain/resource/value-objects/ResourceName.ts  #structure:domain/resource/value-objects/
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~domain/shared/errors'
-import { StringInvariant } from '~domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+import { StringInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
 
 export class ResourceName {
   private constructor(private readonly value: string) {}
@@ -195,7 +195,7 @@ export class ResourceName {
 Группа связанных объектов с единой границей консистентности. Aggregate Root контролирует доступ.
 
 ```typescript
-// src/domain/aggregates/Resource.ts
+// src/domain/resource/aggregates/Resource.ts  #structure:domain/resource/aggregates/
 
 export class Resource {  // Aggregate Root
   private _entries: Entry[] = []  // Часть Aggregate
@@ -238,9 +238,9 @@ export class Resource {  // Aggregate Root
 Абстракция для получения и сохранения Aggregates.
 
 ```typescript
-// src/domain/resource/repositories/IResourceRepository.ts
-import type { ResourceId } from '../value-objects/ResourceId'
-import type { Resource } from '../aggregates/Resource'
+// src/domain/resource/repositories/IResourceRepository.ts  #structure:domain/resource/repositories/
+import type { ResourceId } from '../value-objects/ResourceId'  #structure:domain/resource/value-objects/
+import type { Resource } from '../aggregates/Resource'  #structure:domain/resource/aggregates/
 
 export interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>
@@ -262,7 +262,7 @@ export interface IResourceRepository {
 Бизнес-операции между несколькими Entities/Aggregates.
 
 ```typescript
-// src/domain/services/ResourceDuplicationService.ts
+// src/domain/resource/services/ResourceDuplicationService.ts  #structure:domain/resource/services/
 
 export class ResourceDuplicationService {
   canDuplicate(source: Resource, targetNamespace: Namespace): boolean {
@@ -289,7 +289,7 @@ export class ResourceDuplicationService {
 События, произошедшие в домене.
 
 ```typescript
-// src/domain/events/ResourceEvents.ts
+// src/domain/resource/events/ResourceEvents.ts  #structure:domain/resource/events/
 
 export class ResourceCreatedEvent extends DomainEvent {
   readonly eventType = 'ResourceCreated'
@@ -324,7 +324,7 @@ export class ResourceRenamedEvent extends DomainEvent {
 ### Query Handler (чтение данных)
 
 ```typescript
-// app/application/queries/handlers/ListResourcesQueryHandler.ts
+// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:application/queries/handlers/
 
 export class ListResourcesQueryHandler {
   constructor(private readonly repository: IResourceRepository) {}
@@ -356,7 +356,7 @@ export class ListResourcesQueryHandler {
 ### Command Handler (запись данных)
 
 ```typescript
-// app/application/commands/handlers/CreateResourceCommandHandler.ts
+// src/application/commands/handlers/CreateResourceCommandHandler.ts  #structure:application/commands/handlers/
 
 export class CreateResourceCommandHandler {
   constructor(
@@ -396,7 +396,7 @@ export class CreateResourceCommandHandler {
 **Использование через Facade:**
 
 ```typescript
-// app/composition/commands/ResourceCommands.ts
+// src/composition/commands/ResourceCommands.ts  #structure:composition/commands/
 export const resourceCommands = {
   async create(input: unknown) {
     // 1. Парсим input
@@ -431,7 +431,7 @@ Infrastructure реализует интерфейсы из Domain и Applicatio
 ### Repository Implementation
 
 ```typescript
-// app/infrastructure/repositories/MockResourceRepository.ts
+// src/infrastructure/repositories/MockResourceRepository.ts  #structure:infrastructure/repositories/
 
 export class MockResourceRepository implements IResourceRepository {
   private resources = new Map<string, Resource>()
@@ -449,7 +449,7 @@ export class MockResourceRepository implements IResourceRepository {
 ### Query Bus Adapter
 
 ```typescript
-// app/infrastructure/queries/InMemoryQueryBus.ts
+// src/infrastructure/queries/InMemoryQueryBus.ts  #structure:infrastructure/queries/
 
 export class InMemoryQueryBus implements IQueryBus {
   private handlers = new Map<string, IQueryHandler<any, any>>()
@@ -473,7 +473,7 @@ export class InMemoryQueryBus implements IQueryBus {
 Composition Root связывает все слои. Единственное место, знающее о всех зависимостях.
 
 ```typescript
-// app/composition/ServiceContainer.ts
+// src/composition/ServiceContainer.ts  #structure:composition/
 
 class ServiceContainer {
   private static services = {
@@ -509,7 +509,7 @@ class ServiceContainer {
 ### Facade для Presentation Layer
 
 ```typescript
-// app/composition/queries.ts
+// src/composition/queries/index.ts  #structure:composition/queries/
 
 export const queries = {
   async listResources(request: Request) {
@@ -535,8 +535,8 @@ export const queries = {
 Presentation Layer зависит только от Composition Root (facade).
 
 ```typescript
-// app/routes/_index.tsx
-import { queries } from '~/composition'
+// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
+import { queries } from '@/composition'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.listResources(request)  // Одна строка!
@@ -544,8 +544,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ```
 
 ```typescript
-// app/routes/resources.new.tsx
-import { commands } from '~/composition'
+// src/presentation/web/react/src/routes/resources.new.tsx  #structure:presentation/web/react/src/routes/
+import { commands } from '@/composition'
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData()

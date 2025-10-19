@@ -11,9 +11,9 @@
 Чтобы presentation мог импортировать из DDD слоев:
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '@/composition'           // ← Единый алиас!
-import { Resource } from '@/domain'               // ← Через Public API!
+// src/presentation/web/react/src/routes/_index.tsx  #structure:
+import { queries } from '@/composition'           // ← Единый алиас!  #structure:
+import { Resource } from '@/domain'               // ← Через Public API!  #structure:
 ```
 
 **Vite должен знать** где искать эти файлы.
@@ -104,7 +104,7 @@ import { Resource } from '@/domain'               // ← Через Public API!
 Если нужны дополнительные настройки (порт, CSS, etc.), добавьте их в `defineConfig`:
 
 ```typescript
-// src/presentation/web/react/vite.config.ts
+// src/presentation/web/react/vite.config.ts  #structure:
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
@@ -136,17 +136,18 @@ export default defineConfig({
 ### В presentation/web/react/src/routes/_index.tsx
 
 ```typescript
+// src/presentation/web/react/src/routes/_index.tsx  #structure:
 import type { Route } from './+types/_index'
 
 // ✅ Типы из Domain через Public API
-import { Resource, ResourceId } from '@/domain'
+import { Resource, ResourceId } from '@/domain'  #structure:
 
 // ✅ Facades из Composition
-import { queries } from '@/composition'
+import { queries } from '@/composition'  #structure:
 
 // ✅ Локальные компоненты через ~ (React Router alias)
-import { ResourceList } from '~/components/ResourceList'
-import { useModal } from '~/hooks/useModal'
+import { ResourceList } from '~/components/ResourceList'  #structure:
+import { useModal } from '~/hooks/useModal'  #structure:
 
 export async function loader({ request }: Route.LoaderArgs) {
   // vite-tsconfig-paths резолвит @/composition → src/composition/index.ts

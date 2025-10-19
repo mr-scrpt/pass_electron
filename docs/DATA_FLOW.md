@@ -30,7 +30,7 @@
 ### ❌ Распространенное заблуждение
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx
+// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
 export async function loader() {  // ← НЕ клиент, это СЕРВЕР!
   // ⚠️ Старый подход - теперь используем Query Facade
   const service = getResourceService()
@@ -122,13 +122,13 @@ export async function loader() {
 
 > **📘 Полное описание внедрения внешних зависимостей см. в [ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)**
 
-**Файл: `src/composition/ServiceContainer.ts`**
+**Файл: `src/composition/ServiceContainer.ts`**  `#structure:composition/`
 
 ```typescript
-import { InMemoryQueryBus } from '@/infrastructure/queries'  // #alias:@/ #class:InMemoryQueryBus
-import { ResourceModule } from './modules/ResourceModule'  // #class:ResourceModule
-import type { IQueryBus, IRequestParser } from '@/application'  // #alias:@/ #interface:IQueryBus #interface:IRequestParser
-import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService
+import { InMemoryQueryBus } from '@/infrastructure/queries'  // #alias:@/ #class:InMemoryQueryBus #structure:infrastructure/queries/
+import { ResourceModule } from './modules/ResourceModule'  // #class:ResourceModule #structure:composition/modules/
+import type { IQueryBus, IRequestParser } from '@/application'  // #alias:@/ #interface:IQueryBus #interface:IRequestParser #structure:application/
+import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService #structure:application/ports/
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
@@ -189,7 +189,7 @@ class ServiceContainer {
 **Public API:**
 
 ```typescript
-// src/composition/index.ts
+// src/composition/index.ts  #structure:composition/
 export { queries } from './queries'
 export { commands } from './commands'
 export { ServiceContainer } from './ServiceContainer'
@@ -205,11 +205,11 @@ export { ServiceContainer } from './ServiceContainer'
 
 ### Query Facades (упрощенный API для UI)
 
-**Файл: `src/composition/queries/ResourceQueries.ts`**
+**Файл: `src/composition/queries/ResourceQueries.ts`**  `#structure:composition/queries/`
 
 ```typescript
-import { ListResourcesQuery } from '@/application/queries'
-import { ServiceContainer } from '../ServiceContainer'
+import { ListResourcesQuery } from '@/application/queries'  #structure:application/queries/
+import { ServiceContainer } from '../ServiceContainer'  #structure:composition/
 
 /**
  * Facade для Resource Queries
@@ -243,7 +243,7 @@ export const resourceQueries = {
 **Public API:**
 
 ```typescript
-// src/composition/queries/index.ts
+// src/composition/queries/index.ts  #structure:composition/queries/
 export { resourceQueries } from './ResourceQueries'
 
 export const queries = {
@@ -298,8 +298,8 @@ export const queries = {
 **Route Handler (Presentation Layer):**
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '@/composition'
+// src/presentation/web/react/src/routes/_index.tsx  #structure:presentation/web/react/src/routes/
+import { queries } from '@/composition'  #structure:composition/
 
 /**
  * ✅ ИДЕАЛЬНО: Loader в одну строку
@@ -313,7 +313,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 **Что происходит внутри Facade:**
 
 ```typescript
-// src/composition/queries/ResourceQueries.ts
+// src/composition/queries/ResourceQueries.ts  #structure:composition/queries/
 export const resourceQueries = {
   async list(request: Request) {
     // 1. Парсим request
@@ -333,7 +333,7 @@ export const resourceQueries = {
 **Query Handler (Application Layer):**
 
 ```typescript
-// src/application/queries/handlers/ListResourcesQueryHandler.ts
+// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:application/queries/handlers/
 export class ListResourcesQueryHandler {
   constructor(private repository: IResourceRepository) {}
   
@@ -415,9 +415,9 @@ export default function Index() {
 **Пример:**
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.new.tsx
+// src/presentation/web/react/src/routes/resources.new.tsx  #structure:presentation/web/react/src/routes/
 import { redirect } from 'react-router'
-import { commands } from '@/composition'
+import { commands } from '@/composition'  #structure:composition/
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (action для мутаций)
@@ -444,7 +444,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```typescript
 // ✅ РЕКОМЕНДУЕТСЯ: Используй Query Facade
-import { queries } from '@/composition'
+import { queries } from '@/composition'  #structure:composition/
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.listResources(request)
@@ -490,7 +490,7 @@ export default function ResourceItem() {
 **Используй для:** Переиспользуемой UI логики
 
 ```typescript
-// src/domain/useResourceActions.ts
+// src/presentation/web/react/src/hooks/useResourceActions.ts  #structure:presentation/web/react/src/hooks/
 import { useFetcher, useNavigate } from 'react-router'
 
 /**
@@ -573,7 +573,7 @@ export default function ResourceList() {
 
 1. **Используй `loader()` для загрузки данных через Query Facade**
    ```typescript
-   import { queries } from '@/composition'
+   import { queries } from '@/composition'  #structure:composition/
    
    export async function loader({ request }: LoaderFunctionArgs) {
      return queries.listResources(request)  // ✅ Одна строка
@@ -583,13 +583,13 @@ export default function ResourceList() {
 2. **Используй Facades для чтения и записи**
    ```typescript
    // ✅ Для чтения (Queries)
-   import { queries } from '@/composition'
+   import { queries } from '@/composition'  #structure:composition/
    export async function loader({ request }) {
      return queries.resources.list(request)
    }
    
    // ✅ Для записи (Commands)
-   import { commands } from '@/composition'
+   import { commands } from '@/composition'  #structure:composition/
    export async function action({ request }) {
      return commands.resources.create(request)
    }

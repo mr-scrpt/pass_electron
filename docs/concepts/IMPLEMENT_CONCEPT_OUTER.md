@@ -88,14 +88,14 @@
 
 Основные директории приложения:
 
-- **`src/presentation/web/react/src/routes/`** - React Router routes (Presentation Layer)
-- **`src/presentation/web/react/src/components/`** - React компоненты (Presentation Layer)
-- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
-- **`src/domain/`** - Domain Layer (entities, aggregates, events)
-- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
-- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)
-- **`src/composition/`** - Composition Root (DI Container)
-- **`src/presentation/web/react/src/hooks/`** - React Hooks
+- **`src/presentation/web/react/src/routes/`** - React Router routes (Presentation Layer)  #structure:presentation/web/react/src/routes/
+- **`src/presentation/web/react/src/components/`** - React компоненты (Presentation Layer)  #structure:presentation/web/react/src/components/
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)  #structure:application/services/
+- **`src/domain/`** - Domain Layer (entities, aggregates, events)  #structure:domain/
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)  #structure:application/
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)  #structure:infrastructure/
+- **`src/composition/`** - Composition Root (DI Container)  #structure:composition/
+- **`src/presentation/web/react/src/hooks/`** - React Hooks  #structure:presentation/web/react/src/hooks/
 
 См. [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) для полной информации о модулях, архитектурных границах и правилах импорта
 
@@ -207,7 +207,7 @@ interface PasswordStrength {
 #### Types
 
 ```typescript
-// core/modal/types.ts
+// src/application/services/modal/types.ts  #structure:application/services/modal/
 
 export type AppMode = 'navigation' | 'editing';
 
@@ -236,7 +236,7 @@ export type ModeChangeListener = (context: ModeContext) => void;
 Singleton класс для управления режимами:
 
 ```typescript
-// core/modal/ModalManager.ts
+// src/application/services/modal/ModalManager.ts  #structure:application/services/modal/
 
 export class ModalManager {
   private mode: AppMode = 'navigation';
@@ -308,7 +308,7 @@ export const modalManager = new ModalManager();
 #### ModalContext (React)
 
 ```typescript
-// core/modal/ModalContext.tsx
+// src/application/services/modal/ModalContext.tsx  #structure:application/services/modal/
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { modalManager } from './ModalManager';
@@ -388,7 +388,7 @@ const handleCancelEdit = () => {
 #### Types
 
 ```typescript
-// core/keymap/types.ts
+// src/application/services/keymap/types.ts  #structure:application/services/keymap/
 
 export interface KeyBinding {
   key: string;              // 's', 'enter', 'escape'
@@ -437,7 +437,7 @@ export type KeymapChangeListener = () => void;
 Реестр всех кеймапов с проверкой активности:
 
 ```typescript
-// core/keymap/KeymapRegistry.ts
+// src/application/services/keymap/KeymapRegistry.ts  #structure:application/services/keymap/
 
 import { Keymap, KeyBinding, ActionContext, KeymapChangeListener } from './types';
 
@@ -532,7 +532,7 @@ export const keymapRegistry = new KeymapRegistry();
 Обработчик нажатий клавиш:
 
 ```typescript
-// core/keymap/KeymapExecutor.ts
+// src/application/services/keymap/KeymapExecutor.ts  #structure:application/services/keymap/
 
 import { KeyBinding, ActionContext } from './types';
 import { KeymapRegistry } from './KeymapRegistry';
@@ -605,7 +605,7 @@ export class KeymapExecutor {
 #### KeymapContext (React)
 
 ```typescript
-// core/keymap/KeymapContext.tsx
+// src/application/services/keymap/KeymapContext.tsx  #structure:application/services/keymap/
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { keymapRegistry, KeymapRegistry } from './KeymapRegistry';
@@ -613,7 +613,7 @@ import { KeymapExecutor } from './KeymapExecutor';
 import { modalManager } from '../modal/ModalManager';
 import { focusManager } from '../focus/FocusManager';
 import { notificationManager } from '../notification/NotificationManager';
-import { getCommandBus } from '~/composition';
+import { getCommandBus } from '@/composition';  #structure:composition/
 import type { Keymap, ActionContext } from './types';
 
 interface KeymapContextValue {
@@ -762,7 +762,7 @@ export const navigationKeymaps: Keymap[] = [
   }
 ];
 
-// core/keymap/keymaps/editing.ts
+// src/application/services/keymap/keymaps/editing.ts  #structure:application/services/keymap/keymaps/
 
 import { Keymap } from '../types';
 
@@ -803,10 +803,10 @@ export const editingKeymaps: Keymap[] = [
 ##### Resource Keymaps
 
 ```typescript
-// core/keymap/keymaps/resource.ts
+// src/application/services/keymap/keymaps/resource.ts  #structure:application/services/keymap/keymaps/
 
 import { Keymap } from '../types';
-import { DeleteResourceCommand } from '~/application/commands';
+import { DeleteResourceCommand } from '@/application/commands';  #structure:application/commands/
 
 /**
  * ✅ ПРАВИЛЬНО: Используем CommandBus через абстракцию
@@ -826,8 +826,8 @@ export function createResourceKeymaps(): Keymap[] {
         
         // ✅ ПРАВИЛЬНО: Используем Command Bus (Port/Adapter)
         // Keymap не зависит от DOM API или UI реализации
-        await ctx.commandBus?.dispatch(
-          new DeleteResourceCommand(resourceId)
+        await ctx.commandBus?.dispatch(  // #interface:ICommandBus
+          new DeleteResourceCommand(resourceId)  // #class:DeleteResourceCommand
         );
       },
       description: 'Delete resource',
@@ -841,7 +841,7 @@ export function createResourceKeymaps(): Keymap[] {
       binding: { key: 'a' },
       action: async (ctx) => {
         // ✅ Через Command Bus
-        const { ShowNotificationCommand } = await import('~/application/commands');
+        const { ShowNotificationCommand } = await import('@/application/commands');  #structure:application/commands/
         await ctx.commandBus?.dispatch(
           new ShowNotificationCommand('Add field UI would open here', 'info')
         );
@@ -857,7 +857,7 @@ export function createResourceKeymaps(): Keymap[] {
       binding: { key: 'c' },
       action: async (ctx) => {
         // ✅ Через Command Bus
-        const { CopyToClipboardCommand } = await import('~/application/commands');
+        const { CopyToClipboardCommand } = await import('@/application/commands');  #structure:application/commands/
         const secretValue = ctx.editingContext?.secretValue || 'secret';
         await ctx.commandBus?.dispatch(
           new CopyToClipboardCommand(secretValue)
@@ -872,7 +872,7 @@ export function createResourceKeymaps(): Keymap[] {
 }
 
 ```typescript
-// core/keymap/keymaps/index.ts
+// src/application/services/keymap/keymaps/index.ts  #structure:application/services/keymap/keymaps/
 
 import { KeymapRegistry } from '../KeymapRegistry';
 import { navigationKeymaps } from './navigation';

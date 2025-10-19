@@ -79,7 +79,7 @@ src/domain/                      #structure:domain/
 
 ### Шаг 1: Domain Error
 
-**Файл: `src/domain/shared/errors/DomainError.ts`**
+**Файл: `src/domain/shared/errors/DomainError.ts`**  `#structure:domain/shared/errors/`
 
 ```typescript
 /**
@@ -97,7 +97,7 @@ export abstract class DomainError extends Error {
 }
 ```
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:domain/shared/errors/`
 
 ```typescript
 import { DomainError } from './DomainError'
@@ -118,7 +118,7 @@ export class InvariantViolationError extends DomainError {
 }
 ```
 
-**Файл: `src/domain/shared/errors/index.ts`**
+**Файл: `src/domain/shared/errors/index.ts`**  `#structure:domain/shared/errors/`
 
 ```typescript
 export { DomainError } from './DomainError'
@@ -129,10 +129,10 @@ export { InvariantViolationError } from './InvariantViolationError'
 
 ### Шаг 2: Переиспользуемые инварианты
 
-**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**  `#structure:domain/shared/invariants/`
 
 ```typescript
-import { InvariantViolationError } from '../errors'
+import { InvariantViolationError } from '../errors'  #structure:domain/shared/errors/
 
 /**
  * Инварианты для UUID
@@ -174,11 +174,11 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
+**Файл: `src/domain/shared/invariants/StringInvariant.ts`**  `#structure:domain/shared/invariants/`
 
 ```typescript
 import { Result, ok, err } from 'neverthrow'
-import { InvariantViolationError } from '../errors'
+import { InvariantViolationError } from '../errors'  #structure:domain/shared/errors/
 
 /**
  * Инварианты для строк
@@ -252,11 +252,11 @@ export class StringInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**
+**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**  `#structure:domain/shared/invariants/`
 
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '../errors'
+import { InvariantViolationError } from '../errors'  #structure:domain/shared/errors/
 import { StringInvariant } from './StringInvariant'
 
 /**
@@ -298,7 +298,7 @@ export class IdentifierInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/index.ts`**
+**Файл: `src/domain/shared/invariants/index.ts`**  `#structure:domain/shared/invariants/`
 
 ```typescript
 export { UuidInvariant } from './UuidInvariant'
@@ -306,7 +306,7 @@ export { StringInvariant } from './StringInvariant'
 export { IdentifierInvariant } from './IdentifierInvariant'
 ```
 
-**Файл: `src/domain/shared/index.ts`**
+**Файл: `src/domain/shared/index.ts`**  `#structure:domain/shared/`
 
 ```typescript
 export * from './errors'
@@ -320,12 +320,12 @@ export * from './invariants'
 > **Принцип DDD**: Value Objects должны быть **self-validating** (самовалидирующимися).
 > Инварианты - это **переиспользуемые утилиты**, которые Value Object использует ВНУТРИ себя.
 
-**Файл: `src/domain/resource/ResourceName.ts`**
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`**  `#structure:domain/resource/value-objects/`
 
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~domain/shared/errors'
-import { IdentifierInvariant } from '~domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+import { IdentifierInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
 
 /**
  * Value Object для имени ресурса
@@ -358,12 +358,12 @@ export class ResourceName {
 }
 ```
 
-**Файл: `src/domain/resource/Namespace.ts`**
+**Файл: `src/domain/resource/value-objects/Namespace.ts`**  `#structure:domain/resource/value-objects/`
 
 ```typescript
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '~domain/shared/errors'
-import { IdentifierInvariant } from '~domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'  #structure:domain/shared/errors/
+import { IdentifierInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
 
 export class Namespace {
   private constructor(private readonly value: string) {}
@@ -596,10 +596,10 @@ if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
 }
 ```
 
-**Файл: `src/domain/value-objects/Namespace.ts`** (обновленный)
+**Файл: `src/domain/resource/value-objects/Namespace.ts`** (обновленный)  `#structure:domain/resource/value-objects/`
 
 ```typescript
-import { StringInvariant } from '../shared/invariants'
+import { StringInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
 
 /**
  * Value Object для namespace ресурса
@@ -640,10 +640,10 @@ export class Namespace {
 }
 ```
 
-**Файл: `src/domain/value-objects/ResourceName.ts`** (обновленный)
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`** (обновленный)  `#structure:domain/resource/value-objects/`
 
 ```typescript
-import { StringInvariant } from '../shared/invariants'
+import { StringInvariant } from '@/domain/shared/invariants'  #structure:domain/shared/invariants/
 
 /**
  * Value Object для имени ресурса
@@ -796,7 +796,7 @@ export class NumericInvariant {
 ## 🧪 Тестирование
 
 ```typescript
-import { UuidInvariant, InvariantViolationError } from '~domain/shared'
+import { UuidInvariant, InvariantViolationError } from '@/domain/shared'  #structure:domain/shared/
 
 describe('UuidInvariant', () => {
   describe('ensureValidUuid', () => {

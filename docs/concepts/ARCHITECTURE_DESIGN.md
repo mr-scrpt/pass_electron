@@ -1,4 +1,4 @@
-# Архитектурный дизайн Password Manager
+# Архитектурный дизайн Password Manager `#architecture-design` `#ddd` `#clean-architecture` `#cqrs`
 
 ## Содержание
 

@@ -6,6 +6,8 @@
 
 ## Проблема масштабирования
 
+### Антипаттерн - монолитный контейнер [#code]
+
 При росте количества доменных сущностей монолитные файлы становятся огромными:
 
 ```typescript
@@ -151,6 +153,8 @@ export class WebRequestParser implements IRequestParser {  //
 }
 ```
 
+#### CLIRequestParser [#class:CLIRequestParser|#code|#structure:path]
+
 ```typescript
 // src/infrastructure/request-parsers/CLIRequestParser.ts
 export class CLIRequestParser implements IRequestParser {  //
@@ -191,6 +195,8 @@ export class ResourceModule {  //
   }
 }
 ```
+
+#### SystemModule [#class:SystemModule|#code|#structure:path]
 
 ```typescript
 // src/composition/modules/SystemModule.ts
@@ -336,6 +342,8 @@ export const resourceQueries = {
 }
 ```
 
+#### Public API для Queries [#code|#structure:path]
+
 ```typescript
 // src/composition/queries/index.ts
 export { resourceQueries } from './ResourceQueries'
@@ -387,6 +395,8 @@ export class RequestParserFactory {  //
 }
 ```
 
+#### ClipboardServiceFactory [#class:ClipboardServiceFactory|#code|#structure:path]
+
 ```typescript
 // src/infrastructure/clipboard/ClipboardServiceFactory.ts
 import type { IClipboardService } from '@/application/ports'  //
@@ -432,6 +442,8 @@ ServiceContainer.initialize({
 // Далее обычный React Router код
 hydrateRoot(document, <HydratedRouter />)
 ```
+
+#### Пример использования в route [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources._index.tsx

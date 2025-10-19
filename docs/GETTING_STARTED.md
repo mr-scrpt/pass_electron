@@ -47,18 +47,18 @@
 
 ---
 
-## Структура проекта
+## Структура проекта [#structure:path]
 
 > **📂 Детальная структура проекта с архитектурными границами и правилами импорта описана в [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)**
 
 Краткий обзор основных директорий:
 
-- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects)  #structure:
-- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)  #structure:
-- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)  #structure:
-- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage)  #structure:
-- **`src/composition/`** - Composition Root (DI Container)  #structure:
-- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI)  #structure:
+- **`src/domain/`** - Domain Layer (бизнес-логика, entities, value objects)
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, storage)
+- **`src/composition/`** - Composition Root (DI Container)
+- **`src/presentation/web/react/`** - Presentation Layer (React Router, UI)
 - **`docs/`** - Документация проекта
 - **`tests/`** - Unit, integration и e2e тесты
 
@@ -174,19 +174,19 @@
 
 ---
 
-## Начало работы
+## Начало работы [#command]
 
 > **📦 Детальная инструкция**: [steps/step_0/README.md](../steps/step_0/README.md) — полное руководство по настройке окружения с нуля
 
 ### Краткий обзор:
 
-1. **Инициализация** — `pnpm create remix@latest` (Remix CLI создаст всё за вас!) `#command:pnpm-create-remix`
+1. **Инициализация** — `pnpm create remix@latest` (Remix CLI создаст всё за вас!)
 2. **Зависимости** — установить Electron, Tailwind CSS, Catppuccin
 3. **Конфигурация** — настроить `tsconfig.json`, `vite.config.ts`, `tailwind.config.js`
-4. **Структура папок** — создать DDD структуру (Domain, Application, Infrastructure, etc.) `#structure-tree`
+4. **Структура папок** — создать DDD структуру (Domain, Application, Infrastructure, etc.)
 5. **Electron setup** — создать `electron/main.ts` и `electron/config.ts`
 6. **Стили** — настроить Tailwind CSS с Catppuccin Mocha темой
-7. **Проверка** — запустить `pnpm dev` и убедиться что всё работает `#command:pnpm-dev`
+7. **Проверка** — запустить `pnpm dev` и убедиться что всё работает
 
 **Следуйте шагу 0 для детальных инструкций** ⬆️
 

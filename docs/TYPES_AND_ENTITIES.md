@@ -1,4 +1,4 @@
-# Types and Entities - Типизация в DDD проекте
+# Types and Entities - Типизация в DDD проекте `#types` `#ddd` `#value-object` `#entity`
 
 Полное руководство по работе с типами, классами и сущностями в проекте Password Manager.
 
@@ -23,14 +23,14 @@
 3. **DTO (интерфейсы)** - Application Layer, простые объекты для UI
 
 ```typescript
-// 1. Value Object (класс с логикой)
+// 1. Value Object (класс с логикой) #class:ResourceId
 export class ResourceId {
   private constructor(private readonly _value: string) {}
   static create(value: string): Result<ResourceId, InvariantViolationError>
   getValue(): string
 }
 
-// 2. Entity (класс с идентичностью)
+// 2. Entity (класс с идентичностью) #class:CustomField
 export class CustomField {
   constructor(
     public readonly id: FieldId,  // Value Object
@@ -40,7 +40,7 @@ export class CustomField {
   ) {}
 }
 
-// 3. DTO (интерфейс без логики)
+// 3. DTO (интерфейс без логики) #interface:ResourceListItemDTO
 export interface ResourceListItemDTO {
   id: string
   namespace: string
@@ -57,30 +57,30 @@ export interface ResourceListItemDTO {
 ### Модуль Resource (Bounded Context)
 
 ```
-src/domain/resource/
+src/domain/resource/            #structure:domain/resource/
 ├── index.ts                    # Public API модуля
 │
-├── aggregates/                 # Aggregate Roots
+├── aggregates/                 # Aggregate Roots #structure:domain/resource/aggregates/
 │   ├── index.ts
-│   └── Resource.ts             # Aggregate Root (класс)
+│   └── Resource.ts             # Aggregate Root (класс) #class:Resource
 │
-├── entities/                   # Entities (не Aggregate Roots)
+├── entities/                   # Entities (не Aggregate Roots) #structure:domain/resource/entities/
 │   ├── index.ts
-│   ├── SecretField.ts          # Entity (класс)
-│   └── CustomField.ts          # Entity (класс)
+│   ├── SecretField.ts          # Entity (класс) #class:SecretField
+│   └── CustomField.ts          # Entity (класс) #class:CustomField
 │
-├── value-objects/              # Value Objects
+├── value-objects/              # Value Objects #structure:domain/resource/value-objects/
 │   ├── index.ts
-│   ├── ResourceId.ts           # Value Object (класс)
-│   ├── FieldId.ts              # Value Object (класс)
-│   ├── ResourceName.ts         # Value Object (класс)
-│   ├── Namespace.ts            # Value Object (класс)
-│   └── FieldValue.ts           # Value Object (класс)
+│   ├── ResourceId.ts           # Value Object (класс) #class:ResourceId
+│   ├── FieldId.ts              # Value Object (класс) #class:FieldId
+│   ├── ResourceName.ts         # Value Object (класс) #class:ResourceName
+│   ├── Namespace.ts            # Value Object (класс) #class:Namespace
+│   └── FieldValue.ts           # Value Object (класс) #class:FieldValue
 │
-├── repositories/               # Repository Interfaces
+├── repositories/               # Repository Interfaces #structure:domain/resource/repositories/
 │   ├── index.ts
-│   ├── IResourceRepository.ts
-│   └── INamespaceRepository.ts
+│   ├── IResourceRepository.ts  #interface:IResourceRepository
+│   └── INamespaceRepository.ts #interface:INamespaceRepository
 │
 └── events/                     # Domain Events
     ├── index.ts
@@ -95,10 +95,10 @@ src/domain/resource/
 // src/domain/resource/index.ts
 
 // ✅ Экспортируем через подмодули (Public API)
-export * from './aggregates'
-export * from './entities'
-export * from './value-objects'
-export * from './repositories'
+export * from './aggregates'      // #class:Resource
+export * from './entities'        // #class:SecretField #class:CustomField
+export * from './value-objects'   // #class:ResourceId #class:Namespace
+export * from './repositories'    // #interface:IResourceRepository
 export * from './events'
 
 // ❌ НЕ экспортируем TypeScript type aliases
@@ -146,13 +146,13 @@ export type ResourceId = string
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
 import { Result, ok, err } from 'neverthrow'
-import { UuidInvariant } from '@/domain/shared/invariants'
-import { InvariantViolationError } from '@/domain/shared/errors'
+import { UuidInvariant } from '@/domain/shared/invariants'  // #alias:@/
+import { InvariantViolationError } from '@/domain/shared/errors'  // #alias:@/
 
 /**
  * Value Object для ID ресурса
  * Инвариант: должен быть валидным UUID v4
- */
+ */ // #class:ResourceId
 export class ResourceId {
   private constructor(private readonly _value: string) {}
   

@@ -1,4 +1,4 @@
-# Project Structure - Структура проекта
+# Project Structure - Структура проекта `#project-structure` `#architecture`
 
 Детальное описание структуры проекта Password Manager с архитектурными границами и правилами импорта.
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Общая структура
+## Общая структура `#structure-tree`
 
 ```
 password-manager/
@@ -35,13 +35,13 @@ password-manager/
 │
 └── src/                           # Application code
     │
-    ├── domain/                    # Domain Layer (DDD)
-    │   ├── resource/              # Resource Bounded Context
-    │   │   ├── aggregates/        # Aggregate Roots
-    │   │   ├── entities/          # Entities
-    │   │   ├── value-objects/     # Value Objects
-    │   │   ├── repositories/      # Repository Interfaces
-    │   │   ├── events/            # Domain Events
+    ├── domain/                    # Domain Layer (DDD) #structure:domain/
+    │   ├── resource/              # Resource Bounded Context #structure:domain/resource/
+    │   │   ├── aggregates/        # Aggregate Roots #structure:domain/resource/aggregates/
+    │   │   ├── entities/          # Entities #structure:domain/resource/entities/
+    │   │   ├── value-objects/     # Value Objects #structure:domain/resource/value-objects/
+    │   │   ├── repositories/      # Repository Interfaces #structure:domain/resource/repositories/
+    │   │   ├── events/            # Domain Events #structure:domain/resource/events/
     │   │   └── index.ts           # Public API
     │   │
     │   ├── user/                  # User Bounded Context (пример)
@@ -53,30 +53,30 @@ password-manager/
     │       ├── base/              # Base classes/interfaces
     │       └── index.ts
     │
-    ├── application/               # Application Layer (DDD)
-    │   ├── queries/
-    │   ├── commands/
-    │   ├── ports/
-    │   └── services/
+    ├── application/               # Application Layer (DDD) #structure:application/
+    │   ├── queries/               #structure:application/queries/
+    │   ├── commands/              #structure:application/commands/
+    │   ├── ports/                 #structure:application/ports/
+    │   └── services/              #structure:application/services/
     │
-    ├── infrastructure/            # Infrastructure Layer (DDD)
-    │   ├── persistence/
-    │   ├── services/
-    │   └── event-bus/
+    ├── infrastructure/            # Infrastructure Layer (DDD) #structure:infrastructure/
+    │   ├── persistence/           #structure:infrastructure/persistence/
+    │   ├── services/              #structure:infrastructure/services/
+    │   └── event-bus/             #structure:infrastructure/event-bus/
     │
-    ├── composition/                # Composition Root (DI Container)
-    │   ├── ServiceContainer.ts
-    │   ├── modules/
-    │   ├── queries/               # Query Facades
-    │   └── commands/              # Command Facades
+    ├── composition/                # Composition Root (DI Container) #structure:composition/
+    │   ├── ServiceContainer.ts    #class:ServiceContainer
+    │   ├── modules/               #structure:composition/modules/
+    │   ├── queries/               # Query Facades #structure:composition/queries/
+    │   └── commands/              # Command Facades #structure:composition/commands/
     │
     ├── shared/                    # Shared utilities (framework-agnostic)
     │   └── types/
     │
-    └── presentation/              # Presentation Layer (DDD)
+    └── presentation/              # Presentation Layer (DDD) #structure:presentation/
         │
-        └── web/                   # Web presentations
-            └── react/             # React Router implementation
+        └── web/                   # Web presentations #structure:presentation/web/
+            └── react/             # React Router implementation #structure:presentation/web/react/
                 ├── package.json   # Web-specific dependencies
                 ├── vite.config.ts # Vite build tool config
                 ├── tailwind.config.js
@@ -171,15 +171,15 @@ src/domain/
 │   │   └── index.ts
 │   │
 │   ├── value-objects/     # Value Objects
-│   │   ├── ResourceId.ts
-│   │   ├── ResourceName.ts
-│   │   ├── Namespace.ts
-│   │   ├── FieldValue.ts
+│   │   ├── ResourceId.ts      #class:ResourceId
+│   │   ├── ResourceName.ts    #class:ResourceName
+│   │   ├── Namespace.ts       #class:Namespace
+│   │   ├── FieldValue.ts      #class:FieldValue
 │   │   └── index.ts
 │   │
 │   ├── repositories/      # Repository Interfaces (специфичные для resource)
-│   │   ├── IResourceRepository.ts
-│   │   ├── INamespaceRepository.ts
+│   │   ├── IResourceRepository.ts    #interface:IResourceRepository
+│   │   ├── INamespaceRepository.ts   #interface:INamespaceRepository
 │   │   └── index.ts
 │   │
 │   ├── events/            # Domain Events (специфичные для resource)
@@ -262,7 +262,7 @@ src/domain/
 
 **📋 Правила импортов:**
 - ✅ **МОЖЕТ импортировать:** НИЧЕГО! Полностью изолирован
-- ✅ **Внутренние импорты:** Только другие Domain объекты через `@/domain/*`
+- ✅ **Внутренние импорты:** Только другие Domain объекты через `@/domain/*` `#alias:@/`
 - ❌ **НЕ МОЖЕТ импортировать:** Application, Infrastructure, Presentation, React, HTTP, etc.
 - ✅ **Public API:** Entities, Value Objects, Domain Events, Repository Interfaces, Domain Errors
 - 🔒 **Внутренности:** Приватные методы entities - НЕ экспортируются
@@ -336,7 +336,7 @@ src/application/
 ```
 
 **📋 Правила импортов:**
-- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`)
+- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`) `#alias:@/`
 - ❌ **НЕ МОЖЕТ импортировать:** Infrastructure, Presentation, Composition, React, HTTP
 - ✅ **Public API:** Query/Command типы, Result типы, Ports (интерфейсы)
 - 🔒 **Внутренности:** Handlers реализации - доступны ТОЛЬКО через `@/internal/application/*` (для Composition)
@@ -441,7 +441,7 @@ src/infrastructure/
 ```
 
 **📋 Правила импортов:**
-- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`) - ТОЛЬКО интерфейсы
+- ✅ **МОЖЕТ импортировать:** Domain (`@/domain`) - ТОЛЬКО интерфейсы `#alias:@/`
 - ❌ **НЕ МОЖЕТ импортировать:** Application, Presentation, Composition
 - ✅ **Public API:** Repository реализации, Service реализации, Factories
 - 🔒 **Внутренности:** Приватные методы адаптеров - доступны ТОЛЬКО через `@/internal/infrastructure/*` (для Composition)

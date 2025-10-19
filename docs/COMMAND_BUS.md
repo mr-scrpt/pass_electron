@@ -1,4 +1,4 @@
-# Command Bus Pattern - Паттерн Командной Шины
+# Command Bus Pattern - Паттерн Командной Шины `#command-bus` `#cqrs` `#hexagonal-architecture`
 
 Документ описывает использование Command Bus паттерна для изоляции бизнес-логики от UI-специфичных действий в соответствии с DDD и Hexagonal Architecture.
 
@@ -75,14 +75,14 @@ Command Bus - это посредник между Core Systems и UI Layer, к�
 
 **Port** (интерфейс) - определяет ЧТО нужно Application Core:
 ```typescript
-interface ICommandBus {
+interface ICommandBus {  // #interface:ICommandBus
   dispatch<T extends ICommand>(command: T): Promise<void>;
 }
 ```
 
 **Adapter** (реализация) - определяет КАК это сделать:
 ```typescript
-class InMemoryCommandBus implements ICommandBus {
+class InMemoryCommandBus implements ICommandBus {  // #class:InMemoryCommandBus
   // Конкретная реализация
 }
 ```
@@ -125,20 +125,20 @@ class InMemoryCommandBus implements ICommandBus {
 
 ```
 app/
-├── composition/                    # Composition Root
-│   └── ServiceContainer.ts         # Создает CommandBus
+├── composition/                    # Composition Root #structure:composition/
+│   └── ServiceContainer.ts         # Создает CommandBus #class:ServiceContainer
 │
-├── application/                    # Application Layer
-│   └── commands/                   # Commands & Ports
-│       ├── ICommandBus.ts          # Port (интерфейс)
-│       ├── ICommand.ts             # Базовый интерфейс команды
-│       ├── ICommandHandler.ts      # Интерфейс обработчика
+├── application/                    # Application Layer #structure:application/
+│   └── commands/                   # Commands & Ports #structure:application/commands/
+│       ├── ICommandBus.ts          # Port (интерфейс) #interface:ICommandBus
+│       ├── ICommand.ts             # Базовый интерфейс команды #interface:ICommand
+│       ├── ICommandHandler.ts      # Интерфейс обработчика #interface:ICommandHandler
 │       ├── UICommands.ts           # Конкретные команды
 │       └── index.ts
 │
-├── infrastructure/                 # Infrastructure Layer
-│   └── commands/                   # Adapters
-│       ├── InMemoryCommandBus.ts   # Реализация CommandBus
+├── infrastructure/                 # Infrastructure Layer #structure:infrastructure/
+│   └── commands/                   # Adapters #structure:infrastructure/commands/
+│       ├── InMemoryCommandBus.ts   # Реализация CommandBus #class:InMemoryCommandBus
 │       └── index.ts
 │
 ├── core/                          # Core Systems

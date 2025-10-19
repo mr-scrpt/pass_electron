@@ -1,4 +1,4 @@
-# Composition Layer - Декомпозиция и масштабирование
+# Composition Layer - Декомпозиция и масштабирование `#composition-layer` `#di-container` `#multi-ui`
 
 Документ описывает структуру Composition Layer, декомпозицию при росте количества сущностей, и паттерны для поддержки нескольких типов UI (Web, CLI, Desktop).
 
@@ -25,20 +25,20 @@ class ServiceContainer {
 ### Структура
 
 ```
-src/composition/
+src/composition/                  #structure:composition/
 ├── index.ts                      # Public API
-├── ServiceContainer.ts           # Root Container
-├── config/
+├── ServiceContainer.ts           # Root Container #class:ServiceContainer
+├── config/                       #structure:composition/config/
 │   └── Environment.ts            # Константы окружений
-├── modules/                      # DI Modules по сущностям
-│   ├── ResourceModule.ts
-│   ├── EntryModule.ts
-│   └── SecretModule.ts
-├── queries/                      # Query Facades по сущностям
+├── modules/                      # DI Modules по сущностям #structure:composition/modules/
+│   ├── ResourceModule.ts         #class:ResourceModule
+│   ├── EntryModule.ts            #class:EntryModule
+│   └── SecretModule.ts           #class:SecretModule
+├── queries/                      # Query Facades по сущностям #structure:composition/queries/
 │   ├── index.ts
 │   ├── ResourceQueries.ts
 │   └── EntryQueries.ts
-└── commands/                     # Command Facades по сущностям
+└── commands/                     # Command Facades по сущностям #structure:composition/commands/
     ├── index.ts
     ├── ResourceCommands.ts
     └── EntryCommands.ts
@@ -124,7 +124,7 @@ Facade не должен зависеть от Web-специфичных тип
 **Port (Application Layer):**
 ```typescript
 // src/application/ports/IRequestParser.ts
-export interface IRequestParser {
+export interface IRequestParser {  // #interface:IRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams
   parseGetResourceByIdParams(input: unknown): GetResourceByIdParams
 }
@@ -139,7 +139,7 @@ export interface ListResourcesParams {
 
 ```typescript
 // src/infrastructure/request-parsers/WebRequestParser.ts
-export class WebRequestParser implements IRequestParser {
+export class WebRequestParser implements IRequestParser {  // #class:WebRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const url = new URL((input as Request).url)
     return {
@@ -152,7 +152,7 @@ export class WebRequestParser implements IRequestParser {
 
 ```typescript
 // src/infrastructure/request-parsers/CLIRequestParser.ts
-export class CLIRequestParser implements IRequestParser {
+export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const options = input as Record<string, any>
     return {
@@ -169,7 +169,7 @@ export class CLIRequestParser implements IRequestParser {
 
 ```typescript
 // src/composition/modules/ResourceModule.ts
-export class ResourceModule {
+export class ResourceModule {  // #class:ResourceModule
   private static repository: IResourceRepository | null = null
   private static service: ResourceService | null = null
 
@@ -193,14 +193,14 @@ export class ResourceModule {
 
 ```typescript
 // src/composition/modules/SystemModule.ts
-import type { IClipboardService, IStorageService } from '~application/ports'
+import type { IClipboardService, IStorageService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService #interface:IStorageService
 
 /**
  * Module для системных адаптеров (не доменных)
  * ✅ НЕ знает о платформах (Web/CLI/Desktop)
  * ✅ Принимает готовые реализации при инициализации
  */
-export class SystemModule {
+export class SystemModule {  // #class:SystemModule
   private static clipboard: IClipboardService | null = null
   private static storage: IStorageService | null = null
 
@@ -238,18 +238,18 @@ export class SystemModule {
 
 ```typescript
 // src/composition/ServiceContainer.ts
-import type { IRequestParser } from '~application/ports'
-import type { IQueryBus } from '~application/queries'
-import type { IClipboardService } from '~application/ports'
-import { InMemoryQueryBus } from '~infrastructure/queries'
-import { ResourceModule, SystemModule } from './modules'
+import type { IRequestParser } from '@/application/ports'  // #alias:@/ #interface:IRequestParser
+import type { IQueryBus } from '@/application/queries'  // #alias:@/ #interface:IQueryBus
+import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService
+import { InMemoryQueryBus } from '@/infrastructure/queries'  // #alias:@/ #class:InMemoryQueryBus
+import { ResourceModule, SystemModule } from './modules'  // #class:ResourceModule #class:SystemModule
 
 /**
  * Root DI Container
  * ✅ НЕ знает о конкретных адаптерах (Web/CLI/Desktop)
  * ✅ Принимает готовые реализации при инициализации
  */
-export class ServiceContainer {
+export class ServiceContainer {  // #class:ServiceContainer
   private static queryBus: IQueryBus | null = null
   private static requestParser: IRequestParser | null = null
   private static initialized = false
@@ -366,12 +366,12 @@ export { Environment, type EnvironmentType } from './config/Environment'
 
 ```typescript
 // src/infrastructure/request-parsers/RequestParserFactory.ts
-import type { IRequestParser } from '~application/ports'
-import { RemixRequestParser } from './RemixRequestParser'
-import { CLIRequestParser } from './CLIRequestParser'
-import { DesktopRequestParser } from './DesktopRequestParser'
+import type { IRequestParser } from '@/application/ports'  // #alias:@/ #interface:IRequestParser
+import { RemixRequestParser } from './RemixRequestParser'  // #class:RemixRequestParser
+import { CLIRequestParser } from './CLIRequestParser'  // #class:CLIRequestParser
+import { DesktopRequestParser } from './DesktopRequestParser'  // #class:DesktopRequestParser
 
-export class RequestParserFactory {
+export class RequestParserFactory {  // #class:RequestParserFactory
   static createForWeb(): IRequestParser {
     return new RemixRequestParser()
   }
@@ -388,11 +388,11 @@ export class RequestParserFactory {
 
 ```typescript
 // src/infrastructure/clipboard/ClipboardServiceFactory.ts
-import type { IClipboardService } from '~application/ports'
-import { WebClipboardService } from './WebClipboardService'
-import { ElectronClipboardService } from './ElectronClipboardService'
+import type { IClipboardService } from '@/application/ports'  // #alias:@/ #interface:IClipboardService
+import { WebClipboardService } from './WebClipboardService'  // #class:WebClipboardService
+import { ElectronClipboardService } from './ElectronClipboardService'  // #class:ElectronClipboardService
 
-export class ClipboardServiceFactory {
+export class ClipboardServiceFactory {  // #class:ClipboardServiceFactory
   static createForWeb(): IClipboardService {
     return new WebClipboardService()
   }
@@ -413,9 +413,9 @@ export class ClipboardServiceFactory {
 // app/entry.client.tsx
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
-import { ServiceContainer } from '~composition'
-import { RequestParserFactory } from '~infrastructure/request-parsers'
-import { ClipboardServiceFactory } from '~infrastructure/clipboard'
+import { ServiceContainer } from '@/composition'  // #alias:@/ #class:ServiceContainer
+import { RequestParserFactory } from '@/infrastructure/request-parsers'  // #alias:@/ #class:RequestParserFactory
+import { ClipboardServiceFactory } from '@/infrastructure/clipboard'  // #alias:@/ #class:ClipboardServiceFactory
 
 // ✅ Entry point знает что это Web
 // ✅ Создает Web адаптеры через фабрики
@@ -434,7 +434,7 @@ hydrateRoot(document, <RemixBrowser />)
 
 ```typescript
 // src/presentation/web/react/src/routes/resources._index.tsx
-import { queries } from '~composition'
+import { queries } from '@/composition'  // #alias:@/
 
 export async function loader({ request }) {
   return queries.resources.list(request)  // ✅ Одна строка
@@ -446,9 +446,9 @@ export async function loader({ request }) {
 ```typescript
 // cli/index.ts
 import { program } from 'commander'
-import { ServiceContainer, queries } from '~composition'
-import { RequestParserFactory } from '~infrastructure/request-parsers'
-import { ClipboardServiceFactory } from '~infrastructure/clipboard'
+import { ServiceContainer, queries } from '@/composition'  // #alias:@/ #class:ServiceContainer
+import { RequestParserFactory } from '@/infrastructure/request-parsers'  // #alias:@/ #class:RequestParserFactory
+import { ClipboardServiceFactory } from '@/infrastructure/clipboard'  // #alias:@/ #class:ClipboardServiceFactory
 
 // ✅ Entry point знает что это CLI
 // ✅ Создает CLI адаптеры через фабрики

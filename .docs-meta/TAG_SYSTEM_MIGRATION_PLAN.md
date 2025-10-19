@@ -16,7 +16,7 @@ import { ResourceList } from '@/components/ResourceList'  #structure:
 
 **Должно быть:**
 ```markdown
-### Примеры импортов  `#structure:path` `#code`
+### Примеры импортов [#structure:path|#code]
 
 \`\`\`typescript
 import { Resource } from '@/domain'
@@ -30,6 +30,8 @@ import { ResourceList } from '@/components/ResourceList'
 ## ✅ Новая система (v2.0)
 
 ### Типы тегов:
+
+**Формат:** `[#тег1|тег2]` - в квадратных скобках, через пайп
 
 1. **Структура:**
    - `#structure:tree` - дерево структуры
@@ -47,10 +49,11 @@ import { ResourceList } from '@/components/ResourceList'
    - `#api:METHOD-endpoint` - API
 
 ### Правила:
-- ✅ Теги в заголовках секций (в backticks)
-- ✅ Один тег на блок, не на строку
-- ✅ Комбинации тегов для точности
-- ✅ Специфичные теги (`#class:ResourceId` > `#class`)
+- ✅ Формат: `[#тег1|тег2]` в квадратных скобках
+- ✅ Теги в заголовках секций
+- ✅ Один набор тегов на блок, не на строку
+- ✅ Комбинации: `[#structure:path|#code]`
+- ✅ Специфичные теги: `[#class:ResourceId|#code]`
 
 ---
 
@@ -151,19 +154,19 @@ grep -rl "#structure:" docs/ steps/ | grep -v ".docs-meta"
 ### Этап 2: Добавление правильных тегов (4-5 часов)
 
 **Приоритет 1: Структура**
-- Добавить `#structure:tree` к деревьям
-- Добавить `#structure:path` `#code` к примерам с путями
-- Добавить `#structure:alias` `#config` к конфигам алиасов
+- Добавить `[#structure:tree]` к деревьям
+- Добавить `[#structure:path|#code]` к примерам с путями
+- Добавить `[#structure:alias|#config]` к конфигам алиасов
 
 **Приоритет 2: Код**
-- Добавить `#code` к TypeScript примерам
-- Добавить `#config` к JSON/YAML
-- Добавить `#command` к bash командам
+- Добавить `[#code]` к TypeScript примерам
+- Добавить `[#config]` к JSON/YAML
+- Добавить `[#command]` к bash командам
 
 **Приоритет 3: Сущности**
-- Добавить `#class:ClassName` к классам
-- Добавить `#interface:InterfaceName` к интерфейсам
-- Добавить `#api:METHOD-endpoint` к API
+- Добавить `[#class:ClassName|#code]` к классам
+- Добавить `[#interface:InterfaceName|#code]` к интерфейсам
+- Добавить `[#api:METHOD-endpoint]` к API
 
 ### Этап 3: Проверка (1-2 часа)
 - Проверить консистентность
@@ -187,7 +190,7 @@ import { queries } from '@/composition'  #structure:
 
 ### После (правильно):
 ```markdown
-### Примеры импортов  `#structure:path` `#code`
+### Примеры импортов [#structure:path|#code]
 
 \`\`\`typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -211,7 +214,7 @@ export class ResourceId {
 
 ### После (правильно):
 ```markdown
-### ResourceId Value Object  `#class:ResourceId` `#code` `#structure:path`
+### ResourceId Value Object [#class:ResourceId|#code|#structure:path]
 
 **Файл:** `src/domain/resource/value-objects/ResourceId.ts`
 

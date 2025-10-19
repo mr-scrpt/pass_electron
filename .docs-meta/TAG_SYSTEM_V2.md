@@ -4,6 +4,8 @@
 
 **Теги = флаги для блоков, а не для строк!**
 
+**Формат:** `[#тег1|#тег2|#тег3]` - в квадратных скобках, через пайп
+
 Тег ставится:
 - В заголовке секции
 - В описании блока кода
@@ -22,7 +24,7 @@
 
 **Пример:**
 ```markdown
-## Структура Domain Layer  `#structure:tree`
+## Структура Domain Layer [#structure:tree]
 
 \`\`\`
 src/domain/
@@ -41,7 +43,7 @@ src/domain/
 
 **Пример:**
 ```markdown
-### Примеры импортов  `#structure:path` `#code`
+### Примеры импортов [#structure:path|#code]
 
 \`\`\`typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -55,7 +57,7 @@ import { queries } from '@/composition'
 
 **Пример:**
 ```markdown
-## TypeScript Paths  `#structure:alias`
+## TypeScript Paths [#structure:alias|#config]
 
 \`\`\`json
 {
@@ -76,7 +78,7 @@ import { queries } from '@/composition'
 
 **Пример:**
 ```markdown
-### Value Object пример  `#code` `#class`
+### Value Object пример [#code|#class:ResourceId]
 
 \`\`\`typescript
 export class ResourceId {
@@ -91,7 +93,7 @@ export class ResourceId {
 
 **Пример:**
 ```markdown
-### Vite конфигурация  `#config`
+### Vite конфигурация [#config]
 
 \`\`\`typescript
 export default defineConfig({
@@ -105,7 +107,7 @@ export default defineConfig({
 
 **Пример:**
 ```markdown
-### Установка зависимостей  `#command`
+### Установка зависимостей [#command]
 
 \`\`\`bash
 pnpm add neverthrow
@@ -122,7 +124,7 @@ pnpm add -D typescript
 
 **Пример:**
 ```markdown
-### ResourceId Value Object  `#class:ResourceId` `#code`
+### ResourceId Value Object [#class:ResourceId|#code|#structure:path]
 
 \`\`\`typescript
 export class ResourceId {
@@ -136,7 +138,7 @@ export class ResourceId {
 
 **Пример:**
 ```markdown
-### Repository Interface  `#interface:IResourceRepository` `#code`
+### Repository Interface [#interface:IResourceRepository|#code]
 
 \`\`\`typescript
 export interface IResourceRepository {
@@ -150,7 +152,7 @@ API endpoint
 
 **Пример:**
 ```markdown
-### GET /api/resources  `#api:GET-resources`
+### GET /api/resources [#api:GET-resources]
 
 Возвращает список всех ресурсов
 ```
@@ -162,7 +164,7 @@ API endpoint
 ### Пример 1: Дерево структуры
 
 ```markdown
-## Domain Layer структура  `#structure:tree`
+## Domain Layer структура [#structure:tree]
 
 \`\`\`
 src/domain/
@@ -181,7 +183,7 @@ src/domain/
 ### Пример 2: Код с путями
 
 ```markdown
-### Примеры импортов в Presentation  `#structure:path` `#code`
+### Примеры импортов в Presentation [#structure:path|#code]
 
 \`\`\`typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -194,7 +196,7 @@ import { ResourceList } from '@/components/ResourceList'
 ### Пример 3: Класс
 
 ```markdown
-### ResourceId Value Object  `#class:ResourceId` `#code`
+### ResourceId Value Object [#class:ResourceId|#code]
 
 \`\`\`typescript
 export class ResourceId {
@@ -215,7 +217,7 @@ export class ResourceId {
 ### Пример 4: Конфигурация
 
 ```markdown
-### TypeScript paths  `#structure:alias` `#config`
+### TypeScript paths [#structure:alias|#config]
 
 \`\`\`json
 {
@@ -233,7 +235,7 @@ export class ResourceId {
 ### Пример 5: Команды
 
 ```markdown
-### Установка neverthrow  `#command`
+### Установка neverthrow [#command]
 
 \`\`\`bash
 pnpm add neverthrow
@@ -260,7 +262,7 @@ import { ResourceList } from '@/components/ResourceList'  #structure:
 
 **Правильно:**
 ```markdown
-### Примеры импортов  `#structure:path` `#code`
+### Примеры импортов [#structure:path|#code]
 
 \`\`\`typescript
 import { Resource } from '@/domain'
@@ -311,40 +313,57 @@ import { ResourceList } from '@/components/ResourceList'
 
 | Комбинация | Значение |
 |------------|----------|
-| `#structure:tree` | Дерево структуры |
-| `#structure:path` `#code` | Код с путями к файлам |
-| `#structure:alias` `#config` | Конфигурация алиасов |
-| `#class:ResourceId` `#code` | Код класса ResourceId |
-| `#interface:IRepository` `#code` | Код интерфейса |
-| `#api:GET-resources` | API endpoint GET |
-| `#command` | Команды терминала |
+| `[#structure:tree]` | Дерево структуры |
+| `[#structure:path\|#code]` | Код с путями к файлам |
+| `[#structure:alias\|#config]` | Конфигурация алиасов |
+| `[#class:ResourceId\|#code]` | Код класса ResourceId |
+| `[#interface:IRepository\|#code]` | Код интерфейса |
+| `[#api:GET-resources]` | API endpoint GET |
+| `[#command]` | Команды терминала |
 
 ---
 
 ## 🎯 Правила
 
-1. **Один тег на блок** - не дублировать на каждую строку
-2. **Теги в заголовках** - в backticks после заголовка
-3. **Комбинируй теги** - для точности (`#structure:path` `#code`)
-4. **Специфичные теги** - `#class:ResourceId` лучше чем просто `#class`
-5. **Консистентность** - один стиль во всей документации
+1. **Формат** - `[#тег1|#тег2]` в квадратных скобках, через пайп
+2. **Один набор тегов на блок** - не дублировать на каждую строку
+3. **Теги в заголовках** - после заголовка, перед блоком кода
+4. **Комбинируй теги** - для точности `[#structure:path|#code]`
+5. **Специфичные теги** - `#class:ResourceId` лучше чем просто `#class`
+6. **Консистентность** - один стиль во всей документации
 
 ---
 
 ## 📝 Обновление .windsurf/rules/tags.md
 
-Нужно обновить файл правил:
+Нужно обновить файл правил (вручную пользователем):
 
 ```markdown
-#structure:tree - полное дерево структуры
-#structure:path - пути к файлам в коде
-#structure:alias - алиасы и импорты
-#code - блок кода (TypeScript/JavaScript)
-#config - блок конфигурации (JSON/YAML)
-#command - команды терминала
-#class:ClassName - определение/использование класса
-#interface:InterfaceName - определение/использование интерфейса
-#api:METHOD-endpoint - API endpoint
+Наша документация размечена системой тегов для быстрой навигации и консистентности.
+
+**Формат:** [#тег1|#тег2|#тег3] - в квадратных скобках, через пайп
+
+**Типы тегов:**
+
+Структура:
+- #structure:tree - полное дерево структуры
+- #structure:path - пути к файлам в коде
+- #structure:alias - алиасы и импорты
+
+Код:
+- #code - блок кода (TypeScript/JavaScript)
+- #config - блок конфигурации (JSON/YAML)
+- #command - команды терминала
+
+Сущности:
+- #class:ClassName - определение/использование класса
+- #interface:InterfaceName - определение/использование интерфейса
+- #api:METHOD-endpoint - API endpoint
+
+**Правила:**
+- Теги ставятся на блок, НЕ на каждую строку
+- Комбинируй теги: [#structure:path|#code]
+- Используй специфичные теги: [#class:ResourceId|#code]
 ```
 
 ---

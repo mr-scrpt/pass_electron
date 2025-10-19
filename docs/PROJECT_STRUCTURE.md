@@ -1,4 +1,4 @@
-# Project Structure - Структура проекта
+# Project Structure - Структура проекта `#project-structure` `#architecture`
 
 Детальное описание структуры проекта Password Manager с архитектурными границами и правилами импорта.
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Общая структура
+## Общая структура `#domain-structure`
 
 ```
 password-manager/
@@ -35,14 +35,14 @@ password-manager/
 │
 └── src/                           # Application code
     │
-    ├── domain/                    # Domain Layer (DDD)
-    │   ├── resource/              # Resource Bounded Context
-    │   │   ├── aggregates/        # Aggregate Roots
-    │   │   ├── entities/          # Entities
-    │   │   ├── value-objects/     # Value Objects
-    │   │   ├── repositories/      # Repository Interfaces
-    │   │   ├── events/            # Domain Events
-    │   │   └── index.ts           # Public API
+    ├── domain/                    # Domain Layer (DDD) #layer-domain
+    │   ├── resource/              # Resource Bounded Context #bounded-context-resource
+    │   │   ├── aggregates/        # Aggregate Roots #aggregate-root
+    │   │   ├── entities/          # Entities #entity
+    │   │   ├── value-objects/     # Value Objects #value-object
+    │   │   ├── repositories/      # Repository Interfaces #repository-interface
+    │   │   ├── events/            # Domain Events #domain-event
+    │   │   └── index.ts           # Public API #public-api
     │   │
     │   ├── user/                  # User Bounded Context (пример)
     │   │   └── ...

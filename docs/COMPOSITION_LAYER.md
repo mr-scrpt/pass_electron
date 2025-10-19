@@ -138,7 +138,7 @@ export interface ListResourcesParams {
 }
 ```
 
-**Adapters (Infrastructure Layer):** [#class:WebRequestParser|#code|#structure:path]
+#### WebRequestParser - адаптер для Web [#class:WebRequestParser|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/request-parsers/WebRequestParser.ts

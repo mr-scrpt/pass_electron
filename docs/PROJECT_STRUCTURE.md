@@ -1000,6 +1000,8 @@ class EventBus implements IEventBus { ... }
 
 ### 5. Типы централизованы
 
+#### Re-export типов [#code|#structure:path]
+
 ```typescript
 // src/shared/types/domain.ts - Re-export domain types
 export type { Resource, Namespace, SecretField } from '@/domain'
@@ -1018,6 +1020,8 @@ export * from './api'
 ## Примеры правильного использования
 
 ### Пример 1: Получение данных через Application Service
+
+#### Loader с Query Facade [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -1048,6 +1052,8 @@ export default function Index() {
 
 ### Пример 2: Взаимодействие систем через Event Bus
 
+#### NotificationManager с Event Bus [#code|#structure:path]
+
 ```typescript
 // src/application/services/notification/NotificationManager.ts
 import { IEventBus } from '@/domain'
@@ -1073,6 +1079,8 @@ export class NotificationManager {
 
 ### Пример 3: Keymap использует Focus через колбэк
 
+#### Navigation keymaps [#code|#structure:path]
+
 ```typescript
 // src/application/services/keymap/keymaps/navigation.ts
 import type { Keymap } from '../types'
@@ -1097,6 +1105,8 @@ export const navigationKeymaps: Keymap[] = [
 ```
 
 ### Пример 4: React Component использует hooks
+
+#### ResourceList с hooks [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/components/ResourceList/ResourceList.tsx
@@ -1124,6 +1134,8 @@ export function ResourceList() {
 ```
 
 ### Пример 5: Providers в root.tsx
+
+#### Root с Providers [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/root.tsx
@@ -1169,6 +1181,8 @@ export default function App() {
 
 Используется для слабой связанности систем.
 
+#### Event Bus пример [#code]
+
 ```typescript
 // System A публикует событие
 eventBus.publish({
@@ -1185,6 +1199,8 @@ eventBus.subscribe('ResourceCreated', (event) => {
 ### 2. Singleton через ActionContext
 
 Используется когда Keymap'ам нужен доступ к системам.
+
+#### ActionContext пример [#code]
 
 ```typescript
 // При инициализации KeymapExecutor

@@ -1,4 +1,4 @@
-# Domain Events - События предметной области
+# Domain Events - События предметной области `#domain-events` `#event-driven` `#ddd`
 
 Все события, которые происходят в системе.
 
@@ -8,7 +8,7 @@
 /**
  * Базовый интерфейс для всех доменных событий
  */
-interface DomainEvent {
+interface DomainEvent {  // #interface:DomainEvent
   readonly eventType: string
   readonly eventId: string
   readonly occurredAt: DateTime
@@ -26,7 +26,7 @@ interface DomainEvent {
 /**
  * Событие создания ресурса
  */
-interface ResourceCreated extends DomainEvent {
+interface ResourceCreated extends DomainEvent {  // #interface:ResourceCreated
   readonly eventType: 'ResourceCreated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -44,7 +44,7 @@ interface ResourceCreated extends DomainEvent {
 /**
  * Событие обновления ресурса
  */
-interface ResourceUpdated extends DomainEvent {
+interface ResourceUpdated extends DomainEvent {  // #interface:ResourceUpdated
   readonly eventType: 'ResourceUpdated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -62,7 +62,7 @@ interface ResourceUpdated extends DomainEvent {
 /**
  * Событие удаления ресурса
  */
-interface ResourceDeleted extends DomainEvent {
+interface ResourceDeleted extends DomainEvent {  // #interface:ResourceDeleted
   readonly eventType: 'ResourceDeleted'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -78,7 +78,7 @@ interface ResourceDeleted extends DomainEvent {
 /**
  * Событие добавления кастомного поля
  */
-interface CustomFieldAdded extends DomainEvent {
+interface CustomFieldAdded extends DomainEvent {  // #interface:CustomFieldAdded
   readonly eventType: 'CustomFieldAdded'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -94,7 +94,7 @@ interface CustomFieldAdded extends DomainEvent {
 /**
  * Событие обновления кастомного поля
  */
-interface CustomFieldUpdated extends DomainEvent {
+interface CustomFieldUpdated extends DomainEvent {  // #interface:CustomFieldUpdated
   readonly eventType: 'CustomFieldUpdated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -113,7 +113,7 @@ interface CustomFieldUpdated extends DomainEvent {
 /**
  * Событие удаления кастомного поля
  */
-interface CustomFieldRemoved extends DomainEvent {
+interface CustomFieldRemoved extends DomainEvent {  // #interface:CustomFieldRemoved
   readonly eventType: 'CustomFieldRemoved'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -129,7 +129,7 @@ interface CustomFieldRemoved extends DomainEvent {
 /**
  * Событие обновления секретного поля
  */
-interface SecretFieldUpdated extends DomainEvent {
+interface SecretFieldUpdated extends DomainEvent {  // #interface:SecretFieldUpdated
   readonly eventType: 'SecretFieldUpdated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -148,7 +148,7 @@ interface SecretFieldUpdated extends DomainEvent {
 /**
  * Событие изменения режима
  */
-interface ModeChanged extends DomainEvent {
+interface ModeChanged extends DomainEvent {  // #interface:ModeChanged
   readonly eventType: 'ModeChanged'
   readonly data: {
     from: AppMode
@@ -164,7 +164,7 @@ interface ModeChanged extends DomainEvent {
 /**
  * Событие входа в режим навигации
  */
-interface NavigationModeEntered extends DomainEvent {
+interface NavigationModeEntered extends DomainEvent {  // #interface:NavigationModeEntered
   readonly eventType: 'NavigationModeEntered'
   readonly data: {
     route: string
@@ -179,7 +179,7 @@ interface NavigationModeEntered extends DomainEvent {
 /**
  * Событие входа в режим редактирования
  */
-interface EditingModeEntered extends DomainEvent {
+interface EditingModeEntered extends DomainEvent {  // #interface:EditingModeEntered
   readonly eventType: 'EditingModeEntered'
   readonly data: {
     route: string
@@ -196,7 +196,7 @@ interface EditingModeEntered extends DomainEvent {
 /**
  * Событие изменения маршрута
  */
-interface RouteChanged extends DomainEvent {
+interface RouteChanged extends DomainEvent {  // #interface:RouteChanged
   readonly eventType: 'RouteChanged'
   readonly data: {
     from: string
@@ -216,7 +216,7 @@ interface RouteChanged extends DomainEvent {
 /**
  * Событие срабатывания кеймапа
  */
-interface KeymapTriggered extends DomainEvent {
+interface KeymapTriggered extends DomainEvent {  // #interface:KeymapTriggered
   readonly eventType: 'KeymapTriggered'
   readonly data: {
     keymapId: KeymapId
@@ -236,7 +236,7 @@ interface KeymapTriggered extends DomainEvent {
 /**
  * Событие регистрации кеймапа
  */
-interface KeymapRegistered extends DomainEvent {
+interface KeymapRegistered extends DomainEvent {  // #interface:KeymapRegistered
   readonly eventType: 'KeymapRegistered'
   readonly data: {
     keymapId: KeymapId
@@ -253,7 +253,7 @@ interface KeymapRegistered extends DomainEvent {
 /**
  * Событие отмены регистрации кеймапа
  */
-interface KeymapUnregistered extends DomainEvent {
+interface KeymapUnregistered extends DomainEvent {  // #interface:KeymapUnregistered
   readonly eventType: 'KeymapUnregistered'
   readonly data: {
     keymapId: KeymapId
@@ -267,7 +267,7 @@ interface KeymapUnregistered extends DomainEvent {
 /**
  * Событие изменения активных кеймапов
  */
-interface ActiveKeymapsChanged extends DomainEvent {
+interface ActiveKeymapsChanged extends DomainEvent {  // #interface:ActiveKeymapsChanged
   readonly eventType: 'ActiveKeymapsChanged'
   readonly data: {
     activeKeymaps: KeymapId[]
@@ -289,7 +289,7 @@ interface ActiveKeymapsChanged extends DomainEvent {
 /**
  * Событие изменения фокуса
  */
-interface FocusChanged extends DomainEvent {
+interface FocusChanged extends DomainEvent {  // #interface:FocusChanged
   readonly eventType: 'FocusChanged'
   readonly data: {
     from: string | null
@@ -305,7 +305,7 @@ interface FocusChanged extends DomainEvent {
 /**
  * Событие регистрации элемента для фокуса
  */
-interface FocusableElementRegistered extends DomainEvent {
+interface FocusableElementRegistered extends DomainEvent {  // #interface:FocusableElementRegistered
   readonly eventType: 'FocusableElementRegistered'
   readonly data: {
     elementId: string
@@ -322,7 +322,7 @@ interface FocusableElementRegistered extends DomainEvent {
 /**
  * Событие отмены регистрации элемента
  */
-interface FocusableElementUnregistered extends DomainEvent {
+interface FocusableElementUnregistered extends DomainEvent {  // #interface:FocusableElementUnregistered
   readonly eventType: 'FocusableElementUnregistered'
   readonly data: {
     elementId: string
@@ -336,7 +336,7 @@ interface FocusableElementUnregistered extends DomainEvent {
 /**
  * Событие очистки всех элементов фокуса
  */
-interface FocusCleared extends DomainEvent {
+interface FocusCleared extends DomainEvent {  // #interface:FocusCleared
   readonly eventType: 'FocusCleared'
   readonly data: {
     reason: 'route-change' | 'mode-change' | 'manual'
@@ -354,7 +354,7 @@ interface FocusCleared extends DomainEvent {
 /**
  * Событие создания уведомления
  */
-interface NotificationRaised extends DomainEvent {
+interface NotificationRaised extends DomainEvent {  // #interface:NotificationRaised
   readonly eventType: 'NotificationRaised'
   readonly data: {
     notificationId: NotificationId
@@ -371,7 +371,7 @@ interface NotificationRaised extends DomainEvent {
 /**
  * Событие закрытия уведомления
  */
-interface NotificationDismissed extends DomainEvent {
+interface NotificationDismissed extends DomainEvent {  // #interface:NotificationDismissed
   readonly eventType: 'NotificationDismissed'
   readonly data: {
     notificationId: NotificationId
@@ -390,7 +390,7 @@ interface NotificationDismissed extends DomainEvent {
 /**
  * Событие инициализации приложения
  */
-interface ApplicationInitialized extends DomainEvent {
+interface ApplicationInitialized extends DomainEvent {  // #interface:ApplicationInitialized
   readonly eventType: 'ApplicationInitialized'
   readonly data: {
     version: string
@@ -406,7 +406,7 @@ interface ApplicationInitialized extends DomainEvent {
 /**
  * Событие ошибки приложения
  */
-interface ApplicationError extends DomainEvent {
+interface ApplicationError extends DomainEvent {  // #interface:ApplicationError
   readonly eventType: 'ApplicationError'
   readonly data: {
     error: {

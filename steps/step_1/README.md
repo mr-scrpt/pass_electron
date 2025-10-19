@@ -93,9 +93,9 @@ mkdir -p src/domain/shared/base
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#domain-layer](../../docs/PROJECT_STRUCTURE.md#1-domain-layer-srcdomain-) — Структура Domain Layer
 
-### Этап 1: Domain Layer (Типы и интерфейсы)
+### Step 1: Domain Layer - Создание доменного слоя `#step-1` `#domain-layer` `#ddd`
 
-Domain Layer - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
+Создание ядра приложения - Domain Layer. - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
 
 #### 1.1 Создать переиспользуемые инварианты (Shared Kernel)
 

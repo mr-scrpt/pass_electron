@@ -4,6 +4,8 @@
 
 ## Проблема
 
+### Антипаттерн - loader со сложной логикой [#code]
+
 ```typescript
 // ❌ Loader делает слишком много
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -14,6 +16,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ```
 
 ## Решение
+
+### Facade Pattern - одна строка [#code]
 
 ```typescript
 // ✅ Одна строка - вся сложность инкапсулирована
@@ -46,10 +50,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### 1. Query Interfaces (Application Layer)
 
-**`src/application/queries/IQueryHandler.ts`**  `#structure:
+#### IQuery и IQueryHandler [#interface:IQuery|#interface:IQueryHandler|#code|#structure:path]
 
 ```typescript
-export interface IQuery {  // #interface:IQuery
+export interface IQuery {
   readonly type: string;
 }
 
@@ -58,15 +62,15 @@ export interface QueryResult<T = any> {
   error?: string;
 }
 
-export interface IQueryHandler<TQuery extends IQuery, TResult> {  // #interface:IQueryHandler
+export interface IQueryHandler<TQuery extends IQuery, TResult> {
   handle(query: TQuery): Promise<QueryResult<TResult>>;
 }
 ```
 
-**`src/application/queries/IQueryBus.ts`**  `#structure:
+#### IQueryBus - шина запросов [#interface:IQueryBus|#code|#structure:path]
 
 ```typescript
-export interface IQueryBus {  // #interface:IQueryBus
+export interface IQueryBus {
   execute<TQuery extends IQuery, TResult>(
     query: TQuery
   ): Promise<QueryResult<TResult>>;
@@ -80,15 +84,15 @@ export interface IQueryBus {  // #interface:IQueryBus
 
 ### 2. Query Classes
 
-**`src/application/queries/ResourceQueries.ts`**  `#structure:
+#### Resource Queries [#class:ListResourcesQuery|#class:GetResourceByIdQuery|#code|#structure:path]
 
 ```typescript
-export class ListResourcesQuery implements IQuery {  // #class:ListResourcesQuery
+export class ListResourcesQuery implements IQuery {
   readonly type = 'ListResourcesQuery';
   constructor(public readonly filters?: { search?: string; namespace?: string }) {}
 }
 
-export class GetResourceByIdQuery implements IQuery {  // #class:GetResourceByIdQuery
+export class GetResourceByIdQuery implements IQuery {
   readonly type = 'GetResourceByIdQuery';
   constructor(public readonly resourceId: string) {}
 }
@@ -96,10 +100,10 @@ export class GetResourceByIdQuery implements IQuery {  // #class:GetResourceById
 
 ### 3. Query Handlers
 
-**`src/application/queries/handlers/ListResourcesQueryHandler.ts`**  `#structure:
+#### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
-export class ListResourcesQueryHandler  // #class:ListResourcesQueryHandler
+export class ListResourcesQueryHandler
   implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   
   constructor(private resourceService: ResourceService) {}
@@ -123,7 +127,7 @@ export class ListResourcesQueryHandler  // #class:ListResourcesQueryHandler
   }
 }
 
-export interface ResourceListItemDTO {  // #interface:ResourceListItemDTO
+export interface ResourceListItemDTO {
   id: string;
   namespace: string;
   name: string;
@@ -133,10 +137,10 @@ export interface ResourceListItemDTO {  // #interface:ResourceListItemDTO
 
 ### 4. QueryBus Adapter (Infrastructure)
 
-**`src/infrastructure/queries/InMemoryQueryBus.ts`**  `#structure:
+#### InMemoryQueryBus [#class:InMemoryQueryBus|#code|#structure:path]
 
 ```typescript
-export class InMemoryQueryBus implements IQueryBus {  // #class:InMemoryQueryBus
+export class InMemoryQueryBus implements IQueryBus {
   private handlers = new Map<string, IQueryHandler<any, any>>();
   
   register<TQuery extends IQuery, TResult>(
@@ -160,12 +164,12 @@ export class InMemoryQueryBus implements IQueryBus {  // #class:InMemoryQueryBus
 
 ### 5. Facade (Composition Root)
 
-**`src/composition/queries/index.ts`**  `#structure:
+#### Query Facade [#code|#structure:path]
 
 ```typescript
 import { json } from 'react-router';
-import { getQueryBus } from '../ServiceContainer';  // #class:ServiceContainer #structure:
-import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';  // #alias:@/ #class:ListResourcesQuery #class:GetResourceByIdQuery #structure:
+import { getQueryBus } from '../ServiceContainer';
+import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';
 
 /**
  * Facade: инкапсулирует QueryBus, парсинг Request, сериализацию
@@ -197,7 +201,7 @@ export const queries = {
 };
 ```
 
-**`src/composition/ServiceContainer.ts`** (обновление)  `#structure:
+#### Регистрация handlers в ServiceContainer [#code|#structure:path]
 
 ```typescript
 static getQueryBus(): IQueryBus {
@@ -218,22 +222,22 @@ static getQueryBus(): IQueryBus {
 
 ## Использование в Loaders
 
-### Список ресурсов
+### Список ресурсов [#code|#structure:path]
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx  #structure:
-import { queries } from '@/composition';  // #alias:@/ #structure:
+// src/presentation/web/react/src/routes/_index.tsx
+import { queries } from '@/composition';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return queries.resources.list(request);  // ✅ Одна строка!
 }
 ```
 
-### Детальная страница
+### Детальная страница [#code|#structure:path]
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.$id.tsx  #structure:
-import { queries } from '@/composition';  // #alias:@/ #structure:
+// src/presentation/web/react/src/routes/resources.$id.tsx
+import { queries } from '@/composition';
 
 export async function loader({ params }: LoaderFunctionArgs) {
   return queries.resources.getById(params.id!);  // ✅ Одна строка!
@@ -271,20 +275,20 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 ---
 
-## Структура
+## Структура [#structure:tree]
 
 ```
 app/
-├── composition/                  #structure:
+├── composition/
 │   ├── queries.ts          # Facade
-│   └── ServiceContainer.ts  #class:ServiceContainer
-├── application/queries/          #structure:
-│   ├── IQueryHandler.ts    # Ports #interface:IQueryHandler
-│   ├── IQueryBus.ts        #interface:IQueryBus
-│   ├── ResourceQueries.ts  #class:ListResourcesQuery
-│   └── handlers/           #structure:
-└── infrastructure/queries/       #structure:
-    └── InMemoryQueryBus.ts # Adapter #class:InMemoryQueryBus
+│   └── ServiceContainer.ts
+├── application/queries/
+│   ├── IQueryHandler.ts    # Ports
+│   ├── IQueryBus.ts
+│   ├── ResourceQueries.ts
+│   └── handlers/
+└── infrastructure/queries/
+    └── InMemoryQueryBus.ts # Adapter
 ```
 
 ---

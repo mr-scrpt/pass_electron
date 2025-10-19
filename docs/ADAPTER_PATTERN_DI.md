@@ -1,4 +1,4 @@
-# Adapter Pattern + Dependency Injection
+# Adapter Pattern + Dependency Injection `#adapter-pattern` `#di` `#hexagonal-architecture`
 
 **Канонический подход к внедрению внешних зависимостей** (платформо-специфичных сервисов, HTTP клиентов, etc.) в приложение.
 
@@ -56,7 +56,7 @@ Infrastructure Adapters
 
 ```typescript
 // app/application/ports/IMyService.ts
-export interface IMyService {
+export interface IMyService {  // #interface:IMyService
   doSomething(param: string): Promise<Result>
 }
 ```
@@ -65,14 +65,14 @@ export interface IMyService {
 
 ```typescript
 // app/infrastructure/my-service/WebMyService.ts
-export class WebMyService implements IMyService {
+export class WebMyService implements IMyService {  // #class:WebMyService
   async doSomething(param: string): Promise<Result> {
     // Web-специфичная реализация
   }
 }
 
 // app/infrastructure/my-service/ElectronMyService.ts
-export class ElectronMyService implements IMyService {
+export class ElectronMyService implements IMyService {  // #class:ElectronMyService
   async doSomething(param: string): Promise<Result> {
     // Electron-специфичная реализация
   }
@@ -83,7 +83,7 @@ export class ElectronMyService implements IMyService {
 
 ```typescript
 // app/infrastructure/my-service/MyServiceFactory.ts
-export class MyServiceFactory {
+export class MyServiceFactory {  // #class:MyServiceFactory
   static createForWeb(): IMyService {
     return new WebMyService()
   }
@@ -98,7 +98,7 @@ export class MyServiceFactory {
 
 ```typescript
 // app/composition/modules/SystemModule.ts
-export class SystemModule {
+export class SystemModule {  // #class:SystemModule
   private static myService: IMyService | null = null
 
   static initialize(services: { myService: IMyService }) {
@@ -116,7 +116,7 @@ export class SystemModule {
 
 ```typescript
 // app/composition/ServiceContainer.ts
-export class ServiceContainer {
+export class ServiceContainer {  // #class:ServiceContainer
   static initialize(services: { myService: IMyService }) {
     SystemModule.initialize({ myService: services.myService })
   }
@@ -151,13 +151,13 @@ ServiceContainer.initialize({ myService })
 
 ```typescript
 // Port
-export interface IClipboardService {
+export interface IClipboardService {  // #interface:IClipboardService
   write(text: string): Promise<void>
   read(): Promise<string>
 }
 
 // Web Adapter
-export class WebClipboardService implements IClipboardService {
+export class WebClipboardService implements IClipboardService {  // #class:WebClipboardService
   async write(text: string) {
     await navigator.clipboard.writeText(text)
   }
@@ -167,7 +167,7 @@ export class WebClipboardService implements IClipboardService {
 }
 
 // Electron Adapter
-export class ElectronClipboardService implements IClipboardService {
+export class ElectronClipboardService implements IClipboardService {  // #class:ElectronClipboardService
   async write(text: string) {
     await window.electronAPI.writeClipboard(text)
   }
@@ -177,7 +177,7 @@ export class ElectronClipboardService implements IClipboardService {
 }
 
 // Factory
-export class ClipboardServiceFactory {
+export class ClipboardServiceFactory {  // #class:ClipboardServiceFactory
   static createForWeb(): IClipboardService {
     return new WebClipboardService()
   }
@@ -201,13 +201,13 @@ export class ClipboardServiceFactory {
 
 ```typescript
 // Port
-export interface IRequestParser {
+export interface IRequestParser {  // #interface:IRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams
   parseGetResourceByIdParams(input: unknown): GetResourceByIdParams
 }
 
 // Web Adapter (Remix Request)
-export class RemixRequestParser implements IRequestParser {
+export class RemixRequestParser implements IRequestParser {  // #class:RemixRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const request = input as Request
     const url = new URL(request.url)
@@ -219,7 +219,7 @@ export class RemixRequestParser implements IRequestParser {
 }
 
 // CLI Adapter (Commander options)
-export class CLIRequestParser implements IRequestParser {
+export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const options = input as Record<string, any>
     return {
@@ -230,7 +230,7 @@ export class CLIRequestParser implements IRequestParser {
 }
 
 // Desktop Adapter (IPC Message)
-export class DesktopRequestParser implements IRequestParser {
+export class DesktopRequestParser implements IRequestParser {  // #class:DesktopRequestParser
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const message = input as IPCMessage
     return {
@@ -241,7 +241,7 @@ export class DesktopRequestParser implements IRequestParser {
 }
 
 // Factory
-export class RequestParserFactory {
+export class RequestParserFactory {  // #class:RequestParserFactory
   static createForWeb(): IRequestParser {
     return new RemixRequestParser()
   }
@@ -274,7 +274,7 @@ export const resourceQueries = {
 
 ```typescript
 // Port
-export interface INotificationService {
+export interface INotificationService {  // #interface:INotificationService
   show(notification: NotificationMessage): Promise<void>
   dismiss(id: string): Promise<void>
 }
@@ -288,7 +288,7 @@ export interface NotificationMessage {
 }
 
 // Web Adapter
-export class WebNotificationService implements INotificationService {
+export class WebNotificationService implements INotificationService {  // #class:WebNotificationService
   async show(notification: NotificationMessage) {
     if (Notification.permission !== 'granted') {
       await Notification.requestPermission()
@@ -307,7 +307,7 @@ export class WebNotificationService implements INotificationService {
 }
 
 // Electron Adapter
-export class ElectronNotificationService implements INotificationService {
+export class ElectronNotificationService implements INotificationService {  // #class:ElectronNotificationService
   async show(notification: NotificationMessage) {
     await window.electronAPI.showNotification({
       title: notification.title,
@@ -320,7 +320,7 @@ export class ElectronNotificationService implements INotificationService {
 }
 
 // CLI Adapter
-export class CLINotificationService implements INotificationService {
+export class CLINotificationService implements INotificationService {  // #class:CLINotificationService
   async show(notification: NotificationMessage) {
     const color = notification.type === 'error' ? chalk.red : chalk.green
     console.log(color(`${notification.title}: ${notification.message}`))
@@ -331,7 +331,7 @@ export class CLINotificationService implements INotificationService {
 }
 
 // Factory
-export class NotificationServiceFactory {
+export class NotificationServiceFactory {  // #class:NotificationServiceFactory
   static createForWeb(): INotificationService {
     return new WebNotificationService()
   }
@@ -449,10 +449,10 @@ export interface IService {
 
 ## Чек-лист внедрения новой зависимости
 
-- [ ] Определить **Port** (интерфейс) в `app/application/ports/`
-- [ ] Создать **Adapters** для каждой платформы в `app/infrastructure/my-service/`
+- [ ] Определить **Port** (интерфейс) в `app/application/ports/` #structure:application/ports/
+- [ ] Создать **Adapters** для каждой платформы в `app/infrastructure/my-service/` #structure:infrastructure/
 - [ ] Создать **Factory** в `app/infrastructure/my-service/MyServiceFactory.ts`
-- [ ] Обновить **DI Module** (или создать новый) в `app/composition/modules/`
+- [ ] Обновить **DI Module** (или создать новый) в `app/composition/modules/` #structure:composition/modules/
 - [ ] Обновить **ServiceContainer.initialize()** добавить параметр
 - [ ] Обновить все **Entry Points** (Web, Desktop, CLI) — создать адаптер и инжектить
 - [ ] Убедиться что **Composition НЕ импортирует** конкретные адаптеры

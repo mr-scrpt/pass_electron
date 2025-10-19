@@ -1,4 +1,4 @@
-# Architecture Boundaries & Import Rules
+# Architecture Boundaries & Import Rules `#architecture-boundaries` `#import-rules` `#eslint`
 
 Правила импортов между слоями DDD + настройка алиасов и ESLint для их enforcement.
 

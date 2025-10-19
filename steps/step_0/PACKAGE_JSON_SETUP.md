@@ -1,4 +1,4 @@
-# Package.json Setup - Настройка package.json и workspaces
+# Package.json Setup `#package-json` `#setup` `#dependencies` - Настройка package.json и workspaces
 
 Инструкция по настройке package.json и pnpm workspaces для проекта с DDD структурой.
 

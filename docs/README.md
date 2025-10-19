@@ -1,4 +1,4 @@
-# Password Manager - Документация
+# Password Manager - Документация `#documentation` `#index`
 
 ## Структура документации
 

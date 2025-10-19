@@ -1,4 +1,4 @@
-# Tailwind CSS Setup - Настройка стилей
+# Tailwind CSS Setup `#tailwind` `#setup` `#styling` - Настройка стилей
 
 > **Тип**: Дополнительная библиотека (опционально)
 > 

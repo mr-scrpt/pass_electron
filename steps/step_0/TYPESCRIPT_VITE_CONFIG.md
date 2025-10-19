@@ -1,4 +1,4 @@
-# TypeScript & Vite Configuration
+# TypeScript & Vite Configuration `#typescript` `#vite` `#configuration`
 
 > **Тип**: Обязательная настройка
 > 

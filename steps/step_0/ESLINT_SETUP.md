@@ -1,4 +1,4 @@
-# ESLint Setup - Настройка линтера с архитектурными правилами
+# ESLint Setup `#eslint` `#setup` `#linting` - Настройка линтера с архитектурными правилами
 
 > **См. также**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) - полное описание архитектурных границ
 

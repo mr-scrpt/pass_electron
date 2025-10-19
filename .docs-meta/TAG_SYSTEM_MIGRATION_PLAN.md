@@ -59,7 +59,9 @@ import { ResourceList } from '@/components/ResourceList'
 
 ## 📊 Статистика текущей проблемы
 
-### Обработано НЕПРАВИЛЬНО (15 файлов):
+### Всего файлов документации: 33
+
+**Обработано НЕПРАВИЛЬНО (15 файлов):**
 
 **Этап 1-3 (12 файлов):**
 - docs/DDD_AND_CLEAN_ARCHITECTURE.md
@@ -80,10 +82,26 @@ import { ResourceList } from '@/components/ResourceList'
 - steps/step_0/TYPESCRIPT_VITE_CONFIG.md
 - steps/step_1/README.md
 
+**НЕ обработаны (18 файлов):**
+- docs/ADAPTER_PATTERN_DI.md
+- docs/concepts/ARCHITECTURE_DESIGN.md
+- docs/concepts/THEORETICAL_CONCEPT.md
+- docs/contracts/* (6 файлов)
+- docs/electron/README.md
+- docs/error-handling/ERROR_ESCALATION_EXTENDED.md
+- docs/error-handling/README.md
+- docs/PROJECT_STRUCTURE.md
+- docs/README.md
+- docs/ui/CATPPUCCIN_MOCHA.md
+- steps/step_0/ESLINT_SETUP.md
+- steps/step_0/PACKAGE_JSON_SETUP.md
+- steps/step_0/TAILWIND_SETUP.md
+
 **Проблемы:**
-- ~370+ тегов `#structure:` на строках кода
-- Нет тегов `#code`, `#config`, `#command`
-- Нет специфичных тегов (`#class:`, `#interface:`)
+- ~370+ тегов `#structure:` на строках кода (в 15 файлах)
+- Нет тегов `#code`, `#config`, `#command` нигде
+- Нет специфичных тегов (`#class:`, `#interface:`) нигде
+- 18 файлов вообще без тегов
 
 ---
 
@@ -92,15 +110,19 @@ import { ResourceList } from '@/components/ResourceList'
 ### Вариант 1: Полная переработка (рекомендуется)
 
 **Шаги:**
-1. Удалить все неправильные теги `#structure:` из строк кода
-2. Добавить правильные теги в заголовки секций
-3. Добавить теги `#code`, `#config`, `#command`
-4. Добавить специфичные теги `#class:`, `#interface:`
+1. Удалить все неправильные теги `#structure:` из строк кода (15 файлов)
+2. Добавить правильные теги в заголовки всех секций (33 файла)
+3. Добавить теги `#code`, `#config`, `#command` (33 файла)
+4. Добавить специфичные теги `#class:`, `#interface:` (33 файла)
 
-**Время:** 8-10 часов
+**Время:** 15-20 часов (для всех 33 файлов)
+
+**Разбивка:**
+- Очистка 15 файлов от неправильных тегов: 3-4 часа
+- Добавление правильных тегов в 33 файла: 12-16 часов
 
 **Результат:**
-- ✅ Чистая документация
+- ✅ Чистая документация (33 файла)
 - ✅ Правильная навигация
 - ✅ Полная система тегов
 
@@ -122,13 +144,14 @@ import { ResourceList } from '@/components/ResourceList'
 **Шаги:**
 1. Откатить все коммиты с тегами
 2. Начать с правильной системы
-3. Обработать файлы по новым правилам
+3. Обработать все 33 файла по новым правилам
 
-**Время:** 10-12 часов
+**Время:** 18-22 часа (все 33 файла с нуля)
 
 **Результат:**
 - ✅ Чистая история
 - ✅ Правильная система с начала
+- ✅ Все 33 файла обработаны
 
 ---
 

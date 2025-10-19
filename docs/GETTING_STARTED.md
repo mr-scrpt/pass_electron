@@ -1,4 +1,4 @@
-# Getting Started - Начало разработки `#getting-started` `#guide`
+# Getting Started - Начало разработки
 
 Руководство по началу работы над проектом Password Manager.
 

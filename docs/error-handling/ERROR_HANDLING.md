@@ -1,4 +1,4 @@
-# Обработка ошибок (Error Handling)
+# Обработка ошибок (Error Handling) `#error-handling` `#ddd` `#clean-architecture`
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
@@ -36,33 +36,33 @@
 
 ```
 app/
-├── domain/
-│   ├── shared/                      # Shared Kernel
-│   │   └── errors/                  # ← Общие Domain Errors
-│   │       ├── DomainError.ts       # Базовая доменная ошибка
-│   │       ├── InvariantViolationError.ts
-│   │       ├── NotFoundError.ts
-│   │       ├── DuplicateError.ts
-│   │       ├── InvalidOperationError.ts
+├── domain/                          #structure:domain/
+│   ├── shared/                      # Shared Kernel #structure:domain/shared/
+│   │   └── errors/                  # ← Общие Domain Errors #structure:domain/shared/errors/
+│   │       ├── DomainError.ts       # Базовая доменная ошибка #class:DomainError
+│   │       ├── InvariantViolationError.ts  #class:InvariantViolationError
+│   │       ├── NotFoundError.ts     #class:NotFoundError
+│   │       ├── DuplicateError.ts    #class:DuplicateError
+│   │       ├── InvalidOperationError.ts  #class:InvalidOperationError
 │   │       └── index.ts
-│   └── resource/                   # Resource Aggregate
-│       ├── Resource.ts
-│       ├── ResourceName.ts
-│       └── errors/                 # ← Aggregate-specific errors
-│           ├── ResourceLockedError.ts
-│           ├── DuplicateFieldLabelError.ts
+│   └── resource/                   # Resource Aggregate #structure:domain/resource/
+│       ├── Resource.ts              #class:Resource
+│       ├── ResourceName.ts          #class:ResourceName
+│       └── errors/                 # ← Aggregate-specific errors #structure:domain/resource/errors/
+│           ├── ResourceLockedError.ts  #class:ResourceLockedError
+│           ├── DuplicateFieldLabelError.ts  #class:DuplicateFieldLabelError
 │           └── index.ts
-├── application/
-│   └── errors/                        # ← Application Errors
-│       ├── ValidationError.ts
-│       ├── CommandError.ts
-│       ├── QueryError.ts
+├── application/                     #structure:application/
+│   └── errors/                        # ← Application Errors #structure:application/errors/
+│       ├── ValidationError.ts       #class:ValidationError
+│       ├── CommandError.ts          #class:CommandError
+│       ├── QueryError.ts            #class:QueryError
 │       └── index.ts
-├── infrastructure/
-│   └── errors/                        # ← Infrastructure Errors
-│       ├── NetworkError.ts
-│       ├── ApiError.ts
-│       ├── StorageError.ts
+├── infrastructure/                  #structure:infrastructure/
+│   └── errors/                        # ← Infrastructure Errors #structure:infrastructure/errors/
+│       ├── NetworkError.ts          #class:NetworkError
+│       ├── ApiError.ts              #class:ApiError
+│       ├── StorageError.ts          #class:StorageError
 │       └── index.ts
 └── routes/                            # ← Presentation Errors
     └── components/
@@ -81,7 +81,7 @@ app/
 /**
  * Базовая ошибка домена
  * Все доменные ошибки наследуются от неё
- */
+ */ // #class:DomainError
 export abstract class DomainError extends Error {
   abstract readonly code: string
   
@@ -119,7 +119,7 @@ import { DomainError } from './DomainError'
 /**
  * Ошибка нарушения инварианта
  * Используется когда не соблюдено бизнес-правило
- */
+ */ // #class:InvariantViolationError
 export class InvariantViolationError extends DomainError {
   readonly code = 'INVARIANT_VIOLATION'
   
@@ -135,7 +135,7 @@ export class InvariantViolationError extends DomainError {
 **Использование:**
 ```typescript
 // В Value Object
-class ResourceName {
+class ResourceName {  // #class:ResourceName
   private constructor(private readonly value: string) {}
   
   static create(value: string): ResourceName {
@@ -164,7 +164,7 @@ import { DomainError } from './DomainError'
 /**
  * Ошибка "не найдено"
  * Используется когда агрегат/entity не найден
- */
+ */ // #class:NotFoundError
 export class NotFoundError extends DomainError {
   readonly code = 'NOT_FOUND'
   
@@ -203,7 +203,7 @@ import { DomainError } from './DomainError'
 /**
  * Ошибка дубликата
  * Используется когда пытаются создать уже существующую сущность
- */
+ */ // #class:DuplicateError
 export class DuplicateError extends DomainError {
   readonly code = 'DUPLICATE'
   
@@ -220,7 +220,7 @@ export class DuplicateError extends DomainError {
 **Использование:**
 ```typescript
 // В Aggregate
-class Resource {
+class Resource {  // #class:Resource
   addCustomField(field: CustomField): void {
     const exists = this._customFields.some(
       f => f.label.equals(field.label)
@@ -249,7 +249,7 @@ import { DomainError } from './DomainError'
 /**
  * Ошибка недопустимой операции
  * Используется когда операция не может быть выполнена в текущем состоянии
- */
+ */ // #class:InvalidOperationError
 export class InvalidOperationError extends DomainError {
   readonly code = 'INVALID_OPERATION'
   
@@ -292,13 +292,13 @@ class Resource {
 **Файл: `src/domain/resource/errors/ResourceLockedError.ts`**
 
 ```typescript
-import { DomainError } from '~domain/shared/errors'
-import { ResourceId } from '../types'
+import { DomainError } from '@/domain/shared/errors'  // #alias:@/
+import { ResourceId } from '../types'  // #class:ResourceId
 
 /**
  * Ошибка заблокированного ресурса
  * Aggregate-specific ошибка для Resource Aggregate
- */
+ */ // #class:ResourceLockedError
 export class ResourceLockedError extends DomainError {
   readonly code = 'RESOURCE_LOCKED'
   
@@ -330,12 +330,12 @@ class Resource {
 **Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**
 
 ```typescript
-import { DomainError } from '~domain/shared/errors'
+import { DomainError } from '@/domain/shared/errors'  // #alias:@/
 
 /**
  * Ошибка дублирования метки поля
  * Aggregate-specific ошибка для Resource Aggregate
- */
+ */ // #class:DuplicateFieldLabelError
 export class DuplicateFieldLabelError extends DomainError {
   readonly code = 'DUPLICATE_FIELD_LABEL'
   

@@ -1,4 +1,4 @@
-# Infrastructure Types - Типы инфраструктурного слоя
+# Infrastructure Types - Типы инфраструктурного слоя `#infrastructure-types` `#api` `#storage`
 
 Типы для Infrastructure Layer (API, Storage, External Services).
 
@@ -10,21 +10,21 @@
 /**
  * Конфигурация приложения
  */
-interface AppConfig {
+interface AppConfig {  // #interface:AppConfig
   mode: 'development' | 'production' | 'test'
   useMocks: boolean
   api: ApiConfig
   features: FeatureFlags
 }
 
-interface ApiConfig {
+interface ApiConfig {  // #interface:ApiConfig
   baseUrl: string
   timeout: number
   retryAttempts: number
   retryDelay: number
 }
 
-interface FeatureFlags {
+interface FeatureFlags {  // #interface:FeatureFlags
   enableClipboard: boolean
   enableNotifications: boolean
   enableKeyboardShortcuts: boolean
@@ -41,18 +41,18 @@ interface FeatureFlags {
 /**
  * Типы для работы с API
  */
-interface ApiResponse<T> {
+interface ApiResponse<T> {  // #interface:ApiResponse
   data: T
   meta?: ApiResponseMeta
 }
 
-interface ApiResponseMeta {
+interface ApiResponseMeta {  // #interface:ApiResponseMeta
   timestamp: string
   requestId: string
   pagination?: PaginationInfo
 }
 
-interface PaginationInfo {
+interface PaginationInfo {  // #interface:PaginationInfo
   total: number
   limit: number
   offset: number
@@ -66,7 +66,7 @@ interface PaginationInfo {
 /**
  * Ошибка API
  */
-interface ApiError extends Error {
+interface ApiError extends Error {  // #interface:ApiError
   code: ApiErrorCode
   status: number
   details?: any
@@ -91,7 +91,7 @@ type ApiErrorCode =
 /**
  * Опции для HTTP запросов
  */
-interface RequestOptions {
+interface RequestOptions {  // #interface:RequestOptions
   headers?: Record<string, string>
   params?: Record<string, string | number | boolean>
   timeout?: number

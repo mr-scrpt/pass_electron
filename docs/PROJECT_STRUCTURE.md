@@ -294,9 +294,11 @@ src/domain/
 
 **✅ Что решает:**
 - Оркестрация Domain объектов
-- Трансакционные границы
+- Транзакционные границы
 - Валидация команд/запросов
 - Преобразование DTO ↔ Domain
+
+### Структура Application Layer [#structure:tree]
 
 ```
 src/application/                                       
@@ -358,6 +360,8 @@ src/application/
 
 **Назначение**: Основные системы приложения (Modal, Keymap, Focus, Notification).
 
+### Структура Application Services [#structure:tree]
+
 ```
 src/application/services/                              
 ├── modal/                                             
@@ -407,6 +411,8 @@ src/application/services/
 - Работа с внешними API
 - Персистентность данных
 - Реализация технических сервисов
+
+### Структура Infrastructure Layer [#structure:tree]
 
 ```
 src/infrastructure/                                    
@@ -478,6 +484,8 @@ src/infrastructure/
 - Сбор пользовательского ввода
 - Навигация
 - UI состояние
+
+### Структура Presentation Layer [#structure:tree]
 
 ```
 src/presentation/

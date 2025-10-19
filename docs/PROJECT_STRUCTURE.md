@@ -635,6 +635,8 @@ src/presentation/
 
 ### Composition Root
 
+#### Composition index.ts [#code|#structure:path]
+
 ```typescript
 // src/composition/index.ts
 export { queries } from './queries'  // Facade для Loaders
@@ -644,6 +646,8 @@ export { resetContainer } from './ServiceContainer'
 
 ### Domain Layer
 
+#### Domain index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/index.ts
 export * from './shared'
@@ -651,12 +655,16 @@ export * from './resource'
 export * from './user'
 ```
 
+#### Domain shared index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/shared/index.ts
 export * from './errors'
 export * from './invariants'
 export * from './base'
 ```
+
+#### Domain errors index.ts [#code|#structure:path]
 
 ```typescript
 // src/domain/shared/errors/index.ts
@@ -667,6 +675,8 @@ export { DuplicateError } from './DuplicateError'
 export { InvalidOperationError } from './InvalidOperationError'
 ```
 
+#### Domain invariants index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/shared/invariants/index.ts
 export { UuidInvariant } from './UuidInvariant'
@@ -675,6 +685,8 @@ export { EmailInvariant } from './EmailInvariant'
 export { IdentifierInvariant } from './IdentifierInvariant'  // Композитные правила
 ```
 
+#### Domain base index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/shared/base/index.ts
 export { IRepository } from './IRepository'
@@ -682,6 +694,8 @@ export { DomainEvent } from './DomainEvent'
 export { Entity } from './Entity'
 export { ValueObject } from './ValueObject'
 ```
+
+#### Domain resource index.ts [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/index.ts
@@ -692,16 +706,22 @@ export * from './repositories'
 export * from './events'
 ```
 
+#### Resource aggregates index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/resource/aggregates/index.ts
 export { Resource } from './Resource'
 ```
+
+#### Resource entities index.ts [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/entities/index.ts
 export { SecretField } from './SecretField'
 export { CustomField } from './CustomField'
 ```
+
+#### Resource value-objects index.ts [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/index.ts
@@ -711,11 +731,15 @@ export { Namespace } from './Namespace'
 export { FieldValue } from './FieldValue'
 ```
 
+#### Resource repositories index.ts [#code|#structure:path]
+
 ```typescript
 // src/domain/resource/repositories/index.ts
 export { IResourceRepository } from './IResourceRepository'
 export { INamespaceRepository } from './INamespaceRepository'
 ```
+
+#### Resource events index.ts [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/events/index.ts
@@ -726,12 +750,16 @@ export { ResourceDeleted } from './ResourceDeleted'
 
 ### Core Systems
 
+#### Modal service index.ts [#code|#structure:path]
+
 ```typescript
 // src/application/services/modal/index.ts
 export { ModalManager, modalManager } from './ModalManager'
 export { ModalProvider, useModalContext } from './ModalContext'
 export type { AppMode, ModeContext, EditingState } from './types'
 ```
+
+#### Keymap service index.ts [#code|#structure:path]
 
 ```typescript
 // src/application/services/keymap/index.ts
@@ -742,12 +770,16 @@ export { registerAllKeymaps } from './keymaps'
 export type { Keymap, KeyBinding, ActionContext } from './types'
 ```
 
+#### Focus service index.ts [#code|#structure:path]
+
 ```typescript
 // src/application/services/focus/index.ts
 export { FocusManager, focusManager } from './FocusManager'
 export { FocusProvider, useFocusContext } from './FocusContext'
 export type { FocusableElement, FocusableMetadata } from './types'
 ```
+
+#### Notification service index.ts [#code|#structure:path]
 
 ```typescript
 // src/application/services/notification/index.ts
@@ -758,6 +790,8 @@ export type { Notification, NotificationType } from './types'
 
 ### Application Layer
 
+#### Application commands index.ts [#code|#structure:path]
+
 ```typescript
 // src/application/commands/index.ts
 export type { ICommand } from './ICommand'
@@ -766,12 +800,16 @@ export type { ICommandBus } from './ICommandBus'
 export * from './UICommands'
 ```
 
+#### Application queries index.ts [#code|#structure:path]
+
 ```typescript
 // src/application/queries/index.ts
 export type { IQuery, IQueryHandler, QueryResult } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export * from './ResourceQueries'
 ```
+
+#### Commands Public API [#code|#structure:path]
 
 ```typescript
 // app/application/commands/index.ts
@@ -785,6 +823,8 @@ export { CreateResourceCommandHandler } from './handlers/CreateResourceCommandHa
 
 ### Infrastructure Layer
 
+#### Infrastructure index.ts [#code|#structure:path]
+
 ```typescript
 // src/infrastructure/index.ts
 export * from './api'
@@ -796,15 +836,21 @@ export * from './storage'
 export * from './clipboard'
 ```
 
+#### Infrastructure commands index.ts [#code|#structure:path]
+
 ```typescript
 // src/infrastructure/commands/index.ts
 export { InMemoryCommandBus } from './InMemoryCommandBus'
 ```
 
+#### Infrastructure queries index.ts [#code|#structure:path]
+
 ```typescript
 // src/infrastructure/queries/index.ts
 export { InMemoryQueryBus } from './InMemoryQueryBus'
 ```
+
+#### Infrastructure repositories index.ts [#code|#structure:path]
 
 ```typescript
 // src/infrastructure/repositories/index.ts
@@ -814,6 +860,8 @@ export { ApiResourceRepository } from './ApiResourceRepository'
 
 ### Components
 
+#### Component index.ts [#code|#structure:path]
+
 ```typescript
 // src/presentation/web/react/src/components/ResourceList/index.ts
 export { ResourceList } from './ResourceList'
@@ -822,6 +870,8 @@ export { ResourceSearch } from './ResourceSearch'
 ```
 
 ### Hooks
+
+#### Hooks index.ts [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/hooks/index.ts
@@ -838,7 +888,10 @@ export { useNotification } from './useNotification'
 
 ### 1. Public API vs Внутренности
 
-#### ❌ **НЕПРАВИЛЬНО** - Импорт из файлов реализации:
+#### ❌ **НЕПРАВИЛЬНО** - Импорт из файлов реализации
+
+##### Антипаттерн [#code]
+
 ```typescript
 // Обход Public API - ЗАПРЕЩЕН!
 import { Resource } from '@/domain/resource/Resource.ts'  // ❌
@@ -846,7 +899,10 @@ import { GetResourcesHandler } from '@/application/queries/handlers/GetResources
 import { ApiClient } from '@/infrastructure/api/client.ts'  // ❌
 ```
 
-#### ✅ **ПРАВИЛЬНО** - Только через Public API (`index.ts`):
+#### ✅ **ПРАВИЛЬНО** - Только через Public API (`index.ts`)
+
+##### Правильные импорты [#code]
+
 ```typescript
 // Используем алиасы, которые указывают на index.ts
 import { Resource, ResourceId, Namespace } from '@/domain'  // ✅ Public API
@@ -856,7 +912,10 @@ import { ResourceList } from '@/components/ResourceList'  // ✅ Локальн�
 
 ### 2. Presentation → ТОЛЬКО Public API
 
-#### ❌ **НЕПРАВИЛЬНО** - Прямой импорт handlers:
+#### ❌ **НЕПРАВИЛЬНО** - Прямой импорт handlers
+
+##### Антипаттерн [#code]
+
 ```typescript
 // В Presentation Layer - НАРУШЕНИЕ архитектуры!
 import { GetResourcesHandler } from '@/internal/application/queries/GetResourcesHandler'  // ❌ ESLint запретит!
@@ -869,7 +928,10 @@ export async function loader() {
 }
 ```
 
-#### ✅ **ПРАВИЛЬНО** - Использовать facades:
+#### ✅ **ПРАВИЛЬНО** - Использовать facades
+
+##### Правильное использование [#code|#structure:path]
+
 ```typescript
 // В Presentation Layer - Через Public API
 import { queries } from '@/api'  // ✅ Facade
@@ -881,7 +943,10 @@ export async function loader() {
 
 ### 3. Composition → Единственный слой с доступом ко всем
 
-#### ✅ **ПРАВИЛЬНО** - DI в Composition:
+#### ✅ **ПРАВИЛЬНО** - DI в Composition
+
+##### DI в Composition [#code|#structure:path]
+
 ```typescript
 // src/composition/queries/ResourceQueries.ts
 import { Resource } from '@/domain'  // ✅ Public API
@@ -902,14 +967,20 @@ export const queries = {
 
 ### 4. Domain → Полная изоляция
 
-#### ❌ **НЕПРАВИЛЬНО** - Импорт из других слоев:
+#### ❌ **НЕПРАВИЛЬНО** - Импорт из других слоев
+
+##### Антипаттерн [#code]
+
 ```typescript
 // src/domain/resource/Resource.ts
 import { queries } from '@/api'  // ❌ ЗАПРЕЩЕНО!
 import { ApiClient } from '@/internal/infrastructure/api/ApiClient'  // ❌ ЗАПРЕЩЕНО!
 ```
 
-#### ✅ **ПРАВИЛЬНО** - Только другие Domain объекты:
+#### ✅ **ПРАВИЛЬНО** - Только другие Domain объекты
+
+##### Правильные импорты в Domain [#code|#structure:path]
+
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
 import { ResourceId } from '../value-objects/ResourceId'  // ✅ Локальный импорт

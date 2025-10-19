@@ -11,6 +11,8 @@ Multi-platform приложение (Web, Desktop, CLI) требует разн�
 
 **Плохое решение** — `if/else` в коде:
 
+#### Антипаттерн - проверки платформы в Composition [#code]
+
 ```typescript
 // ❌ ПЛОХО: Composition знает о платформах
 class ServiceContainer {
@@ -36,6 +38,8 @@ class ServiceContainer {
 4. **Composition Layer** → принимает готовые адаптеры
 5. **Entry Point** → создает адаптеры и инжектит
 
+#### Поток зависимостей [#diagram:flow]
+
 ```
 Entry Point (знает о платформе)
     ↓ создает через Factory
@@ -54,25 +58,29 @@ Infrastructure Adapters
 
 ### Шаг 1: Port (Application Layer)
 
+#### IMyService - интерфейс [#interface:IMyService|#code|#structure:path]
+
 ```typescript
 // app/application/ports/IMyService.ts
-export interface IMyService {  // #interface:IMyService
+export interface IMyService {
   doSomething(param: string): Promise<Result>
 }
 ```
 
 ### Шаг 2: Adapters (Infrastructure Layer)
 
+#### Адаптеры для разных платформ [#class:WebMyService|#class:ElectronMyService|#code|#structure:path]
+
 ```typescript
 // app/infrastructure/my-service/WebMyService.ts
-export class WebMyService implements IMyService {  // #class:WebMyService
+export class WebMyService implements IMyService {
   async doSomething(param: string): Promise<Result> {
     // Web-специфичная реализация
   }
 }
 
 // app/infrastructure/my-service/ElectronMyService.ts
-export class ElectronMyService implements IMyService {  // #class:ElectronMyService
+export class ElectronMyService implements IMyService {
   async doSomething(param: string): Promise<Result> {
     // Electron-специфичная реализация
   }
@@ -81,9 +89,11 @@ export class ElectronMyService implements IMyService {  // #class:ElectronMyServ
 
 ### Шаг 3: Factory (Infrastructure Layer)
 
+#### MyServiceFactory [#class:MyServiceFactory|#code|#structure:path]
+
 ```typescript
 // app/infrastructure/my-service/MyServiceFactory.ts
-export class MyServiceFactory {  // #class:MyServiceFactory
+export class MyServiceFactory {
   static createForWeb(): IMyService {
     return new WebMyService()
   }
@@ -96,9 +106,11 @@ export class MyServiceFactory {  // #class:MyServiceFactory
 
 ### Шаг 4: DI Module (Composition Layer)
 
+#### SystemModule [#class:SystemModule|#code|#structure:path]
+
 ```typescript
 // app/composition/modules/SystemModule.ts
-export class SystemModule {  // #class:SystemModule
+export class SystemModule {
   private static myService: IMyService | null = null
 
   static initialize(services: { myService: IMyService }) {
@@ -114,9 +126,11 @@ export class SystemModule {  // #class:SystemModule
 
 ### Шаг 5: ServiceContainer (Composition Layer)
 
+#### ServiceContainer [#class:ServiceContainer|#code|#structure:path]
+
 ```typescript
 // app/composition/ServiceContainer.ts
-export class ServiceContainer {  // #class:ServiceContainer
+export class ServiceContainer {
   static initialize(services: { myService: IMyService }) {
     SystemModule.initialize({ myService: services.myService })
   }
@@ -128,6 +142,8 @@ export class ServiceContainer {  // #class:ServiceContainer
 ```
 
 ### Шаг 6: Entry Points
+
+#### Инициализация в entry points [#code|#structure:path]
 
 ```typescript
 // app/entry.client.tsx (Web)
@@ -149,15 +165,17 @@ ServiceContainer.initialize({ myService })
 
 **Решение:**
 
+#### Clipboard Service - полная реализация [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code|#structure:path]
+
 ```typescript
 // Port
-export interface IClipboardService {  // #interface:IClipboardService
+export interface IClipboardService {
   write(text: string): Promise<void>
   read(): Promise<string>
 }
 
 // Web Adapter
-export class WebClipboardService implements IClipboardService {  // #class:WebClipboardService
+export class WebClipboardService implements IClipboardService {
   async write(text: string) {
     await navigator.clipboard.writeText(text)
   }
@@ -167,7 +185,7 @@ export class WebClipboardService implements IClipboardService {  // #class:WebCl
 }
 
 // Electron Adapter
-export class ElectronClipboardService implements IClipboardService {  // #class:ElectronClipboardService
+export class ElectronClipboardService implements IClipboardService {
   async write(text: string) {
     await window.electronAPI.writeClipboard(text)
   }
@@ -177,7 +195,7 @@ export class ElectronClipboardService implements IClipboardService {  // #class:
 }
 
 // Factory
-export class ClipboardServiceFactory {  // #class:ClipboardServiceFactory
+export class ClipboardServiceFactory {
   static createForWeb(): IClipboardService {
     return new WebClipboardService()
   }
@@ -199,15 +217,17 @@ export class ClipboardServiceFactory {  // #class:ClipboardServiceFactory
 
 **Решение:**
 
+#### Request Parser - полная реализация [#interface:IRequestParser|#class:RemixRequestParser|#class:CLIRequestParser|#class:DesktopRequestParser|#class:RequestParserFactory|#code|#structure:path]
+
 ```typescript
 // Port
-export interface IRequestParser {  // #interface:IRequestParser
+export interface IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams
   parseGetResourceByIdParams(input: unknown): GetResourceByIdParams
 }
 
 // Web Adapter (Remix Request)
-export class RemixRequestParser implements IRequestParser {  // #class:RemixRequestParser
+export class RemixRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const request = input as Request
     const url = new URL(request.url)
@@ -219,7 +239,7 @@ export class RemixRequestParser implements IRequestParser {  // #class:RemixRequ
 }
 
 // CLI Adapter (Commander options)
-export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestParser
+export class CLIRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const options = input as Record<string, any>
     return {
@@ -230,7 +250,7 @@ export class CLIRequestParser implements IRequestParser {  // #class:CLIRequestP
 }
 
 // Desktop Adapter (IPC Message)
-export class DesktopRequestParser implements IRequestParser {  // #class:DesktopRequestParser
+export class DesktopRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const message = input as IPCMessage
     return {
@@ -241,7 +261,7 @@ export class DesktopRequestParser implements IRequestParser {  // #class:Desktop
 }
 
 // Factory
-export class RequestParserFactory {  // #class:RequestParserFactory
+export class RequestParserFactory {
   static createForWeb(): IRequestParser {
     return new RemixRequestParser()
   }
@@ -272,9 +292,11 @@ export const resourceQueries = {
 
 **Решение:**
 
+#### Notification Service - полная реализация [#interface:INotificationService|#class:WebNotificationService|#class:ElectronNotificationService|#class:CLINotificationService|#class:NotificationServiceFactory|#code|#structure:path]
+
 ```typescript
 // Port
-export interface INotificationService {  // #interface:INotificationService
+export interface INotificationService {
   show(notification: NotificationMessage): Promise<void>
   dismiss(id: string): Promise<void>
 }
@@ -288,7 +310,7 @@ export interface NotificationMessage {
 }
 
 // Web Adapter
-export class WebNotificationService implements INotificationService {  // #class:WebNotificationService
+export class WebNotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     if (Notification.permission !== 'granted') {
       await Notification.requestPermission()
@@ -307,7 +329,7 @@ export class WebNotificationService implements INotificationService {  // #class
 }
 
 // Electron Adapter
-export class ElectronNotificationService implements INotificationService {  // #class:ElectronNotificationService
+export class ElectronNotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     await window.electronAPI.showNotification({
       title: notification.title,
@@ -320,7 +342,7 @@ export class ElectronNotificationService implements INotificationService {  // #
 }
 
 // CLI Adapter
-export class CLINotificationService implements INotificationService {  // #class:CLINotificationService
+export class CLINotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     const color = notification.type === 'error' ? chalk.red : chalk.green
     console.log(color(`${notification.title}: ${notification.message}`))
@@ -331,7 +353,7 @@ export class CLINotificationService implements INotificationService {  // #class
 }
 
 // Factory
-export class NotificationServiceFactory {  // #class:NotificationServiceFactory
+export class NotificationServiceFactory {
   static createForWeb(): INotificationService {
     return new WebNotificationService()
   }
@@ -349,6 +371,8 @@ export class NotificationServiceFactory {  // #class:NotificationServiceFactory
 ## Анти-паттерны
 
 ### ❌ 1. Environment checks в Composition
+
+#### Антипаттерн [#code]
 
 ```typescript
 // ❌ ПЛОХО
@@ -371,6 +395,8 @@ class ServiceContainer {
 
 ### ❌ 2. Прямое использование платформо-специфичных API
 
+#### Антипаттерн [#code]
+
 ```typescript
 // ❌ ПЛОХО
 class Handler {
@@ -390,6 +416,8 @@ class Handler {
 
 ### ❌ 3. Factory возвращает конкретный класс
 
+#### Антипаттерн [#code]
+
 ```typescript
 // ❌ ПЛОХО
 static createForWeb(): WebService {  // ❌ Конкретный класс
@@ -407,6 +435,8 @@ static createForWeb(): IService {  // ✅ Интерфейс
 ## Архитектурные принципы
 
 ### ✅ Правило 1: Знание о платформах только в Infrastructure
+
+#### Правильная изоляция [#code]
 
 ```typescript
 // Infrastructure - ЕДИНСТВЕННОЕ место

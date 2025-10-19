@@ -204,7 +204,7 @@ export class ResourceId {
 3. **Бизнес-логика** - методы для работы с данными
 4. **Type Safety** - TypeScript различает разные Value Objects
 
-[#code]
+#### Пример Type Safety [#code]
 
 ```typescript
 // ✅ Type Safety с Value Objects

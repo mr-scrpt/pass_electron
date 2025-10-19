@@ -1,4 +1,4 @@
-# Contracts - Контракты приложения
+# Contracts - Контракты приложения `#contracts` `#interfaces` `#types`
 
 Полная спецификация типов, интерфейсов и контрактов для Password Manager.
 
@@ -92,25 +92,25 @@
 ### Основные Aggregates
 
 ```typescript
-Resource
-├── id: ResourceId
-├── namespace: Namespace
-├── name: ResourceName
-├── secret: SecretField
-└── customFields: CustomField[]
+Resource  // #class:Resource
+├── id: ResourceId  // #class:ResourceId
+├── namespace: Namespace  // #class:Namespace
+├── name: ResourceName  // #class:ResourceName
+├── secret: SecretField  // #class:SecretField
+└── customFields: CustomField[]  // #class:CustomField
 
-ModeContext
+ModeContext  // #class:ModeContext
 ├── mode: AppMode
 ├── route: RouteInfo
 └── state: ModeState | null
 
-Keymap
+Keymap  // #class:Keymap
 ├── id: KeymapId
 ├── binding: KeyBinding
 ├── activationRules: ActivationRules
 └── action: KeymapAction
 
-Notification
+Notification  // #class:Notification
 ├── id: NotificationId
 ├── type: NotificationType
 └── message: string
@@ -119,20 +119,20 @@ Notification
 ### Основные системы
 
 ```typescript
-ModalManager      // Управление режимами
-KeymapRegistry    // Реестр кеймапов
-KeymapExecutor    // Выполнение кеймапов
-FocusManager      // Управление фокусом
-NotificationManager // Уведомления
-EventBus          // Шина событий
+ModalManager      // Управление режимами #class:ModalManager
+KeymapRegistry    // Реестр кеймапов #class:KeymapRegistry
+KeymapExecutor    // Выполнение кеймапов #class:KeymapExecutor
+FocusManager      // Управление фокусом #class:FocusManager
+NotificationManager // Уведомления #class:NotificationManager
+EventBus          // Шина событий #class:EventBus
 ```
 
 ### Repository Interfaces
 
 ```typescript
-IResourceRepository
-INamespaceRepository
-IPasswordGeneratorService
+IResourceRepository  // #interface:IResourceRepository
+INamespaceRepository  // #interface:INamespaceRepository
+IPasswordGeneratorService  // #interface:IPasswordGeneratorService
 ```
 
 ### Domain Events

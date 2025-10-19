@@ -1,4 +1,4 @@
-# API Contracts - API Контракты
+# API Contracts - API Контракты `#api-contracts` `#rest-api` `#http`
 
 Контракты для взаимодействия с backend API.
 
@@ -23,12 +23,12 @@ Authorization: Bearer <token>  # (если требуется аутентифи
 ### Success Response
 
 ```typescript
-interface SuccessResponse<T> {
+interface SuccessResponse<T> {  // #interface:SuccessResponse
   data: T
   meta?: ResponseMeta
 }
 
-interface ResponseMeta {
+interface ResponseMeta {  // #interface:ResponseMeta
   timestamp: string
   requestId: string
 }
@@ -37,7 +37,7 @@ interface ResponseMeta {
 ### Error Response
 
 ```typescript
-interface ErrorResponse {
+interface ErrorResponse {  // #interface:ErrorResponse
   error: {
     code: string
     message: string
@@ -54,13 +54,13 @@ interface ErrorResponse {
 
 ## Resource Endpoints
 
-### GET /api/resources
+### GET /api/resources `#api:get-resources`
 
 Получить список всех ресурсов.
 
 **Query Parameters:**
 ```typescript
-interface ListResourcesParams {
+interface ListResourcesParams {  // #interface:ListResourcesParams
   namespace?: string  // Фильтр по неймспейсу
   search?: string     // Поисковый запрос
   limit?: number      // Лимит результатов (default: 100)
@@ -70,7 +70,7 @@ interface ListResourcesParams {
 
 **Response:**
 ```typescript
-interface ListResourcesResponse {
+interface ListResourcesResponse {  // #interface:ListResourcesResponse
   data: ResourceDTO[]
   meta: {
     total: number
@@ -79,7 +79,7 @@ interface ListResourcesResponse {
   }
 }
 
-interface ResourceDTO {
+interface ResourceDTO {  // #interface:ResourceDTO
   id: string
   namespace: string
   name: string
@@ -97,7 +97,7 @@ interface ResourceDTO {
 
 ---
 
-### GET /api/resources/:id
+### GET /api/resources/:id `#api:get-resource-by-id`
 
 Получить детали конкретного ресурса.
 
@@ -148,7 +148,7 @@ interface CustomFieldDTO {
 
 ---
 
-### POST /api/resources
+### POST /api/resources `#api:create-resource`
 
 Создать новый ресурс.
 
@@ -196,7 +196,7 @@ interface ValidationErrorResponse {
 
 ---
 
-### PUT /api/resources/:id
+### PUT /api/resources/:id `#api:update-resource`
 
 Обновить ресурс.
 
@@ -232,7 +232,7 @@ interface UpdateResourceResponse {
 
 ---
 
-### DELETE /api/resources/:id
+### DELETE /api/resources/:id `#api:delete-resource`
 
 Удалить ресурс.
 
@@ -262,7 +262,7 @@ interface DeleteResourceResponse {
 
 ## Field Endpoints
 
-### POST /api/resources/:resourceId/fields
+### POST /api/resources/:resourceId/fields `#api:add-field`
 
 Добавить кастомное поле к ресурсу.
 
@@ -298,7 +298,7 @@ interface AddFieldResponse {
 
 ---
 
-### PUT /api/resources/:resourceId/fields/:fieldId
+### PUT /api/resources/:resourceId/fields/:fieldId `#api:update-field`
 
 Обновить поле ресурса.
 
@@ -336,7 +336,7 @@ interface UpdateFieldResponse {
 
 ---
 
-### DELETE /api/resources/:resourceId/fields/:fieldId
+### DELETE /api/resources/:resourceId/fields/:fieldId `#api:delete-field`
 
 Удалить кастомное поле.
 
@@ -370,7 +370,7 @@ interface DeleteFieldResponse {
 
 ## Namespace Endpoints
 
-### GET /api/namespaces
+### GET /api/namespaces `#api:get-namespaces`
 
 Получить список всех неймспейсов.
 
@@ -394,7 +394,7 @@ interface NamespaceDTO {
 
 ## Password Generation Endpoint
 
-### POST /api/password/generate
+### POST /api/password/generate `#api:generate-password`
 
 Сгенерировать пароль.
 

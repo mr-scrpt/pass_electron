@@ -1,4 +1,4 @@
-# DDD и Clean Architecture в проекте `#ddd` `#clean-architecture`
+# DDD и Clean Architecture в проекте
 
 Документ описывает, как в проекте сочетаются Domain-Driven Design (Eric Evans) и Clean Architecture (Robert C. Martin).
 
@@ -48,7 +48,7 @@
 
 ---
 
-## Архитектура проекта
+## Архитектура проекта [#structure:tree]
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -70,10 +70,10 @@
 │                    ↓ зависит от Domain              │
 │  ┌─────────────────▼─────────────────────────────┐ │
 │  │ Domain Layer (DDD Tactical Patterns)          │ │
-│  │ - Entities (Resource, Entry) #entity          │ │
-│  │ - Value Objects (ResourceId, ResourceName) #value-object #class:ResourceId #class:ResourceName │ │
-│  │ - Aggregates (Resource как Root) #aggregate-root #class:Resource │ │
-│  │ - Repository Interfaces (IResourceRepository) #interface:IResourceRepository │ │
+│  │ - Entities (Resource, Entry)                  │ │
+│  │ - Value Objects (ResourceId, ResourceName)    │ │
+│  │ - Aggregates (Resource как Root)              │ │
+│  │ - Repository Interfaces (IResourceRepository) │ │
 │  │ - Domain Services                             │ │
 │  │ - Domain Events                               │ │
 │  └───────────────────────────────────────────────┘ │
@@ -95,17 +95,17 @@
 
 Domain Layer полностью построен на тактических паттернах DDD и НЕ зависит от других слоев.
 
-### Entity (DDD)
+### Entity (DDD) [#class:Resource|#code|#structure:path]
 
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts  #structure:
+// src/domain/resource/aggregates/Resource.ts
 import { Result, ok, err } from 'neverthrow'
-import { ResourceId } from '../value-objects/ResourceId'  #structure:
-import { ResourceName } from '../value-objects/ResourceName'  #structure:
-import { Namespace } from '../value-objects/Namespace'  #structure:
-import { ResourceLockedError } from '../errors/ResourceLockedError'  #structure:
+import { ResourceId } from '../value-objects/ResourceId'
+import { ResourceName } from '../value-objects/ResourceName'
+import { Namespace } from '../value-objects/Namespace'
+import { ResourceLockedError } from '../errors/ResourceLockedError'
 
 export class Resource {
   private constructor(
@@ -151,15 +151,15 @@ export class Resource {
 }
 ```
 
-### Value Object (DDD)
+### Value Object (DDD) [#class:ResourceName|#code|#structure:path]
 
 Неизменяемый объект без идентичности, определяется значением.
 
 ```typescript
-// src/domain/resource/value-objects/ResourceName.ts  #structure:
+// src/domain/resource/value-objects/ResourceName.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
-import { StringInvariant } from '@/domain/shared/invariants'  #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'
+import { StringInvariant } from '@/domain/shared/invariants'
 
 export class ResourceName {
   private constructor(private readonly value: string) {}
@@ -190,12 +190,12 @@ export class ResourceName {
 > **💡 Важно**: Инварианты (правила валидации) вынесены в переиспользуемые классы в `domain/shared/invariants/`.  
 > См. [INVARIANTS.md](./error-handling/INVARIANTS.md) для деталей.
 
-### Aggregate (DDD)
+### Aggregate (DDD) [#class:Resource|#code|#structure:path]
 
 Группа связанных объектов с единой границей консистентности. Aggregate Root контролирует доступ.
 
 ```typescript
-// src/domain/resource/aggregates/Resource.ts  #structure:
+// src/domain/resource/aggregates/Resource.ts
 
 export class Resource {  // Aggregate Root
   private _entries: Entry[] = []  // Часть Aggregate
@@ -233,14 +233,14 @@ export class Resource {  // Aggregate Root
 - Изменения только через Root
 - Root обеспечивает консистентность
 
-### Repository Interface (DDD)
+### Repository Interface (DDD) [#interface:IResourceRepository|#code|#structure:path]
 
 Абстракция для получения и сохранения Aggregates.
 
 ```typescript
-// src/domain/resource/repositories/IResourceRepository.ts  #structure:
-import type { ResourceId } from '../value-objects/ResourceId'  #structure:
-import type { Resource } from '../aggregates/Resource'  #structure:
+// src/domain/resource/repositories/IResourceRepository.ts
+import type { ResourceId } from '../value-objects/ResourceId'
+import type { Resource } from '../aggregates/Resource'
 
 export interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>
@@ -257,12 +257,12 @@ export interface IResourceRepository {
 - Скрывает персистентность (DB, API, Mock)
 - Реализация в Infrastructure Layer
 
-### Domain Service (DDD)
+### Domain Service (DDD) [#class:ResourceDuplicationService|#code|#structure:path]
 
 Бизнес-операции между несколькими Entities/Aggregates.
 
 ```typescript
-// src/domain/resource/services/ResourceDuplicationService.ts  #structure:
+// src/domain/resource/services/ResourceDuplicationService.ts
 
 export class ResourceDuplicationService {
   canDuplicate(source: Resource, targetNamespace: Namespace): boolean {
@@ -284,12 +284,12 @@ export class ResourceDuplicationService {
 }
 ```
 
-### Domain Events (DDD)
+### Domain Events (DDD) [#class:ResourceCreatedEvent|#code|#structure:path]
 
 События, произошедшие в домене.
 
 ```typescript
-// src/domain/resource/events/ResourceEvents.ts  #structure:
+// src/domain/resource/events/ResourceEvents.ts
 
 export class ResourceCreatedEvent extends DomainEvent {
   readonly eventType = 'ResourceCreated'
@@ -321,10 +321,10 @@ export class ResourceRenamedEvent extends DomainEvent {
 
 **Мы используем CQRS** — более современный и явный подход.
 
-### Query Handler (чтение данных)
+### Query Handler (чтение данных) [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
-// src/application/queries/handlers/ListResourcesQueryHandler.ts  #structure:
+// src/application/queries/handlers/ListResourcesQueryHandler.ts
 
 export class ListResourcesQueryHandler {
   constructor(private readonly repository: IResourceRepository) {}
@@ -353,10 +353,10 @@ export class ListResourcesQueryHandler {
 }
 ```
 
-### Command Handler (запись данных)
+### Command Handler (запись данных) [#class:CreateResourceCommandHandler|#code|#structure:path]
 
 ```typescript
-// src/application/commands/handlers/CreateResourceCommandHandler.ts  #structure:
+// src/application/commands/handlers/CreateResourceCommandHandler.ts
 
 export class CreateResourceCommandHandler {
   constructor(
@@ -393,10 +393,10 @@ export class CreateResourceCommandHandler {
 }
 ```
 
-**Использование через Facade:**
+**Использование через Facade:** [#code|#structure:path]
 
 ```typescript
-// src/composition/commands/ResourceCommands.ts  #structure:
+// src/composition/commands/ResourceCommands.ts
 export const resourceCommands = {
   async create(input: unknown) {
     // 1. Парсим input
@@ -428,10 +428,10 @@ export async function action({ request }) {
 
 Infrastructure реализует интерфейсы из Domain и Application.
 
-### Repository Implementation
+### Repository Implementation [#class:MockResourceRepository|#code|#structure:path]
 
 ```typescript
-// src/infrastructure/repositories/MockResourceRepository.ts  #structure:
+// src/infrastructure/repositories/MockResourceRepository.ts
 
 export class MockResourceRepository implements IResourceRepository {
   private resources = new Map<string, Resource>()
@@ -446,10 +446,10 @@ export class MockResourceRepository implements IResourceRepository {
 }
 ```
 
-### Query Bus Adapter
+### Query Bus Adapter [#class:InMemoryQueryBus|#code|#structure:path]
 
 ```typescript
-// src/infrastructure/queries/InMemoryQueryBus.ts  #structure:
+// src/infrastructure/queries/InMemoryQueryBus.ts
 
 export class InMemoryQueryBus implements IQueryBus {
   private handlers = new Map<string, IQueryHandler<any, any>>()
@@ -468,12 +468,12 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ---
 
-## Composition Root: Bootstrap
+## Composition Root: Bootstrap [#class:ServiceContainer|#code|#structure:path]
 
 Composition Root связывает все слои. Единственное место, знающее о всех зависимостях.
 
 ```typescript
-// src/composition/ServiceContainer.ts  #structure:
+// src/composition/ServiceContainer.ts
 
 class ServiceContainer {
   private static services = {
@@ -506,10 +506,10 @@ class ServiceContainer {
 }
 ```
 
-### Facade для Presentation Layer
+### Facade для Presentation Layer [#code|#structure:path]
 
 ```typescript
-// src/composition/queries/index.ts  #structure:
+// src/composition/queries/index.ts
 
 export const queries = {
   async listResources(request: Request) {
@@ -530,12 +530,12 @@ export const queries = {
 
 ---
 
-## Presentation Layer: Remix Routes
+## Presentation Layer: Remix Routes [#code|#structure:path]
 
 Presentation Layer зависит только от Composition Root (facade).
 
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx  #structure:
+// src/presentation/web/react/src/routes/_index.tsx
 import { queries } from '@/composition'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -544,7 +544,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ```
 
 ```typescript
-// src/presentation/web/react/src/routes/resources.new.tsx  #structure:
+// src/presentation/web/react/src/routes/resources.new.tsx
 import { commands } from '@/composition'
 
 export async function action({ request }: ActionFunctionArgs) {

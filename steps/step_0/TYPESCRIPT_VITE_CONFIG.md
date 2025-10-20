@@ -26,9 +26,10 @@ import { Resource } from '@/domain'               // ← Через Public API!
 
 **Файл: `tsconfig.json`** (в корне проекта)
 
-#### Root tsconfig.json [#config]
+#### Root tsconfig.json [#config|#structure:path]
 
 ```json
+// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -175,9 +176,10 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 
 ### В src/domain/resource/Resource.ts
 
-#### Domain Imports [#code]
+#### Domain Imports [#code|#structure:path]
 
 ```typescript
+// src/domain/resource/Resource.ts
 // ✅ Domain импортирует ТОЛЬКО других Domain объектов
 // Внутри модуля - локальные импорты (через ./)
 import { ResourceId } from './ResourceId'
@@ -193,9 +195,10 @@ import { DomainError } from '@/domain/shared/errors'
 
 ### В src/composition/queries/ResourceQueries.ts
 
-#### Composition Imports [#code]
+#### Composition Imports [#code|#structure:path]
 
 ```typescript
+// src/composition/queries/ResourceQueries.ts
 // ✅ Типы из Domain через Public API
 import { Resource } from '@/domain'
 

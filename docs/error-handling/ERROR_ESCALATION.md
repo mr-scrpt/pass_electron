@@ -10,6 +10,8 @@
 
 ### Традиционный подход в TypeScript
 
+#### Try-Catch Hell [#code]
+
 ```typescript
 // ❌ ПРОБЛЕМА: Try-Catch Hell с instanceof
 async function createResource(request: Request): Promise<Response> {
@@ -56,6 +58,9 @@ async function createResource(request: Request): Promise<Response> {
 - ❌ Легко пропустить обработку ошибки
 
 #### 2. **instanceof на каждом уровне**
+
+##### Проблема instanceof [#code]
+
 ```typescript
 catch (error) {
   if (error instanceof InvariantViolationError) { }
@@ -69,6 +74,9 @@ catch (error) {
 - ❌ Не type-safe (unknown в catch)
 
 #### 3. **Неявный control flow**
+
+##### Неявный тип [#code]
+
 ```typescript
 function doSomething(): string {
   // может вернуть string
@@ -80,6 +88,9 @@ function doSomething(): string {
 - ❌ Нет compile-time проверки
 
 #### 4. **Проблема с типизацией**
+
+##### Unknown тип [#code]
+
 ```typescript
 catch (error) {
   // error имеет тип unknown
@@ -96,9 +107,12 @@ catch (error) {
 
 ### Базовая реализация
 
-**Файл: `src/domain/shared/result/Result.ts`**  `#structure:
+**Файл: `src/domain/shared/result/Result.ts`**
+
+#### Result Type [#code|#structure:path]
 
 ```typescript
+// src/domain/shared/result/Result.ts
 /**
  * Result Type для обработки ошибок без исключений
  */
@@ -137,6 +151,8 @@ export const failure = <E>(error: E): Failure<E> => new Failure(error)
 ```
 
 ### Использование
+
+#### Пример с нативным Result [#code]
 
 ```typescript
 // ✅ ХОРОШО: Явная обработка ошибок
@@ -215,10 +231,12 @@ pnpm add neverthrow  #command:pnpm-add-neverthrow
 
 ### Базовое использование
 
+#### ResourceName с neverthrow [#class:ResourceName|#code]
+
 ```typescript
 import { Result, ok, err } from 'neverthrow'
 
-class ResourceName {  // #class:ResourceName
+class ResourceName {
   private constructor(private readonly value: string) {}
   
   static create(value: string): Result<ResourceName, InvariantViolationError> {
@@ -238,6 +256,8 @@ class ResourceName {  // #class:ResourceName
 
 #### 1. **map** — трансформация значения
 
+##### Пример map [#code]
+
 ```typescript
 const result = ResourceName.create('facebook')
   .map(name => name.value.toUpperCase())
@@ -245,6 +265,8 @@ const result = ResourceName.create('facebook')
 ```
 
 #### 2. **andThen** — цепочка операций (flatMap)
+
+##### Пример andThen [#code]
 
 ```typescript
 // ❌ ПЛОХО: Вложенные проверки
@@ -264,6 +286,8 @@ const result = ResourceName.create(input.name)
 
 #### 3. **match** — pattern matching
 
+##### Пример match [#code]
+
 ```typescript
 return result.match(
   (value) => json({ data: value }),
@@ -272,6 +296,8 @@ return result.match(
 ```
 
 #### 4. **combine** — параллельная валидация
+
+##### Пример combine [#code]
 
 ```typescript
 import { combine } from 'neverthrow'
@@ -293,10 +319,12 @@ results.match(
 
 ### Полный пример: Command Handler
 
+#### CreateResourceCommandHandler [#class:CreateResourceCommandHandler|#code]
+
 ```typescript
 import { Result, ok, err, combine } from 'neverthrow'
 
-class CreateResourceCommandHandler {  // #class:CreateResourceCommandHandler
+class CreateResourceCommandHandler {
   async handle(
     command: CreateResourceCommand
   ): Promise<Result<Resource, DomainError>> {
@@ -321,6 +349,8 @@ class CreateResourceCommandHandler {  // #class:CreateResourceCommandHandler
 ```
 
 ### ResultAsync для async операций
+
+#### ApiResourceRepository [#interface:IResourceRepository|#code]
 
 ```typescript
 import { ResultAsync } from 'neverthrow'
@@ -368,6 +398,8 @@ pnpm add fp-ts  #command:pnpm-add-fp-ts
 
 ### Either (аналог Result)
 
+#### Пример Either [#code]
+
 ```typescript
 import { Either, left, right } from 'fp-ts/Either'
 import { pipe } from 'fp-ts/function'
@@ -397,6 +429,8 @@ const result = pipe(
 ```
 
 ### TaskEither (Either + Promise)
+
+#### Пример TaskEither [#code]
 
 ```typescript
 import { TaskEither } from 'fp-ts/TaskEither'
@@ -450,8 +484,10 @@ const createResource = (command: CreateResourceCommand): TaskEither<DomainError,
 
 ### Domain Layer — нативный Result
 
+#### Нативный Result [#code|#structure:path]
+
 ```typescript
-// src/domain/shared/result/Result.ts  #structure:
+// src/domain/shared/result/Result.ts
 export type Result<T, E = Error> = Success<T> | Failure<E>
 // ... реализация
 
@@ -476,9 +512,11 @@ class ResourceName {
 pnpm add neverthrow  #command:pnpm-add-neverthrow
 ```
 
+#### Адаптер toNeverthrow [#code|#structure:path]
+
 ```typescript
-// src/application/shared/adapters.ts  #structure:
-import { Result as NativeResult } from '@/domain/shared/result'  #structure:
+// src/application/shared/adapters.ts
+import { Result as NativeResult } from '@/domain/shared/result'
 import { Result, ok, err } from 'neverthrow'
 
 export function toNeverthrow<T, E>(result: NativeResult<T, E>): Result<T, E> {
@@ -502,6 +540,8 @@ class CreateResourceCommandHandler {
 ```
 
 ### Presentation Layer — match
+
+#### Remix Action с match [#code]
 
 ```typescript
 export async function action({ request }: ActionFunctionArgs) {

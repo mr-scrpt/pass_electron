@@ -6,13 +6,15 @@
 
 ### IResourceRepository
 
+#### IResourceRepository [#interface:IResourceRepository|#code]
+
 ```typescript
 /**
  * Репозиторий для работы с ресурсами
  * Интерфейс определен в Domain Layer
  * Реализации в Infrastructure Layer
  */
-interface IResourceRepository {  // #interface:IResourceRepository
+interface IResourceRepository {
   /**
    * Найти ресурс по ID
    */
@@ -53,11 +55,13 @@ interface IResourceRepository {  // #interface:IResourceRepository
 
 ### INamespaceRepository
 
+#### INamespaceRepository [#interface:INamespaceRepository|#code]
+
 ```typescript
 /**
  * Репозиторий для работы с неймспейсами
  */
-interface INamespaceRepository {  // #interface:INamespaceRepository
+interface INamespaceRepository {
   /**
    * Получить все неймспейсы
    */
@@ -77,11 +81,13 @@ interface INamespaceRepository {  // #interface:INamespaceRepository
 
 ### IPasswordGeneratorService
 
+#### IPasswordGeneratorService [#interface:IPasswordGeneratorService|#code]
+
 ```typescript
 /**
  * Сервис для генерации паролей
  */
-interface IPasswordGeneratorService {  // #interface:IPasswordGeneratorService
+interface IPasswordGeneratorService {
   /**
    * Сгенерировать пароль
    */
@@ -105,11 +111,13 @@ interface IPasswordGeneratorService {  // #interface:IPasswordGeneratorService
 
 ### IModalManager
 
+#### IModalManager [#interface:IModalManager|#code]
+
 ```typescript
 /**
  * Менеджер режимов приложения
  */
-interface IModalManager {  // #interface:IModalManager
+interface IModalManager {
   /**
    * Получить текущий режим
    */
@@ -156,11 +164,13 @@ type Unsubscribe = () => void
 
 ### IKeymapRegistry
 
+#### IKeymapRegistry [#interface:IKeymapRegistry|#code]
+
 ```typescript
 /**
  * Реестр кеймапов
  */
-interface IKeymapRegistry {  // #interface:IKeymapRegistry
+interface IKeymapRegistry {
   /**
    * Зарегистрировать кеймап
    */
@@ -202,11 +212,13 @@ type KeymapChangeListener = () => void
 
 ### IKeymapExecutor
 
+#### IKeymapExecutor [#interface:IKeymapExecutor|#code]
+
 ```typescript
 /**
  * Исполнитель кеймапов
  */
-interface IKeymapExecutor {  // #interface:IKeymapExecutor
+interface IKeymapExecutor {
   /**
    * Обработать нажатие клавиши
    */
@@ -230,11 +242,13 @@ interface IKeymapExecutor {  // #interface:IKeymapExecutor
 
 ### IFocusManager
 
+#### IFocusManager [#interface:IFocusManager|#code]
+
 ```typescript
 /**
  * Менеджер фокуса для навигации
  */
-interface IFocusManager {  // #interface:IFocusManager
+interface IFocusManager {
   /**
    * Зарегистрировать элемент для фокуса
    */
@@ -300,11 +314,13 @@ type FocusChangeListener = (focused: FocusableElement | null) => void
 
 ### INotificationManager
 
+#### INotificationManager [#interface:INotificationManager|#code]
+
 ```typescript
 /**
  * Менеджер уведомлений
  */
-interface INotificationManager {  // #interface:INotificationManager
+interface INotificationManager {
   /**
    * Показать уведомление об успехе
    */

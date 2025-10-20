@@ -541,6 +541,9 @@ export class NetworkError extends Error {
 ```
 
 **Использование:**
+
+#### HttpClient с NetworkError [#code]
+
 ```typescript
 // В API Client
 class HttpClient {
@@ -572,9 +575,12 @@ class HttpClient {
 
 ### ApiError
 
-**Файл: `src/infrastructure/errors/ApiError.ts`**  `#structure:
+**Файл: `src/infrastructure/errors/ApiError.ts`**
+
+#### ApiError [#class:ApiError|#code|#structure:path]
 
 ```typescript
+// src/infrastructure/errors/ApiError.ts
 /**
  * Ошибка API
  */
@@ -594,9 +600,12 @@ export class ApiError extends Error {
 
 ### StorageError
 
-**Файл: `src/infrastructure/errors/StorageError.ts`**  `#structure:
+**Файл: `src/infrastructure/errors/StorageError.ts`**
+
+#### StorageError [#class:StorageError|#code|#structure:path]
 
 ```typescript
+// src/infrastructure/errors/StorageError.ts
 /**
  * Ошибка хранилища (LocalStorage, IndexedDB, etc.)
  */
@@ -620,11 +629,14 @@ export class StorageError extends Error {
 
 ### ErrorBoundary
 
-**Файл: `src/presentation/web/react/src/components/ErrorBoundary.tsx`**  `#structure:
+**Файл: `src/presentation/web/react/src/components/ErrorBoundary.tsx`**
+
+#### ErrorBoundary компонент [#code|#structure:path]
 
 ```typescript
+// src/presentation/web/react/src/components/ErrorBoundary.tsx
 import { Component, ReactNode } from 'react'
-import { DomainError } from '@/domain/shared/errors'  #structure:
+import { DomainError } from '@/domain/shared/errors'
 
 interface Props {
   children: ReactNode
@@ -675,14 +687,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
 ### Обработка в Remix Action
 
+#### Remix Action [#code|#structure:path]
+
 ```typescript
-// src/presentation/web/react/src/routes/resources.new.tsx  #structure:
+// src/presentation/web/react/src/routes/resources.new.tsx
 
 import { 
   InvariantViolationError, 
   DuplicateError 
-} from '@/domain/shared/errors'  #structure:
-import { ValidationError } from '@/application/errors'  #structure:
+} from '@/domain/shared/errors'
+import { ValidationError } from '@/application/errors'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -734,10 +748,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ### Infrastructure → Domain
 
+#### ApiResourceRepository [#interface:IResourceRepository|#code|#structure:path]
+
 ```typescript
 // Infrastructure Layer перехватывает технические ошибки
 // и может преобразовать их в доменные
-// src/infrastructure/repositories/ApiResourceRepository.ts  #structure:
+// src/infrastructure/repositories/ApiResourceRepository.ts
 
 class ApiResourceRepository implements IResourceRepository {
   async findById(id: ResourceId): Promise<Resource> {

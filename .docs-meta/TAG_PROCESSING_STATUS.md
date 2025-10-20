@@ -15,9 +15,9 @@
 
 ---
 
-## Прогресс: 11/33 (33%)
+## Прогресс: 12/33 (36%)
 
-### ✅ Обработано (11 файлов)
+### ✅ Обработано (12 файлов)
 
 1. ✅ **GETTING_STARTED.md** - блоков кода нет
 2. ✅ **COMMAND_BUS.md** - исправлен
@@ -29,7 +29,8 @@
 8. ✅ **DDD_AND_CLEAN_ARCHITECTURE.md** - исправлен
 9. ✅ **COMPOSITION_LAYER.md** - исправлен
 10. ✅ **TYPES_AND_ENTITIES.md** - исправлен
-11. ✅ **error-handling/INVARIANTS.md** - в процессе (часть 1 готова)
+11. ✅ **error-handling/INVARIANTS.md** - исправлен + очищен
+12. ✅ **error-handling/ERROR_HANDLING.md** - исправлен
 
 ### 🔄 В процессе (0 файлов)
 
@@ -104,8 +105,8 @@ _Нет_
 
 ## Следующий файл
 
-**error-handling/INVARIANTS.md** - файл 11/33 (продолжение - часть 2)
+**error-handling/ERROR_ESCALATION.md** - файл 13/33
 
 ---
 
-**Последнее обновление:** 2025-10-20 12:49
+**Последнее обновление:** 2025-10-20 13:07

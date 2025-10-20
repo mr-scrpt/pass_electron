@@ -225,8 +225,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ### Установка
 
+#### Команда установки [#command:pnpm-add-neverthrow]
+
 ```bash
-pnpm add neverthrow  #command:pnpm-add-neverthrow
+pnpm add neverthrow
 ```
 
 ### Базовое использование
@@ -392,8 +394,10 @@ class ApiResourceRepository implements IResourceRepository {
 
 **Библиотека**: [fp-ts](https://github.com/gcanti/fp-ts) (~10k ⭐)
 
+#### Команда установки [#command:pnpm-add-fp-ts]
+
 ```bash
-pnpm add fp-ts  #command:pnpm-add-fp-ts
+pnpm add fp-ts
 ```
 
 ### Either (аналог Result)
@@ -508,8 +512,10 @@ class ResourceName {
 
 ### Application Layer — neverthrow для композиции
 
+#### Команда установки [#command:pnpm-add-neverthrow]
+
 ```bash
-pnpm add neverthrow  #command:pnpm-add-neverthrow
+pnpm add neverthrow
 ```
 
 #### Адаптер toNeverthrow [#code|#structure:path]

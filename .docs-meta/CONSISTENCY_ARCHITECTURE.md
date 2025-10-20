@@ -130,10 +130,28 @@ import { ResourceList } from '@/components/ResourceList'  // ✅ Локальн�
 
 ### 1. Infrastructure → Application зависимость (КРИТИЧНО)
 
-**Найдено:**
+**Найдено в:** `steps/step_1/README.md` строка 483
+
 ```typescript
 // src/infrastructure/repositories/MockResourceRepository.ts
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
+import type { IResourceRepository } from '@/domain/repositories'
+import type { ResourceListItemDTO } from '@/application/queries/dtos'  // ❌ ПРОБЛЕМА!
+import type { ResourceId, Namespace } from '@/domain/resource'
+import { mockResources } from '../mocks'
+
+export class MockResourceRepository implements IResourceRepository {
+  async findAll(): Promise<ResourceListItemDTO[]> {  // ❌ Application DTO
+    return Promise.resolve([...mockResources])
+  }
+}
+```
+
+**Также найдено в:** `steps/step_1/README.md` строка 417
+```typescript
+// src/infrastructure/mocks/resources.mock.ts
+import type { ResourceListItemDTO } from '@/application/queries/dtos'  // ❌ ПРОБЛЕМА!
+
+export const mockResources: ResourceListItemDTO[] = [...]
 ```
 
 **Проблема:** Нарушение Dependency Rule - Infrastructure зависит от Application
@@ -181,7 +199,80 @@ import type { ResourceListItemDTO } from '@/shared/dtos'
 
 ---
 
-### 2. Все импорты через Public API (OK)
+### 2. Domain интерфейс ссылается на несуществующий тип (КРИТИЧНО)
+
+**Найдено в:** `steps/step_1/README.md` строка 380
+
+```typescript
+// src/domain/resource/repositories/IResourceRepository.ts
+export interface IResourceRepository {
+  findAll(): Promise<ResourceListItem[]>  // ❌ ResourceListItem не определен!
+  findById(id: ResourceId): Promise<ResourceListItem | null>
+  findByNamespace(namespace: Namespace): Promise<ResourceListItem[]>
+}
+```
+
+**Проблема:** Тип `ResourceListItem` нигде не определен. Вероятно опечатка - имелся в виду `ResourceListItemDTO`
+
+**Но это создает архитектурную проблему:**
+- Если использовать `ResourceListItemDTO` - Domain будет зависеть от Application DTO
+- Domain интерфейс НЕ должен ссылаться на Application типы
+
+**Решение:**
+Repository должен возвращать Domain типы (Aggregate Root):
+
+```typescript
+// ✅ ПРАВИЛЬНО
+export interface IResourceRepository {
+  findAll(): Promise<Resource[]>  // Domain Aggregate
+  findById(id: ResourceId): Promise<Resource | null>
+  findByNamespace(namespace: Namespace): Promise<Resource[]>
+}
+```
+
+Преобразование Domain → DTO должно происходить в Query Handler (Application Layer):
+
+```typescript
+// src/application/queries/handlers/ListResourcesQueryHandler.ts
+export class ListResourcesQueryHandler {
+  async handle(): Promise<QueryResult<ResourceListItemDTO[]>> {
+    const resources = await this.repository.findAll()  // Domain типы
+    
+    // Преобразуем Domain → DTO
+    const dtos = resources.map(r => ({
+      id: r.id.getValue(),
+      namespace: r.namespace.getValue(),
+      name: r.name.getValue()
+    }))
+    
+    return { data: dtos }
+  }
+}
+```
+
+---
+
+### 3. Старые алиасы `~` в ARCHITECTURE_BOUNDARIES.md (МИНОРНОЕ)
+
+**Найдено в:** `docs/ARCHITECTURE_BOUNDARIES.md` строки 107-108
+
+```typescript
+// ✅ Локальные компоненты (React Router alias)
+import { ResourceList } from '~/components/ResourceList'  // ❌ Старый алиас
+import { useModal } from '~/hooks/useModal'  // ❌ Старый алиас
+```
+
+**Проблема:** Используются старые алиасы `~` вместо `@/`
+
+**Решение:** Заменить на правильные алиасы:
+```typescript
+import { ResourceList } from '@/components/ResourceList'  // ✅
+import { useModal } from '@/hooks/useModal'  // ✅
+```
+
+---
+
+### 4. Все импорты через Public API (OK)
 
 **Проверено:**
 - ✅ `@/domain` → index.ts
@@ -207,8 +298,8 @@ import type { ResourceListItemDTO } from '@/shared/dtos'
 - **Оценка:** ✅ ОТЛИЧНО
 
 ### Infrastructure Layer
-- **Импортирует:** Domain, Application (DTO)
-- **Нарушений:** 1 (Application DTO)
+- **Импортирует:** Domain, Application (DTO) ❌
+- **Нарушений:** 2 (MockResourceRepository + mocks)
 - **Оценка:** ⚠️ ТРЕБУЕТ ИСПРАВЛЕНИЯ
 
 ### Composition Layer
@@ -225,45 +316,63 @@ import type { ResourceListItemDTO } from '@/shared/dtos'
 
 ## 📋 Рекомендации
 
-### Критичные (1)
+### Критичные (2)
 
 1. **Исправить Infrastructure → Application зависимость**
-   - Файл: `src/infrastructure/repositories/MockResourceRepository.ts`
+   - Файлы: 
+     - `steps/step_1/README.md` строка 483 (MockResourceRepository)
+     - `steps/step_1/README.md` строка 417 (resources.mock.ts)
    - Проблема: Импорт `ResourceListItemDTO` из Application
-   - Решение: Использовать Domain типы или переместить DTO
+   - Решение: Repository должен возвращать Domain типы (`Resource[]`)
+   - Приоритет: ВЫСОКИЙ
+
+2. **Исправить Domain интерфейс IResourceRepository**
+   - Файл: `steps/step_1/README.md` строка 380
+   - Проблема: Ссылка на несуществующий тип `ResourceListItem`
+   - Решение: Изменить на `Resource[]` (Domain Aggregate)
    - Приоритет: ВЫСОКИЙ
 
 ### Средние (0)
 
 Нет средних проблем
 
-### Минорные (0)
+### Минорные (1)
 
-Нет минорных проблем
+1. **Заменить старые алиасы `~` на `@/`**
+   - Файл: `docs/ARCHITECTURE_BOUNDARIES.md` строки 107-108
+   - Проблема: Используются устаревшие алиасы
+   - Решение: Заменить `~/components` на `@/components`
+   - Приоритет: НИЗКИЙ
 
 ---
 
 ## 🎯 Выводы
 
-### Общая оценка: ✅ ХОРОШО (90%)
+### Общая оценка: ⚠️ ТРЕБУЕТ ИСПРАВЛЕНИЯ (85%)
 
 **Сильные стороны:**
-- ✅ Domain полностью изолирован
+- ✅ Domain полностью изолирован (кроме интерфейса Repository)
 - ✅ Application зависит только от Domain
 - ✅ Composition правильно используется как единственный слой со всеми зависимостями
 - ✅ Presentation использует только facades
 - ✅ Все импорты через Public API (index.ts)
 
-**Что исправить:**
-- ⚠️ Infrastructure не должен импортировать из Application
-- ⚠️ DTO должны быть либо в Domain, либо в Shared, либо Infrastructure возвращает Domain типы
+**Критичные проблемы:**
+- ❌ Infrastructure импортирует из Application (2 места)
+- ❌ Domain интерфейс ссылается на несуществующий тип
+- ⚠️ Старые алиасы `~` в примерах
 
 **Архитектурная чистота:**
-- Domain: ✅ 100%
+- Domain: ⚠️ 90% (1 проблема - интерфейс Repository)
 - Application: ✅ 100%
-- Infrastructure: ⚠️ 90% (1 нарушение)
+- Infrastructure: ❌ 70% (2 нарушения Dependency Rule)
 - Composition: ✅ 100%
 - Presentation: ✅ 100%
+
+**Влияние на проект:**
+- Нарушение Clean Architecture Dependency Rule
+- Невозможность компиляции (несуществующий тип)
+- Циклические зависимости между слоями
 
 ---
 
@@ -316,7 +425,7 @@ Infrastructure и Application - на одном уровне
 ---
 
 **Статус:** ✅ Проверка завершена  
-**Критичных проблем:** 1  
+**Критичных проблем:** 2  
 **Средних проблем:** 0  
-**Минорных проблем:** 0  
-**Готовность к следующему этапу:** ✅ ДА (после исправления)
+**Минорных проблем:** 1  
+**Готовность к следующему этапу:** ⚠️ РЕКОМЕНДУЕТСЯ ИСПРАВИТЬ КРИТИЧНЫЕ ПРОБЛЕМЫ

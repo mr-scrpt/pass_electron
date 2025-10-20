@@ -100,7 +100,7 @@ mkdir -p src/domain/shared/base
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#domain-layer](../../docs/PROJECT_STRUCTURE.md#1-domain-layer-srcdomain-) — Структура Domain Layer
 
-### Step 1: Domain Layer - Создание доменного слоя `#step-1` `#domain-layer` `#ddd`
+### Step 1: Domain Layer - Создание доменного слоя
 
 Создание ядра приложения - Domain Layer. - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
 
@@ -393,7 +393,7 @@ export interface IResourceRepository {
 
 **Файл: `src/domain/repositories/index.ts`**
 
-#### Repositories Public API [#code|#structure:path]
+#### Domain Repositories Public API [#code|#structure:path]
 
 ```typescript
 // src/domain/repositories/index.ts
@@ -524,7 +524,7 @@ export class MockResourceRepository implements IResourceRepository {
 
 **Файл: `src/infrastructure/repositories/index.ts`**
 
-#### Repositories Public API [#code|#structure:path]
+#### Infrastructure Repositories Public API [#code|#structure:path]
 
 ```typescript
 // src/infrastructure/repositories/index.ts

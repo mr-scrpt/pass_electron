@@ -34,6 +34,8 @@
 
 ## 📁 Структура
 
+### Структура ошибок [#structure:tree]
+
 ```
 app/
 ├── domain/                          #structure:

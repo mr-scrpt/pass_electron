@@ -4,6 +4,8 @@
 
 ## Base URL
 
+#### Конфигурация URL [#config]
+
 ```
 Production: https://api.password-manager.com
 Development: http://localhost:3000
@@ -11,6 +13,8 @@ Mock: In-memory (no HTTP)
 ```
 
 ## Common Headers
+
+#### HTTP заголовки [#code]
 
 ```http
 Content-Type: application/json
@@ -22,13 +26,15 @@ Authorization: Bearer <token>  # (если требуется аутентифи
 
 ### Success Response
 
+#### Success Response [#interface:SuccessResponse|#code]
+
 ```typescript
-interface SuccessResponse<T> {  // #interface:SuccessResponse
+interface SuccessResponse<T> {
   data: T
   meta?: ResponseMeta
 }
 
-interface ResponseMeta {  // #interface:ResponseMeta
+interface ResponseMeta {
   timestamp: string
   requestId: string
 }
@@ -36,8 +42,10 @@ interface ResponseMeta {  // #interface:ResponseMeta
 
 ### Error Response
 
+#### Error Response [#interface:ErrorResponse|#code]
+
 ```typescript
-interface ErrorResponse {  // #interface:ErrorResponse
+interface ErrorResponse {
   error: {
     code: string
     message: string
@@ -54,7 +62,7 @@ interface ErrorResponse {  // #interface:ErrorResponse
 
 ## Resource Endpoints
 
-### GET /api/resources `#api:get-resources`
+### GET /api/resources
 
 Получить список всех ресурсов.
 

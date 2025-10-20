@@ -138,24 +138,24 @@
 
 Переключение между ними происходит через конфигурацию или environment переменную.
 
-#### API Endpoints (для справки)
+#### API Endpoints [#api:GET:/api/resources|#api:GET:/api/resources/:id|#api:POST:/api/resources|#api:PUT:/api/resources/:id|#api:DELETE:/api/resources/:id|#api:POST:/api/resources/:id/fields|#api:PUT:/api/resources/:id/fields/:fieldId|#api:DELETE:/api/resources/:id/fields/:fieldId|#api:GET:/api/namespaces|#api:POST:/api/password/generate]
 
 ```typescript
 // Resource Management
-GET    /api/resources              → Resource[]       // Список всех ресурсов  #api:GET:/api/resources
-GET    /api/resources/:id          → Resource         // Детали ресурса  #api:GET:/api/resources/:id
-POST   /api/resources              → Resource         // Создание ресурса  #api:POST:/api/resources
-PUT    /api/resources/:id          → Resource         // Обновление ресурса  #api:PUT:/api/resources/:id
-DELETE /api/resources/:id          → void             // Удаление ресурса  #api:DELETE:/api/resources/:id
-POST   /api/resources/:id/fields   → CustomField      // Добавление поля  #api:POST:/api/resources/:id/fields
-PUT    /api/resources/:id/fields/:fieldId → CustomField  // Обновление поля  #api:PUT:/api/resources/:id/fields/:fieldId
-DELETE /api/resources/:id/fields/:fieldId → void      // Удаление поля  #api:DELETE:/api/resources/:id/fields/:fieldId
+GET    /api/resources              → Resource[]       // Список всех ресурсов
+GET    /api/resources/:id          → Resource         // Детали ресурса
+POST   /api/resources              → Resource         // Создание ресурса
+PUT    /api/resources/:id          → Resource         // Обновление ресурса
+DELETE /api/resources/:id          → void             // Удаление ресурса
+POST   /api/resources/:id/fields   → CustomField      // Добавление поля
+PUT    /api/resources/:id/fields/:fieldId → CustomField  // Обновление поля
+DELETE /api/resources/:id/fields/:fieldId → void      // Удаление поля
 
 // Namespace Management
-GET    /api/namespaces             → Namespace[]      // Список неймспейсов  #api:GET:/api/namespaces
+GET    /api/namespaces             → Namespace[]      // Список неймспейсов
 
 // Password Generation
-POST   /api/password/generate      → GeneratedPassword // Генерация пароля  #api:POST:/api/password/generate
+POST   /api/password/generate      → GeneratedPassword // Генерация пароля
 ```
 
 ### Repository Pattern
@@ -335,6 +335,8 @@ export const MOCK_NAMESPACES: Namespace[] = [
 - **Notification** — сообщение пользователю
 
 ### Domain Events
+
+#### События системы [#code]
 
 ```typescript
 // Resource Context

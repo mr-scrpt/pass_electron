@@ -34,8 +34,8 @@ interface ResourceCreated extends DomainEvent {
   readonly eventType: 'ResourceCreated'
   readonly aggregateId: ResourceId
   readonly data: {
-    namespace: string
-    name: string
+    namespace: Namespace  // Value Object
+    name: ResourceName    // Value Object
     secretFieldId: FieldId
     customFieldsCount: number
   }
@@ -55,8 +55,8 @@ interface ResourceUpdated extends DomainEvent {
   readonly aggregateId: ResourceId
   readonly data: {
     changes: {
-      namespace?: { from: string; to: string }
-      name?: { from: string; to: string }
+      namespace?: { from: Namespace; to: Namespace }  // Value Objects
+      name?: { from: ResourceName; to: ResourceName }  // Value Objects
     }
   }
 }
@@ -74,8 +74,8 @@ interface ResourceDeleted extends DomainEvent {
   readonly eventType: 'ResourceDeleted'
   readonly aggregateId: ResourceId
   readonly data: {
-    namespace: string
-    name: string
+    namespace: Namespace  // Value Object
+    name: ResourceName    // Value Object
   }
 }
 ```
@@ -93,7 +93,7 @@ interface CustomFieldAdded extends DomainEvent {
   readonly aggregateId: ResourceId
   readonly data: {
     fieldId: FieldId
-    label: string
+    label: FieldLabel  // Value Object для label
   }
 }
 ```
@@ -112,7 +112,7 @@ interface CustomFieldUpdated extends DomainEvent {
   readonly data: {
     fieldId: FieldId
     changes: {
-      label?: { from: string; to: string }
+      label?: { from: FieldLabel; to: FieldLabel }  // Value Objects
       valueChanged: boolean
     }
   }
@@ -132,7 +132,7 @@ interface CustomFieldRemoved extends DomainEvent {
   readonly aggregateId: ResourceId
   readonly data: {
     fieldId: FieldId
-    label: string
+    label: FieldLabel  // Value Object
   }
 }
 ```

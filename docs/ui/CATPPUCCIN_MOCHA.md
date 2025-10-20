@@ -51,11 +51,15 @@
 
 ### Вариант 1: Официальный плагин (рекомендуется)
 
+#### Установка [#command:pnpm-add-catppuccin]
+
 ```bash
 pnpm add -D @catppuccin/tailwindcss
 ```
 
 **В вашем CSS файле (`app/styles/tailwind.css`):**
+
+#### CSS конфигурация [#code]
 
 ```css
 @import "tailwindcss";
@@ -86,6 +90,8 @@ pnpm add -D @catppuccin/tailwindcss
 ### Вариант 2: Ручная конфигурация Tailwind
 
 Если не хотите использовать плагин, можно настроить цвета вручную в `tailwind.config.js`:
+
+#### Tailwind конфигурация (ручная) [#code]
 
 ```javascript
 /** @type {import('tailwindcss').Config} */

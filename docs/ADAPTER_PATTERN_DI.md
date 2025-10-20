@@ -11,7 +11,9 @@ Multi-platform приложение (Web, Desktop, CLI) требует разн�
 
 **Плохое решение** — `if/else` в коде:
 
-#### Антипаттерн - проверки платформы в Composition [#code]
+#### Антипаттерн - проверки платформы в Composition
+
+##### Антипаттерн [#code]
 
 ```typescript
 // ❌ ПЛОХО: Composition знает о платформах
@@ -58,7 +60,9 @@ Infrastructure Adapters
 
 ### Шаг 1: Port (Application Layer)
 
-#### IMyService - интерфейс [#interface:IMyService|#code|#structure:path]
+#### IMyService - интерфейс
+
+##### IMyService Port [#interface:IMyService|#code|#structure:path]
 
 ```typescript
 // app/application/ports/IMyService.ts
@@ -69,7 +73,9 @@ export interface IMyService {
 
 ### Шаг 2: Adapters (Infrastructure Layer)
 
-#### Адаптеры для разных платформ [#class:WebMyService|#class:ElectronMyService|#code|#structure:path]
+#### Адаптеры для разных платформ
+
+##### Adapters [#class:WebMyService|#class:DesktopMyService|#code|#structure:path]
 
 ```typescript
 // app/infrastructure/my-service/WebMyService.ts
@@ -89,7 +95,9 @@ export class ElectronMyService implements IMyService {
 
 ### Шаг 3: Factory (Infrastructure Layer)
 
-#### MyServiceFactory [#class:MyServiceFactory|#code|#structure:path]
+#### MyServiceFactory
+
+##### MyServiceFactory [#class:MyServiceFactory|#code|#structure:path]
 
 ```typescript
 // app/infrastructure/my-service/MyServiceFactory.ts
@@ -106,7 +114,9 @@ export class MyServiceFactory {
 
 ### Шаг 4: DI Module (Composition Layer)
 
-#### SystemModule [#class:SystemModule|#code|#structure:path]
+#### SystemModule
+
+##### SystemModule [#class:SystemModule|#code|#structure:path]
 
 ```typescript
 // app/composition/modules/SystemModule.ts
@@ -126,7 +136,9 @@ export class SystemModule {
 
 ### Шаг 5: ServiceContainer (Composition Layer)
 
-#### ServiceContainer [#class:ServiceContainer|#code|#structure:path]
+#### ServiceContainer
+
+##### ServiceContainer [#class:ServiceContainer|#code|#structure:path]
 
 ```typescript
 // app/composition/ServiceContainer.ts
@@ -143,7 +155,9 @@ export class ServiceContainer {
 
 ### Шаг 6: Entry Points
 
-#### Инициализация в entry points [#code|#structure:path]
+#### Инициализация в entry points
+
+##### Entry points [#code|#structure:path]
 
 ```typescript
 // app/entry.client.tsx (Web)
@@ -165,7 +179,9 @@ ServiceContainer.initialize({ myService })
 
 **Решение:**
 
-#### Clipboard Service - полная реализация [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code|#structure:path]
+#### Clipboard Service - полная реализация
+
+##### ClipboardService [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code|#structure:path]
 
 ```typescript
 // Port
@@ -217,7 +233,9 @@ export class ClipboardServiceFactory {
 
 **Решение:**
 
-#### Request Parser - полная реализация [#interface:IRequestParser|#class:RemixRequestParser|#class:CLIRequestParser|#class:DesktopRequestParser|#class:RequestParserFactory|#code|#structure:path]
+#### Request Parser - полная реализация
+
+##### RequestParser [#interface:IRequestParser|#class:WebRequestParser|#class:CLIRequestParser|#class:RequestParserFactory|#code|#structure:path]
 
 ```typescript
 // Port
@@ -292,7 +310,9 @@ export const resourceQueries = {
 
 **Решение:**
 
-#### Notification Service - полная реализация [#interface:INotificationService|#class:WebNotificationService|#class:ElectronNotificationService|#class:CLINotificationService|#class:NotificationServiceFactory|#code|#structure:path]
+#### Notification Service - полная реализация
+
+##### NotificationService [#interface:INotificationService|#class:BrowserNotificationService|#class:ElectronNotificationService|#class:ConsoleNotificationService|#class:NotificationServiceFactory|#code|#structure:path]
 
 ```typescript
 // Port
@@ -372,7 +392,9 @@ export class NotificationServiceFactory {
 
 ### ❌ 1. Environment checks в Composition
 
-#### Антипаттерн [#code]
+#### Антипаттерн
+
+##### Environment checks [#code]
 
 ```typescript
 // ❌ ПЛОХО
@@ -395,7 +417,9 @@ class ServiceContainer {
 
 ### ❌ 2. Прямое использование платформо-специфичных API
 
-#### Антипаттерн [#code]
+#### Антипаттерн
+
+##### Прямое использование API [#code]
 
 ```typescript
 // ❌ ПЛОХО
@@ -416,7 +440,9 @@ class Handler {
 
 ### ❌ 3. Factory возвращает конкретный класс
 
-#### Антипаттерн [#code]
+#### Антипаттерн
+
+##### Factory с конкретным типом [#code]
 
 ```typescript
 // ❌ ПЛОХО
@@ -436,7 +462,9 @@ static createForWeb(): IService {  // ✅ Интерфейс
 
 ### ✅ Правило 1: Знание о платформах только в Infrastructure
 
-#### Правильная изоляция [#code]
+#### Правильная изоляция
+
+##### Infrastructure Factory [#code]
 
 ```typescript
 // Infrastructure - ЕДИНСТВЕННОЕ место

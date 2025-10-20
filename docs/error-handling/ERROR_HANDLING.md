@@ -765,22 +765,24 @@ export async function action({ request }: ActionFunctionArgs) {
 // Infrastructure Layer перехватывает технические ошибки
 // и может преобразовать их в доменные
 // src/infrastructure/repositories/ApiResourceRepository.ts
+import { ResultAsync } from 'neverthrow'
 
 class ApiResourceRepository implements IResourceRepository {
-  async findById(id: ResourceId): Promise<Resource> {
-    try {
-      const response = await this.httpClient.get(`/resources/${id.getValue()}`)
-      return this.mapper.toDomain(response)
-      
-    } catch (error) {
-      // API вернул 404 → NotFoundError (Domain)
-      if (error instanceof ApiError && error.statusCode === 404) {
-        throw new NotFoundError('Resource', id.getValue())
-      }
-      
-      // Остальные ошибки пробрасываем как есть
-      throw error
-    }
+  findById(id: ResourceId): ResultAsync<Resource, NotFoundError | NetworkError> {
+    return this.httpClient
+      .get<ResourceDTO>(`/resources/${id.getValue()}`)
+      .andThen((response) => 
+        this.mapper.toDomain(response)
+      )
+      .mapErr((error) => {
+        // API вернул 404 → NotFoundError (Domain)
+        if (error instanceof NetworkError && error.statusCode === 404) {
+          return new NotFoundError('Resource', id.getValue())
+        }
+        
+        // Остальные ошибки пробрасываем как есть
+        return error
+      })
   }
 }
 ```
@@ -791,40 +793,31 @@ class ApiResourceRepository implements IResourceRepository {
 
 ```typescript
 // Application Layer перехватывает Domain ошибки
-// и оборачивает в CommandResult/QueryResult
+// и оборачивает в Result
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
+import { Result, ok, combine } from 'neverthrow'
 
 class CreateResourceCommandHandler {
-  async handle(command: CreateResourceCommand): Promise<CommandResult> {
-    try {
-      const resource = Resource.create({
-        name: ResourceName.create(command.name),
-        namespace: Namespace.create(command.namespace)
-      })
-      
-      await this.repository.save(resource)
-      
-      return {
-        success: true,
-        data: { id: resource.id.getValue() }
-      }
-      
-    } catch (error) {
-      // Domain ошибки возвращаем в CommandResult
-      if (error instanceof DomainError) {
-        return {
-          success: false,
-          error: error.message
-        }
-      }
-      
-      // Неожиданные ошибки пробрасываем выше
-      throw new CommandError(
-        'CreateResourceCommand',
-        'Unexpected error',
-        error
+  async handle(
+    command: CreateResourceCommand
+  ): Promise<Result<CommandResult, DomainError>> {
+    // Создаем Value Objects через Result
+    const nameResult = ResourceName.create(command.name)
+    const namespaceResult = Namespace.create(command.namespace)
+    
+    // Комбинируем результаты (fail-fast)
+    return combine([nameResult, namespaceResult])
+      .andThen(([name, namespace]) => 
+        Resource.create({ name, namespace })
       )
-    }
+      .asyncAndThen(async (resource) => {
+        // Сохраняем через Repository (тоже возвращает Result)
+        return (await this.repository.save(resource))
+          .map(() => ({
+            success: true,
+            data: { id: resource.id.getValue() }
+          }))
+      })
   }
 }
 ```

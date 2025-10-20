@@ -16,9 +16,9 @@
 
 ---
 
-## Прогресс: 16/32 (50%)
+## Прогресс: 17/32 (53%)
 
-### ✅ Обработано (16 файлов)
+### ✅ Обработано (17 файлов)
 
 1. ✅ **GETTING_STARTED.md** - блоков кода нет
 2. ✅ **COMMAND_BUS.md** - исправлен
@@ -36,36 +36,36 @@
 14. ✅ **concepts/IMPLEMENT_CONCEPT_OUTER.md** - базовые подзаголовки (файл 900+ строк)
 15. ✅ **concepts/ARCHITECTURE_DESIGN.md** - базовые подзаголовки + #api:routes (файл 972 строки, 38 блоков)
 16. ✅ **ui/CATPPUCCIN_MOCHA.md** - исправлен
+17. ✅ **steps/step_0/TAILWIND_SETUP.md** - исправлен
 
 ### 🔄 В процессе (0 файлов)
 
 _Нет_
 
-### ⏳ Ожидают обработки (16 файлов)
+### ⏳ Ожидают обработки (15 файлов)
 
 **Приоритет 5 - Contracts (1 файл):**
-17. ⏳ contracts/README.md
+18. ⏳ contracts/README.md
 
 **Приоритет 6 - Electron (1 файл):**
-18. ⏳ electron/README.md
+19. ⏳ electron/README.md
 
-**Приоритет 7 - Steps (11 файлов):**
-19. ⏳ steps/step_0/README.md
-20. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
-21. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
-22. ⏳ steps/step_0/ESLINT_SETUP.md
-23. ⏳ steps/step_1/README.md
-24. ⏳ steps/step_1/DOMAIN_LAYER.md
-25. ⏳ steps/step_1/VALUE_OBJECTS.md
-26. ⏳ steps/step_1/ENTITIES.md
-27. ⏳ steps/step_1/AGGREGATES.md
-28. ⏳ steps/step_1/REPOSITORIES.md
-29. ⏳ steps/step_1/DOMAIN_EVENTS.md
+**Приоритет 7 - Steps (10 файлов):**
+20. ⏳ steps/step_0/README.md
+21. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
+22. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
+23. ⏳ steps/step_0/ESLINT_SETUP.md
+24. ⏳ steps/step_1/README.md
+25. ⏳ steps/step_1/DOMAIN_LAYER.md
+26. ⏳ steps/step_1/VALUE_OBJECTS.md
+27. ⏳ steps/step_1/ENTITIES.md
+28. ⏳ steps/step_1/AGGREGATES.md
+29. ⏳ steps/step_1/REPOSITORIES.md
+30. ⏳ steps/step_1/DOMAIN_EVENTS.md
 
 **Дополнительные файлы (2):**
-30. ⏳ README.md (корневой)
-31. ⏳ docs/README.md
-32. ❌ ~~ui/TAILWIND_SETUP.md~~ - **файл не существует**
+31. ⏳ README.md (корневой)
+32. ⏳ docs/README.md
 
 ---
 
@@ -91,11 +91,11 @@ _Нет_
 
 ## Следующий файл
 
-**contracts/README.md** - файл 17/32
+**contracts/README.md** - файл 18/32
 
 ---
 
-**Последнее обновление:** 2025-10-20 14:50
+**Последнее обновление:** 2025-10-20 14:54
 
 ## 📝 Примечания
 

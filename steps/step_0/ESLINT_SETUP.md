@@ -1,4 +1,4 @@
-# ESLint Setup `#eslint` `#setup` `#linting` - Настройка линтера с архитектурными правилами
+# ESLint Setup - Настройка линтера с архитектурными правилами
 
 > **См. также**: [docs/ARCHITECTURE_BOUNDARIES.md](../../docs/ARCHITECTURE_BOUNDARIES.md) - полное описание архитектурных границ
 
@@ -18,6 +18,8 @@
 
 > **⚠️ ВАЖНО**: Устанавливать в **root проекта**, НЕ в web presentation!
 
+#### Install ESLint [#command]
+
 ```bash
 # В корне проекта (password-manager/)
 pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescript-eslint/eslint-plugin
@@ -36,7 +38,10 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 
 ### Создать `eslint.config.js` (в корне проекта)
 
+#### eslint.config.js [#config|#structure:path]
+
 ```javascript
+// eslint.config.js
 import boundaries from 'eslint-plugin-boundaries'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import typescriptParser from '@typescript-eslint/parser'
@@ -134,6 +139,8 @@ export default [
 
 **Root `package.json`:**
 
+#### Package.json Scripts [#config]
+
 ```json
 {
   "scripts": {
@@ -149,6 +156,8 @@ export default [
 
 ### 1. Запустить линтер
 
+#### Run Lint [#command]
+
 ```bash
 pnpm lint
 ```
@@ -156,6 +165,8 @@ pnpm lint
 ### 2. Тест: попробовать нарушить правила
 
 Создай тестовый файл:
+
+#### Test Boundaries [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/test-boundaries.ts
@@ -189,6 +200,8 @@ import { queries } from '@api'
 ### VS Code
 
 Добавь в `.vscode/settings.json`:
+
+#### VSCode Settings [#config]
 
 ```json
 {

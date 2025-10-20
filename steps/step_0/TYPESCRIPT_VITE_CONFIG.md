@@ -84,9 +84,10 @@ import { Resource } from '@/domain'               // ← Через Public API!
 >
 > **Текущее состояние** (сгенерированный файл):
 >
-> #### Generated vite.config.ts [#code]
+> #### Generated vite.config.ts [#code|#structure:path]
 >
 > ```typescript
+> // src/presentation/web/react/vite.config.ts
 > import { reactRouter } from "@react-router/dev/vite";
 > import tailwindcss from "@tailwindcss/vite";
 > import { defineConfig } from "vite";

@@ -575,6 +575,8 @@ type ErrorCode =
 
 ## Rate Limiting
 
+#### Rate Limiting Headers [#code]
+
 ```http
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -593,6 +595,9 @@ Status: 429 Too Many Requests
 Для endpoints, возвращающих списки:
 
 **Query Parameters:**
+
+#### Pagination Parameters [#interface:PaginationParams|#code]
+
 ```typescript
 interface PaginationParams {
   limit?: number   // default: 50, max: 100
@@ -601,6 +606,9 @@ interface PaginationParams {
 ```
 
 **Response Meta:**
+
+#### Pagination Meta [#interface:PaginationMeta|#code]
+
 ```typescript
 interface PaginationMeta {
   total: number

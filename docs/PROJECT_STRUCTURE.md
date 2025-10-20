@@ -192,6 +192,11 @@ src/domain/
 │   │   ├── ResourceDeleted.ts                 
 │   │   └── index.ts
 │   │
+│   ├── errors/                                
+│   │   ├── DuplicateFieldLabelError.ts        
+│   │   ├── ResourceLockedError.ts             
+│   │   └── index.ts
+│   │
 │   └── index.ts
 │
 ├── user/                                      
@@ -465,7 +470,63 @@ src/infrastructure/
 - Адаптирует внешние системы (Adapter Pattern)
 - НЕ знает о Application Layer (зависит только от Domain)
 
-### 5. Presentation Layer (`src/presentation/`) 🎨
+### 5. Shared Utilities (`src/shared/`) 🔧
+
+**Назначение**: Переиспользуемые утилиты и типы, которые не относятся к конкретному слою.
+
+### Структура Shared Layer [#structure:tree]
+
+```
+src/shared/
+└── types/                     # Type re-exports
+    ├── domain.ts              # Re-export domain types
+    ├── infrastructure.ts      # Re-export infrastructure types
+    └── index.ts               # Single entry point
+```
+
+**Что здесь:**
+- **types/** - Переэкспорт типов из разных слоев для удобства
+
+**Правила:**
+- ✅ Только утилиты и типы
+- ✅ Не содержит бизнес-логики
+- ✅ Может использоваться любым слоем
+- ❌ Не должен зависеть от конкретных слоев (только импортирует и реэкспортирует)
+
+#### Shared types index.ts [#code|#structure:path]
+
+```typescript
+// src/shared/types/index.ts
+export * from './domain'
+export * from './infrastructure'
+```
+
+#### Shared domain types [#code|#structure:path]
+
+```typescript
+// src/shared/types/domain.ts
+// Re-export domain types for convenience
+export type {
+  Resource,
+  ResourceId,
+  Namespace,
+  ResourceName
+} from '@/domain'
+```
+
+#### Shared infrastructure types [#code|#structure:path]
+
+```typescript
+// src/shared/types/infrastructure.ts
+// Re-export infrastructure types for convenience
+export type {
+  ResourceListItemDTO
+} from '@/application/queries/dtos'
+```
+
+---
+
+### 6. Presentation Layer (`src/presentation/`) 🎨
 
 **📚 Откуда:**
 - **DDD** (Eric Evans) - Presentation Layer (внешний слой)
@@ -746,6 +807,14 @@ export { INamespaceRepository } from './INamespaceRepository'
 export { ResourceCreated } from './ResourceCreated'
 export { ResourceUpdated } from './ResourceUpdated'
 export { ResourceDeleted } from './ResourceDeleted'
+```
+
+#### Resource errors index.ts [#code|#structure:path]
+
+```typescript
+// src/domain/resource/errors/index.ts
+export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
+export { ResourceLockedError } from './ResourceLockedError'
 ```
 
 ### Core Systems

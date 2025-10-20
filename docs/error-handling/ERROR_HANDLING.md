@@ -2,6 +2,50 @@
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
+## 📦 Библиотека neverthrow
+
+В проекте используется библиотека **[neverthrow](https://github.com/supermacro/neverthrow)** для функциональной обработки ошибок через `Result<T, E>` вместо `throw`/`try-catch`.
+
+### Почему Result вместо throw?
+
+1. **Явность** - тип функции показывает что она может вернуть ошибку
+2. **Type Safety** - TypeScript заставляет обработать ошибку
+3. **Композиция** - легко комбинировать операции через `andThen`, `map`, `mapErr`
+4. **Нет исключений** - ошибки это часть нормального flow, не exceptional cases
+
+### Основные типы:
+
+```typescript
+import { Result, ok, err } from 'neverthrow'
+
+// Синхронный Result
+Result<T, E>  // Ok(T) | Err(E)
+
+// Асинхронный Result
+ResultAsync<T, E>  // Promise<Result<T, E>>
+```
+
+### Базовые операции:
+
+```typescript
+// Создание
+ok(value)           // Result<T, never>
+err(error)          // Result<never, E>
+
+// Проверка
+result.isOk()       // boolean
+result.isErr()      // boolean
+
+// Трансформация
+result.map(fn)      // Result<U, E>
+result.mapErr(fn)   // Result<T, F>
+result.andThen(fn)  // Result<U, E>
+
+// Извлечение
+result.match(okFn, errFn)  // U
+result._unsafeUnwrap()     // T | throws
+```
+
 ---
 
 ## 🎯 Принципы
@@ -857,18 +901,19 @@ Error (JavaScript)
 #### Правильное использование [#code|#structure:path]
 
 ```typescript
-// ✅ ХОРОШО: Domain ошибка в Domain Layer
+// ✅ ХОРОШО: Domain ошибка в Domain Layer через Result
 // src/domain/resource/value-objects/ResourceName.ts
+import { Result, ok, err } from 'neverthrow'
 import { InvariantViolationError } from '@/domain/shared/errors'
 
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): ResourceName {
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) {
-      throw new InvariantViolationError('ResourceName', 'cannot be empty')
+      return err(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
-    return new ResourceName(value)
+    return ok(new ResourceName(value))
   }
   
   getValue(): string {
@@ -882,13 +927,13 @@ class ResourceName {
 #### Понятные имена [#code]
 
 ```typescript
-// ✅ ХОРОШО: понятные имена
-throw new DuplicateError('Resource', 'name', name)
-throw new InvalidOperationError('Resource', 'delete', 'resource is locked')
+// ✅ ХОРОШО: понятные имена в Result
+return err(new DuplicateError('Resource', 'name', name))
+return err(new InvalidOperationError('Resource', 'delete', 'resource is locked'))
 
 // ❌ ПЛОХО: общие имена
-throw new Error('duplicate')
-throw new Error('cannot delete')
+return err(new Error('duplicate'))
+return err(new Error('cannot delete'))
 ```
 
 ### 3. Преобразование на границах слоев
@@ -896,12 +941,14 @@ throw new Error('cannot delete')
 #### Преобразование ошибок [#code]
 
 ```typescript
-// ✅ ХОРОШО: Infrastructure ошибка → Domain ошибка
-catch (error) {
-  if (error instanceof ApiError && error.statusCode === 404) {
-    throw new NotFoundError('Resource', id)
-  }
-}
+// ✅ ХОРОШО: Infrastructure ошибка → Domain ошибка через mapErr
+return httpClient.get(url)
+  .mapErr((error) => {
+    if (error instanceof NetworkError && error.statusCode === 404) {
+      return new NotFoundError('Resource', id)
+    }
+    return error
+  })
 ```
 
 ### 4. Перехват в Application Layer
@@ -909,16 +956,16 @@ catch (error) {
 #### CommandResult [#code]
 
 ```typescript
-// ✅ ХОРОШО: Domain ошибка → CommandResult
-try {
-  const result = await this.useCase.execute(command)
-  return { success: true, data: result }
-} catch (error) {
-  if (error instanceof DomainError) {
-    return { success: false, error: error.message }
-  }
-  throw error // неожиданные ошибки пробрасываем
-}
+// ✅ ХОРОШО: Domain ошибка → Result
+return this.useCase.execute(command)
+  .map((result) => ({ success: true, data: result }))
+  .mapErr((error) => ({ success: false, error: error.message }))
+
+// Или с match для разных типов ошибок
+return this.useCase.execute(command).match(
+  (result) => ({ success: true, data: result }),
+  (error) => ({ success: false, error: error.message })
+)
 ```
 
 ---
@@ -931,14 +978,16 @@ try {
 
 ```typescript
 // ❌ ПЛОХО: NetworkError в Domain Layer
+import { Result, err } from 'neverthrow'
+
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): ResourceName {
+  static create(value: string): Result<ResourceName, NetworkError> {
     if (!value) {
-      throw new NetworkError('invalid name')  // ❌ Не та ошибка!
+      return err(new NetworkError('invalid name'))  // ❌ Не та ошибка!
     }
-    return new ResourceName(value)
+    return ok(new ResourceName(value))
   }
 }
 
@@ -946,11 +995,11 @@ class ResourceName {
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): ResourceName {
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) {
-      throw new InvariantViolationError('ResourceName', 'cannot be empty')
+      return err(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
-    return new ResourceName(value)
+    return ok(new ResourceName(value))
   }
 }
 ```
@@ -961,10 +1010,10 @@ class ResourceName {
 
 ```typescript
 // ❌ ПЛОХО: общая ошибка
-throw new Error('not found')
+return err(new Error('not found'))
 
 // ✅ ХОРОШО: специализированная
-throw new NotFoundError('Resource', id.getValue())
+return err(new NotFoundError('Resource', id.getValue()))
 ```
 
 ### 3. Проглатывание ошибок
@@ -973,22 +1022,24 @@ throw new NotFoundError('Resource', id.getValue())
 
 ```typescript
 // ❌ ПЛОХО: игнорируем ошибку
-try {
-  await repository.save(resource)
-} catch (error) {
-  console.log('error', error)  // ❌ Молча логируем
-  return null
+const result = await repository.save(resource)
+if (result.isErr()) {
+  console.log('error', result.error)  // ❌ Молча логируем
+  return null  // ❌ Потеряли ошибку!
 }
 
 // ✅ ХОРОШО: обрабатываем или пробрасываем
-try {
-  await repository.save(resource)
-} catch (error) {
-  if (error instanceof DuplicateError) {
-    return { success: false, error: 'Ресурс уже существует' }
-  }
-  throw error  // Неожиданные ошибки пробрасываем
-}
+return (await repository.save(resource))
+  .match(
+    () => ({ success: true }),
+    (error) => {
+      if (error instanceof DuplicateError) {
+        return { success: false, error: 'Ресурс уже существует' }
+      }
+      // Неожиданные ошибки пробрасываем
+      throw error
+    }
+  )
 ```
 
 ---
@@ -1002,25 +1053,37 @@ import { InvariantViolationError } from '@/domain/shared/errors'
 import { ResourceName } from '@/domain/resource/value-objects'
 
 describe('ResourceName', () => {
-  it('должен выбросить InvariantViolationError для пустой строки', () => {
-    expect(() => {
-      ResourceName.create('')
-    }).toThrow(InvariantViolationError)
+  it('должен вернуть Err для пустой строки', () => {
+    const result = ResourceName.create('')
+    
+    expect(result.isErr()).toBe(true)
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(InvariantViolationError)
   })
   
   it('ошибка должна содержать правильное сообщение', () => {
-    expect(() => {
-      ResourceName.create('')
-    }).toThrow('ResourceName: cannot be empty')
+    const result = ResourceName.create('')
+    
+    result.mapErr((error) => {
+      expect(error.message).toBe('ResourceName: cannot be empty')
+    })
   })
   
   it('ошибка должна иметь правильный entityType', () => {
-    try {
-      ResourceName.create('')
-    } catch (error) {
-      expect(error).toBeInstanceOf(InvariantViolationError)
-      expect((error as InvariantViolationError).entityType).toBe('ResourceName')
-    }
+    const result = ResourceName.create('')
+    
+    result.mapErr((error) => {
+      expect(error.entityType).toBe('ResourceName')
+      expect(error.invariant).toBe('cannot be empty')
+    })
+  })
+  
+  it('должен вернуть Ok для валидного значения', () => {
+    const result = ResourceName.create('valid-name')
+    
+    expect(result.isOk()).toBe(true)
+    result.map((name) => {
+      expect(name.getValue()).toBe('valid-name')
+    })
   })
 })
 ```
@@ -1032,35 +1095,45 @@ describe('ResourceName', () => {
 ### 1. Domain Layer
 
 ```
-✅ Может выбрасывать:
-   - DomainError и его подклассы
+✅ Возвращает Result<T, E> где E:
+   - DomainError и его подклассы (InvariantViolationError, NotFoundError, etc.)
    
-❌ НЕ может выбрасывать:
+❌ НЕ может использовать в Result<T, E>:
    - NetworkError, ApiError, StorageError
    - ValidationError, CommandError, QueryError
+   
+❌ НЕ использует throw/try-catch:
+   - Только Result<T, E> для обработки ошибок
 ```
 
 ### 2. Application Layer
 
 ```
-✅ Может выбрасывать:
+✅ Возвращает Result<T, E> где E:
    - ValidationError, CommandError, QueryError
-   - DomainError (пробрасывает из Domain)
+   - DomainError (пробрасывает из Domain через andThen/asyncAndThen)
    
-❌ НЕ может выбрасывать:
-   - NetworkError, ApiError (должен перехватить и обработать)
+✅ Комбинирует Results:
+   - combine() для параллельной валидации
+   - andThen() для последовательных операций
+   
+❌ НЕ использует throw для бизнес-логики:
+   - throw только для неожиданных системных ошибок
 ```
 
 ### 3. Infrastructure Layer
 
 ```
-✅ Может выбрасывать:
+✅ Возвращает ResultAsync<T, E> где E:
    - NetworkError, ApiError, StorageError
-   - DomainError (преобразует из технических ошибок)
+   - DomainError (преобразует через mapErr)
    
-✅ Должен преобразовывать:
-   - HTTP 404 → NotFoundError
-   - HTTP 409 → DuplicateError
+✅ Преобразует через mapErr:
+   - HTTP 404 → NotFoundError (Domain)
+   - HTTP 409 → DuplicateError (Domain)
+   
+✅ Использует ResultAsync.fromPromise:
+   - Для обертки Promise-based API (fetch, etc.)
 ```
 
 ---
@@ -1075,4 +1148,4 @@ describe('ResourceName', () => {
 
 ---
 
-**💡 Правило**: Ошибки должны соответствовать слою, в котором они возникают. Domain ошибки — часть Ubiquitous Language!
+**💡 Правило**: Используй `Result<T, E>` из neverthrow вместо `throw`/`try-catch`. Ошибки должны соответствовать слою, в котором они возникают. Domain ошибки — часть Ubiquitous Language!

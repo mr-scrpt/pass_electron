@@ -53,7 +53,9 @@
 
 ### Публичные алиасы (доступны всем)
 
-#### Конфигурация tsconfig.json [#code|#config]
+#### Конфигурация tsconfig.json
+
+##### tsconfig.json [#code|#config]
 
 ```typescript
 // Примечание: В проекте используется vite-tsconfig-paths для автоматической
@@ -88,7 +90,9 @@
 
 ### ✅ Presentation Layer (правильно)
 
-#### Пример импортов в route [#code|#structure:path]
+#### Пример импортов в route
+
+##### Route импорты [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -115,7 +119,9 @@ export async function loader() {
 
 ### ✅ Composition Layer (правильно)
 
-#### Пример импортов в Facade [#code|#structure:path]
+#### Пример импортов в Facade
+
+##### Facade импорты [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/ResourceQueries.ts
@@ -147,7 +153,9 @@ export const queries = {
 
 ### ✅ Application Layer (правильно)
 
-#### Пример импортов в Handler [#code|#structure:path]
+#### Пример импортов в Handler
+
+##### Handler импорты [#code|#structure:path]
 
 ```typescript
 // src/application/queries/handlers/GetResourcesHandler.ts
@@ -166,7 +174,9 @@ export class GetResourcesHandler {
 
 ### ✅ Domain Layer (правильно)
 
-#### Пример импортов в Aggregate [#code|#structure:path]
+#### Пример импортов в Aggregate
+
+##### Aggregate импорты [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
@@ -186,7 +196,9 @@ import { DomainError } from '@/domain/shared/errors'
 
 ### Установка плагинов
 
-#### Команда установки [#command:pnpm]
+#### Команда установки
+
+##### Установка ESLint плагина [#command:pnpm]
 
 ```bash
 pnpm add -D eslint-plugin-boundaries
@@ -194,7 +206,9 @@ pnpm add -D eslint-plugin-boundaries
 
 ### Конфигурация
 
-#### ESLint config [#code|#config]
+#### ESLint config
+
+##### eslint.config.js [#code|#config]
 
 ```javascript
 // eslint.config.js
@@ -271,7 +285,9 @@ export default [
 
 ### Domain Layer Public API
 
-#### Domain index.ts [#code|#structure:path]
+#### Domain index.ts
+
+##### Domain Public API [#code|#structure:path]
 
 ```typescript
 // src/domain/index.ts
@@ -300,7 +316,9 @@ export { InvariantViolationError } from './shared/errors/InvariantViolationError
 
 ### Composition Layer Public API
 
-#### Composition index.ts [#code|#structure:path]
+#### Composition index.ts
+
+##### Composition Public API [#code|#structure:path]
 
 ```typescript
 // src/composition/index.ts
@@ -322,7 +340,9 @@ export type {
 
 ### Компоненты
 
-#### Пример компонента [#code|#structure:path]
+#### Пример компонента
+
+##### ResourceList компонент [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/components/ResourceList.tsx
@@ -347,7 +367,9 @@ export function ResourceList({ resources }: { resources: Resource[] }) {
 
 ### Hooks
 
-#### Пример custom hook [#code|#structure:path]
+#### Пример custom hook
+
+##### useModal hook [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/hooks/useModal.ts
@@ -369,7 +391,9 @@ export function useModal() {
 
 ### 1. Прямой импорт handlers в Presentation
 
-#### Антипаттерн [#code]
+#### Антипаттерн
+
+##### Прямой импорт handlers [#code]
 
 ```typescript
 // ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Application!
@@ -390,7 +414,9 @@ export async function loader() {
 
 ### 2. Domain импортирует Application
 
-#### Антипаттерн [#code|#structure:path]
+#### Антипаттерн
+
+##### Domain импортирует Application [#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
@@ -405,7 +431,9 @@ import { DomainError } from '@/domain/shared/errors'
 
 ### 3. Прямой импорт Infrastructure в Presentation
 
-#### Антипаттерн [#code]
+#### Антипаттерн
+
+##### Прямой импорт Infrastructure [#code]
 
 ```typescript
 // ❌ НЕПРАВИЛЬНО - Presentation не может импортировать Infrastructure!
@@ -421,7 +449,9 @@ import { queries } from '@/composition'
 
 ### Тесты на импорты
 
-#### Пример теста [#code|#structure:path]
+#### Пример теста
+
+##### Архитектурный тест [#code|#structure:path]
 
 ```typescript
 // tests/architecture.test.ts

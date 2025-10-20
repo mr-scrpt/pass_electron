@@ -266,9 +266,10 @@ cd ../../../..
 
 **Файл: `src/presentation/web/react/src/root.tsx`**
 
-#### Root Component [#code]
+#### Root Component [#code|#structure:path]
 
 ```typescript
+// src/presentation/web/react/src/root.tsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 import styles from "./styles/tailwind.css?url"
 
@@ -301,9 +302,10 @@ export default function App() {
 
 **Файл: `src/presentation/web/react/src/routes/_index.tsx`**
 
-#### Index Route [#code]
+#### Index Route [#code|#structure:path]
 
 ```typescript
+// src/presentation/web/react/src/routes/_index.tsx
 export default function Index() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-ctp-base">

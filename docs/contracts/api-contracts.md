@@ -116,6 +116,9 @@ interface ResourceDTO {
 Получить детали конкретного ресурса.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:GetResourceParams|#code]
+
 ```typescript
 interface GetResourceParams {
   id: string  // Resource ID
@@ -123,6 +126,9 @@ interface GetResourceParams {
 ```
 
 **Response:**
+
+#### Response [#interface:GetResourceResponse|#code]
+
 ```typescript
 interface GetResourceResponse {
   data: ResourceDetailDTO
@@ -167,6 +173,9 @@ interface CustomFieldDTO {
 Создать новый ресурс.
 
 **Request Body:**
+
+#### Request Body [#interface:CreateResourceRequest|#code]
+
 ```typescript
 interface CreateResourceRequest {
   namespace: string
@@ -180,6 +189,9 @@ interface CreateResourceRequest {
 ```
 
 **Response:**
+
+#### Response [#interface:CreateResourceResponse|#code]
+
 ```typescript
 interface CreateResourceResponse {
   data: ResourceDetailDTO
@@ -194,6 +206,9 @@ interface CreateResourceResponse {
 - `500 Internal Server Error` - Ошибка сервера
 
 **Validation Errors:**
+
+#### Validation Errors [#interface:ValidationErrorResponse|#code]
+
 ```typescript
 interface ValidationErrorResponse {
   error: {
@@ -215,6 +230,9 @@ interface ValidationErrorResponse {
 Обновить ресурс.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:UpdateResourceParams|#code]
+
 ```typescript
 interface UpdateResourceParams {
   id: string
@@ -222,6 +240,9 @@ interface UpdateResourceParams {
 ```
 
 **Request Body:**
+
+#### Request Body [#interface:UpdateResourceRequest|#code]
+
 ```typescript
 interface UpdateResourceRequest {
   namespace?: string
@@ -230,6 +251,9 @@ interface UpdateResourceRequest {
 ```
 
 **Response:**
+
+#### Response [#interface:UpdateResourceResponse|#code]
+
 ```typescript
 interface UpdateResourceResponse {
   data: ResourceDetailDTO
@@ -251,6 +275,9 @@ interface UpdateResourceResponse {
 Удалить ресурс.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:DeleteResourceParams|#code]
+
 ```typescript
 interface DeleteResourceParams {
   id: string
@@ -258,6 +285,9 @@ interface DeleteResourceParams {
 ```
 
 **Response:**
+
+#### Response [#interface:DeleteResourceResponse|#code]
+
 ```typescript
 interface DeleteResourceResponse {
   data: {

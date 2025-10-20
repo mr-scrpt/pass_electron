@@ -18,7 +18,7 @@
 
 > **⚠️ ВАЖНО**: Устанавливать **только** в web presentation workspace, НЕ в root!
 
-#### Установка Tailwind [#command:pnpm-add-tailwind]
+#### Install Tailwind [#command]
 
 ```bash
 # Перейти в presentation/web/react директорию
@@ -44,9 +44,10 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 
 **Файл:** `src/presentation/web/react/vite.config.ts`
 
-#### Vite конфигурация [#config]
+#### Vite Config [#config|#structure:path]
 
 ```typescript
+// src/presentation/web/react/vite.config.ts
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite"; // ← Добавить
 import { defineConfig } from "vite";
@@ -80,9 +81,10 @@ export default defineConfig({
 
 **Файл:** `src/presentation/web/react/tailwind.config.js`
 
-#### Tailwind конфигурация [#config]
+#### Tailwind Config [#config|#structure:path]
 
 ```javascript
+// src/presentation/web/react/tailwind.config.js
 import { catppuccin } from '@catppuccin/tailwindcss'
 
 /** @type {import('tailwindcss').Config} */
@@ -112,9 +114,10 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/styles/tailwind.css`
 
-#### CSS импорт [#code]
+#### Tailwind CSS [#code|#structure:path]
 
 ```css
+/* src/presentation/web/react/src/styles/tailwind.css */
 @import "tailwindcss";
 ```
 
@@ -124,9 +127,10 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
 
-#### Root компонент [#code|#structure:path]
+#### Root Component [#code|#structure:path]
 
 ```typescript
+// src/presentation/web/react/src/root.tsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 import styles from "./styles/tailwind.css?url"
 
@@ -165,9 +169,10 @@ export default function App() {
 
 **Файл:** `src/presentation/web/react/src/routes/_index.tsx`
 
-#### Тестовый компонент [#code]
+#### Test Component [#code|#structure:path]
 
 ```typescript
+// src/presentation/web/react/src/routes/_index.tsx
 export default function Index() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-ctp-base">
@@ -186,7 +191,7 @@ export default function Index() {
 
 ### 2. Запустить dev сервер
 
-#### Запуск [#command:pnpm-dev]
+#### Run Dev Server [#command]
 
 ```bash
 cd src/presentation/web/react
@@ -200,6 +205,8 @@ pnpm dev
 ## 🎨 Использование Catppuccin цветов
 
 ### Основные цвета
+
+#### Color Examples [#code]
 
 ```typescript
 // Фоны
@@ -234,7 +241,7 @@ pnpm dev
 
 ### CSS Modules
 
-#### Информация [#code]
+#### CSS Modules Info [#code]
 
 ```bash
 # Уже поддерживается Vite из коробки
@@ -243,7 +250,7 @@ pnpm dev
 
 ### styled-components
 
-#### Установка [#command:pnpm-add-styled-components]
+#### Install Styled Components [#command]
 
 ```bash
 cd src/presentation/web/react
@@ -253,7 +260,7 @@ pnpm add -D @types/styled-components
 
 ### Emotion
 
-#### Установка [#command:pnpm-add-emotion]
+#### Install Emotion [#command]
 
 ```bash
 cd src/presentation/web/react
@@ -262,10 +269,10 @@ pnpm add @emotion/react @emotion/styled
 
 ### Обычный CSS
 
-#### Импорт [#code|#structure:path]
+#### Import CSS [#code|#structure:path]
 
 ```typescript
-// root.tsx
+// src/presentation/web/react/src/root.tsx
 import "./styles/global.css"
 ```
 

@@ -2,6 +2,22 @@
 
 Все типы предметной области (Domain Layer).
 
+> ⚠️ **ВАЖНО**: Это упрощенная спецификация для понимания структуры данных.
+> 
+> **Реальная реализация использует DDD паттерны:**
+> - **Value Objects** реализованы как **классы** с инкапсуляцией и валидацией
+> - **Entities** реализованы как **классы** с идентичностью и методами
+> - **Aggregates** реализованы как **классы** с бизнес-логикой
+> 
+> **Примеры:**
+> - `type ResourceId = string` здесь → `class ResourceId` в реализации
+> - `interface ResourceName` здесь → `class ResourceName` в реализации
+> - `interface Resource` здесь → `class Resource` (Aggregate Root) в реализации
+> 
+> **См. реальную реализацию:** `steps/step_1/README.md` и `docs/TYPES_AND_ENTITIES.md`
+
+---
+
 ## Resource Context
 
 ### Resource Aggregate

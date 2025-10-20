@@ -1,8 +1,8 @@
 # Эскалация ошибок (Error Escalation)
 
-Документ описывает проблемы традиционного подхода к обработке ошибок через `try-catch` и современные решения с использованием Result Pattern и монад.
+Документ описывает как правильно эскалировать ошибки между архитектурными слоями используя **neverthrow** и Result Pattern, избегая Try-Catch Hell.
 
-> 📖 **Расширенное сравнение:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение всех библиотек (@sweet-monads/either, fp-ts) с объяснением что такое монады и чем они отличаются.
+> 📖 **Сравнение библиотек:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение neverthrow, @sweet-monads/either, fp-ts с объяснением монад и выбора библиотеки.
 
 ---
 
@@ -100,126 +100,9 @@ catch (error) {
   }
 }
 ```
-
 ---
 
-## 🎯 Решение 1: Result Pattern (Нативный TypeScript)
-
-### Базовая реализация
-
-**Файл: `src/domain/shared/result/Result.ts`**
-
-#### Result Type [#code|#structure:path]
-
-```typescript
-// src/domain/shared/result/Result.ts
-/**
- * Result Type для обработки ошибок без исключений
- */
-export type Result<T, E = Error> = Success<T> | Failure<E>
-
-export class Success<T> {  // #class:Success
-  readonly ok = true as const
-  
-  constructor(readonly value: T) {}
-  
-  isSuccess(): this is Success<T> {
-    return true
-  }
-  
-  isFailure(): this is never {
-    return false
-  }
-}
-
-export class Failure<E> {  // #class:Failure
-  readonly ok = false as const
-  
-  constructor(readonly error: E) {}
-  
-  isSuccess(): this is never {
-    return false
-  }
-  
-  isFailure(): this is Failure<E> {
-    return true
-  }
-}
-
-export const success = <T>(value: T): Success<T> => new Success(value)
-export const failure = <E>(error: E): Failure<E> => new Failure(error)
-```
-
-### Использование
-
-#### Пример с нативным Result [#code]
-
-```typescript
-// ✅ ХОРОШО: Явная обработка ошибок
-
-// Value Object возвращает Result
-class ResourceName {  // #class:ResourceName
-  private constructor(private readonly value: string) {}
-  
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
-    if (!value || value.length < 1) {
-      return failure(new InvariantViolationError('ResourceName', 'cannot be empty'))
-    }
-    return success(new ResourceName(value))
-  }
-  
-  getValue(): string {
-    return this.value
-  }
-}
-
-// Command Handler использует Result
-class CreateResourceCommandHandler {  // #class:CreateResourceCommandHandler
-  async handle(command: CreateResourceCommand): Promise<Result<Resource, DomainError>> {
-    const nameResult = ResourceName.create(command.name)
-    if (nameResult.isFailure()) {
-      return failure(nameResult.error) // ✅ Тип сохранен!
-    }
-    
-    const resource = Resource.create({ name: nameResult.value })
-    const saveResult = await this.repository.save(resource)
-    
-    if (saveResult.isFailure()) {
-      return failure(saveResult.error)
-    }
-    
-    return success(saveResult.value)
-  }
-}
-
-// Presentation Layer
-export async function action({ request }: ActionFunctionArgs) {
-  const result = await commands.resources.create(request)
-  
-  if (result.isFailure()) {
-    const error = result.error
-    if (error instanceof InvariantViolationError) {
-      return json({ error: error.message }, { status: 400 })
-    }
-    return json({ error: 'Unknown error' }, { status: 500 })
-  }
-  
-  return redirect(`/resources/${result.value.id}`)
-}
-```
-
-### Преимущества
-- ✅ **Type-safe**: компилятор заставляет обработать ошибку
-- ✅ **Явный control flow**: видно что функция может вернуть ошибку
-- ✅ **Нативный TypeScript**: не нужны библиотеки
-
-### Недостатки
-- ❌ **Boilerplate**: много `if (result.isFailure())`
-- ❌ **Нет chain методов**: приходится проверять каждый шаг
-
----
-
-## 🎯 Решение 2: Монады (neverthrow)
+## 🎯 Решение: neverthrow (Result Pattern)
 
 **Библиотека**: [neverthrow](https://github.com/supermacro/neverthrow) (~2.6k ⭐)
 
@@ -390,172 +273,88 @@ class ApiResourceRepository implements IResourceRepository {
 
 ---
 
-## 🎯 Решение 3: fp-ts (Функциональное программирование)
+## 🔄 Эскалация между слоями
 
-**Библиотека**: [fp-ts](https://github.com/gcanti/fp-ts) (~10k ⭐)
+### Domain → Application
 
-#### Команда установки [#command:pnpm-add-fp-ts]
+Domain Layer возвращает `Result<T, DomainError>`, Application Layer комбинирует их через `combine()` и `andThen()`.
 
-```bash
-pnpm add fp-ts
-```
-
-### Either (аналог Result)
-
-#### Пример Either [#code]
+#### Пример: Command Handler [#code]
 
 ```typescript
-import { Either, left, right } from 'fp-ts/Either'
-import { pipe } from 'fp-ts/function'
-import * as E from 'fp-ts/Either'
-
-class ResourceName {
-  private constructor(private readonly value: string) {}
-  
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    if (!value) return left(new InvariantViolationError('ResourceName', 'empty'))
-    return right(new ResourceName(value))
-  }
-  
-  getValue(): string {
-    return this.value
-  }
-}
-
-const result = pipe(
-  ResourceName.create(input),
-  E.map(name => name.value.toUpperCase()),
-  E.fold(
-    (error) => ({ error: error.message }),
-    (value) => ({ data: value })
-  )
-)
-```
-
-### TaskEither (Either + Promise)
-
-#### Пример TaskEither [#code]
-
-```typescript
-import { TaskEither } from 'fp-ts/TaskEither'
-import * as TE from 'fp-ts/TaskEither'
-
-const createResource = (command: CreateResourceCommand): TaskEither<DomainError, Resource> =>
-  pipe(
-    TE.Do,
-    TE.bind('name', () => TE.fromEither(ResourceName.create(command.name))),
-    TE.bind('namespace', () => TE.fromEither(Namespace.create(command.namespace))),
-    TE.chain(({ name, namespace }) => 
-      repository.save(Resource.create({ name, namespace }))
-    )
-  )
-```
-
-### Преимущества fp-ts
-- ✅ **Полный функциональный тулкит**
-- ✅ **Композиция**: pipe для цепочек
-- ✅ **Большое комьюнити**
-
-### Недостатки fp-ts
-- ❌ **Сложность**: крутая кривая обучения
-- ❌ **Verbosity**: много импортов
-- ❌ **Overkill**: для простых случаев избыточно
-
----
-
-## 📊 Сравнение подходов
-
-| Критерий | Try-Catch | Result | neverthrow | @sweet-monads | fp-ts |
-|----------|-----------|--------|------------|---------------|-------|
-| **Монада** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Type Safety** | ❌ | ✅ | ✅ | ✅ | ✅ |
-| **Читаемость** | ❌ | ⚠️ | ✅ | ✅ | ⚠️ |
-| **Boilerplate** | ⚠️ | ❌ Много | ✅ Мало | ✅ Мало | ⚠️ Средне |
-| **Chain** | ❌ | ❌ | ✅ | ✅ | ✅ |
-| **Async** | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-| **mapLeft** | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **Накопление ошибок** | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **Обучение** | ✅ | ✅ | ⚠️ | ⚠️ | ❌ |
-| **Bundle** | 0kb | 0kb | ~2kb | ~2kb | ~30kb |
-| **Популярность** | - | - | 2.6k ⭐ | 2.1k ⭐ | 10k ⭐ |
-| **Терминология** | - | Ok/Err | Ok/Err | Right/Left | Right/Left |
-
-> 💡 **Примечание:** @sweet-monads/either поддерживает `mergeInMany` для накопления всех ошибок — идеально для валидации форм!
-
----
-
-## 💡 Рекомендация: Гибридный подход
-
-### Domain Layer — нативный Result
-
-#### Нативный Result [#code|#structure:path]
-
-```typescript
-// src/domain/shared/result/Result.ts
-export type Result<T, E = Error> = Success<T> | Failure<E>
-// ... реализация
-
-// Value Objects возвращают нативный Result
-class ResourceName {
-  private constructor(private readonly value: string) {}
-  
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
-    if (!value) return failure(new InvariantViolationError(...))
-    return success(new ResourceName(value))
-  }
-  
-  getValue(): string {
-    return this.value
-  }
-}
-```
-
-### Application Layer — neverthrow для композиции
-
-#### Команда установки [#command:pnpm-add-neverthrow]
-
-```bash
-pnpm add neverthrow
-```
-
-#### Адаптер toNeverthrow [#code|#structure:path]
-
-```typescript
-// src/application/shared/adapters.ts
-import { Result as NativeResult } from '@/domain/shared/result'
-import { Result, ok, err } from 'neverthrow'
-
-export function toNeverthrow<T, E>(result: NativeResult<T, E>): Result<T, E> {
-  return result.isSuccess() ? ok(result.value) : err(result.error)
-}
-
-// Command Handler
-import { combine } from 'neverthrow'
-import { toNeverthrow } from './adapters'
+import { Result, combine } from 'neverthrow'
 
 class CreateResourceCommandHandler {
-  async handle(command: CreateResourceCommand): Promise<Result<Resource, DomainError>> {
+  async handle(
+    command: CreateResourceCommand
+  ): Promise<Result<Resource, DomainError>> {
+    // Комбинируем валидацию Value Objects
     return combine([
-      toNeverthrow(ResourceName.create(command.name)),
-      toNeverthrow(Namespace.create(command.namespace))
+      ResourceName.create(command.name),
+      Namespace.create(command.namespace),
+      SecretField.create(command.secret)
     ])
-      .map(([name, namespace]) => Resource.create({ name, namespace }))
-      .andThen(resource => this.repository.save(resource))
+      .map(([name, namespace, secret]) => 
+        Resource.create({ name, namespace, secret })
+      )
+      .asyncAndThen(resource => 
+        this.repository.save(resource)
+      )
   }
 }
 ```
 
-### Presentation Layer — match
+### Infrastructure → Domain
 
-#### Remix Action с match [#code]
+Infrastructure Layer перехватывает технические ошибки (NetworkError, ApiError) и преобразует их в Domain ошибки через `mapErr()`.
+
+#### Пример: Repository [#interface:IResourceRepository|#code]
+
+```typescript
+import { ResultAsync } from 'neverthrow'
+
+class ApiResourceRepository implements IResourceRepository {
+  findById(id: ResourceId): ResultAsync<Resource, NotFoundError | NetworkError> {
+    return this.httpClient
+      .get<ResourceDTO>(`/resources/${id.getValue()}`)
+      .andThen((response) => 
+        this.mapper.toDomain(response)
+      )
+      .mapErr((error) => {
+        // HTTP 404 → NotFoundError (Domain)
+        if (error instanceof NetworkError && error.statusCode === 404) {
+          return new NotFoundError('Resource', id.getValue())
+        }
+        return error
+      })
+  }
+}
+```
+
+### Application → Presentation
+
+Presentation Layer использует `.match()` для обработки Result и возврата HTTP ответов.
+
+#### Пример: Remix Action [#code]
 
 ```typescript
 export async function action({ request }: ActionFunctionArgs) {
   const result = await commands.resources.create(request)
   
   return result.match(
+    // Success → redirect
     (resource) => redirect(`/resources/${resource.id}`),
-    (error) => handleDomainError(error)
+    
+    // Error → JSON response
+    (error) => {
+      if (error instanceof InvariantViolationError) {
+        return json({ error: error.message }, { status: 400 })
+      }
+      if (error instanceof DuplicateError) {
+        return json({ error: 'Already exists' }, { status: 409 })
+      }
+      return json({ error: 'Server error' }, { status: 500 })
+    }
   )
 }
 ```

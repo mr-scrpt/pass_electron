@@ -50,7 +50,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### 1. Query Interfaces (Application Layer)
 
-#### IQuery и IQueryHandler [#interface:IQuery|#interface:IQueryHandler|#code|#structure:path]
+#### IQuery и IQueryHandler
+
+##### Интерфейсы [#interface:IQuery|#interface:IQueryHandler|#code|#structure:path]
 
 ```typescript
 export interface IQuery {
@@ -67,7 +69,9 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {
 }
 ```
 
-#### IQueryBus - шина запросов [#interface:IQueryBus|#code|#structure:path]
+#### IQueryBus - шина запросов
+
+##### IQueryBus интерфейс [#interface:IQueryBus|#code|#structure:path]
 
 ```typescript
 export interface IQueryBus {
@@ -84,7 +88,9 @@ export interface IQueryBus {
 
 ### 2. Query Classes
 
-#### Resource Queries [#class:ListResourcesQuery|#class:GetResourceByIdQuery|#code|#structure:path]
+#### Resource Queries
+
+##### Resource Query классы [#class:ListResourcesQuery|#class:GetResourceByIdQuery|#code|#structure:path]
 
 ```typescript
 export class ListResourcesQuery implements IQuery {
@@ -100,7 +106,9 @@ export class GetResourceByIdQuery implements IQuery {
 
 ### 3. Query Handlers
 
-#### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
+#### ListResourcesQueryHandler
+
+##### ListResourcesQueryHandler класс [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
 export class ListResourcesQueryHandler
@@ -137,7 +145,9 @@ export interface ResourceListItemDTO {
 
 ### 4. QueryBus Adapter (Infrastructure)
 
-#### InMemoryQueryBus [#class:InMemoryQueryBus|#code|#structure:path]
+#### InMemoryQueryBus
+
+##### InMemoryQueryBus класс [#class:InMemoryQueryBus|#code|#structure:path]
 
 ```typescript
 export class InMemoryQueryBus implements IQueryBus {
@@ -164,7 +174,9 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ### 5. Facade (Composition Root)
 
-#### Query Facade [#code|#structure:path]
+#### Query Facade
+
+##### Query Facade [#code|#structure:path]
 
 ```typescript
 import { json } from 'react-router';
@@ -201,7 +213,9 @@ export const queries = {
 };
 ```
 
-#### Регистрация handlers в ServiceContainer [#code|#structure:path]
+#### Регистрация handlers в ServiceContainer
+
+##### ServiceContainer.getQueryBus [#code|#structure:path]
 
 ```typescript
 static getQueryBus(): IQueryBus {
@@ -222,7 +236,9 @@ static getQueryBus(): IQueryBus {
 
 ## Использование в Loaders
 
-### Список ресурсов [#code|#structure:path]
+### Список ресурсов
+
+#### Loader для списка [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -233,7 +249,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 ```
 
-### Детальная страница [#code|#structure:path]
+### Детальная страница
+
+#### Loader для деталей [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources.$id.tsx

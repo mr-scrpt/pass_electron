@@ -378,29 +378,35 @@ type NotificationChangeListener = (notifications: Notification[]) => void
 
 #### ICommand
 
+##### ICommand [#interface:ICommand|#code]
+
 ```typescript
 /**
  * Базовый интерфейс для всех команд
  * Commands выражают намерение выполнить UI действие (изменение состояния)
  */
-interface ICommand {  // #interface:ICommand
+interface ICommand {
   readonly type: string;
 }
 ```
 
 ### ICommandHandler
 
+#### ICommandHandler [#interface:ICommandHandler|#code]
+
 ```typescript
 /**
  * Обработчик команды
  * Реализуется в Presentation Layer
  */
-interface ICommandHandler<T extends ICommand> {  // #interface:ICommandHandler
+interface ICommandHandler<T extends ICommand> {
   handle(command: T): Promise<void> | void;
 }
 ```
 
 ### ICommandBus
+
+#### ICommandBus [#interface:ICommandBus|#code]
 
 ```typescript
 /**
@@ -411,7 +417,7 @@ interface ICommandHandler<T extends ICommand> {  // #interface:ICommandHandler
  * 
  * Используется для изоляции Core Systems от Browser API
  */
-interface ICommandBus {  // #interface:ICommandBus
+interface ICommandBus {
   /**
    * Отправить команду на выполнение
    */
@@ -433,6 +439,8 @@ interface ICommandBus {  // #interface:ICommandBus
 ```
 
 ### UI Commands
+
+#### UI Commands [#code]
 
 ```typescript
 /**
@@ -477,24 +485,28 @@ class CopyToClipboardCommand implements ICommand {
 
 ### IQuery
 
+#### IQuery [#interface:IQuery|#code]
+
 ```typescript
 /**
  * Базовый интерфейс для всех Queries
  * Queries выражают намерение получить данные (read-only)
  */
-interface IQuery {  // #interface:IQuery
+interface IQuery {
   readonly type: string;
 }
 ```
 
 ### IQueryHandler
 
+#### IQueryHandler [#interface:IQueryHandler|#code]
+
 ```typescript
 /**
  * Обработчик Query
  * Реализуется в Application Layer
  */
-interface IQueryHandler<TQuery extends IQuery, TResult> {  // #interface:IQueryHandler
+interface IQueryHandler<TQuery extends IQuery, TResult> {
   handle(query: TQuery): Promise<QueryResult<TResult>>;
 }
 
@@ -513,6 +525,8 @@ interface QueryResult<T = any> {
 ```
 
 ### IQueryBus
+
+#### IQueryBus [#code]
 
 ```typescript
 /**
@@ -542,6 +556,8 @@ interface IQueryBus {
 ```
 
 ### Resource Queries
+
+#### Resource Queries [#code]
 
 ```typescript
 /**
@@ -598,6 +614,8 @@ interface ResourceDetailDTO {
 
 ### IEventBus
 
+#### IEventBus [#interface:IEventBus|#code]
+
 ```typescript
 /**
  * Event Bus для коммуникации между системами
@@ -635,6 +653,8 @@ type EventHandler<T extends DomainEvent> = (event: T) => void | Promise<void>
 ## CQRS Handlers (Application Layer)
 
 ### Query Handlers (Read)
+
+#### Query Handlers [#code]
 
 ```typescript
 /**
@@ -686,6 +706,8 @@ interface ResourceDetailDTO {
 ```
 
 ### Command Handlers (Write)
+
+#### Command Handlers [#code]
 
 ```typescript
 /**
@@ -791,6 +813,8 @@ interface CommandResult<T = void> {
 
 ### IHttpClient
 
+#### IHttpClient [#interface:IHttpClient|#code]
+
 ```typescript
 /**
  * HTTP клиент для работы с API
@@ -830,6 +854,8 @@ interface HttpError extends Error {
 ## Clipboard Service
 
 ### IClipboardService
+
+#### IClipboardService [#interface:IClipboardService|#code]
 
 ```typescript
 /**

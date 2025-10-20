@@ -6,12 +6,14 @@
 
 ### Resource Aggregate
 
+#### Resource Aggregate [#interface:Resource|#code]
+
 ```typescript
 /**
  * Ресурс - основная сущность приложения
  * Содержит набор секретов для конкретного сервиса
  */
-interface Resource {  // #interface:Resource #class:Resource
+interface Resource {
   id: ResourceId
   namespace: Namespace
   name: ResourceName
@@ -27,7 +29,7 @@ type ResourceId = string  // UUID
  * Value Object для имени ресурса
  * Invariants: длина от 1 до 100 символов
  */
-interface ResourceName {  // #interface:ResourceName #class:ResourceName
+interface ResourceName {
   readonly value: string
 }
 
@@ -35,7 +37,7 @@ interface ResourceName {  // #interface:ResourceName #class:ResourceName
  * Обязательное секретное поле
  * У каждого ресурса ровно одно такое поле
  */
-interface SecretField {  // #interface:SecretField #class:SecretField
+interface SecretField {
   id: FieldId
   label: 'secret'              // Константа
   value: EncryptedValue
@@ -47,7 +49,7 @@ interface SecretField {  // #interface:SecretField #class:SecretField
  * Дополнительное кастомное поле
  * Может быть любое количество
  */
-interface CustomField {  // #interface:CustomField #class:CustomField
+interface CustomField {
   id: FieldId
   label: FieldLabel
   value: EncryptedValue
@@ -61,14 +63,14 @@ type FieldId = string  // UUID
  * Value Object для метки поля
  * Invariants: длина от 1 до 50 символов
  */
-interface FieldLabel {  // #interface:FieldLabel #class:FieldLabel
+interface FieldLabel {
   readonly value: string
 }
 
 /**
  * Value Object для зашифрованного значения
  */
-interface EncryptedValue {  // #interface:EncryptedValue #class:EncryptedValue
+interface EncryptedValue {
   readonly encryptedData: string
   readonly iv: string  // Initialization Vector
 }
@@ -81,7 +83,7 @@ interface EncryptedValue {  // #interface:EncryptedValue #class:EncryptedValue
  * Неймспейс - категория для группировки ресурсов
  * Примеры: social, work, banking
  */
-interface Namespace {  // #interface:Namespace #class:Namespace
+interface Namespace {
   readonly value: string
 }
 
@@ -95,7 +97,7 @@ interface Namespace {  // #interface:Namespace #class:Namespace
 /**
  * Информация о неймспейсе для отображения
  */
-interface NamespaceInfo {  // #interface:NamespaceInfo
+interface NamespaceInfo {
   name: string
   resourceCount?: number
 }
@@ -107,7 +109,7 @@ interface NamespaceInfo {  // #interface:NamespaceInfo
 /**
  * Упрощенная версия ресурса для списков
  */
-interface ResourceListItem {  // #interface:ResourceListItem
+interface ResourceListItem {
   id: ResourceId
   namespace: string
   name: string
@@ -127,7 +129,7 @@ interface ResourceListItem {  // #interface:ResourceListItem
 /**
  * Контекст текущего режима приложения
  */
-interface ModeContext {  // #interface:ModeContext #class:ModeContext
+interface ModeContext {
   mode: AppMode
   route: RouteInfo
   state: ModeState | null
@@ -141,7 +143,7 @@ type AppMode = 'navigation' | 'editing'
 /**
  * Информация о текущем маршруте
  */
-interface RouteInfo {  // #interface:RouteInfo
+interface RouteInfo {
   path: string
   params: Record<string, string>
 }
@@ -149,14 +151,14 @@ interface RouteInfo {  // #interface:RouteInfo
 /**
  * Базовый интерфейс для состояния режима
  */
-interface ModeState {  // #interface:ModeState
+interface ModeState {
   readonly type: AppMode
 }
 
 /**
  * Состояние режима навигации
  */
-interface NavigationState extends ModeState {  // #interface:NavigationState
+interface NavigationState extends ModeState {
   readonly type: 'navigation'
   focusedElementId: string | null
   scrollPosition: number
@@ -165,7 +167,7 @@ interface NavigationState extends ModeState {  // #interface:NavigationState
 /**
  * Состояние режима редактирования
  */
-interface EditingState extends ModeState {  // #interface:EditingState
+interface EditingState extends ModeState {
   readonly type: 'editing'
   resourceId: ResourceId
   fieldId: FieldId
@@ -184,7 +186,7 @@ interface EditingState extends ModeState {  // #interface:EditingState
 /**
  * Кеймап - привязка клавиш к действию
  */
-interface Keymap {  // #interface:Keymap #class:Keymap
+interface Keymap {
   id: KeymapId
   name: string
   binding: KeyBinding
@@ -199,7 +201,7 @@ type KeymapId = string
 /**
  * Привязка клавиш
  */
-interface KeyBinding {  // #interface:KeyBinding
+interface KeyBinding {
   key: string                    // 's', 'enter', 'escape'
   ctrl?: boolean
   shift?: boolean
@@ -210,7 +212,7 @@ interface KeyBinding {  // #interface:KeyBinding
 /**
  * Правила активации кеймапа
  */
-interface ActivationRules {  // #interface:ActivationRules
+interface ActivationRules {
   modes: AppMode[]               // В каких режимах активен
   routes?: string[]              // На каких роутах (undefined = все)
   condition?: ActivationCondition // Дополнительное условие
@@ -221,7 +223,7 @@ type ActivationCondition = (context: ActionContext) => boolean
 /**
  * Контекст для выполнения действия
  */
-interface ActionContext {  // #interface:ActionContext
+interface ActionContext {
   mode: AppMode
   route: string
   editingContext?: EditingState
@@ -238,7 +240,7 @@ type KeymapAction = (context: ActionContext) => void | Promise<void>
 /**
  * Элемент, доступный для фокуса
  */
-interface FocusableElement {  // #interface:FocusableElement
+interface FocusableElement {
   id: string
   order: number                  // Порядок для навигации
   route: string
@@ -255,7 +257,7 @@ interface FocusableElement {  // #interface:FocusableElement
 /**
  * Метаданные элемента
  */
-interface FocusableMetadata {  // #interface:FocusableMetadata
+interface FocusableMetadata {
   resourceId?: ResourceId
   fieldId?: FieldId
   type?: FocusableType
@@ -279,7 +281,7 @@ type FocusableType =
 /**
  * Уведомление пользователю
  */
-interface Notification {  // #interface:Notification #class:Notification
+interface Notification {
   id: NotificationId
   type: NotificationType
   message: string
@@ -307,7 +309,7 @@ type NotificationType =
 /**
  * Опции для генерации пароля
  */
-interface PasswordGenerationOptions {  // #interface:PasswordGenerationOptions
+interface PasswordGenerationOptions {
   length: number                 // 8-128
   includeUppercase: boolean
   includeLowercase: boolean
@@ -320,7 +322,7 @@ interface PasswordGenerationOptions {  // #interface:PasswordGenerationOptions
 /**
  * Сгенерированный пароль
  */
-interface GeneratedPassword {  // #interface:GeneratedPassword
+interface GeneratedPassword {
   password: string
   strength: PasswordStrength
 }
@@ -328,7 +330,7 @@ interface GeneratedPassword {  // #interface:GeneratedPassword
 /**
  * Оценка силы пароля
  */
-interface PasswordStrength {  // #interface:PasswordStrength
+interface PasswordStrength {
   score: number                  // 0-100
   level: PasswordStrengthLevel
   feedback: string[]

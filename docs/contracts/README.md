@@ -402,7 +402,7 @@ eventBus.subscribe<ModeChanged>('ModeChanged', (event) => {
 
 ```typescript
 // Пример валидации Namespace с использованием инвариантов
-import { StringInvariant } from '~/domain/shared'
+import { StringInvariant } from '@/domain/shared'
 
 class Namespace {
   private static readonly PATTERN = /^[a-z0-9_-]+$/

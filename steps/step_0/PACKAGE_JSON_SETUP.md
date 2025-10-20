@@ -1,4 +1,4 @@
-# Package.json Setup `#package-json` `#setup` `#dependencies` - Настройка package.json и workspaces
+# Package.json Setup - Настройка package.json и workspaces
 
 Инструкция по настройке package.json и pnpm workspaces для проекта с DDD структурой.
 
@@ -17,6 +17,8 @@
 **Файл**: `package.json` в корне проекта
 
 Создать файл вручную или через `pnpm init`, затем настроить:
+
+#### Root package.json [#config]
 
 ```json
 {
@@ -68,6 +70,8 @@
 
 Создать файл:
 
+#### pnpm-workspace.yaml [#config]
+
 ```yaml
 packages:
   - 'src/presentation/web/react'
@@ -99,6 +103,9 @@ packages:
 1. Из `src/presentation/web/` запустить: `pnpm dlx create-react-router@latest temp`
 2. Выбрать: Template=Basic, TypeScript=Yes, Package manager=pnpm
 3. Скопировать конфиги:
+
+#### Copy Configs [#command]
+
    ```bash
    cp temp/package.json react/package.json
    cp temp/tsconfig.json react/tsconfig.json
@@ -119,6 +126,8 @@ packages:
 
 ## 4️⃣ Финальная установка
 
+#### Install All [#command]
+
 ```bash
 # Из корня проекта
 pnpm install
@@ -130,6 +139,9 @@ pnpm install
 - Hoisting общих зависимостей в root node_modules
 
 **Проверка**:
+
+#### Check Installation [#command]
+
 ```bash
 pnpm list --depth=0
 # Должно показать:
@@ -143,6 +155,8 @@ pnpm list --depth=0
 
 ### Root package.json (для domain/application/infrastructure)
 
+#### Add to Root [#command]
+
 ```bash
 # Из корня проекта
 pnpm add <package>              # dependency
@@ -152,6 +166,9 @@ pnpm add -D <package>           # devDependency
 ### Web package.json (только для UI)
 
 **Способ 1: Через --filter (удобнее)**
+
+#### Add to Web via Filter [#command]
+
 ```bash
 # Из корня проекта
 pnpm add <package> --filter @password-manager/web
@@ -159,6 +176,9 @@ pnpm add -D <package> --filter @password-manager/web
 ```
 
 **Способ 2: Перейти в workspace**
+
+#### Add to Web Directly [#command]
+
 ```bash
 cd src/presentation/web/react
 pnpm add <package>
@@ -176,6 +196,9 @@ pnpm add -D <package>
 - `vite`, `tailwindcss` - только для web build
 
 **Команды:**
+
+#### Example Commands [#command]
+
 ```bash
 # Root
 pnpm add neverthrow

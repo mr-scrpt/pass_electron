@@ -190,11 +190,14 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/StringInvariant.ts`**  `#structure:
+**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
+
+#### StringInvariant [#class:StringInvariant|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/invariants/StringInvariant.ts
 import { Result, ok, err } from 'neverthrow'
-import { InvariantViolationError } from '../errors'  #structure:
+import { InvariantViolationError } from '../errors'
 
 /**
  * Инварианты для строк
@@ -268,11 +271,14 @@ export class StringInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**  `#structure:
+**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**
+
+#### IdentifierInvariant [#class:IdentifierInvariant|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/invariants/IdentifierInvariant.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '../errors'  #structure:
+import { InvariantViolationError } from '../errors'
 import { StringInvariant } from './StringInvariant'
 
 /**
@@ -314,17 +320,23 @@ export class IdentifierInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/index.ts`**  `#structure:
+**Файл: `src/domain/shared/invariants/index.ts`**
+
+#### Invariants index.ts [#code|#structure:path]
 
 ```typescript
+// src/domain/shared/invariants/index.ts
 export { UuidInvariant } from './UuidInvariant'
 export { StringInvariant } from './StringInvariant'
 export { IdentifierInvariant } from './IdentifierInvariant'
 ```
 
-**Файл: `src/domain/shared/index.ts`**  `#structure:
+**Файл: `src/domain/shared/index.ts`**
+
+#### Shared index.ts [#code|#structure:path]
 
 ```typescript
+// src/domain/shared/index.ts
 export * from './errors'
 export * from './invariants'
 ```
@@ -336,12 +348,15 @@ export * from './invariants'
 > **Принцип DDD**: Value Objects должны быть **self-validating** (самовалидирующимися).
 > Инварианты - это **переиспользуемые утилиты**, которые Value Object использует ВНУТРИ себя.
 
-**Файл: `src/domain/resource/value-objects/ResourceName.ts`**  `#structure:
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`**
+
+#### ResourceName Value Object [#class:ResourceName|#code|#structure:path]
 
 ```typescript
+// src/domain/resource/value-objects/ResourceName.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
-import { IdentifierInvariant } from '@/domain/shared/invariants'  #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'
+import { IdentifierInvariant } from '@/domain/shared/invariants'
 
 /**
  * Value Object для имени ресурса
@@ -374,12 +389,15 @@ export class ResourceName {
 }
 ```
 
-**Файл: `src/domain/resource/value-objects/Namespace.ts`**  `#structure:
+**Файл: `src/domain/resource/value-objects/Namespace.ts`**
+
+#### Namespace Value Object [#class:Namespace|#code|#structure:path]
 
 ```typescript
+// src/domain/resource/value-objects/Namespace.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
-import { IdentifierInvariant } from '@/domain/shared/invariants'  #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'
+import { IdentifierInvariant } from '@/domain/shared/invariants'
 
 export class Namespace {
   private constructor(private readonly value: string) {}
@@ -406,6 +424,8 @@ export class Namespace {
 
 ### ✅ ПРАВИЛЬНО: Валидация ВНУТРИ Value Object
 
+#### Self-validating Value Object [#class:ResourceName|#code]
+
 ```typescript
 class ResourceName {
   // ✅ Private конструктор - критически важно!
@@ -427,6 +447,8 @@ const result = ResourceName.create(input)
 
 ### ❌ НЕПРАВИЛЬНО: Валидация СНАРУЖИ Value Object
 
+#### Антипаттерн [#code]
+
 ```typescript
 class ResourceName {
   // ❌ Public конструктор - можно обойти валидацию!
@@ -446,6 +468,8 @@ const invalid = new ResourceName('') // ❌ Никакой валидации!
 ### Роль инвариантов
 
 **Инварианты - это переиспользуемые утилиты**, а не внешние валидаторы:
+
+#### Инварианты как утилиты [#class:StringInvariant|#code]
 
 ```typescript
 // ✅ StringInvariant - это утилита (как Math.max)
@@ -474,6 +498,8 @@ class ResourceName {
 3. **Не нужно валидировать повторно** - если объект существует, он валиден
 4. **Type safety** - компилятор заставит обработать ошибку создания
 
+#### Гарантии валидности [#code]
+
 ```typescript
 // ✅ Если у вас есть ResourceName, он точно валиден
 function processResource(name: ResourceName) {
@@ -497,6 +523,8 @@ result.match(
 
 **Проблема**: Одна и та же композиция валидаций повторяется в разных Value Objects.
 
+#### Антипаттерн - дублирование [#code]
+
 ```typescript
 // ❌ ПРОБЛЕМА: Дублирование
 class ResourceName {
@@ -517,6 +545,8 @@ class Namespace {
 ```
 
 **Решение**: Композитный инвариант инкапсулирует повторяющуюся композицию:
+
+#### Композитный инвариант [#class:IdentifierInvariant|#code]
 
 ```typescript
 // ✅ РЕШЕНИЕ: Композитный инвариант

@@ -265,6 +265,10 @@ export class SystemModule {  //
 
 ## Root Container
 
+### ServiceContainer
+
+#### ServiceContainer класс [#class:ServiceContainer|#code|#structure:path]
+
 ```typescript
 // src/composition/ServiceContainer.ts
 import type { IRequestParser } from '@/application/ports'  //
@@ -405,6 +409,10 @@ export { Environment, type EnvironmentType } from './config/Environment'
 
 **Знание о платформах изолировано в Infrastructure:**
 
+### RequestParserFactory
+
+#### RequestParserFactory класс [#class:RequestParserFactory|#code|#structure:path]
+
 ```typescript
 // src/infrastructure/request-parsers/RequestParserFactory.ts
 import type { IRequestParser } from '@/application/ports'  //
@@ -427,7 +435,9 @@ export class RequestParserFactory {  //
 }
 ```
 
-#### ClipboardServiceFactory
+### ClipboardServiceFactory
+
+#### ClipboardServiceFactory класс [#class:ClipboardServiceFactory|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/clipboard/ClipboardServiceFactory.ts

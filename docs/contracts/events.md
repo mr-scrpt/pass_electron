@@ -576,7 +576,7 @@ class Resource {
 
 ### Пример последовательности
 
-#### Event Sequence Example [#code]
+#### Event Sequence Example [#diagram:sequence]
 
 ```
 1. User нажимает Ctrl+S

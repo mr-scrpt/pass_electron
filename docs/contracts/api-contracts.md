@@ -67,8 +67,11 @@ interface ErrorResponse {
 Получить список всех ресурсов.
 
 **Query Parameters:**
+
+#### Query Parameters [#interface:ListResourcesParams|#code]
+
 ```typescript
-interface ListResourcesParams {  // #interface:ListResourcesParams
+interface ListResourcesParams {
   namespace?: string  // Фильтр по неймспейсу
   search?: string     // Поисковый запрос
   limit?: number      // Лимит результатов (default: 100)
@@ -77,8 +80,11 @@ interface ListResourcesParams {  // #interface:ListResourcesParams
 ```
 
 **Response:**
+
+#### Response [#interface:ListResourcesResponse|#code]
+
 ```typescript
-interface ListResourcesResponse {  // #interface:ListResourcesResponse
+interface ListResourcesResponse {
   data: ResourceDTO[]
   meta: {
     total: number
@@ -87,7 +93,7 @@ interface ListResourcesResponse {  // #interface:ListResourcesResponse
   }
 }
 
-interface ResourceDTO {  // #interface:ResourceDTO
+interface ResourceDTO {
   id: string
   namespace: string
   name: string
@@ -105,7 +111,7 @@ interface ResourceDTO {  // #interface:ResourceDTO
 
 ---
 
-### GET /api/resources/:id `#api:get-resource-by-id`
+### GET /api/resources/:id
 
 Получить детали конкретного ресурса.
 
@@ -156,7 +162,7 @@ interface CustomFieldDTO {
 
 ---
 
-### POST /api/resources `#api:create-resource`
+### POST /api/resources
 
 Создать новый ресурс.
 
@@ -204,7 +210,7 @@ interface ValidationErrorResponse {
 
 ---
 
-### PUT /api/resources/:id `#api:update-resource`
+### PUT /api/resources/:id
 
 Обновить ресурс.
 
@@ -240,7 +246,7 @@ interface UpdateResourceResponse {
 
 ---
 
-### DELETE /api/resources/:id `#api:delete-resource`
+### DELETE /api/resources/:id
 
 Удалить ресурс.
 
@@ -270,7 +276,7 @@ interface DeleteResourceResponse {
 
 ## Field Endpoints
 
-### POST /api/resources/:resourceId/fields `#api:add-field`
+### POST /api/resources/:resourceId/fields
 
 Добавить кастомное поле к ресурсу.
 
@@ -306,7 +312,7 @@ interface AddFieldResponse {
 
 ---
 
-### PUT /api/resources/:resourceId/fields/:fieldId `#api:update-field`
+### PUT /api/resources/:resourceId/fields/:fieldId
 
 Обновить поле ресурса.
 
@@ -344,7 +350,7 @@ interface UpdateFieldResponse {
 
 ---
 
-### DELETE /api/resources/:resourceId/fields/:fieldId `#api:delete-field`
+### DELETE /api/resources/:resourceId/fields/:fieldId
 
 Удалить кастомное поле.
 
@@ -378,7 +384,7 @@ interface DeleteFieldResponse {
 
 ## Namespace Endpoints
 
-### GET /api/namespaces `#api:get-namespaces`
+### GET /api/namespaces
 
 Получить список всех неймспейсов.
 
@@ -402,7 +408,7 @@ interface NamespaceDTO {
 
 ## Password Generation Endpoint
 
-### POST /api/password/generate `#api:generate-password`
+### POST /api/password/generate
 
 Сгенерировать пароль.
 

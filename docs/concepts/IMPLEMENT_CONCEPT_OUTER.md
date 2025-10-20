@@ -46,6 +46,8 @@
 
 ## Общая архитектура
 
+### Диаграмма слоев [#diagram:layers]
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                  Presentation Layer                      │
@@ -103,9 +105,11 @@
 
 ## Доменные сущности
 
-### Resource (Ресурс)
+### Resource
 
-Основная сущность приложения - набор паролей и связанных данных.
+Основная сущность - пароль с метаданными:
+
+#### Resource интерфейс [#interface:Resource|#code]
 
 ```typescript
 interface Resource {
@@ -147,6 +151,8 @@ interface CustomField {
 
 Упрощенная версия ресурса для отображения в списках:
 
+#### ResourceListItem интерфейс [#interface:ResourceListItem|#code]
+
 ```typescript
 interface ResourceListItem {
   id: ResourceId;
@@ -161,6 +167,8 @@ interface ResourceListItem {
 ### Namespace (Неймспейс)
 
 Категория для группировки ресурсов:
+
+#### Namespace интерфейс [#interface:Namespace|#code]
 
 ```typescript
 interface Namespace {

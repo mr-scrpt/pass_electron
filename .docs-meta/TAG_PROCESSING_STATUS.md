@@ -30,7 +30,7 @@
 9. ✅ **COMPOSITION_LAYER.md** - исправлен
 10. ✅ **TYPES_AND_ENTITIES.md** - исправлен
 11. ✅ **error-handling/INVARIANTS.md** - исправлен + очищен
-12. ✅ **error-handling/ERROR_HANDLING.md** - исправлен
+12. ✅ **error-handling/ERROR_HANDLING.md** - **ПОЛНОСТЬЮ ПЕРЕПИСАН на neverthrow Result Pattern**
 
 ### 🔄 В процессе (0 файлов)
 
@@ -109,4 +109,29 @@ _Нет_
 
 ---
 
-**Последнее обновление:** 2025-10-20 13:07
+**Последнее обновление:** 2025-10-20 13:30
+
+## 📝 Примечания
+
+### ERROR_HANDLING.md - Масштабная переработка
+
+Файл был полностью переписан с устаревшего подхода `throw`/`try-catch` на современный `Result<T, E>` из neverthrow:
+
+**Что изменено:**
+- ✅ Добавлена вводная секция о neverthrow и Result Pattern
+- ✅ Все примеры Domain Layer переписаны на `Result<T, E>`
+- ✅ Все примеры Application Layer переписаны на `Result` с `combine()`
+- ✅ Все примеры Infrastructure Layer переписаны на `ResultAsync`
+- ✅ Remix Action переписан на `.match()` вместо try-catch
+- ✅ Секция "Преобразование ошибок" переписана на `mapErr()`
+- ✅ Секция DO переписана на Result
+- ✅ Секция DON'T переписана на Result
+- ✅ Тесты переписаны на проверку Result
+- ✅ Архитектурные правила обновлены на Result Pattern
+- ✅ Добавлены примеры `andThen`, `asyncAndThen`, `combine`
+
+**Коммиты:**
+1. `93358d9` - Domain примеры на Result (часть 1)
+2. `22aaebb` - Application и Infrastructure примеры (часть 2)
+3. `d319499` - Преобразование ошибок между слоями (часть 3)
+4. `1b761e6` - Финальная версия с neverthrow (полная)

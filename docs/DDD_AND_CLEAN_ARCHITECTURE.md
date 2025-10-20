@@ -48,7 +48,9 @@
 
 ---
 
-## Архитектура проекта [#structure:tree]
+## Архитектура проекта
+
+### Clean Architecture структура [#diagram:architecture]
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -95,9 +97,11 @@
 
 Domain Layer полностью построен на тактических паттернах DDD и НЕ зависит от других слоев.
 
-### Entity (DDD) [#class:Resource|#code|#structure:path]
+### Entity (DDD)
 
 Объект с уникальным идентификатором, жизненным циклом и бизнес-правилами.
+
+#### Resource Entity [#class:Resource|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
@@ -151,9 +155,11 @@ export class Resource {
 }
 ```
 
-### Value Object (DDD) [#class:ResourceName|#code|#structure:path]
+### Value Object (DDD)
 
 Неизменяемый объект без идентичности, определяется значением.
+
+#### ResourceName Value Object [#class:ResourceName|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
@@ -190,9 +196,11 @@ export class ResourceName {
 > **💡 Важно**: Инварианты (правила валидации) вынесены в переиспользуемые классы в `domain/shared/invariants/`.  
 > См. [INVARIANTS.md](./error-handling/INVARIANTS.md) для деталей.
 
-### Aggregate (DDD) [#class:Resource|#code|#structure:path]
+### Aggregate (DDD)
 
 Группа связанных объектов с единой границей консистентности. Aggregate Root контролирует доступ.
+
+#### Resource Aggregate Root [#class:Resource|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
@@ -233,9 +241,11 @@ export class Resource {  // Aggregate Root
 - Изменения только через Root
 - Root обеспечивает консистентность
 
-### Repository Interface (DDD) [#interface:IResourceRepository|#code|#structure:path]
+### Repository Interface (DDD)
 
 Абстракция для получения и сохранения Aggregates.
+
+#### IResourceRepository [#interface:IResourceRepository|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/repositories/IResourceRepository.ts
@@ -257,9 +267,11 @@ export interface IResourceRepository {
 - Скрывает персистентность (DB, API, Mock)
 - Реализация в Infrastructure Layer
 
-### Domain Service (DDD) [#class:ResourceDuplicationService|#code|#structure:path]
+### Domain Service (DDD)
 
 Бизнес-операции между несколькими Entities/Aggregates.
+
+#### ResourceDuplicationService [#class:ResourceDuplicationService|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/services/ResourceDuplicationService.ts
@@ -284,9 +296,11 @@ export class ResourceDuplicationService {
 }
 ```
 
-### Domain Events (DDD) [#class:ResourceCreatedEvent|#code|#structure:path]
+### Domain Events (DDD)
 
 События, произошедшие в домене.
+
+#### ResourceCreatedEvent [#class:ResourceCreatedEvent|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/events/ResourceEvents.ts
@@ -321,7 +335,9 @@ export class ResourceRenamedEvent extends DomainEvent {
 
 **Мы используем CQRS** — более современный и явный подход.
 
-### Query Handler (чтение данных) [#class:ListResourcesQueryHandler|#code|#structure:path]
+### Query Handler (чтение данных)
+
+#### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
@@ -353,7 +369,9 @@ export class ListResourcesQueryHandler {
 }
 ```
 
-### Command Handler (запись данных) [#class:CreateResourceCommandHandler|#code|#structure:path]
+### Command Handler (запись данных)
+
+#### CreateResourceCommandHandler [#class:CreateResourceCommandHandler|#code|#structure:path]
 
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
@@ -393,7 +411,9 @@ export class CreateResourceCommandHandler {
 }
 ```
 
-**Использование через Facade:** [#code|#structure:path]
+**Использование через Facade:**
+
+#### Facade для commands [#code|#structure:path]
 
 ```typescript
 // src/composition/commands/ResourceCommands.ts
@@ -428,7 +448,9 @@ export async function action({ request }) {
 
 Infrastructure реализует интерфейсы из Domain и Application.
 
-### Repository Implementation [#class:MockResourceRepository|#code|#structure:path]
+### Repository Implementation
+
+#### MockResourceRepository [#class:MockResourceRepository|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/repositories/MockResourceRepository.ts
@@ -446,7 +468,9 @@ export class MockResourceRepository implements IResourceRepository {
 }
 ```
 
-### Query Bus Adapter [#class:InMemoryQueryBus|#code|#structure:path]
+### Query Bus Adapter
+
+#### InMemoryQueryBus [#class:InMemoryQueryBus|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/queries/InMemoryQueryBus.ts
@@ -468,9 +492,11 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ---
 
-## Composition Root: Bootstrap [#class:ServiceContainer|#code|#structure:path]
+## Composition Root: Bootstrap
 
 Composition Root связывает все слои. Единственное место, знающее о всех зависимостях.
+
+### ServiceContainer [#class:ServiceContainer|#code|#structure:path]
 
 ```typescript
 // src/composition/ServiceContainer.ts
@@ -506,7 +532,9 @@ class ServiceContainer {
 }
 ```
 
-### Facade для Presentation Layer [#code|#structure:path]
+### Facade для Presentation Layer
+
+#### Queries facade [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/index.ts
@@ -530,9 +558,11 @@ export const queries = {
 
 ---
 
-## Presentation Layer: Remix Routes [#code|#structure:path]
+## Presentation Layer: Remix Routes
 
 Presentation Layer зависит только от Composition Root (facade).
+
+#### Loader с queries [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -542,6 +572,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return queries.listResources(request)  // Одна строка!
 }
 ```
+
+#### Action с commands [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources.new.tsx
@@ -561,6 +593,8 @@ export async function action({ request }: ActionFunctionArgs) {
 ## Dependency Rule (Clean Architecture)
 
 Все зависимости направлены К ЦЕНТРУ (к Domain Layer).
+
+### Поток зависимостей [#diagram:flow]
 
 ```
 Presentation  →  Composition Root
@@ -617,6 +651,8 @@ Presentation  →  Composition Root
 ## Преимущества подхода
 
 ### Тестируемость
+
+#### Примеры тестов [#code]
 
 ```typescript
 // Легко тестировать Domain (без зависимостей)

@@ -965,6 +965,8 @@ throw new NotFoundError('Resource', id.getValue())
 
 ### 3. Проглатывание ошибок
 
+#### Антипаттерн [#code]
+
 ```typescript
 // ❌ ПЛОХО: игнорируем ошибку
 try {
@@ -989,9 +991,11 @@ try {
 
 ## 🧪 Тестирование ошибок
 
+### Тесты ResourceName [#code]
+
 ```typescript
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
-import { ResourceName } from '@/domain/resource/value-objects'  #structure:
+import { InvariantViolationError } from '@/domain/shared/errors'
+import { ResourceName } from '@/domain/resource/value-objects'
 
 describe('ResourceName', () => {
   it('должен выбросить InvariantViolationError для пустой строки', () => {

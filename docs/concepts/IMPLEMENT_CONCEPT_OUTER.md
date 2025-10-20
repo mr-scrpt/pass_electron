@@ -88,16 +88,16 @@
 
 > **📂 Детальная структура проекта с архитектурными границами и правилами импорта описана в [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)**
 
-Основные директории приложения:
+### Основные директории приложения [#structure:tree]
 
-- **`src/presentation/web/react/src/routes/`** - React Router routes (Presentation Layer)  #structure:
-- **`src/presentation/web/react/src/components/`** - React компоненты (Presentation Layer)  #structure:
-- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)  #structure:
-- **`src/domain/`** - Domain Layer (entities, aggregates, events)  #structure:
-- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)  #structure:
-- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)  #structure:
-- **`src/composition/`** - Composition Root (DI Container)  #structure:
-- **`src/presentation/web/react/src/hooks/`** - React Hooks  #structure:
+- **`src/presentation/web/react/src/routes/`** - React Router routes (Presentation Layer)
+- **`src/presentation/web/react/src/components/`** - React компоненты (Presentation Layer)
+- **`src/application/services/`** - Application Services (modal, keymap, focus, notification)
+- **`src/domain/`** - Domain Layer (entities, aggregates, events)
+- **`src/application/`** - Application Layer (Query/Command Handlers, CQRS)
+- **`src/infrastructure/`** - Infrastructure Layer (API, repositories, adapters)
+- **`src/composition/`** - Composition Root (DI Container)
+- **`src/presentation/web/react/src/hooks/`** - React Hooks
 
 См. [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) для полной информации о модулях, архитектурных границах и правилах импорта
 

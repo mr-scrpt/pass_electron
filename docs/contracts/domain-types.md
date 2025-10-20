@@ -2,21 +2,8 @@
 
 Все типы предметной области (Domain Layer).
 
-> ⚠️ **ВАЖНО**: Это упрощенная спецификация для понимания структуры данных.
-> 
-> **Реальная реализация использует DDD паттерны:**
-> - **Value Objects** реализованы как **классы** с инкапсуляцией и валидацией
-> - **Entities** реализованы как **классы** с идентичностью и методами
-> - **Aggregates** реализованы как **классы** с бизнес-логикой
-> 
-> **Примеры:**
-> - `type ResourceId = string` здесь → `class ResourceId` в реализации
-> - `interface ResourceName` здесь → `class ResourceName` в реализации
-> - `interface Resource` здесь → `class Resource` (Aggregate Root) в реализации
-> 
-> **См. реальную реализацию:** `steps/step_1/README.md` и `docs/TYPES_AND_ENTITIES.md`
-
----
+> **Примечание:** Используются DDD паттерны - Value Objects и Entities реализованы как классы.
+> См. детальную реализацию в `steps/step_1/README.md`
 
 ## Resource Context
 
@@ -26,27 +13,58 @@
 
 ```typescript
 /**
- * Ресурс - основная сущность приложения
+ * Ресурс - Aggregate Root
  * Содержит набор секретов для конкретного сервиса
  */
-interface Resource {
-  id: ResourceId
-  namespace: Namespace
-  name: ResourceName
-  secret: SecretField          // Обязательное поле
-  customFields: CustomField[]  // Дополнительные поля
-  createdAt: DateTime
-  updatedAt: DateTime
+class Resource {
+  readonly id: ResourceId
+  readonly namespace: Namespace
+  readonly name: ResourceName
+  readonly secret: SecretField          // Обязательное поле
+  readonly customFields: CustomField[]  // Дополнительные поля
+  readonly createdAt: DateTime
+  readonly updatedAt: DateTime
+  
+  // Методы Aggregate Root
+  addCustomField(field: CustomField): Result<void, DomainError>
+  updateCustomField(fieldId: FieldId, value: string): Result<void, DomainError>
+  removeCustomField(fieldId: FieldId): Result<void, DomainError>
 }
 
-type ResourceId = string  // UUID
+/**
+ * Value Object для ID ресурса
+ * Invariant: должен быть валидным UUID v4
+ */
+class ResourceId {
+  private constructor(private readonly _value: string) {}
+  
+  static generate(): ResourceId
+  static create(value: string): Result<ResourceId, InvariantViolationError>
+  getValue(): string
+  equals(other: ResourceId): boolean
+}
 
 /**
  * Value Object для имени ресурса
  * Invariants: длина от 1 до 100 символов
  */
-interface ResourceName {
-  readonly value: string
+class ResourceName {
+  private constructor(private readonly _value: string) {}
+  
+  static create(value: string): Result<ResourceName, InvariantViolationError>
+  getValue(): string
+  equals(other: ResourceName): boolean
+}
+
+/**
+ * Value Object для namespace
+ */
+class Namespace {
+  private constructor(private readonly _value: string) {}
+  
+  static create(value: string): Result<Namespace, InvariantViolationError>
+  getValue(): string
+  equals(other: Namespace): boolean
 }
 
 /**

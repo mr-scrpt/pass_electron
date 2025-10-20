@@ -124,7 +124,7 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
 
-#### Root компонент [#code|#structure:]
+#### Root компонент [#code|#structure:path]
 
 ```typescript
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
@@ -262,7 +262,7 @@ pnpm add @emotion/react @emotion/styled
 
 ### Обычный CSS
 
-#### Импорт [#code|#structure:]
+#### Импорт [#code|#structure:path]
 
 ```typescript
 // root.tsx

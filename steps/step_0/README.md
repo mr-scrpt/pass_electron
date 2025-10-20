@@ -9,6 +9,9 @@
 - **TypeScript paths** - алиасы для удобных импортов
 
 > **📦 Менеджер пакетов**: В этом проекте используется **pnpm**. Если он не установлен:
+>
+> #### Install pnpm [#command]
+>
 > ```bash
 > npm install -g pnpm
 > ```
@@ -21,22 +24,26 @@
 
 React Router CLI создает структуру `app/` что противоречит Clean Architecture:
 
+#### Wrong Structure [#structure:tree]
+
 ```
-app/              # ❌ Framework директория  #structure:
-├── domain/       # ❌ Domain внутри framework!  #structure:
-└── routes/       #structure:
+app/              # ❌ Framework директория
+├── domain/       # ❌ Domain внутри framework!
+└── routes/
 ```
 
 **Наш подход**: Domain в центре, Framework снаружи
 
+#### Correct Structure [#structure:tree]
+
 ```
-src/                      #structure:
-├── domain/               # ✅ DDD: Domain Layer  #structure:
-├── application/          # ✅ DDD: Application Layer  #structure:
-├── infrastructure/       # ✅ DDD: Infrastructure Layer  #structure:
-├── composition/          # ✅ DDD: Composition Root  #structure:
-└── presentation/         # ✅ DDD: Presentation Layer  #structure:
-    └── web/react/        # ✅ React Router изолирован  #structure:
+src/
+├── domain/               # ✅ DDD: Domain Layer
+├── application/          # ✅ DDD: Application Layer
+├── infrastructure/       # ✅ DDD: Infrastructure Layer
+├── composition/          # ✅ DDD: Composition Root
+└── presentation/         # ✅ DDD: Presentation Layer
+    └── web/react/        # ✅ React Router изолирован
         ├── vite.config.ts   # ✅ Build tool здесь
         └── package.json     # ✅ Web dependencies здесь
 ```
@@ -65,6 +72,8 @@ src/                      #structure:
 
 ### 1.1 Создать директории
 
+#### Create Directories [#command]
+
 ```bash
 # Создаем корень проекта
 mkdir password-manager
@@ -88,6 +97,8 @@ mkdir -p docs
 
 ### 1.2 Инициализировать Git
 
+#### Init Git [#command]
+
 ```bash
 git init
 ```
@@ -108,11 +119,14 @@ git init
 - Легко добавить другие presentations (CLI, Mobile) без влияния на Domain
 
 **Структура:**
+
+#### Workspaces Structure [#structure:tree]
+
 ```
-password-manager/             #structure:
+password-manager/
 ├── package.json              # Root: DDD слои
 ├── pnpm-workspace.yaml       # Workspaces
-└── src/presentation/web/react/  #structure:
+└── src/presentation/web/react/
     └── package.json          # Web: React Router, Vite
 ```
 
@@ -176,6 +190,9 @@ password-manager/             #structure:
 - ✅ Presentation НЕ может использовать `@internal/*`
 
 **Установка:**
+
+#### Install ESLint [#command]
+
 ```bash
 pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescript-eslint/eslint-plugin
 ```
@@ -199,6 +216,9 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 - Консистентная цветовая палитра
 
 **Установка:**
+
+#### Install Tailwind [#command]
+
 ```bash
 cd src/presentation/web/react
 pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
@@ -228,6 +248,8 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 
 ### 5.1 Установить зависимости
 
+#### Install Dependencies [#command]
+
 ```bash
 # В корне проекта
 pnpm install
@@ -243,6 +265,8 @@ cd ../../../..
 Создай простые файлы чтобы проверить что всё работает:
 
 **Файл: `src/presentation/web/react/src/root.tsx`**
+
+#### Root Component [#code]
 
 ```typescript
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
@@ -277,6 +301,8 @@ export default function App() {
 
 **Файл: `src/presentation/web/react/src/routes/_index.tsx`**
 
+#### Index Route [#code]
+
 ```typescript
 export default function Index() {
   return (
@@ -295,6 +321,8 @@ export default function Index() {
 ```
 
 ### 5.3 Запустить dev сервер
+
+#### Run Dev Server [#command]
 
 ```bash
 # Из root presentation директории
@@ -379,6 +407,8 @@ pnpm dev
 ### 🎯 Философия: Single Source of Truth
 
 **Краткий обзор в README** → **Детальная инструкция в отдельном файле** → **Канонические правила в docs/**
+
+#### Documentation Flow [#diagram:flow]
 
 ```
 README.md (этот файл)           ← Краткий обзор шагов + ссылки

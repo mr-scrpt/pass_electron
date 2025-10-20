@@ -456,16 +456,22 @@ export class ValidationError extends Error {
 
 ```typescript
 // В Command Handler
+import { Result, ok, err } from 'neverthrow'
+
 class CreateResourceCommandHandler {
-  async handle(command: CreateResourceCommand): Promise<CommandResult> {
+  async handle(command: CreateResourceCommand): Promise<Result<CommandResult, ValidationError>> {
     // Валидация входных данных
     if (!command.name || command.name.trim().length === 0) {
-      throw new ValidationError('name', 'name is required')
+      return err(new ValidationError('name', 'name is required'))
     }
     
-    // Domain валидация будет в Value Object
-    const name = ResourceName.create(command.name)
-    // ...
+    // Domain валидация будет в Value Object через Result
+    const nameResult = ResourceName.create(command.name)
+    if (nameResult.isErr()) {
+      return err(new ValidationError('name', nameResult.error.message))
+    }
+    
+    return ok({ success: true, data: { id: 'resource-id' } })
   }
 }
 ```
@@ -555,29 +561,26 @@ export class NetworkError extends Error {
 
 ```typescript
 // В API Client
+import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+
 class HttpClient {
-  async fetch<T>(url: string): Promise<T> {
-    try {
-      const response = await fetch(url)
-      
+  fetch<T>(url: string): ResultAsync<T, NetworkError> {
+    return ResultAsync.fromPromise(
+      fetch(url),
+      (error) => new NetworkError('Failed to fetch', undefined, error)
+    ).andThen((response) => {
       if (!response.ok) {
-        throw new NetworkError(
+        return errAsync(new NetworkError(
           `HTTP ${response.status}: ${response.statusText}`,
-          response.status,
-          await response.json()
-        )
+          response.status
+        ))
       }
       
-      return response.json()
-    } catch (error) {
-      if (error instanceof NetworkError) throw error
-      
-      throw new NetworkError(
-        'Failed to fetch',
-        undefined,
-        error
+      return ResultAsync.fromPromise(
+        response.json() as Promise<T>,
+        (error) => new NetworkError('Failed to parse JSON', undefined, error)
       )
-    }
+    })
   }
 }
 ```
@@ -708,46 +711,45 @@ import {
 import { ValidationError } from '@/application/errors'
 
 export async function action({ request }: ActionFunctionArgs) {
-  try {
-    const result = await commands.resources.create(request)
+  const result = await commands.resources.create(request)
+  
+  return result.match(
+    // Success case
+    (data) => redirect(`/resources/${data.id}`),
     
-    if (result.success) {
-      return redirect(`/resources/${result.data.id}`)
-    }
-    
-    return json({ error: result.error }, { status: 400 })
-    
-  } catch (error) {
-    // Domain ошибки — понятные пользователю
-    if (error instanceof InvariantViolationError) {
+    // Error case - обрабатываем разные типы ошибок
+    (error) => {
+      // Domain ошибки — понятные пользователю
+      if (error instanceof InvariantViolationError) {
+        return json(
+          { error: error.message },
+          { status: 400 }
+        )
+      }
+      
+      if (error instanceof DuplicateError) {
+        return json(
+          { error: `Ресурс с таким ${error.field} уже существует` },
+          { status: 409 }
+        )
+      }
+      
+      // Application ошибки
+      if (error instanceof ValidationError) {
+        return json(
+          { error: error.message, field: error.field },
+          { status: 422 }
+        )
+      }
+      
+      // Неожиданные ошибки
+      console.error('Unexpected error:', error)
       return json(
-        { error: error.message },
-        { status: 400 }
+        { error: 'Произошла ошибка сервера' },
+        { status: 500 }
       )
     }
-    
-    if (error instanceof DuplicateError) {
-      return json(
-        { error: `Ресурс с таким ${error.field} уже существует` },
-        { status: 409 }
-      )
-    }
-    
-    // Application ошибки
-    if (error instanceof ValidationError) {
-      return json(
-        { error: error.message, field: error.field },
-        { status: 422 }
-      )
-    }
-    
-    // Технические ошибки — общее сообщение
-    console.error('Unexpected error:', error)
-    return json(
-      { error: 'Произошла ошибка сервера' },
-      { status: 500 }
-    )
-  }
+  )
 }
 ```
 

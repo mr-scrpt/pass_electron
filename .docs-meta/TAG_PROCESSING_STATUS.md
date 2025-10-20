@@ -17,9 +17,9 @@
 
 ---
 
-## Прогресс: 18/32 (56%)
+## Прогресс: 21/32 (66%)
 
-### ✅ Обработано (18 файлов)
+### ✅ Обработано (21 файлов)
 
 1. ✅ **GETTING_STARTED.md** - блоков кода нет
 2. ✅ **COMMAND_BUS.md** - исправлен
@@ -39,32 +39,34 @@
 16. ✅ **ui/CATPPUCCIN_MOCHA.md** - исправлен
 17. ✅ **steps/step_0/TAILWIND_SETUP.md** - исправлен
 18. ✅ **contracts/README.md** - исправлен
+19. ✅ **contracts/api-contracts.md** - исправлен (562 строки, 74 блока)
+20. ✅ **contracts/domain-types.md** - исправлен (477 строк, 24 блока)
 
 ### 🔄 В процессе (0 файлов)
 
 _Нет_
 
-### ⏳ Ожидают обработки (14 файлов)
+### ⏳ Ожидают обработки (12 файлов)
 
-**Приоритет 6 - Electron (1 файл):**
-19. ⏳ electron/README.md
+**Contracts (3 файла):**
+21. ⏳ contracts/events.md
+22. ⏳ contracts/infrastructure-types.md
+23. ⏳ contracts/system-interfaces.md
 
-**Приоритет 7 - Steps (10 файлов):**
-20. ⏳ steps/step_0/README.md
-21. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
-22. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
-23. ⏳ steps/step_0/ESLINT_SETUP.md
-24. ⏳ steps/step_1/README.md
-25. ⏳ steps/step_1/DOMAIN_LAYER.md
-26. ⏳ steps/step_1/VALUE_OBJECTS.md
-27. ⏳ steps/step_1/ENTITIES.md
-28. ⏳ steps/step_1/AGGREGATES.md
-29. ⏳ steps/step_1/REPOSITORIES.md
-30. ⏳ steps/step_1/DOMAIN_EVENTS.md
+**Electron (1 файл):**
+24. ⏳ electron/README.md
 
-**Дополнительные файлы (2):**
-31. ⏳ README.md (корневой)
-32. ⏳ docs/README.md
+**Steps (7 файлов):**
+25. ⏳ steps/step_0/README.md
+26. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
+27. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
+28. ⏳ steps/step_0/ESLINT_SETUP.md
+29. ⏳ steps/step_1/README.md
+30. ⏳ steps/step_1/DOMAIN_LAYER.md
+31. ⏳ steps/step_1/VALUE_OBJECTS.md
+
+**Корневые (2 файла):**
+32. ⏳ README.md (корневой)
 
 ---
 
@@ -94,7 +96,7 @@ _Нет_
 
 ---
 
-**Последнее обновление:** 2025-10-20 15:01
+**Последнее обновление:** 2025-10-20 15:38:01
 
 ## 📝 Примечания
 

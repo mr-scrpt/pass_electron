@@ -14,6 +14,8 @@
 
 **Electron - это лишь одна из упаковок того же приложения.**
 
+#### Packaging Layer Diagram [#diagram:architecture]
+
 ```
 ┌───────────────────────────────────────────────┐
 │         Packaging Layer (Interchangeable)     │
@@ -76,6 +78,8 @@ project/
 
 ### Main Process vs Renderer Process
 
+#### Main vs Renderer Process [#diagram:architecture]
+
 ```
 ┌─────────────────────────────────────────┐
 │         Main Process (Node.js)          │
@@ -109,6 +113,8 @@ project/
 ### `electron/config.ts` - Конфигурация
 
 **Цель**: Убрать все magic strings и числа из кода.
+
+#### Electron Config [#code]
 
 ```typescript
 /**
@@ -177,6 +183,8 @@ export function isDevelopment(): boolean {
 
 **Цель**: Type safety для Electron кода.
 
+#### Electron Types [#code]
+
 ```typescript
 /**
  * Electron Types
@@ -228,6 +236,8 @@ export interface AppState {
 ### `electron/main.ts` - Main Process
 
 **Цель**: Чистый код без magic strings, использующий config и types.
+
+#### Electron Main Process [#code]
 
 ```typescript
 /**
@@ -318,6 +328,8 @@ app.on('activate', () => {
 
 **Цель**: Безопасный мост между Main и Renderer процессами (если нужен IPC).
 
+#### Electron Preload Script [#code]
+
 ```typescript
 /**
  * Electron Preload Script
@@ -349,6 +361,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 ### Критически важные настройки:
 
+#### Security Settings [#code]
+
 ```typescript
 webPreferences: {
   nodeIntegration: false,      // ❌ НИКОГДА не включайте!
@@ -373,6 +387,8 @@ webPreferences: {
 
 ### Development режим:
 
+#### Development Mode [#code]
+
 ```typescript
 if (isDevelopment()) {
   // Загружаем с Remix dev сервера
@@ -389,6 +405,8 @@ if (isDevelopment()) {
 - ✅ Быстрая разработка
 
 ### Production режим:
+
+#### Production Mode [#code]
 
 ```typescript
 if (!isDevelopment()) {
@@ -408,6 +426,8 @@ if (!isDevelopment()) {
 
 ### Изменить размер окна:
 
+#### Window Size Config [#code]
+
 ```typescript
 // electron/config.ts
 WINDOW: {
@@ -420,6 +440,8 @@ WINDOW: {
 
 ### Изменить порт dev сервера:
 
+#### Dev Server Port
+
 ```typescript
 // electron/config.ts
 URLS: {
@@ -428,6 +450,8 @@ URLS: {
 ```
 
 ### Добавить иконку приложения:
+
+#### App Icon Config [#code]
 
 ```typescript
 // electron/config.ts
@@ -440,6 +464,8 @@ icon: path.join(__dirname, ElectronConfig.WINDOW.ICON_PATH)
 ```
 
 ### Добавить меню:
+
+#### App Menu [#code]
 
 ```typescript
 // electron/menu.ts (новый файл)

@@ -1,4 +1,4 @@
-# Tailwind CSS Setup `#tailwind` `#setup` `#styling` - Настройка стилей
+# Tailwind CSS Setup - Настройка стилей
 
 > **Тип**: Дополнительная библиотека (опционально)
 > 
@@ -124,7 +124,7 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
 
-#### Root компонент [#code]
+#### Root компонент [#code|#structure:]
 
 ```typescript
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"

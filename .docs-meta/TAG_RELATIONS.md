@@ -135,6 +135,7 @@ grep -r "#structure:path.*@/" docs/ steps/
 | `#command:name` | `#code` | Блоки команд |
 | `#alias:prefix` | `#structure:path`, `#code` | Импорты, примеры |
 | `#config` | `#structure:path` | Файлы конфигурации |
+| `#contract:name` | `#class:`, `#interface:` | Спецификации типов |
 
 ---
 

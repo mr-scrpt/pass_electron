@@ -165,6 +165,8 @@ export default function App() {
 
 **Файл:** `src/presentation/web/react/src/routes/_index.tsx`
 
+#### Тестовый компонент [#code]
+
 ```typescript
 export default function Index() {
   return (

@@ -1036,11 +1036,14 @@ export { ResourceListItem } from './ResourceListItem'
 >
 > **Подробнее**: [React Router v7 Type Safety](https://reactrouter.com/start/framework/type-safety)
 
+#### Route Implementation [#code|#structure:path]
+
 ```typescript
+// src/presentation/web/react/src/routes/_index.tsx
 import { useLoaderData } from 'react-router'
 import type { Route } from './+types/_index'  // ← Автогенерируемые типы React Router v7
 import { queries } from '@/composition'
-import { ResourceList } from '~/components/ResourceList'
+import { ResourceList } from '@/components/ResourceList'
 
 /**
  * ✅ СЕРВЕРНАЯ ФУНКЦИЯ (НОВЫЙ ПОДХОД - CQRS)

@@ -408,8 +408,12 @@ Infrastructure Layer реализует интерфейсы из Domain Layer.
 
 #### 2.1 Создать моковые данные
 
-**Файл: `src/infrastructure/mocks/resources.mock.ts`**  `#structure:`
+**Файл: `src/infrastructure/mocks/resources.mock.ts`**
+
+#### Mock Resources Data [#code|#structure:path]
+
 ```typescript
+// src/infrastructure/mocks/resources.mock.ts
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
 export const mockResources: ResourceListItemDTO[] = [
@@ -458,15 +462,23 @@ export const mockResources: ResourceListItemDTO[] = [
 
 #### 2.2 Создать Public API для mocks
 
-**Файл: `src/infrastructure/mocks/index.ts`**  `#structure:`
+**Файл: `src/infrastructure/mocks/index.ts`**
+
+#### Mocks Public API [#code|#structure:path]
+
 ```typescript
+// src/infrastructure/mocks/index.ts
 export { mockResources } from './resources.mock'
 ```
 
 #### 2.3 Реализовать Mock Repository
 
-**Файл: `src/infrastructure/repositories/MockResourceRepository.ts`**  `#structure:`
+**Файл: `src/infrastructure/repositories/MockResourceRepository.ts`**
+
+#### MockResourceRepository [#class:MockResourceRepository|#code|#structure:path]
+
 ```typescript
+// src/infrastructure/repositories/MockResourceRepository.ts
 import type { IResourceRepository } from '@/domain/repositories'
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 import type { ResourceId, Namespace } from '@/domain/resource'
@@ -510,8 +522,12 @@ export class MockResourceRepository implements IResourceRepository {
 
 #### 2.4 Создать Public API для repositories
 
-**Файл: `src/infrastructure/repositories/index.ts`**  `#structure:`
+**Файл: `src/infrastructure/repositories/index.ts`**
+
+#### Repositories Public API [#code|#structure:path]
+
 ```typescript
+// src/infrastructure/repositories/index.ts
 export { MockResourceRepository } from './MockResourceRepository'
 ```
 
@@ -523,8 +539,12 @@ Application Layer реализует CQRS паттерн для разделен
 
 #### 3.1 Создать Query Types константы
 
-**Файл: `src/application/queries/QueryTypes.ts`**  `#structure:`
+**Файл: `src/application/queries/QueryTypes.ts`**
+
+#### QueryTypes [#code|#structure:path]
+
 ```typescript
+// src/application/queries/QueryTypes.ts
 /**
  * Константы типов Query (нет magic strings!)
  */
@@ -538,15 +558,23 @@ export const QueryTypes = {
 
 #### 3.2 Создать интерфейсы Query и QueryHandler
 
-**Файл: `src/application/queries/IQuery.ts`**  `#structure:`
+**Файл: `src/application/queries/IQuery.ts`**
+
+#### IQuery [#interface:IQuery|#code|#structure:path]
+
 ```typescript
+// src/application/queries/IQuery.ts
 export interface IQuery {
   readonly type: string
 }
 ```
 
-**Файл: `src/application/queries/IQueryHandler.ts`**  `#structure:`
+**Файл: `src/application/queries/IQueryHandler.ts`**
+
+#### IQueryHandler [#interface:IQueryHandler|#code|#structure:path]
+
 ```typescript
+// src/application/queries/IQueryHandler.ts
 import type { IQuery } from './IQuery'
 
 export interface QueryResult<T = any> {
@@ -559,8 +587,12 @@ export interface IQueryHandler<Q extends IQuery = IQuery, R = any> {
 }
 ```
 
-**Файл: `src/application/queries/IQueryBus.ts`**  `#structure:`
+**Файл: `src/application/queries/IQueryBus.ts`**
+
+#### IQueryBus [#interface:IQueryBus|#code|#structure:path]
+
 ```typescript
+// src/application/queries/IQueryBus.ts
 import type { IQuery, IQueryHandler, QueryResult } from './'
 
 export interface IQueryBus {
@@ -571,8 +603,12 @@ export interface IQueryBus {
 
 #### 3.3 Создать Query класс
 
-**Файл: `src/application/queries/ListResourcesQuery.ts`**  `#structure:`
+**Файл: `src/application/queries/ListResourcesQuery.ts`**
+
+#### ListResourcesQuery [#class:ListResourcesQuery|#code|#structure:path]
+
 ```typescript
+// src/application/queries/ListResourcesQuery.ts
 import { QueryTypes } from './QueryTypes'
 import type { IQuery } from './IQuery'
 
@@ -588,8 +624,12 @@ export class ListResourcesQuery implements IQuery {
 
 #### 3.4 Создать Query Handler
 
-**Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**  `#structure:`
+**Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**
+
+#### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
+
 ```typescript
+// src/application/queries/handlers/ListResourcesQueryHandler.ts
 import type { IQueryHandler, QueryResult } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
 import type { IResourceRepository } from '@/domain/repositories'
@@ -632,8 +672,12 @@ export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQue
 
 #### 3.5 Создать Public API для queries
 
-**Файл: `src/application/queries/index.ts`**  `#structure:`
+**Файл: `src/application/queries/index.ts`**
+
+#### Queries Public API [#code|#structure:path]
+
 ```typescript
+// src/application/queries/index.ts
 export { QueryTypes } from './QueryTypes'
 export type { IQuery } from './IQuery'
 export type { IQueryHandler, QueryResult } from './IQueryHandler'
@@ -651,8 +695,12 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 
 #### 4.1 Создать Query Bus Implementation
 
-**Файл: `src/infrastructure/queries/InMemoryQueryBus.ts`**  `#structure:`
+**Файл: `src/infrastructure/queries/InMemoryQueryBus.ts`**
+
+#### InMemoryQueryBus [#class:InMemoryQueryBus|#code|#structure:path]
+
 ```typescript
+// src/infrastructure/queries/InMemoryQueryBus.ts
 import type { IQueryBus, IQuery, IQueryHandler, QueryResult } from '@/application/queries'
 
 /**
@@ -681,8 +729,12 @@ export class InMemoryQueryBus implements IQueryBus {
 }
 ```
 
-**Файл: `src/infrastructure/queries/index.ts`**  `#structure:`
+**Файл: `src/infrastructure/queries/index.ts`**
+
+#### Query Bus Public API [#code|#structure:path]
+
 ```typescript
+// src/infrastructure/queries/index.ts
 export { InMemoryQueryBus } from './InMemoryQueryBus'
 ```
 
@@ -694,8 +746,12 @@ Composition Root связывает все слои через декомпоз�
 
 #### 5.1 Создать ResourceModule
 
-**Файл: `src/composition/modules/ResourceModule.ts`**  `#structure:`
+**Файл: `src/composition/modules/ResourceModule.ts`**
+
+#### ResourceModule [#class:ResourceModule|#code|#structure:path]
+
 ```typescript
+// src/composition/modules/ResourceModule.ts
 import type { IResourceRepository } from '@/domain/repositories'
 import type { IQueryBus } from '@/application/queries'
 import { QueryTypes, ListResourcesQueryHandler } from '@/application/queries'
@@ -732,8 +788,12 @@ export class ResourceModule {
 
 #### 5.2 Создать ServiceContainer (упрощенная версия для Шага 1)
 
-**Файл: `src/composition/ServiceContainer.ts`**  `#structure:`
+**Файл: `src/composition/ServiceContainer.ts`**
+
+#### ServiceContainer [#class:ServiceContainer|#code|#structure:path]
+
 ```typescript
+// src/composition/ServiceContainer.ts
 import { InMemoryQueryBus } from '@/infrastructure/queries'
 import { ResourceModule } from './modules/ResourceModule'
 import type { IQueryBus } from '@/application/queries'
@@ -785,8 +845,12 @@ export class ServiceContainer {
 
 #### 5.3 Создать Query Facade
 
-**Файл: `src/composition/queries/ResourceQueries.ts`**  `#structure:`
+**Файл: `src/composition/queries/ResourceQueries.ts`**
+
+#### ResourceQueries Facade [#code|#structure:path]
+
 ```typescript
+// src/composition/queries/ResourceQueries.ts
 import { ListResourcesQuery } from '@/application/queries'
 import { ServiceContainer } from '../ServiceContainer'
 
@@ -818,8 +882,12 @@ export const resourceQueries = {
 }
 ```
 
-**Файл: `src/composition/queries/index.ts`**  `#structure:`
+**Файл: `src/composition/queries/index.ts`**
+
+#### Queries Facade Public API [#code|#structure:path]
+
 ```typescript
+// src/composition/queries/index.ts
 export { resourceQueries } from './ResourceQueries'
 
 // Единый объект для всех queries
@@ -830,8 +898,12 @@ export const queries = {
 
 #### 5.4 Создать Public API для Composition
 
-**Файл: `src/composition/index.ts`**  `#structure:`
+**Файл: `src/composition/index.ts`**
+
+#### Composition Public API [#code|#structure:path]
+
 ```typescript
+// src/composition/index.ts
 export { queries } from './queries'
 export { ServiceContainer } from './ServiceContainer'
 // В будущих шагах здесь появятся commands и другие exports
@@ -852,8 +924,12 @@ Presentation Layer отвечает за отображение данных п�
 
 #### 6.1 Создать компонент ResourceListItem
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx`**  `#structure:`
+**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx`**
+
+#### ResourceListItem Component [#code|#structure:path]
+
 ```typescript
+// src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 
 interface Props {
@@ -896,8 +972,12 @@ export function ResourceListItem({ resource }: Props) {
 
 #### 6.2 Создать компонент ResourceList
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceList.tsx`**  `#structure:`
+**Файл: `src/presentation/web/react/src/components/ResourceList/ResourceList.tsx`**
+
+#### ResourceList Component [#code|#structure:path]
+
 ```typescript
+// src/presentation/web/react/src/components/ResourceList/ResourceList.tsx
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 import { ResourceListItem } from './ResourceListItem'
 
@@ -930,15 +1010,21 @@ export function ResourceList({ resources }: Props) {
 
 #### 6.3 Создать Public API для компонентов
 
-**Файл: `src/presentation/web/react/src/components/ResourceList/index.ts`**  `#structure:`
+**Файл: `src/presentation/web/react/src/components/ResourceList/index.ts`**
+
+#### ResourceList Public API [#code|#structure:path]
+
 ```typescript
+// src/presentation/web/react/src/components/ResourceList/index.ts
 export { ResourceList } from './ResourceList'
 export { ResourceListItem } from './ResourceListItem'
 ```
 
 #### 6.4 Создать React Router Route
 
-**Файл: `src/presentation/web/react/src/routes/_index.tsx`**  `#structure:`
+**Файл: `src/presentation/web/react/src/routes/_index.tsx`**
+
+#### Index Route [#code|#structure:path]
 
 > **💡 React Router v7 Type Safety**: Импорт `import type { Route } from './+types/_index'` - это специальная фича React Router v7 для типобезопасности.
 >

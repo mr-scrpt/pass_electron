@@ -500,6 +500,8 @@ app.whenReady().then(() => {
 
 ### ❌ НЕПРАВИЛЬНО: Приложение знает об Electron
 
+#### Wrong Approach [#code]
+
 ```typescript
 // app/some-component.tsx
 import { ipcRenderer } from 'electron'  // ❌ НЕТ!
@@ -517,6 +519,8 @@ function Component() {
 
 **Шаг 1: Порт (интерфейс) в Application Layer**
 
+#### Port Interface [#code]
+
 ```typescript
 // app/application/ports/IClipboardService.ts
 export interface IClipboardService {
@@ -526,6 +530,8 @@ export interface IClipboardService {
 ```
 
 **Шаг 2: Адаптеры в Infrastructure Layer**
+
+#### Adapters [#code]
 
 ```typescript
 // app/infrastructure/clipboard/WebClipboardService.ts (Web версия)
@@ -553,9 +559,11 @@ export class ElectronClipboardService implements IClipboardService {
 
 **Шаг 3: Фабрика адаптеров в Infrastructure (изолирует знание о платформах)**
 
+#### Adapter Factory [#code]
+
 ```typescript
 // app/infrastructure/clipboard/ClipboardServiceFactory.ts
-import type { IClipboardService } from '~/application/ports'
+import type { IClipboardService } from '@/application/ports'
 import { WebClipboardService } from './WebClipboardService'
 import { ElectronClipboardService } from './ElectronClipboardService'
 
@@ -581,9 +589,11 @@ export class ClipboardServiceFactory {
 
 **Шаг 4: DI Module принимает готовую реализацию (не знает о платформах)**
 
+#### DI Module [#code]
+
 ```typescript
 // app/composition/modules/SystemModule.ts
-import type { IClipboardService } from '~/application/ports'
+import type { IClipboardService } from '@/application/ports'
 
 export class SystemModule {
   private static clipboardService: IClipboardService | null = null
@@ -613,10 +623,12 @@ export class SystemModule {
 
 **Шаг 5: ServiceContainer инициализируется готовыми сервисами (не знает о платформах)**
 
+#### Service Container [#code]
+
 ```typescript
 // app/composition/ServiceContainer.ts
 import { SystemModule } from './modules/SystemModule'
-import type { IClipboardService } from '~/application/ports'
+import type { IClipboardService } from '@/application/ports'
 
 /**
  * ServiceContainer принимает готовые реализации
@@ -656,12 +668,14 @@ export class ServiceContainer {
 
 **Шаг 6: Entry Point создает адаптеры через Фабрику (знает о платформе)**
 
+#### Entry Points [#code]
+
 ```typescript
 // app/entry.client.tsx (для Web)
 import { hydrateRoot } from 'react-dom/client'
 import { HydratedRouter } from 'react-router/dom'
-import { ServiceContainer } from '~/composition'
-import { ClipboardServiceFactory } from '~/infrastructure/clipboard'
+import { ServiceContainer } from '@/composition'
+import { ClipboardServiceFactory } from '@/infrastructure/clipboard'
 
 // ✅ Entry point знает что это Web
 // ✅ Создает Web адаптер через фабрику
@@ -722,6 +736,8 @@ pnpm add -D electron-builder
 ```
 
 ### Конфигурация в `package.json`:
+
+#### Electron Builder Config [#config]
 
 ```json
 {

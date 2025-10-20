@@ -1,4 +1,4 @@
-# TypeScript & Vite Configuration `#typescript` `#vite` `#configuration`
+# TypeScript & Vite Configuration
 
 > **Тип**: Обязательная настройка
 > 
@@ -10,10 +10,12 @@
 
 Чтобы presentation мог импортировать из DDD слоев:
 
+#### Import Example [#code|#structure:path]
+
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx  #structure:
-import { queries } from '@/composition'           // ← Единый алиас!  #structure:
-import { Resource } from '@/domain'               // ← Через Public API!  #structure:
+// src/presentation/web/react/src/routes/_index.tsx
+import { queries } from '@/composition'           // ← Единый алиас!
+import { Resource } from '@/domain'               // ← Через Public API!
 ```
 
 **Vite должен знать** где искать эти файлы.
@@ -23,6 +25,8 @@ import { Resource } from '@/domain'               // ← Через Public API! 
 ## 1️⃣ TypeScript Configuration (Root)
 
 **Файл: `tsconfig.json`** (в корне проекта)
+
+#### Root tsconfig.json [#config]
 
 ```json
 {
@@ -79,6 +83,9 @@ import { Resource } from '@/domain'               // ← Через Public API! 
 > **📦 Файл уже создан**: React Router CLI сгенерировал `src/presentation/web/react/vite.config.ts`
 >
 > **Текущее состояние** (сгенерированный файл):
+>
+> #### Generated vite.config.ts [#code]
+>
 > ```typescript
 > import { reactRouter } from "@react-router/dev/vite";
 > import tailwindcss from "@tailwindcss/vite";
@@ -103,8 +110,10 @@ import { Resource } from '@/domain'               // ← Через Public API! 
 
 Если нужны дополнительные настройки (порт, CSS, etc.), добавьте их в `defineConfig`:
 
+#### Custom vite.config.ts [#code|#structure:path]
+
 ```typescript
-// src/presentation/web/react/vite.config.ts  #structure:
+// src/presentation/web/react/vite.config.ts
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
@@ -135,19 +144,21 @@ export default defineConfig({
 
 ### В presentation/web/react/src/routes/_index.tsx
 
+#### Route with Imports [#code|#structure:path]
+
 ```typescript
-// src/presentation/web/react/src/routes/_index.tsx  #structure:
+// src/presentation/web/react/src/routes/_index.tsx
 import type { Route } from './+types/_index'
 
 // ✅ Типы из Domain через Public API
-import { Resource, ResourceId } from '@/domain'  #structure:
+import { Resource, ResourceId } from '@/domain'
 
 // ✅ Facades из Composition
-import { queries } from '@/composition'  #structure:
+import { queries } from '@/composition'
 
 // ✅ Локальные компоненты через ~ (React Router alias)
-import { ResourceList } from '~/components/ResourceList'  #structure:
-import { useModal } from '~/hooks/useModal'  #structure:
+import { ResourceList } from '~/components/ResourceList'
+import { useModal } from '~/hooks/useModal'
 
 export async function loader({ request }: Route.LoaderArgs) {
   // vite-tsconfig-paths резолвит @/composition → src/composition/index.ts
@@ -162,6 +173,8 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 ```
 
 ### В src/domain/resource/Resource.ts
+
+#### Domain Imports [#code]
 
 ```typescript
 // ✅ Domain импортирует ТОЛЬКО других Domain объектов
@@ -178,6 +191,8 @@ import { DomainError } from '@/domain/shared/errors'
 ```
 
 ### В src/composition/queries/ResourceQueries.ts
+
+#### Composition Imports [#code]
 
 ```typescript
 // ✅ Типы из Domain через Public API
@@ -206,6 +221,8 @@ export const queries = {
 
 ### TypeScript
 
+#### Check TypeScript [#command]
+
 ```bash
 # Из корня проекта
 pnpm typecheck
@@ -214,6 +231,8 @@ pnpm typecheck
 ```
 
 ### Vite
+
+#### Run Dev Server [#command]
 
 ```bash
 # Запуск dev server
@@ -225,6 +244,8 @@ pnpm dev:web
 ### Тест импортов
 
 Создайте тестовый файл:
+
+#### Test Imports [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/test-imports.ts
@@ -253,11 +274,17 @@ console.log('✅ Все импорты работают!')
 
 **Решение**:
 1. Проверить что `vite-tsconfig-paths` установлен:
+
+#### Install Plugin [#command]
+
    ```bash
    pnpm add -D vite-tsconfig-paths
    ```
 
 2. Проверить что плагин добавлен в `vite.config.ts`:
+
+#### Check Plugin [#code]
+
    ```typescript
    import tsconfigPaths from "vite-tsconfig-paths";
    
@@ -267,6 +294,9 @@ console.log('✅ Все импорты работают!')
    ```
 
 3. Перезапустить dev server:
+
+#### Restart Server [#command]
+
    ```bash
    pnpm dev:web
    ```
@@ -278,6 +308,9 @@ console.log('✅ Все импорты работают!')
 **Решение**: React Router CLI автоматически настраивает `appDirectory`. Если проблема осталась:
 
 1. Проверить структуру:
+
+#### Check Structure [#structure:tree]
+
    ```
    src/presentation/web/react/
    ├── vite.config.ts
@@ -293,6 +326,9 @@ console.log('✅ Все импорты работают!')
 **Проблема**: `tsconfig.json` paths не настроены.
 
 **Решение**: Проверить что в `tsconfig.json` есть `paths`:
+
+#### Check Paths [#config]
+
 ```json
 {
   "compilerOptions": {

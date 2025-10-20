@@ -875,6 +875,8 @@ class ResourceName {
 
 ### 2. Ошибки как часть Ubiquitous Language
 
+#### Понятные имена [#code]
+
 ```typescript
 // ✅ ХОРОШО: понятные имена
 throw new DuplicateError('Resource', 'name', name)
@@ -887,6 +889,8 @@ throw new Error('cannot delete')
 
 ### 3. Преобразование на границах слоев
 
+#### Преобразование ошибок [#code]
+
 ```typescript
 // ✅ ХОРОШО: Infrastructure ошибка → Domain ошибка
 catch (error) {
@@ -897,6 +901,8 @@ catch (error) {
 ```
 
 ### 4. Перехват в Application Layer
+
+#### CommandResult [#code]
 
 ```typescript
 // ✅ ХОРОШО: Domain ошибка → CommandResult
@@ -916,6 +922,8 @@ try {
 ## ❌ DON'T: Анти-паттерны
 
 ### 1. Infrastructure ошибки в Domain
+
+#### Антипаттерн [#code]
 
 ```typescript
 // ❌ ПЛОХО: NetworkError в Domain Layer
@@ -944,6 +952,8 @@ class ResourceName {
 ```
 
 ### 2. Общие Error вместо специализированных
+
+#### Антипаттерн [#code]
 
 ```typescript
 // ❌ ПЛОХО: общая ошибка

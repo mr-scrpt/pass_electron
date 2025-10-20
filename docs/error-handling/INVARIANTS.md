@@ -10,6 +10,8 @@
 
 Value Objects **инкапсулируют инварианты** при создании:
 
+#### Антипаттерн [#code]
+
 ```typescript
 // ❌ ПЛОХО: валидация размазана по коду
 if (name.length < 1 || name.length > 100) {
@@ -17,7 +19,7 @@ if (name.length < 1 || name.length > 100) {
 }
 
 // ✅ ХОРОШО: инвариант в Value Object
-class ResourceName {  // #class:ResourceName
+class ResourceName {
   private constructor(private readonly _value: string) {}
   
   static create(value: string): ResourceName {
@@ -34,8 +36,10 @@ class ResourceName {  // #class:ResourceName
 
 Aggregates **защищают инварианты** между своими entities:
 
+#### Resource Aggregate [#class:Resource|#code]
+
 ```typescript
-class Resource {  // #class:Resource
+class Resource {
   // Инвариант: ресурс не может иметь дубликаты полей
   addCustomField(field: CustomField): void {
     if (this._customFields.some(f => f.label === field.label)) {
@@ -79,12 +83,15 @@ src/domain/                      #structure:
 
 ### Шаг 1: Domain Error
 
-**Файл: `src/domain/shared/errors/DomainError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/DomainError.ts`**
+
+#### DomainError [#class:DomainError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/DomainError.ts
 /**
  * Базовая ошибка домена
- */ // #class:DomainError
+ */
 export abstract class DomainError extends Error {
   abstract readonly code: string
   
@@ -97,9 +104,12 @@ export abstract class DomainError extends Error {
 }
 ```
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+
+#### InvariantViolationError [#class:InvariantViolationError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/InvariantViolationError.ts
 import { DomainError } from './DomainError'
 
 /**
@@ -118,9 +128,12 @@ export class InvariantViolationError extends DomainError {
 }
 ```
 
-**Файл: `src/domain/shared/errors/index.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/index.ts`**
+
+#### Errors index.ts [#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/index.ts
 export { DomainError } from './DomainError'
 export { InvariantViolationError } from './InvariantViolationError'
 ```
@@ -129,10 +142,13 @@ export { InvariantViolationError } from './InvariantViolationError'
 
 ### Шаг 2: Переиспользуемые инварианты
 
-**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**  `#structure:
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+
+#### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
 
 ```typescript
-import { InvariantViolationError } from '../errors'  #structure:
+// src/domain/shared/invariants/UuidInvariant.ts
+import { InvariantViolationError } from '../errors'
 
 /**
  * Инварианты для UUID

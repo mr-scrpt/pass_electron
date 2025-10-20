@@ -16,7 +16,7 @@
 
 ---
 
-## Прогресс: 16/33 (48%)
+## Прогресс: 16/32 (50%)
 
 ### ✅ Обработано (16 файлов)
 
@@ -41,34 +41,31 @@
 
 _Нет_
 
-### ⏳ Ожидают обработки (17 файлов)
-
-**Приоритет 4 - UI (1 файл):**
-17. ⏳ ui/TAILWIND_SETUP.md
+### ⏳ Ожидают обработки (16 файлов)
 
 **Приоритет 5 - Contracts (1 файл):**
-18. ⏳ contracts/README.md
+17. ⏳ contracts/README.md
 
 **Приоритет 6 - Electron (1 файл):**
-19. ⏳ electron/README.md
+18. ⏳ electron/README.md
 
-**Приоритет 7 - Steps (12 файлов):**
-20. ⏳ steps/step_0/README.md
-21. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
-22. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
-23. ⏳ steps/step_0/ESLINT_SETUP.md
-24. ⏳ steps/step_0/TAILWIND_SETUP.md
-25. ⏳ steps/step_1/README.md
-26. ⏳ steps/step_1/DOMAIN_LAYER.md
-27. ⏳ steps/step_1/VALUE_OBJECTS.md
-28. ⏳ steps/step_1/ENTITIES.md
-29. ⏳ steps/step_1/AGGREGATES.md
-30. ⏳ steps/step_1/REPOSITORIES.md
-31. ⏳ steps/step_1/DOMAIN_EVENTS.md
+**Приоритет 7 - Steps (11 файлов):**
+19. ⏳ steps/step_0/README.md
+20. ⏳ steps/step_0/PACKAGE_JSON_SETUP.md
+21. ⏳ steps/step_0/TYPESCRIPT_VITE_CONFIG.md
+22. ⏳ steps/step_0/ESLINT_SETUP.md
+23. ⏳ steps/step_1/README.md
+24. ⏳ steps/step_1/DOMAIN_LAYER.md
+25. ⏳ steps/step_1/VALUE_OBJECTS.md
+26. ⏳ steps/step_1/ENTITIES.md
+27. ⏳ steps/step_1/AGGREGATES.md
+28. ⏳ steps/step_1/REPOSITORIES.md
+29. ⏳ steps/step_1/DOMAIN_EVENTS.md
 
 **Дополнительные файлы (2):**
-32. ⏳ README.md (корневой)
-33. ⏳ docs/README.md
+30. ⏳ README.md (корневой)
+31. ⏳ docs/README.md
+32. ❌ ~~ui/TAILWIND_SETUP.md~~ - **файл не существует**
 
 ---
 
@@ -94,11 +91,11 @@ _Нет_
 
 ## Следующий файл
 
-**ui/TAILWIND_SETUP.md** - файл 17/33
+**contracts/README.md** - файл 17/32
 
 ---
 
-**Последнее обновление:** 2025-10-20 14:35
+**Последнее обновление:** 2025-10-20 14:50
 
 ## 📝 Примечания
 

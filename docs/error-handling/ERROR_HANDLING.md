@@ -146,17 +146,19 @@ export class InvariantViolationError extends DomainError {
 
 ```typescript
 // В Value Object
+import { Result, ok, err } from 'neverthrow'
+
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): ResourceName {
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value || value.length < 1) {
-      throw new InvariantViolationError(
+      return err(new InvariantViolationError(
         'ResourceName',
         'name cannot be empty'
-      )
+      ))
     }
-    return new ResourceName(value)
+    return ok(new ResourceName(value))
   }
   
   getValue(): string {
@@ -197,15 +199,17 @@ export class NotFoundError extends DomainError {
 
 ```typescript
 // В Repository
+import { Result, ok, err } from 'neverthrow'
+
 class MockResourceRepository implements IResourceRepository {
-  async findById(id: ResourceId): Promise<Resource> {
+  async findById(id: ResourceId): Promise<Result<Resource, NotFoundError>> {
     const resource = this.data.find(r => r.id === id.getValue())
     
     if (!resource) {
-      throw new NotFoundError('Resource', id.getValue())
+      return err(new NotFoundError('Resource', id.getValue()))
     }
     
-    return resource
+    return ok(resource)
   }
 }
 ```
@@ -243,21 +247,24 @@ export class DuplicateError extends DomainError {
 
 ```typescript
 // В Aggregate
+import { Result, ok, err } from 'neverthrow'
+
 class Resource {
-  addCustomField(field: CustomField): void {
+  addCustomField(field: CustomField): Result<void, DuplicateError> {
     const exists = this._customFields.some(
       f => f.label.equals(field.label)
     )
     
     if (exists) {
-      throw new DuplicateError(
+      return err(new DuplicateError(
         'CustomField',
         'label',
         field.label.getValue()
-      )
+      ))
     }
     
     this._customFields.push(field)
+    return ok(undefined)
   }
 }
 ```
@@ -295,17 +302,19 @@ export class InvalidOperationError extends DomainError {
 
 ```typescript
 // В Aggregate
+import { Result, ok, err } from 'neverthrow'
+
 class Resource {
-  delete(): void {
+  delete(): Result<void, InvalidOperationError> {
     if (this._isLocked) {
-      throw new InvalidOperationError(
+      return err(new InvalidOperationError(
         'Resource',
         'delete',
         'resource is locked'
-      )
+      ))
     }
-    
-    this.addDomainEvent(new ResourceDeleted(this._id))
+    // delete logic
+    return ok(undefined)
   }
 }
 ```

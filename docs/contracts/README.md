@@ -91,6 +91,8 @@
 
 ### Основные Aggregates
 
+#### Структура Aggregates [#code]
+
 ```typescript
 Resource  // #class:Resource
 ├── id: ResourceId  // #class:ResourceId
@@ -118,6 +120,8 @@ Notification  // #class:Notification
 
 ### Основные системы
 
+#### Системные сервисы [#code]
+
 ```typescript
 ModalManager      // Управление режимами #class:ModalManager
 KeymapRegistry    // Реестр кеймапов #class:KeymapRegistry
@@ -129,6 +133,8 @@ EventBus          // Шина событий #class:EventBus
 
 ### Repository Interfaces
 
+#### Repository интерфейсы [#code]
+
 ```typescript
 IResourceRepository  // #interface:IResourceRepository
 INamespaceRepository  // #interface:INamespaceRepository
@@ -136,6 +142,8 @@ IPasswordGeneratorService  // #interface:IPasswordGeneratorService
 ```
 
 ### Domain Events
+
+#### События системы [#code]
 
 ```typescript
 // Resource
@@ -172,6 +180,9 @@ NotificationDismissed
 ### Naming Conventions
 
 **Interfaces:**
+
+#### Интерфейсы [#code]
+
 ```typescript
 interface I[Name]           // IResourceRepository, IModalManager
 ```
@@ -220,6 +231,8 @@ extends DomainError
 ## Type Safety
 
 ### Discriminated Unions
+
+#### Discriminated Unions [#code]
 
 ```typescript
 type AppMode = 'navigation' | 'editing'

@@ -273,8 +273,12 @@ export class Namespace {
 
 #### 1.4 Создать Value Object: ResourceName
 
-**Файл: `src/domain/resource/value-objects/ResourceName.ts`**  `#structure:`
+**Файл: `src/domain/resource/value-objects/ResourceName.ts`**
+
+#### ResourceName [#class:ResourceName|#code|#structure:path]
+
 ```typescript
+// src/domain/resource/value-objects/ResourceName.ts
 export class ResourceName {
   private constructor(private readonly _value: string) {}
   
@@ -299,8 +303,12 @@ export class ResourceName {
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer) — Зачем нужны DTO
 
-**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**  `#structure:`
+**Файл: `src/application/queries/dtos/ResourceListItemDTO.ts`**
+
+#### ResourceListItemDTO [#interface:ResourceListItemDTO|#code|#structure:path]
+
 ```typescript
+// src/application/queries/dtos/ResourceListItemDTO.ts
 /**
  * DTO для списка ресурсов
  * Простые примитивы для UI (не Value Objects!)
@@ -325,16 +333,24 @@ export interface ResourceListItemDTO {
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
 
-**Файл: `src/domain/resource/value-objects/index.ts`**  `#structure:`
+**Файл: `src/domain/resource/value-objects/index.ts`**
+
+#### Value Objects Public API [#code|#structure:path]
+
 ```typescript
+// src/domain/resource/value-objects/index.ts
 // Public API для Value Objects
 export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
 ```
 
-**Файл: `src/domain/resource/index.ts`**  `#structure:`
+**Файл: `src/domain/resource/index.ts`**
+
+#### Resource Module Public API [#code|#structure:path]
+
 ```typescript
+// src/domain/resource/index.ts
 // Public API модуля resource
 export * from './value-objects'
 
@@ -347,8 +363,12 @@ export * from './value-objects'
 
 #### 1.7 Создать интерфейс репозитория
 
-**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**  `#structure:`
+**Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
+
+#### IResourceRepository [#interface:IResourceRepository|#code|#structure:path]
+
 ```typescript
+// src/domain/resource/repositories/IResourceRepository.ts
 import type { ResourceId } from '../value-objects/ResourceId'
 import type { Namespace } from '../value-objects/Namespace'
 
@@ -371,8 +391,12 @@ export interface IResourceRepository {
 
 #### 1.7 Создать Public API для repositories
 
-**Файл: `src/domain/repositories/index.ts`**  `#structure:`
+**Файл: `src/domain/repositories/index.ts`**
+
+#### Repositories Public API [#code|#structure:path]
+
 ```typescript
+// src/domain/repositories/index.ts
 export type { IResourceRepository } from './IResourceRepository'
 ```
 

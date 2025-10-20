@@ -94,25 +94,25 @@
 #### Контракт Aggregates [#contract:aggregates]
 
 ```typescript
-Resource  // #class:Resource
-├── id: ResourceId  // #class:ResourceId
-├── namespace: Namespace  // #class:Namespace
-├── name: ResourceName  // #class:ResourceName
-├── secret: SecretField  // #class:SecretField
-└── customFields: CustomField[]  // #class:CustomField
+Resource
+├── id: ResourceId
+├── namespace: Namespace
+├── name: ResourceName
+├── secret: SecretField
+└── customFields: CustomField[]
 
-ModeContext  // #class:ModeContext
+ModeContext
 ├── mode: AppMode
 ├── route: RouteInfo
 └── state: ModeState | null
 
-Keymap  // #class:Keymap
+Keymap
 ├── id: KeymapId
 ├── binding: KeyBinding
 ├── activationRules: ActivationRules
 └── action: KeymapAction
 
-Notification  // #class:Notification
+Notification
 ├── id: NotificationId
 ├── type: NotificationType
 └── message: string
@@ -123,12 +123,12 @@ Notification  // #class:Notification
 #### Контракты систем [#contract:systems]
 
 ```typescript
-ModalManager      // Управление режимами #class:ModalManager
-KeymapRegistry    // Реестр кеймапов #class:KeymapRegistry
-KeymapExecutor    // Выполнение кеймапов #class:KeymapExecutor
-FocusManager      // Управление фокусом #class:FocusManager
-NotificationManager // Уведомления #class:NotificationManager
-EventBus          // Шина событий #class:EventBus
+ModalManager      // Управление режимами
+KeymapRegistry    // Реестр кеймапов
+KeymapExecutor    // Выполнение кеймапов
+FocusManager      // Управление фокусом
+NotificationManager // Уведомления
+EventBus          // Шина событий
 ```
 
 ### Repository Interfaces
@@ -136,9 +136,9 @@ EventBus          // Шина событий #class:EventBus
 #### Контракты Repository [#contract:repositories]
 
 ```typescript
-IResourceRepository  // #interface:IResourceRepository
-INamespaceRepository  // #interface:INamespaceRepository
-IPasswordGeneratorService  // #interface:IPasswordGeneratorService
+IResourceRepository
+INamespaceRepository
+IPasswordGeneratorService
 ```
 
 ### Domain Events

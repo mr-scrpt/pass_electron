@@ -58,6 +58,8 @@ class Resource {
 
 Для **общих правил валидации** создаем **Shared Kernel**:
 
+#### Структура Shared Kernel [#structure:tree]
+
 ```
 src/domain/                      #structure:
 ├── shared/                      # Shared Kernel #structure:

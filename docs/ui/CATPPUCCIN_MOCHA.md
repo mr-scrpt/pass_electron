@@ -230,6 +230,8 @@ export default {
 
 Рекомендуется создать семантические алиасы для цветов в `tailwind.config.js`:
 
+#### Семантические алиасы [#config]
+
 ```javascript
 colors: {
   // Semantic colors (на основе Catppuccin Mocha)
@@ -266,6 +268,8 @@ colors: {
 ## 🌙 Dark Mode (опционально)
 
 Если в будущем потребуется light theme (Latte):
+
+#### Dark mode конфигурация [#config]
 
 ```javascript
 // tailwind.config.js
@@ -305,6 +309,8 @@ export default {
 ## ⚡ Quick Start
 
 Для быстрого старта обновите `app/styles/tailwind.css`:
+
+#### Tailwind CSS с кастомными классами [#code]
 
 ```css
 @tailwind base;

@@ -181,16 +181,16 @@ ServiceContainer.initialize({ myService })
 
 #### Clipboard Service - полная реализация
 
-##### ClipboardService [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code]
+##### ClipboardService [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code|#structure:path]
 
 ```typescript
-// Port
+// app/application/ports/IClipboardService.ts
 export interface IClipboardService {
   write(text: string): Promise<void>
   read(): Promise<string>
 }
 
-// Web Adapter
+// app/infrastructure/clipboard/WebClipboardService.ts
 export class WebClipboardService implements IClipboardService {
   async write(text: string) {
     await navigator.clipboard.writeText(text)
@@ -200,7 +200,7 @@ export class WebClipboardService implements IClipboardService {
   }
 }
 
-// Electron Adapter
+// app/infrastructure/clipboard/ElectronClipboardService.ts
 export class ElectronClipboardService implements IClipboardService {
   async write(text: string) {
     await window.electronAPI.writeClipboard(text)
@@ -210,7 +210,7 @@ export class ElectronClipboardService implements IClipboardService {
   }
 }
 
-// Factory
+// app/infrastructure/clipboard/ClipboardServiceFactory.ts
 export class ClipboardServiceFactory {
   static createForWeb(): IClipboardService {
     return new WebClipboardService()
@@ -235,16 +235,16 @@ export class ClipboardServiceFactory {
 
 #### Request Parser - полная реализация
 
-##### RequestParser [#interface:IRequestParser|#class:WebRequestParser|#class:CLIRequestParser|#class:RequestParserFactory|#code]
+##### RequestParser [#interface:IRequestParser|#class:WebRequestParser|#class:CLIRequestParser|#class:RequestParserFactory|#code|#structure:path]
 
 ```typescript
-// Port
+// app/application/ports/IRequestParser.ts
 export interface IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams
   parseGetResourceByIdParams(input: unknown): GetResourceByIdParams
 }
 
-// Web Adapter (Remix Request)
+// app/infrastructure/request-parsers/RemixRequestParser.ts
 export class RemixRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const request = input as Request
@@ -256,7 +256,7 @@ export class RemixRequestParser implements IRequestParser {
   }
 }
 
-// CLI Adapter (Commander options)
+// app/infrastructure/request-parsers/CLIRequestParser.ts
 export class CLIRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const options = input as Record<string, any>
@@ -267,7 +267,7 @@ export class CLIRequestParser implements IRequestParser {
   }
 }
 
-// Desktop Adapter (IPC Message)
+// app/infrastructure/request-parsers/DesktopRequestParser.ts
 export class DesktopRequestParser implements IRequestParser {
   parseListResourcesParams(input: unknown): ListResourcesParams {
     const message = input as IPCMessage
@@ -278,7 +278,7 @@ export class DesktopRequestParser implements IRequestParser {
   }
 }
 
-// Factory
+// app/infrastructure/request-parsers/RequestParserFactory.ts
 export class RequestParserFactory {
   static createForWeb(): IRequestParser {
     return new RemixRequestParser()
@@ -312,10 +312,10 @@ export const resourceQueries = {
 
 #### Notification Service - полная реализация
 
-##### NotificationService [#interface:INotificationService|#class:BrowserNotificationService|#class:ElectronNotificationService|#class:ConsoleNotificationService|#class:NotificationServiceFactory|#code]
+##### NotificationService [#interface:INotificationService|#class:BrowserNotificationService|#class:ElectronNotificationService|#class:ConsoleNotificationService|#class:NotificationServiceFactory|#code|#structure:path]
 
 ```typescript
-// Port
+// app/application/ports/INotificationService.ts
 export interface INotificationService {
   show(notification: NotificationMessage): Promise<void>
   dismiss(id: string): Promise<void>
@@ -329,7 +329,7 @@ export interface NotificationMessage {
   duration?: number
 }
 
-// Web Adapter
+// app/infrastructure/notification/WebNotificationService.ts
 export class WebNotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     if (Notification.permission !== 'granted') {
@@ -348,7 +348,7 @@ export class WebNotificationService implements INotificationService {
   }
 }
 
-// Electron Adapter
+// app/infrastructure/notification/ElectronNotificationService.ts
 export class ElectronNotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     await window.electronAPI.showNotification({
@@ -361,7 +361,7 @@ export class ElectronNotificationService implements INotificationService {
   }
 }
 
-// CLI Adapter
+// app/infrastructure/notification/CLINotificationService.ts
 export class CLINotificationService implements INotificationService {
   async show(notification: NotificationMessage) {
     const color = notification.type === 'error' ? chalk.red : chalk.green
@@ -372,7 +372,7 @@ export class CLINotificationService implements INotificationService {
   }
 }
 
-// Factory
+// app/infrastructure/notification/NotificationServiceFactory.ts
 export class NotificationServiceFactory {
   static createForWeb(): INotificationService {
     return new WebNotificationService()

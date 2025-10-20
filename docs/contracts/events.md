@@ -4,11 +4,13 @@
 
 ## Базовый интерфейс
 
+#### Domain Event [#interface:DomainEvent|#code]
+
 ```typescript
 /**
  * Базовый интерфейс для всех доменных событий
  */
-interface DomainEvent {  // #interface:DomainEvent
+interface DomainEvent {
   readonly eventType: string
   readonly eventId: string
   readonly occurredAt: DateTime
@@ -22,11 +24,13 @@ interface DomainEvent {  // #interface:DomainEvent
 
 ### ResourceCreated
 
+#### Resource Created Event [#interface:ResourceCreated|#code]
+
 ```typescript
 /**
  * Событие создания ресурса
  */
-interface ResourceCreated extends DomainEvent {  // #interface:ResourceCreated
+interface ResourceCreated extends DomainEvent {
   readonly eventType: 'ResourceCreated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -40,11 +44,13 @@ interface ResourceCreated extends DomainEvent {  // #interface:ResourceCreated
 
 ### ResourceUpdated
 
+#### Resource Updated Event [#interface:ResourceUpdated|#code]
+
 ```typescript
 /**
  * Событие обновления ресурса
  */
-interface ResourceUpdated extends DomainEvent {  // #interface:ResourceUpdated
+interface ResourceUpdated extends DomainEvent {
   readonly eventType: 'ResourceUpdated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -58,11 +64,13 @@ interface ResourceUpdated extends DomainEvent {  // #interface:ResourceUpdated
 
 ### ResourceDeleted
 
+#### Resource Deleted Event [#interface:ResourceDeleted|#code]
+
 ```typescript
 /**
  * Событие удаления ресурса
  */
-interface ResourceDeleted extends DomainEvent {  // #interface:ResourceDeleted
+interface ResourceDeleted extends DomainEvent {
   readonly eventType: 'ResourceDeleted'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -74,11 +82,13 @@ interface ResourceDeleted extends DomainEvent {  // #interface:ResourceDeleted
 
 ### CustomFieldAdded
 
+#### Custom Field Added Event [#interface:CustomFieldAdded|#code]
+
 ```typescript
 /**
  * Событие добавления кастомного поля
  */
-interface CustomFieldAdded extends DomainEvent {  // #interface:CustomFieldAdded
+interface CustomFieldAdded extends DomainEvent {
   readonly eventType: 'CustomFieldAdded'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -90,11 +100,13 @@ interface CustomFieldAdded extends DomainEvent {  // #interface:CustomFieldAdded
 
 ### CustomFieldUpdated
 
+#### Custom Field Updated Event [#interface:CustomFieldUpdated|#code]
+
 ```typescript
 /**
  * Событие обновления кастомного поля
  */
-interface CustomFieldUpdated extends DomainEvent {  // #interface:CustomFieldUpdated
+interface CustomFieldUpdated extends DomainEvent {
   readonly eventType: 'CustomFieldUpdated'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -109,11 +121,13 @@ interface CustomFieldUpdated extends DomainEvent {  // #interface:CustomFieldUpd
 
 ### CustomFieldRemoved
 
+#### Custom Field Removed Event [#interface:CustomFieldRemoved|#code]
+
 ```typescript
 /**
  * Событие удаления кастомного поля
  */
-interface CustomFieldRemoved extends DomainEvent {  // #interface:CustomFieldRemoved
+interface CustomFieldRemoved extends DomainEvent {
   readonly eventType: 'CustomFieldRemoved'
   readonly aggregateId: ResourceId
   readonly data: {
@@ -125,11 +139,13 @@ interface CustomFieldRemoved extends DomainEvent {  // #interface:CustomFieldRem
 
 ### SecretFieldUpdated
 
+#### Secret Field Updated Event [#interface:SecretFieldUpdated|#code]
+
 ```typescript
 /**
  * Событие обновления секретного поля
  */
-interface SecretFieldUpdated extends DomainEvent {  // #interface:SecretFieldUpdated
+interface SecretFieldUpdated extends DomainEvent {
   readonly eventType: 'SecretFieldUpdated'
   readonly aggregateId: ResourceId
   readonly data: {

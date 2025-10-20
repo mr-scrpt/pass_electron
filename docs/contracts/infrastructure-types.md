@@ -115,6 +115,8 @@ interface RequestOptions {
 
 ### Mock Repository Types
 
+#### Mock Repository Types [#code]
+
 ```typescript
 /**
  * Конфигурация для Mock Repository
@@ -141,6 +143,8 @@ interface AccessLogEntry {
 ```
 
 ### API Repository Types
+
+#### API Repository Types [#code]
 
 ```typescript
 /**
@@ -170,6 +174,8 @@ interface RepositoryCache<T> {
 
 ### Local Storage
 
+#### Local Storage [#interface:ILocalStorage|#code]
+
 ```typescript
 /**
  * Интерфейс для работы с localStorage
@@ -193,6 +199,8 @@ type StorageKey =
 ```
 
 ### Settings Types
+
+#### Settings Types [#code]
 
 ```typescript
 /**
@@ -228,6 +236,8 @@ interface UserPreferences {
 ## Event Bus Implementation
 
 ### Event Bus Types
+
+#### Event Bus Types [#code]
 
 ```typescript
 /**
@@ -279,6 +289,8 @@ interface EventFilter {
 
 ## Clipboard Service Types
 
+#### Clipboard Service Types [#code]
+
 ```typescript
 /**
  * Результат копирования в буфер
@@ -306,6 +318,8 @@ type ClipboardErrorCode =
 
 ## Encryption Types
 
+#### Encryption Types [#interface:IEncryptionService|#code]
+
 ```typescript
 /**
  * Сервис шифрования (если реализуется на клиенте)
@@ -332,6 +346,8 @@ type EncryptionAlgorithm = 'AES-256-GCM' | 'AES-256-CBC'
 ---
 
 ## Logger Types
+
+#### Logger Types [#interface:ILogger|#code]
 
 ```typescript
 /**

@@ -78,6 +78,8 @@ interface EncryptedValue {
 
 ### Namespace Value Object
 
+#### Namespace [#interface:Namespace|#code]
+
 ```typescript
 /**
  * Неймспейс - категория для группировки ресурсов
@@ -105,6 +107,8 @@ interface NamespaceInfo {
 
 ### Resource List Item (для списков)
 
+#### Resource List Item [#interface:ResourceListItem|#code]
+
 ```typescript
 /**
  * Упрощенная версия ресурса для списков
@@ -124,6 +128,8 @@ interface ResourceListItem {
 ## Mode Context
 
 ### Mode Context Aggregate
+
+#### Mode Context [#interface:ModeContext|#code]
 
 ```typescript
 /**
@@ -182,6 +188,8 @@ interface EditingState extends ModeState {
 
 ### Keymap Aggregate
 
+#### Keymap [#interface:Keymap|#code]
+
 ```typescript
 /**
  * Кеймап - привязка клавиш к действию
@@ -236,6 +244,8 @@ type KeymapAction = (context: ActionContext) => void | Promise<void>
 
 ### Focus System
 
+#### Focusable Element [#interface:FocusableElement|#code]
+
 ```typescript
 /**
  * Элемент, доступный для фокуса
@@ -277,6 +287,8 @@ type FocusableType =
 
 ### Notification Aggregate
 
+#### Notification [#interface:Notification|#code]
+
 ```typescript
 /**
  * Уведомление пользователю
@@ -304,6 +316,8 @@ type NotificationType =
 ## Password Generation
 
 ### Password Generation Types
+
+#### Password Generation [#interface:PasswordGenerationOptions|#code]
 
 ```typescript
 /**
@@ -350,9 +364,11 @@ type PasswordStrengthLevel =
 
 ### DateTime
 
+#### DateTime [#code]
+
 ```typescript
 /**
- * Value Object для даты и времени
+ * ISO 8601 формат даты/времени
  * Всегда в формате ISO 8601
  */
 type DateTime = string  // ISO 8601: "2024-01-15T10:30:00Z"
@@ -360,9 +376,11 @@ type DateTime = string  // ISO 8601: "2024-01-15T10:30:00Z"
 
 ### Result Type
 
+#### Result Type [#code]
+
 ```typescript
 /**
- * Result type для обработки ошибок
+ * Result тип для обработки ошибок
  */
 type Result<T, E = Error> = 
   | { success: true; value: T }

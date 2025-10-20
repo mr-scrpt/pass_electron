@@ -138,7 +138,7 @@
 
 Переключение между ними происходит через конфигурацию или environment переменную.
 
-#### API Endpoints [#api:GET:/api/resources|#api:GET:/api/resources/:id|#api:POST:/api/resources|#api:PUT:/api/resources/:id|#api:DELETE:/api/resources/:id|#api:POST:/api/resources/:id/fields|#api:PUT:/api/resources/:id/fields/:fieldId|#api:DELETE:/api/resources/:id/fields/:fieldId|#api:GET:/api/namespaces|#api:POST:/api/password/generate]
+#### API Endpoints [#api:routes]
 
 ```typescript
 // Resource Management

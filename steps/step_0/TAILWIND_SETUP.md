@@ -18,6 +18,8 @@
 
 > **⚠️ ВАЖНО**: Устанавливать **только** в web presentation workspace, НЕ в root!
 
+#### Установка Tailwind [#command:pnpm-add-tailwind]
+
 ```bash
 # Перейти в presentation/web/react директорию
 cd src/presentation/web/react
@@ -41,6 +43,8 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 Добавить Tailwind plugin:
 
 **Файл:** `src/presentation/web/react/vite.config.ts`
+
+#### Vite конфигурация [#config]
 
 ```typescript
 import { reactRouter } from "@react-router/dev/vite";
@@ -76,6 +80,8 @@ export default defineConfig({
 
 **Файл:** `src/presentation/web/react/tailwind.config.js`
 
+#### Tailwind конфигурация [#config]
+
 ```javascript
 import { catppuccin } from '@catppuccin/tailwindcss'
 
@@ -106,6 +112,8 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/styles/tailwind.css`
 
+#### CSS импорт [#code]
+
 ```css
 @import "tailwindcss";
 ```
@@ -115,6 +123,8 @@ export default {
 ### 4. Импортировать в `root.tsx`
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
+
+#### Root компонент [#code]
 
 ```typescript
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
@@ -173,6 +183,8 @@ export default function Index() {
 ```
 
 ### 2. Запустить dev сервер
+
+#### Запуск [#command:pnpm-dev]
 
 ```bash
 cd src/presentation/web/react

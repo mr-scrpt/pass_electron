@@ -10,6 +10,8 @@
 
 При росте количества доменных сущностей монолитные файлы становятся огромными:
 
+#### Антипаттерн - монолитный ServiceContainer [#code]
+
 ```typescript
 // ❌ Антипаттерн: все в одном файле (1000+ строк)
 class ServiceContainer {
@@ -50,7 +52,9 @@ src/composition/
 
 ## Константы (нет Magic Strings)
 
-### Environment [#code|#structure:path]
+### Environment
+
+#### Environment конфиг [#code|#structure:path]
 
 ```typescript
 // src/composition/config/Environment.ts
@@ -63,7 +67,9 @@ export const Environment = {
 export type EnvironmentType = typeof Environment[keyof typeof Environment]
 ```
 
-### QueryTypes [#code|#structure:path]
+### QueryTypes
+
+#### QueryTypes константы [#code|#structure:path]
 
 ```typescript
 // src/application/queries/QueryTypes.ts
@@ -79,7 +85,9 @@ export const QueryTypes = {
 } as const
 ```
 
-### CommandTypes [#code|#structure:path]
+### CommandTypes
+
+#### CommandTypes константы [#code|#structure:path]
 
 ```typescript
 // src/application/commands/CommandTypes.ts
@@ -92,7 +100,9 @@ export const CommandTypes = {
 } as const
 ```
 
-### RequestParamKeys [#code|#structure:path]
+### RequestParamKeys
+
+#### RequestParamKeys константы [#code|#structure:path]
 
 ```typescript
 // src/application/ports/RequestParamKeys.ts
@@ -123,7 +133,7 @@ Facade не должен зависеть от Web-специфичных тип
 
 > **📘 Полное описание Adapter Pattern + DI см. в [ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)**
 
-**Port (Application Layer):** [#interface:IRequestParser|#code|#structure:path]
+**Port (Application Layer):**
 
 ```typescript
 // src/application/ports/IRequestParser.ts
@@ -138,7 +148,9 @@ export interface ListResourcesParams {
 }
 ```
 
-#### WebRequestParser - адаптер для Web [#class:WebRequestParser|#code|#structure:path]
+#### WebRequestParser - адаптер для Web
+
+##### WebRequestParser [#class:WebRequestParser|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/request-parsers/WebRequestParser.ts
@@ -153,7 +165,7 @@ export class WebRequestParser implements IRequestParser {  //
 }
 ```
 
-#### CLIRequestParser [#class:CLIRequestParser|#code|#structure:path]
+#### CLIRequestParser
 
 ```typescript
 // src/infrastructure/request-parsers/CLIRequestParser.ts
@@ -170,7 +182,7 @@ export class CLIRequestParser implements IRequestParser {  //
 
 ---
 
-## DI Modules [#class:ResourceModule|#code|#structure:path]
+## DI Modules
 
 ```typescript
 // src/composition/modules/ResourceModule.ts
@@ -196,7 +208,7 @@ export class ResourceModule {  //
 }
 ```
 
-#### SystemModule [#class:SystemModule|#code|#structure:path]
+#### SystemModule
 
 ```typescript
 // src/composition/modules/SystemModule.ts
@@ -241,7 +253,7 @@ export class SystemModule {  //
 
 ---
 
-## Root Container [#class:ServiceContainer|#code|#structure:path]
+## Root Container
 
 ```typescript
 // src/composition/ServiceContainer.ts
@@ -321,7 +333,11 @@ export class ServiceContainer {  //
 
 ---
 
-## Query Facades [#code|#structure:path]
+## Query Facades
+
+### ResourceQueries
+
+#### ResourceQueries facade [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/ResourceQueries.ts
@@ -342,7 +358,9 @@ export const resourceQueries = {
 }
 ```
 
-#### Public API для Queries [#code|#structure:path]
+### Public API для Queries
+
+#### Queries index [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/index.ts
@@ -357,7 +375,11 @@ export const queries = {
 
 ---
 
-## Public API [#code|#structure:path]
+## Public API
+
+### Composition index
+
+#### Composition index.ts [#code|#structure:path]
 
 ```typescript
 // src/composition/index.ts
@@ -369,7 +391,7 @@ export { Environment, type EnvironmentType } from './config/Environment'
 
 ---
 
-## Фабрики адаптеров (Infrastructure Layer) [#class:RequestParserFactory|#code|#structure:path]
+## Фабрики адаптеров (Infrastructure Layer)
 
 **Знание о платформах изолировано в Infrastructure:**
 
@@ -395,7 +417,7 @@ export class RequestParserFactory {  //
 }
 ```
 
-#### ClipboardServiceFactory [#class:ClipboardServiceFactory|#code|#structure:path]
+#### ClipboardServiceFactory
 
 ```typescript
 // src/infrastructure/clipboard/ClipboardServiceFactory.ts
@@ -418,7 +440,9 @@ export class ClipboardServiceFactory {  //
 
 ## Использование
 
-### Web (Remix) [#code|#structure:path]
+### Web (Remix)
+
+#### Web entry point [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/entry.client.tsx
@@ -443,7 +467,9 @@ ServiceContainer.initialize({
 hydrateRoot(document, <HydratedRouter />)
 ```
 
-#### Пример использования в route [#code|#structure:path]
+#### Пример использования в route
+
+##### Route loader [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources._index.tsx
@@ -454,7 +480,9 @@ export async function loader({ request }) {
 }
 ```
 
-### CLI [#code|#structure:path]
+### CLI
+
+#### CLI entry point [#code|#structure:path]
 
 ```typescript
 // cli/index.ts
@@ -482,7 +510,9 @@ program.command('list')
   })
 ```
 
-### Desktop (Electron) [#code|#structure:path]
+### Desktop (Electron)
+
+#### Electron entry point [#code|#structure:path]
 
 ```typescript
 // electron/main.ts
@@ -515,6 +545,8 @@ app.whenReady().then(() => {
 ---
 
 ## Зависимости
+
+### Поток зависимостей [#diagram:flow]
 
 ```
 Presentation → Composition (facades only)

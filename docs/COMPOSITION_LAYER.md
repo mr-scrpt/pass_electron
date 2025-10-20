@@ -135,6 +135,8 @@ Facade не должен зависеть от Web-специфичных тип
 
 **Port (Application Layer):**
 
+#### IRequestParser интерфейс [#interface:IRequestParser|#code|#structure:path]
+
 ```typescript
 // src/application/ports/IRequestParser.ts
 export interface IRequestParser {  //
@@ -167,6 +169,8 @@ export class WebRequestParser implements IRequestParser {  //
 
 #### CLIRequestParser
 
+##### CLIRequestParser [#class:CLIRequestParser|#code|#structure:path]
+
 ```typescript
 // src/infrastructure/request-parsers/CLIRequestParser.ts
 export class CLIRequestParser implements IRequestParser {  //
@@ -183,6 +187,10 @@ export class CLIRequestParser implements IRequestParser {  //
 ---
 
 ## DI Modules
+
+### ResourceModule
+
+#### ResourceModule класс [#class:ResourceModule|#code|#structure:path]
 
 ```typescript
 // src/composition/modules/ResourceModule.ts
@@ -208,7 +216,9 @@ export class ResourceModule {  //
 }
 ```
 
-#### SystemModule
+### SystemModule
+
+#### SystemModule класс [#class:SystemModule|#code|#structure:path]
 
 ```typescript
 // src/composition/modules/SystemModule.ts

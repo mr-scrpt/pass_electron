@@ -317,11 +317,13 @@ interface ActiveKeymapsChanged extends DomainEvent {
 
 ### FocusChanged
 
+#### Focus Changed Event [#interface:FocusChanged|#code]
+
 ```typescript
 /**
  * Событие изменения фокуса
  */
-interface FocusChanged extends DomainEvent {  // #interface:FocusChanged
+interface FocusChanged extends DomainEvent {
   readonly eventType: 'FocusChanged'
   readonly data: {
     from: string | null
@@ -333,11 +335,13 @@ interface FocusChanged extends DomainEvent {  // #interface:FocusChanged
 
 ### FocusableElementRegistered
 
+#### Focusable Element Registered Event [#interface:FocusableElementRegistered|#code]
+
 ```typescript
 /**
  * Событие регистрации элемента для фокуса
  */
-interface FocusableElementRegistered extends DomainEvent {  // #interface:FocusableElementRegistered
+interface FocusableElementRegistered extends DomainEvent {
   readonly eventType: 'FocusableElementRegistered'
   readonly data: {
     elementId: string
@@ -350,11 +354,13 @@ interface FocusableElementRegistered extends DomainEvent {  // #interface:Focusa
 
 ### FocusableElementUnregistered
 
+#### Focusable Element Unregistered Event [#interface:FocusableElementUnregistered|#code]
+
 ```typescript
 /**
  * Событие отмены регистрации элемента
  */
-interface FocusableElementUnregistered extends DomainEvent {  // #interface:FocusableElementUnregistered
+interface FocusableElementUnregistered extends DomainEvent {
   readonly eventType: 'FocusableElementUnregistered'
   readonly data: {
     elementId: string
@@ -364,11 +370,13 @@ interface FocusableElementUnregistered extends DomainEvent {  // #interface:Focu
 
 ### FocusCleared
 
+#### Focus Cleared Event [#interface:FocusCleared|#code]
+
 ```typescript
 /**
  * Событие очистки всех элементов фокуса
  */
-interface FocusCleared extends DomainEvent {  // #interface:FocusCleared
+interface FocusCleared extends DomainEvent {
   readonly eventType: 'FocusCleared'
   readonly data: {
     reason: 'route-change' | 'mode-change' | 'manual'
@@ -382,11 +390,13 @@ interface FocusCleared extends DomainEvent {  // #interface:FocusCleared
 
 ### NotificationRaised
 
+#### Notification Raised Event [#interface:NotificationRaised|#code]
+
 ```typescript
 /**
  * Событие создания уведомления
  */
-interface NotificationRaised extends DomainEvent {  // #interface:NotificationRaised
+interface NotificationRaised extends DomainEvent {
   readonly eventType: 'NotificationRaised'
   readonly data: {
     notificationId: NotificationId
@@ -399,11 +409,13 @@ interface NotificationRaised extends DomainEvent {  // #interface:NotificationRa
 
 ### NotificationDismissed
 
+#### Notification Dismissed Event [#interface:NotificationDismissed|#code]
+
 ```typescript
 /**
  * Событие закрытия уведомления
  */
-interface NotificationDismissed extends DomainEvent {  // #interface:NotificationDismissed
+interface NotificationDismissed extends DomainEvent {
   readonly eventType: 'NotificationDismissed'
   readonly data: {
     notificationId: NotificationId
@@ -418,11 +430,13 @@ interface NotificationDismissed extends DomainEvent {  // #interface:Notificatio
 
 ### ApplicationInitialized
 
+#### Application Initialized Event [#interface:ApplicationInitialized|#code]
+
 ```typescript
 /**
  * Событие инициализации приложения
  */
-interface ApplicationInitialized extends DomainEvent {  // #interface:ApplicationInitialized
+interface ApplicationInitialized extends DomainEvent {
   readonly eventType: 'ApplicationInitialized'
   readonly data: {
     version: string
@@ -434,11 +448,13 @@ interface ApplicationInitialized extends DomainEvent {  // #interface:Applicatio
 
 ### ApplicationError
 
+#### Application Error Event [#interface:ApplicationError|#code]
+
 ```typescript
 /**
  * Событие ошибки приложения
  */
-interface ApplicationError extends DomainEvent {  // #interface:ApplicationError
+interface ApplicationError extends DomainEvent {
   readonly eventType: 'ApplicationError'
   readonly data: {
     error: {
@@ -456,6 +472,8 @@ interface ApplicationError extends DomainEvent {  // #interface:ApplicationError
 ## Event Handlers
 
 ### Примеры подписчиков
+
+#### Event Handlers Examples [#code]
 
 ```typescript
 /**
@@ -517,6 +535,8 @@ eventBus.subscribe<RouteChanged>('RouteChanged', (event) => {
 ## Event Publishing
 
 ### Пример публикации события
+
+#### Event Publishing Example [#code]
 
 ```typescript
 // Domain Layer (Resource Aggregate)
@@ -580,6 +600,8 @@ class Resource {
 ## Testing Events
 
 ### Пример тестирования событий
+
+#### Testing Events Example [#code]
 
 ```typescript
 describe('Resource', () => {

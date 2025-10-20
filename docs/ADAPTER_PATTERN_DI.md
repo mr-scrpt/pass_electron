@@ -181,7 +181,7 @@ ServiceContainer.initialize({ myService })
 
 #### Clipboard Service - полная реализация
 
-##### ClipboardService [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code|#structure:path]
+##### ClipboardService [#interface:IClipboardService|#class:WebClipboardService|#class:ElectronClipboardService|#class:ClipboardServiceFactory|#code]
 
 ```typescript
 // Port
@@ -235,7 +235,7 @@ export class ClipboardServiceFactory {
 
 #### Request Parser - полная реализация
 
-##### RequestParser [#interface:IRequestParser|#class:WebRequestParser|#class:CLIRequestParser|#class:RequestParserFactory|#code|#structure:path]
+##### RequestParser [#interface:IRequestParser|#class:WebRequestParser|#class:CLIRequestParser|#class:RequestParserFactory|#code]
 
 ```typescript
 // Port
@@ -312,7 +312,7 @@ export const resourceQueries = {
 
 #### Notification Service - полная реализация
 
-##### NotificationService [#interface:INotificationService|#class:BrowserNotificationService|#class:ElectronNotificationService|#class:ConsoleNotificationService|#class:NotificationServiceFactory|#code|#structure:path]
+##### NotificationService [#interface:INotificationService|#class:BrowserNotificationService|#class:ElectronNotificationService|#class:ConsoleNotificationService|#class:NotificationServiceFactory|#code]
 
 ```typescript
 // Port

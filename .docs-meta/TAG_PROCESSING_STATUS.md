@@ -15,9 +15,9 @@
 
 ---
 
-## Прогресс: 12/33 (36%)
+## Прогресс: 13/33 (39%)
 
-### ✅ Обработано (12 файлов)
+### ✅ Обработано (13 файлов)
 
 1. ✅ **GETTING_STARTED.md** - блоков кода нет
 2. ✅ **COMMAND_BUS.md** - исправлен
@@ -31,23 +31,13 @@
 10. ✅ **TYPES_AND_ENTITIES.md** - исправлен
 11. ✅ **error-handling/INVARIANTS.md** - исправлен + очищен
 12. ✅ **error-handling/ERROR_HANDLING.md** - **ПОЛНОСТЬЮ ПЕРЕПИСАН на neverthrow Result Pattern**
+13. ✅ **error-handling/ERROR_ESCALATION.md** - исправлен
 
 ### 🔄 В процессе (0 файлов)
 
 _Нет_
 
-### ⏳ Ожидают обработки (28 файлов)
-
-**Приоритет 1 - Основная документация (6 файлов):**
-7. ⏳ DATA_FLOW.md
-8. ⏳ ARCHITECTURE_BOUNDARIES.md
-9. ⏳ ADAPTER_PATTERN_DI.md
-10. ⏳ PROJECT_STRUCTURE.md
-
-**Приоритет 2 - Error Handling (3 файла):**
-11. ⏳ error-handling/ERROR_HANDLING.md
-12. ⏳ error-handling/INVARIANTS.md
-13. ⏳ error-handling/ERROR_ESCALATION.md
+### ⏳ Ожидают обработки (20 файлов)
 
 **Приоритет 3 - Concepts (2 файла):**
 14. ⏳ concepts/IMPLEMENT_CONCEPT_OUTER.md
@@ -105,11 +95,11 @@ _Нет_
 
 ## Следующий файл
 
-**error-handling/ERROR_ESCALATION.md** - файл 13/33
+**concepts/IMPLEMENT_CONCEPT_OUTER.md** - файл 14/33
 
 ---
 
-**Последнее обновление:** 2025-10-20 13:30
+**Последнее обновление:** 2025-10-20 13:36
 
 ## 📝 Примечания
 

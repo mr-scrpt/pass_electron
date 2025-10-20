@@ -15,7 +15,9 @@
 
 ## Зачем нужен Command Bus
 
-### Проблема без Command Bus [#code|#structure:path]
+### Проблема без Command Bus
+
+#### Антипаттерн [#code|#structure:path]
 
 ```typescript
 // ❌ ПРОБЛЕМА: Core System зависит от Browser API
@@ -73,9 +75,11 @@ Command Bus - это посредник между Core Systems и UI Layer, к�
 
 ### Command Bus в Hexagonal Architecture
 
-#### Port - интерфейс [#interface:ICommandBus|#code]
+#### Port - интерфейс
 
 **Port** (интерфейс) - определяет ЧТО нужно Application Core:
+
+##### ICommandBus Port [#interface:ICommandBus|#code]
 
 ```typescript
 interface ICommandBus {
@@ -83,9 +87,11 @@ interface ICommandBus {
 }
 ```
 
-#### Adapter - реализация [#class:InMemoryCommandBus|#code]
+#### Adapter - реализация
 
 **Adapter** (реализация) - определяет КАК это сделать:
+
+##### InMemoryCommandBus Adapter [#class:InMemoryCommandBus|#code]
 
 ```typescript
 class InMemoryCommandBus implements ICommandBus {
@@ -178,7 +184,9 @@ Command Handlers (Presentation)
 
 ### 1. Ports (Application Layer)
 
-#### ICommand - базовый интерфейс [#interface:ICommand|#code|#structure:path]
+#### ICommand - базовый интерфейс
+
+##### ICommand [#interface:ICommand|#code|#structure:path]
 
 ```typescript
 /**
@@ -189,7 +197,9 @@ export interface ICommand {
 }
 ```
 
-#### ICommandHandler - обработчик команды [#interface:ICommandHandler|#code|#structure:path]
+#### ICommandHandler - обработчик команды
+
+##### ICommandHandler [#interface:ICommandHandler|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -202,7 +212,9 @@ export interface ICommandHandler<T extends ICommand> {
 }
 ```
 
-#### ICommandBus - шина команд [#interface:ICommandBus|#code|#structure:path]
+#### ICommandBus - шина команд
+
+##### ICommandBus [#interface:ICommandBus|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -235,7 +247,9 @@ export interface ICommandBus {
 }
 ```
 
-#### UI Команды [#class:DeleteResourceCommand|#class:NavigateToCommand|#class:ShowNotificationCommand|#class:CopyToClipboardCommand|#code|#structure:path]
+#### UI Команды
+
+##### UI Command классы [#class:DeleteResourceCommand|#class:NavigateToCommand|#class:ShowNotificationCommand|#code|#structure:path]
 
 ```typescript
 import type { ICommand } from './ICommand';
@@ -280,7 +294,9 @@ export class CopyToClipboardCommand implements ICommand {
 }
 ```
 
-#### Public API для Commands [#code|#structure:path]
+#### Public API для Commands
+
+##### Commands index.ts [#code|#structure:path]
 
 ```typescript
 export type { ICommand } from './ICommand';
@@ -293,7 +309,9 @@ export * from './UICommands';
 
 ### 2. Adapter (Infrastructure Layer)
 
-#### InMemoryCommandBus - реализация [#class:InMemoryCommandBus|#code|#structure:path]
+#### InMemoryCommandBus - реализация
+
+##### InMemoryCommandBus класс [#class:InMemoryCommandBus|#code|#structure:path]
 
 ```typescript
 import type { 
@@ -343,7 +361,9 @@ export class InMemoryCommandBus implements ICommandBus {
 }
 ```
 
-#### Public API для Infrastructure Commands [#code|#structure:path]
+#### Public API для Infrastructure Commands
+
+##### Infrastructure commands index.ts [#code|#structure:path]
 
 ```typescript
 export { InMemoryCommandBus } from './InMemoryCommandBus';
@@ -353,7 +373,9 @@ export { InMemoryCommandBus } from './InMemoryCommandBus';
 
 ### 3. Composition Root
 
-#### Регистрация CommandBus [#code|#structure:path]
+#### Регистрация CommandBus
+
+##### ServiceContainer.getCommandBus [#code|#structure:path]
 
 ```typescript
 import { InMemoryCommandBus } from '@/infrastructure/commands';
@@ -384,7 +406,9 @@ export const getCommandBus = () => ServiceContainer.getCommandBus();
 
 ### 1. В Core Systems (Keymaps)
 
-#### Определение Keymap с CommandBus [#code|#structure:path]
+#### Определение Keymap с CommandBus
+
+##### ActionContext [#code|#structure:path]
 
 ```typescript
 import type { ICommandBus } from '@/application/commands';
@@ -402,7 +426,9 @@ export interface ActionContext {
 }
 ```
 
-#### Пример Keymap с командами [#code|#structure:path]
+#### Пример Keymap с командами
+
+##### Resource keymaps [#code|#structure:path]
 
 ```typescript
 import { Keymap } from '../types';
@@ -441,7 +467,9 @@ export const resourceKeymaps: Keymap[] = [
 
 ### 2. В KeymapExecutor (передача CommandBus)
 
-#### KeymapExecutor с CommandBus [#code|#structure:path]
+#### KeymapExecutor с CommandBus
+
+##### KeymapExecutor класс [#class:KeymapExecutor|#code|#structure:path]
 
 ```typescript
 import type { ICommandBus } from '@/application/commands';
@@ -480,7 +508,9 @@ export class KeymapExecutor {
 
 ### 3. В Presentation Layer (Command Handlers)
 
-#### Регистрация Handlers [#code|#structure:path]
+#### Регистрация Handlers
+
+##### Route с handlers [#code|#structure:path]
 
 ```typescript
 import { useEffect } from 'react';

@@ -160,11 +160,13 @@ interface SecretFieldUpdated extends DomainEvent {
 
 ### ModeChanged
 
+#### Mode Changed Event [#interface:ModeChanged|#code]
+
 ```typescript
 /**
  * Событие изменения режима
  */
-interface ModeChanged extends DomainEvent {  // #interface:ModeChanged
+interface ModeChanged extends DomainEvent {
   readonly eventType: 'ModeChanged'
   readonly data: {
     from: AppMode
@@ -176,11 +178,13 @@ interface ModeChanged extends DomainEvent {  // #interface:ModeChanged
 
 ### NavigationModeEntered
 
+#### Navigation Mode Entered Event [#interface:NavigationModeEntered|#code]
+
 ```typescript
 /**
  * Событие входа в режим навигации
  */
-interface NavigationModeEntered extends DomainEvent {  // #interface:NavigationModeEntered
+interface NavigationModeEntered extends DomainEvent {
   readonly eventType: 'NavigationModeEntered'
   readonly data: {
     route: string
@@ -191,11 +195,13 @@ interface NavigationModeEntered extends DomainEvent {  // #interface:NavigationM
 
 ### EditingModeEntered
 
+#### Editing Mode Entered Event [#interface:EditingModeEntered|#code]
+
 ```typescript
 /**
  * Событие входа в режим редактирования
  */
-interface EditingModeEntered extends DomainEvent {  // #interface:EditingModeEntered
+interface EditingModeEntered extends DomainEvent {
   readonly eventType: 'EditingModeEntered'
   readonly data: {
     route: string
@@ -208,11 +214,13 @@ interface EditingModeEntered extends DomainEvent {  // #interface:EditingModeEnt
 
 ### RouteChanged
 
+#### Route Changed Event [#interface:RouteChanged|#code]
+
 ```typescript
 /**
  * Событие изменения маршрута
  */
-interface RouteChanged extends DomainEvent {  // #interface:RouteChanged
+interface RouteChanged extends DomainEvent {
   readonly eventType: 'RouteChanged'
   readonly data: {
     from: string
@@ -228,11 +236,13 @@ interface RouteChanged extends DomainEvent {  // #interface:RouteChanged
 
 ### KeymapTriggered
 
+#### Keymap Triggered Event [#interface:KeymapTriggered|#code]
+
 ```typescript
 /**
  * Событие срабатывания кеймапа
  */
-interface KeymapTriggered extends DomainEvent {  // #interface:KeymapTriggered
+interface KeymapTriggered extends DomainEvent {
   readonly eventType: 'KeymapTriggered'
   readonly data: {
     keymapId: KeymapId
@@ -248,11 +258,13 @@ interface KeymapTriggered extends DomainEvent {  // #interface:KeymapTriggered
 
 ### KeymapRegistered
 
+#### Keymap Registered Event [#interface:KeymapRegistered|#code]
+
 ```typescript
 /**
  * Событие регистрации кеймапа
  */
-interface KeymapRegistered extends DomainEvent {  // #interface:KeymapRegistered
+interface KeymapRegistered extends DomainEvent {
   readonly eventType: 'KeymapRegistered'
   readonly data: {
     keymapId: KeymapId
@@ -265,11 +277,13 @@ interface KeymapRegistered extends DomainEvent {  // #interface:KeymapRegistered
 
 ### KeymapUnregistered
 
+#### Keymap Unregistered Event [#interface:KeymapUnregistered|#code]
+
 ```typescript
 /**
  * Событие отмены регистрации кеймапа
  */
-interface KeymapUnregistered extends DomainEvent {  // #interface:KeymapUnregistered
+interface KeymapUnregistered extends DomainEvent {
   readonly eventType: 'KeymapUnregistered'
   readonly data: {
     keymapId: KeymapId
@@ -279,11 +293,13 @@ interface KeymapUnregistered extends DomainEvent {  // #interface:KeymapUnregist
 
 ### ActiveKeymapsChanged
 
+#### Active Keymaps Changed Event [#interface:ActiveKeymapsChanged|#code]
+
 ```typescript
 /**
  * Событие изменения активных кеймапов
  */
-interface ActiveKeymapsChanged extends DomainEvent {  // #interface:ActiveKeymapsChanged
+interface ActiveKeymapsChanged extends DomainEvent {
   readonly eventType: 'ActiveKeymapsChanged'
   readonly data: {
     activeKeymaps: KeymapId[]

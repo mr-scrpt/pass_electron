@@ -812,7 +812,7 @@ export * from './ResourceQueries'
 #### Commands Public API [#code|#structure:path]
 
 ```typescript
-// app/application/commands/index.ts
+// src/application/commands/index.ts
 export { CommandTypes } from './CommandTypes'
 export type { ICommand } from './ICommand'
 export type { ICommandHandler } from './ICommandHandler'

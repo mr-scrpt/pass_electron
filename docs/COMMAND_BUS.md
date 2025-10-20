@@ -21,7 +21,7 @@
 
 ```typescript
 // ❌ ПРОБЛЕМА: Core System зависит от Browser API
-// app/core/keymap/keymaps/resource.ts
+// src/keymap/keymaps/resource.ts
 
 import { Keymap } from '../types';
 

@@ -181,6 +181,8 @@ interface Namespace {
 
 Параметры для генерации паролей:
 
+#### Password интерфейсы [#code]
+
 ```typescript
 interface PasswordGenerationOptions {
   length: number;

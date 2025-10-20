@@ -91,7 +91,7 @@ pnpm add -D @catppuccin/tailwindcss
 
 Если не хотите использовать плагин, можно настроить цвета вручную в `tailwind.config.js`:
 
-#### Tailwind конфигурация (ручная) [#code]
+#### Tailwind конфигурация (ручная) [#config:tailwind]
 
 ```javascript
 /** @type {import('tailwindcss').Config} */

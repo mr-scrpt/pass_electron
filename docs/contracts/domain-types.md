@@ -391,6 +391,8 @@ type Result<T, E = Error> =
 
 ## Domain Errors
 
+#### Domain Errors [#interface:DomainError|#code]
+
 ```typescript
 /**
  * Базовая ошибка домена
@@ -430,6 +432,8 @@ interface InvariantViolationError extends DomainError {
 ---
 
 ## Type Guards
+
+#### Type Guards [#code]
 
 ```typescript
 /**

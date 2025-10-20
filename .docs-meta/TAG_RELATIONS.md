@@ -54,23 +54,30 @@ grep -r "#alias:" docs/ steps/
 
 ---
 
-### 3. При изменении API endpoint
+### 3. При изменении API endpoints
 
-**Если меняешь:** `#api:GET:/api/resources`
+**Правило:** Используем общий тег `#api:routes` для блоков с несколькими endpoints, а не перечисляем каждый.
+
+**Если меняешь:** API routes (добавление/удаление/изменение)
 
 **Проверь также:**
+- `#api:routes` - блоки с перечислением всех endpoints
 - `#structure:path` - примеры вызовов API в коде
 - `#code` - блоки с примерами fetch/axios
+- `#interface:` - Repository интерфейсы (могут использовать эти endpoints)
 
 **Пример:**
 ```bash
 # Меняем /api/resources → /api/v1/resources
 
-# 1. Найти все endpoints
-grep -r "#api:.*resources" docs/ steps/
+# 1. Найти все блоки с API routes
+grep -r "#api:routes" docs/ steps/
 
 # 2. Проверить примеры кода
-grep -r "#structure:path.*api/resources" docs/ steps/
+grep -r "api/resources" docs/ steps/
+
+# 3. Проверить Repository интерфейсы
+grep -r "#interface:.*Repository" docs/ steps/
 ```
 
 ---
@@ -124,7 +131,7 @@ grep -r "#structure:path.*@/" docs/ steps/
 | `#class:Name` | `#structure:tree`, `#structure:path` | Имена файлов, импорты |
 | `#interface:Name` | `#structure:tree`, `#structure:path` | Имена файлов, импорты |
 | `#structure:tree` | `#structure:path`, `#alias:` | Пути в коде, алиасы |
-| `#api:METHOD:path` | `#structure:path`, `#code` | Примеры вызовов |
+| `#api:routes` | `#structure:path`, `#code`, `#interface:*Repository` | Примеры вызовов, Repository |
 | `#command:name` | `#code` | Блоки команд |
 | `#alias:prefix` | `#structure:path`, `#code` | Импорты, примеры |
 
@@ -222,17 +229,21 @@ grep -ri "domain/resource[^s]" docs/ steps/
 **Задача:** `/api/resources` → `/api/v1/resources`
 
 ```bash
-# Шаг 1: Найти endpoints
-grep -r "#api:.*resources" docs/ steps/
-# → Обновить теги
+# Шаг 1: Найти блоки с API routes
+grep -r "#api:routes" docs/ steps/
+# → Обновить все endpoints в блоках
 
-# Шаг 2: Найти примеры
-grep -r "#structure:path.*api/resources" docs/ steps/
-# → Обновить пути
+# Шаг 2: Найти Repository интерфейсы
+grep -r "#interface:.*Repository" docs/ steps/
+# → Проверить не используют ли они эти endpoints
 
-# Шаг 3: Проверка в коде
+# Шаг 3: Найти примеры в коде
 grep -ri "api/resources" docs/ steps/
 # → Обновить все упоминания
+
+# Шаг 4: Проверить Infrastructure слой
+grep -ri "ApiResourceRepository\|HttpClient" docs/ steps/
+# → Обновить примеры реализации
 ```
 
 ---

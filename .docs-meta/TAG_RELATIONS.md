@@ -134,7 +134,7 @@ grep -r "#structure:path.*@/" docs/ steps/
 | `#api:routes` | `#structure:path`, `#code`, `#interface:*Repository` | Примеры вызовов, Repository |
 | `#command:name` | `#code` | Блоки команд |
 | `#alias:prefix` | `#structure:path`, `#code` | Импорты, примеры |
-| `#config:type` | `#structure:path` | Файлы конфигурации |
+| `#config` | `#structure:path` | Файлы конфигурации |
 
 ---
 

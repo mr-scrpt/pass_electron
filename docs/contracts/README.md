@@ -180,9 +180,6 @@ NotificationDismissed
 ### Naming Conventions
 
 **Interfaces:**
-
-#### Интерфейсы [#code]
-
 ```typescript
 interface I[Name]           // IResourceRepository, IModalManager
 ```
@@ -250,6 +247,8 @@ type Result<T, E> =
 
 ### Type Guards
 
+#### Type Guards [#code]
+
 ```typescript
 function isNavigationMode(mode: AppMode): mode is 'navigation'
 function isEditingState(state: ModeState): state is EditingState
@@ -257,6 +256,8 @@ function isSuccess<T, E>(result: Result<T, E>): result is { success: true; value
 ```
 
 ### Branded Types
+
+#### Branded Types [#code]
 
 ```typescript
 type ResourceId = string    // Could be branded: string & { __brand: 'ResourceId' }

@@ -24,6 +24,10 @@
 5. ✅ **Экспорты помечаются только** `[#code|#structure:path]`
 6. ✅ **API endpoints:** используем общий тег `#api:routes` вместо перечисления каждого
 7. ✅ **Спецификации типов** (деревья структур): используем `#contract:name`
+8. ✅ **Примеры vs Реальные файлы:**
+   - **Примеры/абстракции** → только `[#code]`, БЕЗ тегов `#class:` или `#interface:`
+   - **Реальные файлы** → `[#class:Name|#code|#structure:path]` + путь в комментарии
+   - Путь в комментарии должен быть согласован с `docs/PROJECT_STRUCTURE.md`
 
 ---
 
@@ -267,6 +271,48 @@ src/domain/
 import { Resource } from '@/domain'
 import { queries } from '@/composition'
 import { ResourceList } from '@/components/ResourceList'
+\`\`\`
+```
+
+### Пример 3: Примеры vs Реальные файлы
+
+**❌ НЕПРАВИЛЬНО - пример помечен как реальный файл:**
+```markdown
+### UI Commands [#class:DeleteResourceCommand|#code]
+
+\`\`\`typescript
+class DeleteResourceCommand implements ICommand {
+  readonly type = 'DeleteResourceCommand';
+  constructor(public readonly resourceId: string) {}
+}
+\`\`\`
+```
+
+**✅ ПРАВИЛЬНО - пример без тегов класса:**
+```markdown
+### UI Commands [#code]
+
+\`\`\`typescript
+/**
+ * Команда: Удалить ресурс
+ */
+class DeleteResourceCommand implements ICommand {
+  readonly type = 'DeleteResourceCommand';
+  constructor(public readonly resourceId: string) {}
+}
+\`\`\`
+```
+
+**✅ ПРАВИЛЬНО - реальный файл с путем:**
+```markdown
+### ResourceId Value Object [#class:ResourceId|#code|#structure:path]
+
+\`\`\`typescript
+// src/domain/resource/value-objects/ResourceId.ts
+export class ResourceId {
+  private constructor(private readonly _value: string) {}
+  static create(value: string): Result<ResourceId, InvariantViolationError>
+}
 \`\`\`
 ```
 

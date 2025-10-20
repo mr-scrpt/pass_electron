@@ -262,9 +262,12 @@ class Resource {
 
 ### InvalidOperationError
 
-**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**
+
+#### InvalidOperationError [#class:InvalidOperationError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/InvalidOperationError.ts
 import { DomainError } from './DomainError'
 
 /**
@@ -285,6 +288,9 @@ export class InvalidOperationError extends DomainError {
 ```
 
 **Использование:**
+
+#### Resource с InvalidOperationError [#class:Resource|#code]
+
 ```typescript
 // В Aggregate
 class Resource {
@@ -310,9 +316,12 @@ class Resource {
 
 ### ResourceLockedError
 
-**Файл: `src/domain/resource/errors/ResourceLockedError.ts`**  `#structure:
+**Файл: `src/domain/resource/errors/ResourceLockedError.ts`**
+
+#### ResourceLockedError [#class:ResourceLockedError|#code|#structure:path]
 
 ```typescript
+// src/domain/resource/errors/ResourceLockedError.ts
 import { DomainError } from '@/domain/shared/errors'
 import { ResourceId } from '../value-objects/ResourceId'
 
@@ -330,6 +339,9 @@ export class ResourceLockedError extends DomainError {
 ```
 
 **Использование:**
+
+#### Resource с Result [#code]
+
 ```typescript
 import { Result, ok, err } from 'neverthrow'
 import { ResourceLockedError } from './errors'
@@ -348,9 +360,12 @@ class Resource {
 
 ### DuplicateFieldLabelError
 
-**Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**  `#structure:
+**Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**
+
+#### DuplicateFieldLabelError [#class:DuplicateFieldLabelError|#code|#structure:path]
 
 ```typescript
+// src/domain/resource/errors/DuplicateFieldLabelError.ts
 import { DomainError } from '@/domain/shared/errors'
 
 /**
@@ -368,9 +383,12 @@ export class DuplicateFieldLabelError extends DomainError {
 
 ### Public API (для aggregate errors)
 
-**Файл: `src/domain/resource/errors/index.ts`**  `#structure:
+**Файл: `src/domain/resource/errors/index.ts`**
+
+#### Resource errors index.ts [#code|#structure:path]
 
 ```typescript
+// src/domain/resource/errors/index.ts
 export { ResourceLockedError } from './ResourceLockedError'
 export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 ```
@@ -379,9 +397,12 @@ export { DuplicateFieldLabelError } from './DuplicateFieldLabelError'
 
 ### Public API (Shared Kernel)
 
-**Файл: `src/domain/shared/errors/index.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/index.ts`**
+
+#### Shared errors index.ts [#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/index.ts
 export { DomainError } from './DomainError'
 export { InvariantViolationError } from './InvariantViolationError'
 export { NotFoundError } from './NotFoundError'
@@ -395,9 +416,12 @@ export { InvalidOperationError } from './InvalidOperationError'
 
 ### ValidationError
 
-**Файл: `src/application/errors/ValidationError.ts`**  `#structure:
+**Файл: `src/application/errors/ValidationError.ts`**
+
+#### ValidationError [#class:ValidationError|#code|#structure:path]
 
 ```typescript
+// src/application/errors/ValidationError.ts
 /**
  * Ошибка валидации на уровне Application Layer
  * Используется для валидации Commands/Queries
@@ -416,6 +440,9 @@ export class ValidationError extends Error {
 ```
 
 **Использование:**
+
+#### Command Handler с ValidationError [#code]
+
 ```typescript
 // В Command Handler
 class CreateResourceCommandHandler {
@@ -434,9 +461,12 @@ class CreateResourceCommandHandler {
 
 ### CommandError
 
-**Файл: `src/application/errors/CommandError.ts`**  `#structure:
+**Файл: `src/application/errors/CommandError.ts`**
+
+#### CommandError [#class:CommandError|#code|#structure:path]
 
 ```typescript
+// src/application/errors/CommandError.ts
 /**
  * Ошибка выполнения команды
  */
@@ -456,9 +486,12 @@ export class CommandError extends Error {
 
 ### QueryError
 
-**Файл: `src/application/errors/QueryError.ts`**  `#structure:
+**Файл: `src/application/errors/QueryError.ts`**
+
+#### QueryError [#class:QueryError|#code|#structure:path]
 
 ```typescript
+// src/application/errors/QueryError.ts
 /**
  * Ошибка выполнения запроса
  */
@@ -482,9 +515,12 @@ export class QueryError extends Error {
 
 ### NetworkError
 
-**Файл: `src/infrastructure/errors/NetworkError.ts`**  `#structure:
+**Файл: `src/infrastructure/errors/NetworkError.ts`**
+
+#### NetworkError [#class:NetworkError|#code|#structure:path]
 
 ```typescript
+// src/infrastructure/errors/NetworkError.ts
 /**
  * Сетевая ошибка
  */

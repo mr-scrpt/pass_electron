@@ -202,17 +202,19 @@ import { DomainError } from '@/domain/shared/errors'
 // ✅ Типы из Domain через Public API
 import { Resource } from '@/domain'
 
-// ✅ Handlers через @internal/* (Composition имеет доступ ко всему)
-import { ListResourcesHandler } from '@internal/application/queries/handlers/ListResourcesHandler'
+// ✅ Handlers через Public API (Composition имеет доступ ко всем)
+import { GetResourcesHandler } from '@/application/queries'
 
-// ✅ Инфраструктура через @internal/*
-import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'
+// ✅ Инфраструктура через Public API
+import { ApiResourceRepository } from '@/infrastructure/repositories'
 
 // Facade для упрощения UI
 export const queries = {
   resources: {
     async list() {
-      const handler = new ListResourcesHandler(new ApiResourceRepository())
+      // ✅ DI логика здесь! Composition - единственный слой с доступом ко всем
+      const repository = new ApiResourceRepository()
+      const handler = new GetResourcesHandler(repository)
       return await handler.execute()
     }
   }

@@ -199,11 +199,11 @@ import { DomainError } from '@/domain/shared/errors'
 // ✅ Типы из Domain через Public API
 import { Resource } from '@/domain'
 
-// ✅ Handlers напрямую (Composition имеет доступ ко всему)
-import { ListResourcesHandler } from '@/application/queries/handlers/ListResourcesHandler'
+// ✅ Handlers через @internal/* (Composition имеет доступ ко всему)
+import { ListResourcesHandler } from '@internal/application/queries/handlers/ListResourcesHandler'
 
-// ✅ Инфраструктура напрямую
-import { ApiResourceRepository } from '@/infrastructure/repositories/ApiResourceRepository'
+// ✅ Инфраструктура через @internal/*
+import { ApiResourceRepository } from '@internal/infrastructure/repositories/ApiResourceRepository'
 
 // Facade для упрощения UI
 export const queries = {

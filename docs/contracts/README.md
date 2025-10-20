@@ -91,7 +91,7 @@
 
 ### Основные Aggregates
 
-#### Структура Aggregates [#code]
+#### Диаграмма Aggregates [#diagram:aggregates]
 
 ```typescript
 Resource  // #class:Resource
@@ -120,7 +120,7 @@ Notification  // #class:Notification
 
 ### Основные системы
 
-#### Системные сервисы [#code]
+#### Диаграмма систем [#diagram:systems]
 
 ```typescript
 ModalManager      // Управление режимами #class:ModalManager
@@ -133,7 +133,7 @@ EventBus          // Шина событий #class:EventBus
 
 ### Repository Interfaces
 
-#### Repository интерфейсы [#code]
+#### Диаграмма Repository [#diagram:repositories]
 
 ```typescript
 IResourceRepository  // #interface:IResourceRepository
@@ -143,7 +143,7 @@ IPasswordGeneratorService  // #interface:IPasswordGeneratorService
 
 ### Domain Events
 
-#### События системы [#code]
+#### Диаграмма событий [#diagram:events]
 
 ```typescript
 // Resource

@@ -631,6 +631,8 @@ export default function ResourceDetail() {
 
 #### 1. НЕ обходить CommandBus
 
+##### Антипаттерн [#code]
+
 ```typescript
    // ❌ Прямой вызов DOM API
    window.dispatchEvent(new CustomEvent('delete'));

@@ -398,6 +398,8 @@ eventBus.subscribe<ModeChanged>('ModeChanged', (event) => {
 
 Все валидации происходят на уровне Domain Layer при создании Value Objects и Entities.
 
+#### Пример валидации Namespace [#code|#structure:path]
+
 ```typescript
 // Пример валидации Namespace с использованием инвариантов
 import { StringInvariant } from '~/domain/shared'

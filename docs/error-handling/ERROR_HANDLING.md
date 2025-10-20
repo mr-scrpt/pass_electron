@@ -75,9 +75,12 @@ app/
 
 ### Базовая доменная ошибка
 
-**Файл: `src/domain/shared/errors/DomainError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/DomainError.ts`**
+
+#### DomainError [#class:DomainError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/DomainError.ts
 /**
  * Базовая ошибка домена
  * Все доменные ошибки наследуются от неё
@@ -111,9 +114,12 @@ export abstract class DomainError extends Error {
 
 ### InvariantViolationError
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+
+#### InvariantViolationError [#class:InvariantViolationError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/InvariantViolationError.ts
 import { DomainError } from './DomainError'
 
 /**
@@ -133,9 +139,12 @@ export class InvariantViolationError extends DomainError {
 ```
 
 **Использование:**
+
+#### ResourceName с InvariantViolationError [#class:ResourceName|#code]
+
 ```typescript
 // В Value Object
-class ResourceName {  // #class:ResourceName
+class ResourceName {
   private constructor(private readonly value: string) {}
   
   static create(value: string): ResourceName {
@@ -156,9 +165,12 @@ class ResourceName {  // #class:ResourceName
 
 ### NotFoundError
 
-**Файл: `src/domain/shared/errors/NotFoundError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/NotFoundError.ts`**
+
+#### NotFoundError [#class:NotFoundError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/NotFoundError.ts
 import { DomainError } from './DomainError'
 
 /**
@@ -178,6 +190,9 @@ export class NotFoundError extends DomainError {
 ```
 
 **Использование:**
+
+#### Repository с NotFoundError [#interface:IResourceRepository|#code]
+
 ```typescript
 // В Repository
 class MockResourceRepository implements IResourceRepository {
@@ -195,9 +210,12 @@ class MockResourceRepository implements IResourceRepository {
 
 ### DuplicateError
 
-**Файл: `src/domain/shared/errors/DuplicateError.ts`**  `#structure:
+**Файл: `src/domain/shared/errors/DuplicateError.ts`**
+
+#### DuplicateError [#class:DuplicateError|#code|#structure:path]
 
 ```typescript
+// src/domain/shared/errors/DuplicateError.ts
 import { DomainError } from './DomainError'
 
 /**
@@ -218,9 +236,12 @@ export class DuplicateError extends DomainError {
 ```
 
 **Использование:**
+
+#### Resource с DuplicateError [#class:Resource|#code]
+
 ```typescript
 // В Aggregate
-class Resource {  // #class:Resource
+class Resource {
   addCustomField(field: CustomField): void {
     const exists = this._customFields.some(
       f => f.label.equals(field.label)
@@ -292,8 +313,8 @@ class Resource {
 **Файл: `src/domain/resource/errors/ResourceLockedError.ts`**  `#structure:
 
 ```typescript
-import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:
-import { ResourceId } from '../value-objects/ResourceId'  // #class:ResourceId #structure:
+import { DomainError } from '@/domain/shared/errors'
+import { ResourceId } from '../value-objects/ResourceId'
 
 /**
  * Ошибка заблокированного ресурса
@@ -330,7 +351,7 @@ class Resource {
 **Файл: `src/domain/resource/errors/DuplicateFieldLabelError.ts`**  `#structure:
 
 ```typescript
-import { DomainError } from '@/domain/shared/errors'  // #alias:@/ #structure:
+import { DomainError } from '@/domain/shared/errors'
 
 /**
  * Ошибка дублирования метки поля

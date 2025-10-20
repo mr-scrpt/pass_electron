@@ -384,6 +384,8 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 ### Interceptors
 
+#### Interceptors [#code]
+
 ```typescript
 /**
  * Request interceptor
@@ -409,6 +411,8 @@ type ErrorInterceptor = (
 
 ### Retry Configuration
 
+#### Retry Configuration [#code]
+
 ```typescript
 /**
  * Конфигурация повторных попыток
@@ -427,6 +431,8 @@ interface RetryConfig {
 ## Mock Data Types
 
 ### Mock Data Generator
+
+#### Mock Data Generator [#interface:IMockDataGenerator|#code]
 
 ```typescript
 /**
@@ -455,6 +461,8 @@ interface MockDataConfig {
 ## Performance Monitoring
 
 ### Performance Metrics
+
+#### Performance Metrics [#code]
 
 ```typescript
 /**
@@ -492,6 +500,8 @@ interface KeymapMetric {
 ## Dependency Injection Container
 
 ### DI Container Types
+
+#### DI Container Types [#interface:IDIContainer|#code]
 
 ```typescript
 /**
@@ -532,6 +542,8 @@ const TOKENS = {
 
 ### Test Doubles
 
+#### Test Doubles [#code]
+
 ```typescript
 /**
  * Mock для Repository
@@ -560,6 +572,8 @@ interface EventBusSpy extends IEventBus {
 
 ### Test Fixtures
 
+#### Test Fixtures [#code]
+
 ```typescript
 /**
  * Фикстуры для тестов
@@ -586,6 +600,8 @@ interface ResourceBuilder {
 ---
 
 ## Environment Types
+
+#### Environment Types [#code]
 
 ```typescript
 /**

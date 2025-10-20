@@ -29,7 +29,9 @@
 
 ### ❌ Распространенное заблуждение
 
-#### Старый vs новый подход [#code|#structure:path]
+#### Старый vs новый подход
+
+##### Loader - старый подход [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -54,7 +56,9 @@ export async function loader({ request }) {
 
 **Проблема без Facades:**
 
-#### Антипаттерн - прямые зависимости [#code]
+#### Антипаттерн - прямые зависимости
+
+##### Антипаттерн [#code]
 
 ```typescript
 // ❌ ПЛОХО: Route Handler знает о деталях реализации
@@ -126,14 +130,15 @@ export async function loader() {
 
 > **📘 Полное описание внедрения внешних зависимостей см. в [ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)**
 
-#### src/composition/ServiceContainer.ts [#code|#structure:path]
+#### src/composition/ServiceContainer.ts
 
+##### ServiceContainer [#code|#structure:path]
 
 ```typescript
-import { InMemoryQueryBus } from '@/infrastructure/queries'  // #structure:
-import { ResourceModule } from './modules/ResourceModule'  // #structure:
-import type { IQueryBus, IRequestParser } from '@/application'  // #structure:
-import type { IClipboardService } from '@/application/ports'  // #structure:
+import { InMemoryQueryBus } from '@/infrastructure/queries'
+import { ResourceModule } from './modules/ResourceModule'
+import type { IQueryBus, IRequestParser } from '@/application'
+import type { IClipboardService } from '@/application/ports'
 
 /**
  * Composition Root - место, где создаются и связываются зависимости
@@ -191,7 +196,9 @@ class ServiceContainer {
 }
 ```
 
-#### Public API для Composition [#code|#structure:path]
+#### Public API для Composition
+
+##### Composition index.ts [#code|#structure:path]
 
 ```typescript
 // src/composition/index.ts
@@ -210,8 +217,9 @@ export { ServiceContainer } from './ServiceContainer'
 
 ### Query Facades (упрощенный API для UI)
 
-#### src/composition/queries/ResourceQueries.ts [#code|#structure:path]
+#### src/composition/queries/ResourceQueries.ts
 
+##### ResourceQueries facade [#code|#structure:path]
 
 ```typescript
 import { ListResourcesQuery } from '@/application/queries'
@@ -246,7 +254,9 @@ export const resourceQueries = {
 }
 ```
 
-#### Public API для Queries [#code|#structure:path]
+#### Public API для Queries
+
+##### Queries index.ts [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/index.ts
@@ -301,7 +311,9 @@ export const queries = {
 
 ### Пример кода
 
-#### Route Handler [#code|#structure:path]
+#### Route Handler
+
+##### Loader с facade [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
@@ -316,7 +328,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 ```
 
-#### Что происходит внутри Facade [#code|#structure:path]
+#### Что происходит внутри Facade
+
+##### Facade внутренности [#code|#structure:path]
 
 ```typescript
 // src/composition/queries/ResourceQueries.ts
@@ -336,7 +350,9 @@ export const resourceQueries = {
 }
 ```
 
-#### Query Handler [#code|#structure:path]
+#### Query Handler
+
+##### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
@@ -368,7 +384,9 @@ export class ListResourcesQueryHandler {
 }
 ```
 
-#### Клиентский компонент [#code]
+#### Клиентский компонент
+
+##### Index компонент [#code]
 
 ```typescript
 export default function Index() {
@@ -418,7 +436,9 @@ export default function Index() {
 13. Browser → Revalidation (перезагрузка loader)
 ```
 
-#### Пример action [#code|#structure:path]
+#### Пример action
+
+##### Action с commands [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources.new.tsx
@@ -448,7 +468,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
 **Используй для:** Первичной загрузки данных
 
-#### Пример loader [#code|#structure:path]
+#### Пример loader
+
+##### Loader с Query Facade [#code|#structure:path]
 
 ```typescript
 // ✅ РЕКОМЕНДУЕТСЯ: Используй Query Facade
@@ -474,7 +496,9 @@ export default function Index() {
 
 **Используй для:** Операций без навигации (like, delete, update)
 
-#### Пример useFetcher [#code]
+#### Пример useFetcher
+
+##### useFetcher пример [#code]
 
 ```typescript
 export default function ResourceItem() {
@@ -499,7 +523,9 @@ export default function ResourceItem() {
 
 **Используй для:** Переиспользуемой UI логики
 
-#### Custom Hook [#code|#structure:path]
+#### Custom Hook
+
+##### useResourceActions hook [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/hooks/useResourceActions.ts
@@ -534,7 +560,9 @@ export function useResourceActions() {
 }
 ```
 
-#### Использование custom hook [#code]
+#### Использование custom hook
+
+##### Пример использования [#code]
 
 ```typescript
 export default function ResourceList() {
@@ -557,7 +585,9 @@ export default function ResourceList() {
 
 ### 4. Optimistic UI (для лучшего UX)
 
-#### Пример Optimistic UI [#code]
+#### Пример Optimistic UI
+
+##### Optimistic UI [#code]
 
 ```typescript
 export default function ResourceList() {

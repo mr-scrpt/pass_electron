@@ -6,25 +6,27 @@
 
 ### App Configuration
 
+#### App Configuration [#interface:AppConfig|#interface:ApiConfig|#interface:FeatureFlags|#code]
+
 ```typescript
 /**
  * Конфигурация приложения
  */
-interface AppConfig {  // #interface:AppConfig
+interface AppConfig {
   mode: 'development' | 'production' | 'test'
   useMocks: boolean
   api: ApiConfig
   features: FeatureFlags
 }
 
-interface ApiConfig {  // #interface:ApiConfig
+interface ApiConfig {
   baseUrl: string
   timeout: number
   retryAttempts: number
   retryDelay: number
 }
 
-interface FeatureFlags {  // #interface:FeatureFlags
+interface FeatureFlags {
   enableClipboard: boolean
   enableNotifications: boolean
   enableKeyboardShortcuts: boolean
@@ -37,22 +39,24 @@ interface FeatureFlags {  // #interface:FeatureFlags
 
 ### API Response Types
 
+#### API Response Types [#interface:ApiResponse|#interface:ApiResponseMeta|#interface:PaginationInfo|#code]
+
 ```typescript
 /**
  * Типы для работы с API
  */
-interface ApiResponse<T> {  // #interface:ApiResponse
+interface ApiResponse<T> {
   data: T
   meta?: ApiResponseMeta
 }
 
-interface ApiResponseMeta {  // #interface:ApiResponseMeta
+interface ApiResponseMeta {
   timestamp: string
   requestId: string
   pagination?: PaginationInfo
 }
 
-interface PaginationInfo {  // #interface:PaginationInfo
+interface PaginationInfo {
   total: number
   limit: number
   offset: number
@@ -62,11 +66,13 @@ interface PaginationInfo {  // #interface:PaginationInfo
 
 ### API Error Types
 
+#### API Error Types [#interface:ApiError|#code]
+
 ```typescript
 /**
  * Ошибка API
  */
-interface ApiError extends Error {  // #interface:ApiError
+interface ApiError extends Error {
   code: ApiErrorCode
   status: number
   details?: any
@@ -87,11 +93,13 @@ type ApiErrorCode =
 
 ### Request Options
 
+#### Request Options [#interface:RequestOptions|#code]
+
 ```typescript
 /**
  * Опции для HTTP запросов
  */
-interface RequestOptions {  // #interface:RequestOptions
+interface RequestOptions {
   headers?: Record<string, string>
   params?: Record<string, string | number | boolean>
   timeout?: number

@@ -103,9 +103,9 @@ import { Resource, ResourceId, Namespace } from '@/domain'
 // ✅ Facades из Composition
 import { queries, commands } from '@/composition'
 
-// ✅ Локальные компоненты (React Router alias)
-import { ResourceList } from '~/components/ResourceList'
-import { useModal } from '~/hooks/useModal'
+// ✅ Локальные компоненты
+import { ResourceList } from '@/components/ResourceList'
+import { useModal } from '@/hooks/useModal'
 
 // ❌ НЕЛЬЗЯ импортировать Application/Infrastructure напрямую!
 // import { GetResourcesHandler } from '@/application/queries/handlers/GetResourcesHandler'  // ❌

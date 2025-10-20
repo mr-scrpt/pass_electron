@@ -371,16 +371,20 @@ export * from './value-objects'
 // src/domain/resource/repositories/IResourceRepository.ts
 import type { ResourceId } from '../value-objects/ResourceId'
 import type { Namespace } from '../value-objects/Namespace'
+import type { Resource } from '../aggregates/Resource'
 
 /**
  * Интерфейс репозитория ресурсов
  * Определен в Domain Layer, реализован в Infrastructure Layer
+ * 
+ * ⚠️ Возвращает Domain типы (Resource), НЕ DTO!
+ * Преобразование Domain → DTO происходит в Query Handler (Application Layer)
  */
 export interface IResourceRepository {
-  findAll(): Promise<ResourceListItem[]>
-  findById(id: ResourceId): Promise<ResourceListItem | null>
-  findByNamespace(namespace: Namespace): Promise<ResourceListItem[]>
-  search(query: string): Promise<ResourceListItem[]>
+  findAll(): Promise<Resource[]>
+  findById(id: ResourceId): Promise<Resource | null>
+  findByNamespace(namespace: Namespace): Promise<Resource[]>
+  search(query: string): Promise<Resource[]>
 }
 ```
 
@@ -414,9 +418,14 @@ Infrastructure Layer реализует интерфейсы из Domain Layer.
 
 ```typescript
 // src/infrastructure/mocks/resources.mock.ts
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
+import { Resource, ResourceId, Namespace, ResourceName } from '@/domain/resource'
 
-export const mockResources: ResourceListItemDTO[] = [
+/**
+ * Mock данные для разработки
+ * ⚠️ Используем Domain типы (Resource), НЕ DTO!
+ * Infrastructure НЕ должен зависеть от Application Layer
+ */
+export const mockResources: Resource[] = [
   {
     id: '1',
     namespace: 'social',
@@ -480,35 +489,38 @@ export { mockResources } from './resources.mock'
 ```typescript
 // src/infrastructure/repositories/MockResourceRepository.ts
 import type { IResourceRepository } from '@/domain/repositories'
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
-import type { ResourceId, Namespace } from '@/domain/resource'
+import type { Resource, ResourceId, Namespace } from '@/domain/resource'
 import { mockResources } from '../mocks'
 
 /**
  * Mock реализация репозитория ресурсов
  * Использует in-memory данные для разработки
+ * 
+ * ⚠️ Возвращает Domain типы (Resource), НЕ DTO!
+ * Infrastructure НЕ должен зависеть от Application Layer
  */
 export class MockResourceRepository implements IResourceRepository {
-  async findAll(): Promise<ResourceListItemDTO[]> {
-    // Имитация асинхронности (как будто запрос к API)
+  async findAll(): Promise<Resource[]> {
+    // В реальном проекте здесь будет преобразование из БД в Domain модель
+    // Для упрощения возвращаем mock данные как есть
     return Promise.resolve([...mockResources])
   }
   
-  async findById(id: ResourceId): Promise<ResourceListItemDTO | null> {
-    const resource = mockResources.find(r => r.id === id.getValue())
+  async findById(id: ResourceId): Promise<Resource | null> {
+    const resource = mockResources.find(r => r.id.equals(id))
     return Promise.resolve(resource ?? null)
   }
   
-  async findByNamespace(namespace: Namespace): Promise<ResourceListItemDTO[]> {
-    const filtered = mockResources.filter(r => r.namespace === namespace.getValue())
+  async findByNamespace(namespace: Namespace): Promise<Resource[]> {
+    const filtered = mockResources.filter(r => r.namespace.equals(namespace))
     return Promise.resolve(filtered)
   }
   
-  async search(query: string): Promise<ResourceListItemDTO[]> {
+  async search(query: string): Promise<Resource[]> {
     const lowerQuery = query.toLowerCase()
     const filtered = mockResources.filter(r => 
-      r.namespace.includes(lowerQuery) ||
-      r.name.includes(lowerQuery)
+      r.namespace.getValue().includes(lowerQuery) ||
+      r.name.getValue().includes(lowerQuery)
     )
     return Promise.resolve(filtered)
   }
@@ -638,21 +650,35 @@ import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
 /**
  * Query Handler для получения списка ресурсов
  * Реализует CQRS паттерн для чтения данных
+ * 
+ * ⚠️ ВАЖНО: Преобразование Domain → DTO происходит ЗДЕСЬ!
+ * Repository возвращает Domain типы (Resource)
+ * Query Handler преобразует их в DTO для Presentation Layer
  */
 export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   constructor(private repository: IResourceRepository) {}
   
   async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
     try {
-      // Получаем данные из репозитория
+      // Получаем Domain типы из репозитория
       const resources = await this.repository.findAll()
+      
+      // Преобразуем Domain → DTO
+      const dtos: ResourceListItemDTO[] = resources.map(resource => ({
+        id: resource.id.getValue(),
+        namespace: resource.namespace.getValue(),
+        name: resource.name.getValue(),
+        secretPreview: resource.getSecretPreview(),
+        fieldsCount: resource.getFieldsCount(),
+        updatedAt: resource.updatedAt.toISOString()
+      }))
       
       // В будущем: фильтрация по namespace и search
       // const filtered = query.namespace 
-      //   ? resources.filter(r => r.namespace === query.namespace)
-      //   : resources
+      //   ? dtos.filter(dto => dto.namespace === query.namespace)
+      //   : dtos
       
-      return { data: resources }
+      return { data: dtos }
     } catch (error) {
       return {
         data: [],

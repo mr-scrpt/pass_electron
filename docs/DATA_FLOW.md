@@ -702,6 +702,9 @@ export default function ResourceList() {
    ```
 
 3. **НЕ мешай серверный и клиентский код**
+
+   #### Антипаттерн [#code]
+
    ```typescript
    // ПЛОХО - Repository на клиенте
    // ❌ ПЛОХО - Repository на клиенте
@@ -711,6 +714,9 @@ export default function ResourceList() {
    ```
 
 4. **НЕ обходи Facade**
+
+   #### Антипаттерн [#code]
+
    ```typescript
    // ❌ ПЛОХО
    export async function loader() {
@@ -720,6 +726,9 @@ export default function ResourceList() {
    ```
 
 5. **НЕ дублируй композицию зависимостей**
+
+   #### Антипаттерн [#code]
+
    ```typescript
    // ❌ ПЛОХО - дублирование в каждом loader
    export async function loader1() {

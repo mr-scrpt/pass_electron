@@ -616,6 +616,9 @@ export default function ResourceList() {
 ### ✅ DO: Правильные паттерны
 
 1. **Используй `loader()` для загрузки данных через Query Facade**
+
+   #### Loader с Query Facade [#code]
+
    ```typescript
    import { queries } from '@/composition'
    
@@ -625,6 +628,9 @@ export default function ResourceList() {
    ```
 
 2. **Используй Facades для чтения и записи**
+
+   #### Facades для queries и commands [#code]
+
    ```typescript
    // ✅ Для чтения (Queries)
    import { queries } from '@/composition'
@@ -640,6 +646,9 @@ export default function ResourceList() {
    ```
 
 3. **Composition Root для всех зависимостей**
+
+   #### Composition Root [#code]
+
    ```typescript
    // Все зависимости в одном месте (src/composition/)
    export { queries } from './queries'
@@ -647,12 +656,18 @@ export default function ResourceList() {
    ```
 
 4. **Хуки для UI логики, не для фетчинга**
+
+   #### Hooks для UI [#code]
+
    ```typescript
    const { deleteResource } = useResourceActions()  // ✅ UI логика
    const { resources } = useLoaderData()            // ✅ Данные из loader
    ```
 
 5. **Type-safe data flow**
+
+   #### Type-safe [#code]
+
    ```typescript
    const { resources } = useLoaderData<typeof loader>()  // Типизация
    ```
@@ -660,6 +675,9 @@ export default function ResourceList() {
 ### DON'T: Антипаттерны
 
 1. **НЕ создавай репозитории в loader напрямую**
+
+   #### Антипаттерн [#code]
+
    ```typescript
    // ПЛОХО
    export async function loader() {
@@ -670,6 +688,9 @@ export default function ResourceList() {
    ```
 
 2. **НЕ используй useState/useEffect для первичной загрузки**
+
+   #### Антипаттерн [#code]
+
    ```typescript
    // ПЛОХО
    export default function Index() {

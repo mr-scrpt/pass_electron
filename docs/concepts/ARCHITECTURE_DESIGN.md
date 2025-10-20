@@ -375,6 +375,9 @@ NotificationRaised, NotificationDismissed
 - Misc: GeneratePassword
 
 **Repository Interface:**
+
+#### IResourceRepository [#interface:IResourceRepository|#code]
+
 ```typescript
 interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>
@@ -403,6 +406,9 @@ interface IResourceRepository {
 - Queries: GetCurrentMode, GetModeContext
 
 **Domain Service:**
+
+#### ModalManager [#code]
+
 ```typescript
 class ModalManager {
   private mode: AppMode
@@ -438,6 +444,9 @@ class ModalManager {
 - Queries: GetActiveKeymaps, GetFocused, FindByBinding
 
 **Domain Services:**
+
+#### Keyboard Navigation Services [#code]
+
 ```typescript
 class KeymapRegistry {
   register(keymap: Keymap): void

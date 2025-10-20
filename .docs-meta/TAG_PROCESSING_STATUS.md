@@ -3,6 +3,8 @@
 **Дата начала:** 2025-10-19  
 **Цель:** Исправить теги во всех 33 файлах документации
 
+**Актуальная система тегов:** `.docs-meta/TAG_SYSTEM_V2.md`
+
 ---
 
 ## Правила обработки
@@ -41,15 +43,15 @@
 18. ✅ **contracts/README.md** - исправлен
 19. ✅ **contracts/api-contracts.md** - исправлен (562 строки, 74 блока)
 20. ✅ **contracts/domain-types.md** - исправлен (477 строк, 24 блока)
+21. ✅ **contracts/events.md** - исправлен (646 строк, 30 блоков)
 
 ### 🔄 В процессе (0 файлов)
 
 _Нет_
 
-### ⏳ Ожидают обработки (12 файлов)
+### ⏳ Ожидают обработки (11 файлов)
 
-**Contracts (3 файла):**
-21. ⏳ contracts/events.md
+**Contracts (2 файла):**
 22. ⏳ contracts/infrastructure-types.md
 23. ⏳ contracts/system-interfaces.md
 

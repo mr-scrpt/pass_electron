@@ -311,6 +311,9 @@ interface DeleteResourceResponse {
 Добавить кастомное поле к ресурсу.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:AddFieldParams|#code]
+
 ```typescript
 interface AddFieldParams {
   resourceId: string
@@ -318,6 +321,9 @@ interface AddFieldParams {
 ```
 
 **Request Body:**
+
+#### Request Body [#interface:AddFieldRequest|#code]
+
 ```typescript
 interface AddFieldRequest {
   label: string
@@ -326,6 +332,9 @@ interface AddFieldRequest {
 ```
 
 **Response:**
+
+#### Response [#interface:AddFieldResponse|#code]
+
 ```typescript
 interface AddFieldResponse {
   data: CustomFieldDTO
@@ -347,6 +356,9 @@ interface AddFieldResponse {
 Обновить поле ресурса.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:UpdateFieldParams|#code]
+
 ```typescript
 interface UpdateFieldParams {
   resourceId: string
@@ -355,6 +367,9 @@ interface UpdateFieldParams {
 ```
 
 **Request Body:**
+
+#### Request Body [#interface:UpdateFieldRequest|#code]
+
 ```typescript
 interface UpdateFieldRequest {
   label?: string  // Только для customFields
@@ -363,6 +378,9 @@ interface UpdateFieldRequest {
 ```
 
 **Response:**
+
+#### Response [#interface:UpdateFieldResponse|#code]
+
 ```typescript
 interface UpdateFieldResponse {
   data: SecretFieldDTO | CustomFieldDTO
@@ -385,6 +403,9 @@ interface UpdateFieldResponse {
 Удалить кастомное поле.
 
 **Path Parameters:**
+
+#### Path Parameters [#interface:DeleteFieldParams|#code]
+
 ```typescript
 interface DeleteFieldParams {
   resourceId: string
@@ -393,6 +414,9 @@ interface DeleteFieldParams {
 ```
 
 **Response:**
+
+#### Response [#interface:DeleteFieldResponse|#code]
+
 ```typescript
 interface DeleteFieldResponse {
   data: {
@@ -419,6 +443,9 @@ interface DeleteFieldResponse {
 Получить список всех неймспейсов.
 
 **Response:**
+
+#### Response [#interface:ListNamespacesResponse|#code]
+
 ```typescript
 interface ListNamespacesResponse {
   data: NamespaceDTO[]
@@ -443,6 +470,9 @@ interface NamespaceDTO {
 Сгенерировать пароль.
 
 **Request Body:**
+
+#### Request Body [#interface:GeneratePasswordRequest|#code]
+
 ```typescript
 interface GeneratePasswordRequest {
   length: number                // 8-128
@@ -456,6 +486,9 @@ interface GeneratePasswordRequest {
 ```
 
 **Response:**
+
+#### Response [#interface:GeneratePasswordResponse|#code]
+
 ```typescript
 interface GeneratePasswordResponse {
   data: {

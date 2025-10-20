@@ -158,9 +158,9 @@ import { Resource, ResourceId } from '@/domain'
 // ✅ Facades из Composition
 import { queries } from '@/composition'
 
-// ✅ Локальные компоненты через ~ (React Router alias)
-import { ResourceList } from '~/components/ResourceList'
-import { useModal } from '~/hooks/useModal'
+// ✅ Локальные компоненты через @/
+import { ResourceList } from '@/components/ResourceList'
+import { useModal } from '@/hooks/useModal'
 
 export async function loader({ request }: Route.LoaderArgs) {
   // vite-tsconfig-paths резолвит @/composition → src/composition/index.ts
@@ -259,7 +259,7 @@ pnpm dev:web
 // Тестируем что все алиасы работают
 import { Resource } from '@/domain'        // Public API
 import { queries } from '@/composition'    // Facades
-import { ResourceList } from '~/components/ResourceList'  // Локальные (React Router alias)
+import { ResourceList } from '@/components/ResourceList'  // Локальные
 
 // ❌ Эти импорты НЕ должны работать в Presentation!
 // import { ListResourcesHandler } from '@/application/queries/handlers/ListResourcesHandler'
@@ -359,7 +359,7 @@ console.log('✅ Все импорты работают!')
 - [ ] `pnpm typecheck` проходит без ошибок
 - [ ] `pnpm dev:web` запускается
 - [ ] Импорты `@/domain`, `@/composition` работают в routes
-- [ ] Локальные импорты `~/components` работают (React Router alias)
+- [ ] Локальные импорты `@/components` работают
 
 ---
 

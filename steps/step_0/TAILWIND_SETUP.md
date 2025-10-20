@@ -233,12 +233,18 @@ pnpm dev
 Если не хочешь использовать Tailwind, можно взять:
 
 ### CSS Modules
+
+#### Информация [#code]
+
 ```bash
 # Уже поддерживается Vite из коробки
 # Просто создай файл Component.module.css
 ```
 
 ### styled-components
+
+#### Установка [#command:pnpm-add-styled-components]
+
 ```bash
 cd src/presentation/web/react
 pnpm add styled-components
@@ -246,12 +252,18 @@ pnpm add -D @types/styled-components
 ```
 
 ### Emotion
+
+#### Установка [#command:pnpm-add-emotion]
+
 ```bash
 cd src/presentation/web/react
 pnpm add @emotion/react @emotion/styled
 ```
 
 ### Обычный CSS
+
+#### Импорт [#code|#structure:]
+
 ```typescript
 // root.tsx
 import "./styles/global.css"

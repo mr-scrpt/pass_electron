@@ -1,4 +1,4 @@
-# Шаг 1: Вывод списка моковых ресурсов `#step-1` `#mock-data` `#resources-list`
+# Шаг 1: Вывод списка моковых ресурсов
 
 ## 🎯 Цель
 
@@ -7,11 +7,16 @@
 > **📦 Менеджер пакетов**: В проекте используется **pnpm**. Все команды используют `pnpm` вместо `npm`.
 
 **Поток данных (CQRS)**:
+
+#### Data Flow [#diagram:flow]
+
 ```
 MockRepository → Query Handler → Query Bus → Facade → React Router Loader → React Component → UI
 ```
 
 ## 📊 Визуализация архитектуры
+
+#### Architecture Diagram [#diagram:architecture]
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -67,6 +72,8 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 
 Перед началом создадим структуру Domain Layer согласно DDD Best Practices:
 
+#### Create Domain Structure [#command]
+
 ```bash
 # Создать структуру Domain Layer
 mkdir -p src/domain/resource/aggregates
@@ -101,8 +108,12 @@ mkdir -p src/domain/shared/base
 
 > **📚 Детали**: [docs/error-handling/INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**  `#structure:`
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+
+#### InvariantViolationError [#class:InvariantViolationError|#code|#structure:path]
+
 ```typescript
+// src/domain/shared/errors/InvariantViolationError.ts
 export class InvariantViolationError extends Error {
   readonly code = 'INVARIANT_VIOLATION'
   
@@ -116,8 +127,12 @@ export class InvariantViolationError extends Error {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**  `#structure:`
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+
+#### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
+
 ```typescript
+// src/domain/shared/invariants/UuidInvariant.ts
 import { Result, ok, err } from 'neverthrow'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
 
@@ -161,8 +176,12 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/index.ts`**  `#structure:`
+**Файл: `src/domain/shared/index.ts`**
+
+#### Shared Public API [#code|#structure:path]
+
 ```typescript
+// src/domain/shared/index.ts
 export { InvariantViolationError } from './errors/InvariantViolationError'
 export { UuidInvariant } from './invariants/UuidInvariant'
 ```
@@ -177,8 +196,12 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы](../../docs/TYPES_AND_ENTITIES.md#value-objects-vs-typescript-типы) — Почему класс, а не type alias
 
-**Файл: `src/domain/resource/value-objects/ResourceId.ts`**  `#structure:`
+**Файл: `src/domain/resource/value-objects/ResourceId.ts`**
+
+#### ResourceId [#class:ResourceId|#code|#structure:path]
+
 ```typescript
+// src/domain/resource/value-objects/ResourceId.ts
 import { Result } from 'neverthrow'
 import { InvariantViolationError } from '@/domain/shared/errors'
 import { UuidInvariant } from '@/domain/shared/invariants'
@@ -212,8 +235,12 @@ export class ResourceId {
 
 #### 1.3 Создать Value Object: Namespace
 
-**Файл: `src/domain/resource/value-objects/Namespace.ts`**  `#structure:`
+**Файл: `src/domain/resource/value-objects/Namespace.ts`**
+
+#### Namespace [#class:Namespace|#code|#structure:path]
+
 ```typescript
+// src/domain/resource/value-objects/Namespace.ts
 export class Namespace {
   private constructor(private readonly _value: string) {}
   

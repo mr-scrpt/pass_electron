@@ -294,6 +294,8 @@ type NotificationId = string
 
 ## Зависимости между слоями
 
+#### Диаграмма зависимостей [#diagram:dependencies]
+
 ```
 Presentation Layer
        ↓ (uses)

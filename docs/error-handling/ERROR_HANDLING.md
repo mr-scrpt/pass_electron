@@ -776,10 +776,12 @@ class ApiResourceRepository implements IResourceRepository {
 
 ### Domain → Application
 
+#### CreateResourceCommandHandler [#code|#structure:path]
+
 ```typescript
 // Application Layer перехватывает Domain ошибки
 // и оборачивает в CommandResult/QueryResult
-// src/application/commands/handlers/CreateResourceCommandHandler.ts  #structure:
+// src/application/commands/handlers/CreateResourceCommandHandler.ts
 
 class CreateResourceCommandHandler {
   async handle(command: CreateResourceCommand): Promise<CommandResult> {
@@ -820,6 +822,8 @@ class CreateResourceCommandHandler {
 
 ## 📊 Иерархия ошибок
 
+### Диаграмма иерархии [#diagram:hierarchy]
+
 ```
 Error (JavaScript)
 │
@@ -846,10 +850,12 @@ Error (JavaScript)
 
 ### 1. Domain ошибки в Domain Layer
 
+#### Правильное использование [#code|#structure:path]
+
 ```typescript
 // ✅ ХОРОШО: Domain ошибка в Domain Layer
-// src/domain/resource/value-objects/ResourceName.ts  #structure:
-import { InvariantViolationError } from '@/domain/shared/errors'  #structure:
+// src/domain/resource/value-objects/ResourceName.ts
+import { InvariantViolationError } from '@/domain/shared/errors'
 
 class ResourceName {
   private constructor(private readonly value: string) {}

@@ -162,6 +162,8 @@ POST   /api/password/generate      → GeneratedPassword // Генерация �
 
 **Domain Layer** определяет интерфейсы:
 
+#### Repository интерфейсы [#interface:IResourceRepository|#interface:INamespaceRepository|#code]
+
 ```typescript
 interface IResourceRepository {
   findById(id: ResourceId): Promise<Resource | null>
@@ -178,6 +180,8 @@ interface INamespaceRepository {
 ```
 
 **Infrastructure Layer** предоставляет реализации:
+
+#### Repository реализации [#code]
 
 ```typescript
 // Для разработки — с моковыми данными

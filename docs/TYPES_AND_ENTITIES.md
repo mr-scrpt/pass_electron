@@ -22,7 +22,9 @@
 2. **Entities (классы)** - Domain Layer, имеют идентичность
 3. **DTO (интерфейсы)** - Application Layer, простые объекты для UI
 
-#### Примеры трех типов [#class:ResourceId|#class:CustomField|#interface:ResourceListItemDTO|#code]
+#### Примеры трех типов
+
+##### Три типа [#class:ResourceId|#class:Resource|#code]
 
 ```typescript
 // 1. Value Object (класс с логикой)
@@ -139,7 +141,9 @@ export { FieldValue } from './FieldValue'
 
 ## Value Objects vs TypeScript типы
 
-### ❌ НЕПРАВИЛЬНО - Type Alias [#code]
+### ❌ НЕПРАВИЛЬНО - Type Alias
+
+#### Антипаттерн [#code]
 
 ```typescript
 // ❌ Просто тип без логики
@@ -151,13 +155,15 @@ export type ResourceId = string
 // - Нет бизнес-логики
 ```
 
-### ✅ ПРАВИЛЬНО - Value Object (класс) [#class:ResourceId|#code|#structure:path]
+### ✅ ПРАВИЛЬНО - Value Object (класс)
+
+#### ResourceId Value Object [#class:ResourceId|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
 import { Result, ok, err } from 'neverthrow'
-import { UuidInvariant } from '@/domain/shared/invariants'  // #alias:@/ #structure:
-import { InvariantViolationError } from '@/domain/shared/errors'  // #alias:@/ #structure:
+import { UuidInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError } from '@/domain/shared/errors'
 
 /**
  * Value Object для ID ресурса
@@ -204,7 +210,9 @@ export class ResourceId {
 3. **Бизнес-логика** - методы для работы с данными
 4. **Type Safety** - TypeScript различает разные Value Objects
 
-#### Пример Type Safety [#code]
+#### Пример Type Safety
+
+##### Type Safety [#code]
 
 ```typescript
 // ✅ Type Safety с Value Objects
@@ -256,7 +264,9 @@ src/application/
 
 ### Примеры DTO
 
-#### DTO для списка ресурсов [#interface:ResourceListItemDTO|#code|#structure:path]
+#### DTO для списка ресурсов
+
+##### ResourceListItemDTO [#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/ResourceListItemDTO.ts
@@ -274,7 +284,9 @@ export interface ResourceListItemDTO {
 }
 ```
 
-#### DTO для детальной страницы [#interface:ResourceDetailDTO|#interface:CustomFieldDTO|#code|#structure:path]
+#### DTO для детальной страницы
+
+##### ResourceDetailDTO [#code|#structure:path]
 
 ```typescript
 // src/application/queries/dtos/ResourceDetailDTO.ts
@@ -401,7 +413,9 @@ import { queries } from '@/composition'
 
 ## Примеры использования
 
-### Пример 1: Создание Resource в Domain [#class:Resource|#code|#structure:path]
+### Пример 1: Создание Resource в Domain
+
+#### Resource Aggregate [#class:Resource|#code|#structure:path]
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts

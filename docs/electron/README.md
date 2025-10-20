@@ -44,6 +44,8 @@
 
 Electron код должен быть **изолирован** от основного приложения:
 
+#### Electron Project Structure [#structure:tree]
+
 ```
 project/
 ├── electron/                   # ← Packaging Layer

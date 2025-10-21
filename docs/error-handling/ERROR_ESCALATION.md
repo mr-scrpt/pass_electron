@@ -1,8 +1,8 @@
 # Эскалация ошибок (Error Escalation)
 
-Документ описывает как правильно эскалировать ошибки между архитектурными слоями используя **neverthrow** и Result Pattern, избегая Try-Catch Hell.
+Документ описывает как правильно эскалировать ошибки между архитектурными слоями используя **@sweet-monads/either** и Either Pattern, избегая Try-Catch Hell.
 
-> 📖 **Сравнение библиотек:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение neverthrow, @sweet-monads/either, fp-ts с объяснением монад и выбора библиотеки.
+> 📖 **Сравнение библиотек:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение @sweet-monads/either, neverthrow, fp-ts с объяснением монад и выбора библиотеки.
 
 ---
 
@@ -102,33 +102,40 @@ catch (error) {
 ```
 ---
 
-## 🎯 Решение: neverthrow (Result Pattern)
+## 🎯 Решение: @sweet-monads/either (Either Pattern)
 
-**Библиотека**: [neverthrow](https://github.com/supermacro/neverthrow) (~2.6k ⭐)
+**Библиотека**: [@sweet-monads/either](https://github.com/JSMonk/sweet-monads) (~2.1k ⭐)
+
+**Почему @sweet-monads/either?**
+- ✅ Накопление всех ошибок валидации (`mergeInMany`)
+- ✅ Трансформация ошибок (`mapLeft`)
+- ✅ Async операции встроены (`asyncChain`, `asyncMap`)
+- ✅ Легкая (~2kb, 0 dependencies)
+- ✅ Классическая Either монада (Haskell-style)
 
 ### Установка
 
-#### Команда установки [#command:pnpm-add-neverthrow]
+#### Команда установки [#command:pnpm-add-sweet-monads]
 
 ```bash
-pnpm add neverthrow
+pnpm add @sweet-monads/either
 ```
 
 ### Базовое использование
 
-#### ResourceName с neverthrow [#class:ResourceName|#code]
+#### ResourceName с @sweet-monads/either [#class:ResourceName|#code]
 
 ```typescript
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value) {
-      return err(new InvariantViolationError('ResourceName', 'empty'))
+      return left(new InvariantViolationError('ResourceName', 'empty'))
     }
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
   
   getValue(): string {
@@ -139,67 +146,113 @@ class ResourceName {
 
 ### Монадические операции
 
-#### 1. **map** — трансформация значения
+#### 1. **map** — трансформация Right (успешного значения)
 
 ##### Пример map [#code]
 
 ```typescript
 const result = ResourceName.create('facebook')
-  .map(name => name.value.toUpperCase())
-// Result<string, InvariantViolationError>
+  .map(name => name.getValue().toUpperCase())
+// Either<InvariantViolationError, string>
 ```
 
-#### 2. **andThen** — цепочка операций (flatMap)
+#### 2. **chain** — цепочка операций (flatMap)
 
-##### Пример andThen [#code]
+##### Пример chain [#code]
 
 ```typescript
 // ❌ ПЛОХО: Вложенные проверки
 const nameResult = ResourceName.create(input.name)
-if (nameResult.isErr()) return err(nameResult.error)
+if (nameResult.isLeft()) return left(nameResult.value)
 
 const namespaceResult = Namespace.create(input.namespace)
-if (namespaceResult.isErr()) return err(namespaceResult.error)
+if (namespaceResult.isLeft()) return left(namespaceResult.value)
 
-// ✅ ХОРОШО: andThen
+// ✅ ХОРОШО: chain
 const result = ResourceName.create(input.name)
-  .andThen(name => 
+  .chain(name => 
     Namespace.create(input.namespace)
       .map(namespace => ({ name, namespace }))
   )
 ```
 
-#### 3. **match** — pattern matching
+#### 3. **fold** — pattern matching
 
-##### Пример match [#code]
+##### Пример fold [#code]
 
 ```typescript
-return result.match(
-  (value) => json({ data: value }),
-  (error) => json({ error: error.message }, { status: 400 })
+return result.fold(
+  (error) => json({ error: error.message }, { status: 400 }),
+  (value) => json({ data: value })
 )
+// ⚠️ Порядок аргументов: (left, right) - сначала ошибка!
 ```
 
-#### 4. **combine** — параллельная валидация
+#### 4. **merge** — параллельная валидация (fail-fast)
 
-##### Пример combine [#code]
+##### Пример merge [#code]
 
 ```typescript
-import { combine } from 'neverthrow'
+import { merge } from '@sweet-monads/either'
 
-const results = combine([
+// Останавливается на первой ошибке
+const results = merge([
   ResourceName.create(input.name),
   Namespace.create(input.namespace),
   SecretField.create(input.secret)
 ])
-// Result<[ResourceName, Namespace, SecretField], Error>
+// Either<InvariantViolationError, [ResourceName, Namespace, SecretField]>
 
-results.match(
+results.fold(
+  (error) => left(error),
   ([name, namespace, secret]) => {
     return Resource.create({ name, namespace, secret })
-  },
-  (error) => err(error)
+  }
 )
+```
+
+#### 5. **mergeInMany** — накопление ВСЕХ ошибок ⭐
+
+##### Пример mergeInMany [#code]
+
+```typescript
+import { mergeInMany } from '@sweet-monads/either'
+
+// ✅ Собирает ВСЕ ошибки валидации!
+const results = mergeInMany([
+  ResourceName.create(''),           // Left(error1)
+  Namespace.create(''),              // Left(error2)
+  SecretField.create('')             // Left(error3)
+])
+// Either<Array<InvariantViolationError>, [ResourceName, Namespace, SecretField]>
+
+results.fold(
+  (errors) => {
+    // errors = [error1, error2, error3]
+    return json({
+      errors: errors.map(e => ({
+        field: e.entityType,
+        message: e.message
+      }))
+    }, { status: 400 })
+  },
+  ([name, namespace, secret]) => {
+    return Resource.create({ name, namespace, secret })
+  }
+)
+```
+
+#### 6. **mapLeft** — трансформация ошибок
+
+##### Пример mapLeft [#code]
+
+```typescript
+// Преобразование Domain ошибки в Application ошибку
+const result = ResourceName.create('')
+  .mapLeft(domainError => 
+    new ValidationError(domainError.message)
+  )
+// Either<ValidationError, ResourceName>
 ```
 
 ### Полный пример: Command Handler
@@ -207,14 +260,14 @@ results.match(
 #### CreateResourceCommandHandler [#class:CreateResourceCommandHandler|#code]
 
 ```typescript
-import { Result, ok, err, combine } from 'neverthrow'
+import { Either, merge } from '@sweet-monads/either'
 
 class CreateResourceCommandHandler {
   async handle(
     command: CreateResourceCommand
-  ): Promise<Result<Resource, DomainError>> {
+  ): Promise<Either<DomainError, Resource>> {
     
-    return combine([
+    return merge([
       ResourceName.create(command.name),
       Namespace.create(command.namespace),
       SecretField.create(command.secret)
@@ -222,7 +275,7 @@ class CreateResourceCommandHandler {
       .map(([name, namespace, secret]) => 
         Resource.create({ name, namespace, secret })
       )
-      .andThen(resource => 
+      .asyncChain(resource => 
         this.repository.save(resource)
       )
       .map(savedResource => {
@@ -233,29 +286,27 @@ class CreateResourceCommandHandler {
 }
 ```
 
-### ResultAsync для async операций
+### asyncChain для async операций
 
 #### ApiResourceRepository [#interface:IResourceRepository|#code]
 
 ```typescript
-import { ResultAsync } from 'neverthrow'
+import { Either, right, left, fromPromise } from '@sweet-monads/either'
 
 class ApiResourceRepository implements IResourceRepository {
-  findById(id: ResourceId): ResultAsync<Resource, NotFoundError | NetworkError> {
-    return ResultAsync.fromPromise(
-      fetch(`/api/resources/${id.getValue()}`),
-      () => new NetworkError('Failed to fetch')
+  async findById(id: ResourceId): Promise<Either<NotFoundError | NetworkError, Resource>> {
+    return fromPromise<NetworkError, Response>(
+      fetch(`/api/resources/${id.getValue()}`)
     )
-      .andThen(response => {
+      .asyncChain(async response => {
         if (response.status === 404) {
-          return err(new NotFoundError('Resource', id.getValue()))
+          return left(new NotFoundError('Resource', id.getValue()))
         }
-        return ok(response)
+        return right(response)
       })
-      .andThen(response => 
-        ResultAsync.fromPromise(
-          response.json(),
-          () => new NetworkError('Failed to parse')
+      .asyncChain(response => 
+        fromPromise<NetworkError, any>(
+          response.json()
         )
       )
       .map(data => this.mapper.toDomain(data))
@@ -263,12 +314,14 @@ class ApiResourceRepository implements IResourceRepository {
 }
 ```
 
-### Преимущества neverthrow
+### Преимущества @sweet-monads/either
 - ✅ **Railway-oriented programming**: ошибка автоматически прокидывается
 - ✅ **Type-safe chain**: компилятор знает тип на каждом шаге
 - ✅ **Нет boilerplate**: не нужны if на каждом шаге
-- ✅ **Функциональный стиль**: map, andThen, match
-- ✅ **Async support**: ResultAsync для промисов
+- ✅ **Функциональный стиль**: map, chain, fold
+- ✅ **Async support**: asyncChain, asyncMap встроены
+- ✅ **mergeInMany**: накопление всех ошибок (уникально!)
+- ✅ **mapLeft**: трансформация ошибок
 - ✅ **Легкая**: 0 dependencies, ~2kb gzipped
 
 ---
@@ -277,19 +330,19 @@ class ApiResourceRepository implements IResourceRepository {
 
 ### Domain → Application
 
-Domain Layer возвращает `Result<T, DomainError>`, Application Layer комбинирует их через `combine()` и `andThen()`.
+Domain Layer возвращает `Either<DomainError, T>`, Application Layer комбинирует их через `merge()` и `chain()`.
 
 #### Пример: Command Handler [#code]
 
 ```typescript
-import { Result, combine } from 'neverthrow'
+import { Either, merge } from '@sweet-monads/either'
 
 class CreateResourceCommandHandler {
   async handle(
     command: CreateResourceCommand
-  ): Promise<Result<Resource, DomainError>> {
+  ): Promise<Either<DomainError, Resource>> {
     // Комбинируем валидацию Value Objects
-    return combine([
+    return merge([
       ResourceName.create(command.name),
       Namespace.create(command.namespace),
       SecretField.create(command.secret)
@@ -297,7 +350,7 @@ class CreateResourceCommandHandler {
       .map(([name, namespace, secret]) => 
         Resource.create({ name, namespace, secret })
       )
-      .asyncAndThen(resource => 
+      .asyncChain(resource => 
         this.repository.save(resource)
       )
   }
@@ -306,21 +359,21 @@ class CreateResourceCommandHandler {
 
 ### Infrastructure → Domain
 
-Infrastructure Layer перехватывает технические ошибки (NetworkError, ApiError) и преобразует их в Domain ошибки через `mapErr()`.
+Infrastructure Layer перехватывает технические ошибки (NetworkError, ApiError) и преобразует их в Domain ошибки через `mapLeft()`.
 
 #### Пример: Repository [#interface:IResourceRepository|#code]
 
 ```typescript
-import { ResultAsync } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 
 class ApiResourceRepository implements IResourceRepository {
-  findById(id: ResourceId): ResultAsync<Resource, NotFoundError | NetworkError> {
+  async findById(id: ResourceId): Promise<Either<NotFoundError | NetworkError, Resource>> {
     return this.httpClient
       .get<ResourceDTO>(`/resources/${id.getValue()}`)
-      .andThen((response) => 
+      .chain((response) => 
         this.mapper.toDomain(response)
       )
-      .mapErr((error) => {
+      .mapLeft((error) => {
         // HTTP 404 → NotFoundError (Domain)
         if (error instanceof NetworkError && error.statusCode === 404) {
           return new NotFoundError('Resource', id.getValue())
@@ -333,7 +386,7 @@ class ApiResourceRepository implements IResourceRepository {
 
 ### Application → Presentation
 
-Presentation Layer использует `.match()` для обработки Result и возврата HTTP ответов.
+Presentation Layer использует `.fold()` для обработки Either и возврата HTTP ответов.
 
 #### Пример: Remix Action [#code]
 

@@ -14,6 +14,33 @@
 
 ---
 
+## 📑 Содержание
+
+1. [Архитектура валидации](#-архитектура-валидации)
+2. [Библиотека переиспользуемых спецификаций](#-библиотека-переиспользуемых-спецификаций)
+3. [Бизнес-специфичные спецификации](#-бизнес-специфичные-спецификации) ⭐
+4. [Использование в Value Objects](#-использование-в-value-objects)
+5. [Использование в Application Layer](#-использование-в-application-layer)
+6. [Тестирование спецификаций](#-тестирование-спецификаций)
+7. [Best Practices](#-best-practices)
+8. [Структура файлов](#-структура-файлов)
+
+---# Specification Pattern для валидации Value Objects
+
+**Теги:** `#validation` `#specification` `#value-objects` `#invariants`
+
+---
+
+## 🎯 Применение Specification Pattern для валидации
+
+Этот документ описывает **практическое применение** Specification Pattern для валидации инвариантов Value Objects в нашем проекте.
+
+> 📖 **Теория:** См. [patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md) для полного описания паттерна
+
+> 💡 **Архитектура:** См. [.docs-meta/VALIDATION_ARCHITECTURE.md](../../.docs-meta/VALIDATION_ARCHITECTURE.md) для полного плана архитектуры
+
+---
+
 ## 📐 Архитектура валидации
 
 ### Обертка Validation [#code|#structure:]
@@ -179,6 +206,179 @@ export class UuidV4Spec implements ISpecification<string> {  // #class:UuidV4Spe
 
 ---
 
+## 🏢 Бизнес-специфичные спецификации
+
+### Разница между общими и бизнес-специфичными
+
+**Общие спецификации** (`src/shared/specification/`):
+- ✅ Переиспользуемые правила (NotEmpty, LengthRange, Pattern, UUID)
+- ✅ Не зависят от бизнес-логики
+- ✅ Могут использоваться в любом домене
+
+**Бизнес-специфичные** (`src/domain/{context}/specifications/`):
+- ✅ Содержат бизнес-правила конкретного домена
+- ✅ Могут зависеть от других доменных сущностей
+- ✅ Могут требовать доступ к Repository
+- ✅ Инкапсулируют Ubiquitous Language
+
+### Примеры бизнес-специфичных спецификаций [#code|#structure:]
+
+#### 1. NotReservedNamespaceSpec - проверка зарезервированных имен [#class:NotReservedNamespaceSpec]
+
+```typescript
+// src/domain/resource/specifications/NotReservedNamespaceSpec.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from '@/shared/specification'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+
+/**
+ * Бизнес-правило: некоторые namespace зарезервированы системой
+ */
+export class NotReservedNamespaceSpec implements ISpecification<string> {  // #class:NotReservedNamespaceSpec
+  private static readonly RESERVED_NAMESPACES = [
+    'system',
+    'admin',
+    'root',
+    'config',
+    'settings'
+  ]
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    const isReserved = NotReservedNamespaceSpec.RESERVED_NAMESPACES.includes(
+      value.toLowerCase()
+    )
+
+    return !isReserved
+      ? valid(value)
+      : invalid(new ValidationError(
+          'Namespace',
+          `"${value}" is a reserved namespace and cannot be used`
+        ))
+  }
+}
+```
+
+#### 2. UniqueResourceNameSpec - проверка уникальности через Repository [#class:UniqueResourceNameSpec]
+
+```typescript
+// src/domain/resource/specifications/UniqueResourceNameSpec.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from '@/shared/specification'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+import { IResourceRepository } from '../repositories/IResourceRepository'  // #structure:
+import { Namespace } from '../value-objects/Namespace'  // #structure:
+
+/**
+ * Бизнес-правило: имя ресурса должно быть уникальным в пределах namespace
+ * 
+ * ВАЖНО: Эта спецификация асинхронная, т.к. требует доступ к Repository
+ */
+export class UniqueResourceNameSpec {  // #class:UniqueResourceNameSpec
+  constructor(
+    private readonly repository: IResourceRepository,
+    private readonly namespace: Namespace
+  ) {}
+
+  async isSatisfiedBy(name: string): Promise<Validation<ValidationError, string>> {
+    const existing = await this.repository.findByNamespaceAndName(
+      this.namespace,
+      name
+    )
+
+    return !existing
+      ? valid(name)
+      : invalid(new ValidationError(
+          'ResourceName',
+          `Resource "${name}" already exists in namespace "${this.namespace.getValue()}"`
+        ))
+  }
+}
+```
+
+#### 3. ValidPasswordStrengthSpec - проверка сложности пароля [#class:ValidPasswordStrengthSpec]
+
+```typescript
+// src/domain/resource/specifications/ValidPasswordStrengthSpec.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from '@/shared/specification'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+
+/**
+ * Бизнес-правило: пароль должен соответствовать требованиям безопасности
+ */
+export class ValidPasswordStrengthSpec implements ISpecification<string> {  // #class:ValidPasswordStrengthSpec
+  private static readonly MIN_LENGTH = 8
+  private static readonly REQUIRE_UPPERCASE = true
+  private static readonly REQUIRE_LOWERCASE = true
+  private static readonly REQUIRE_DIGIT = true
+  private static readonly REQUIRE_SPECIAL = true
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    const errors: string[] = []
+
+    if (value.length < ValidPasswordStrengthSpec.MIN_LENGTH) {
+      errors.push(`at least ${ValidPasswordStrengthSpec.MIN_LENGTH} characters`)
+    }
+
+    if (ValidPasswordStrengthSpec.REQUIRE_UPPERCASE && !/[A-Z]/.test(value)) {
+      errors.push('at least one uppercase letter')
+    }
+
+    if (ValidPasswordStrengthSpec.REQUIRE_LOWERCASE && !/[a-z]/.test(value)) {
+      errors.push('at least one lowercase letter')
+    }
+
+    if (ValidPasswordStrengthSpec.REQUIRE_DIGIT && !/\d/.test(value)) {
+      errors.push('at least one digit')
+    }
+
+    if (ValidPasswordStrengthSpec.REQUIRE_SPECIAL && !/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+      errors.push('at least one special character')
+    }
+
+    return errors.length === 0
+      ? valid(value)
+      : invalid(new ValidationError(
+          'Password',
+          `Password must contain: ${errors.join(', ')}`
+        ))
+  }
+}
+```
+
+### Композиция общих и бизнес-специфичных спецификаций [#code]
+
+```typescript
+// src/domain/resource/value-objects/Namespace.ts  #structure:
+import { Validation } from '@/shared/validation'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+import { CompositeSpecification } from '@/shared/specification'  // #structure:
+import { 
+  NotEmptySpec,      // ✅ Общая
+  LengthRangeSpec,   // ✅ Общая
+  PatternSpec        // ✅ Общая
+} from '@/shared/specification'  // #structure:
+import { 
+  NotReservedNamespaceSpec  // ✅ Бизнес-специфичная
+} from '../specifications/NotReservedNamespaceSpec'  // #structure:
+
+export class Namespace {  // #class:Namespace
+  static create(value: string): Validation<ValidationError, Namespace> {
+    // Комбинируем общие и бизнес-специфичные спецификации
+    const spec = CompositeSpecification.allOf(
+      new NotEmptySpec('Namespace'),           // Общая
+      new LengthRangeSpec(2, 50, 'Namespace'), // Общая
+      new PatternSpec(/^[a-z0-9-_]+$/, 'invalid format', 'Namespace'), // Общая
+      new NotReservedNamespaceSpec()           // Бизнес-специфичная! ⭐
+    )
+
+    return spec.isSatisfiedBy(value).map(v => new Namespace(v))
+  }
+}
+```
+
+---
+
 ## 🎯 Использование в Value Objects
 
 ### Пример: Namespace [#code|#structure:|#class:Namespace]
@@ -258,6 +458,272 @@ export class Namespace {  // #class:Namespace
 
 ---
 
+## 🔄 Использование в Application Layer
+
+### Command Handler с валидацией [#code|#structure:]
+
+```typescript
+// src/application/commands/handlers/CreateResourceHandler.ts  #structure:
+import { Validation } from '@/shared/validation'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+import { Namespace } from '@/domain/resource/value-objects/Namespace'  // #structure:
+import { ResourceName } from '@/domain/resource/value-objects/ResourceName'  // #structure:
+import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'  // #structure:
+import { UniqueResourceNameSpec } from '@/domain/resource/specifications/UniqueResourceNameSpec'  // #structure:
+
+export class CreateResourceHandler {  // #class:CreateResourceHandler
+  constructor(private readonly repository: IResourceRepository) {}
+
+  async execute(command: CreateResourceCommand): Promise<Validation<ValidationError[], Resource>> {
+    // 1. Валидация Namespace (синхронная)
+    const namespaceResult = Namespace.create(command.namespace)
+    if (namespaceResult.isLeft()) {
+      return invalid([namespaceResult.value])
+    }
+    const namespace = namespaceResult.value
+
+    // 2. Валидация ResourceName (синхронная)
+    const nameResult = ResourceName.create(command.name)
+    if (nameResult.isLeft()) {
+      return invalid([nameResult.value])
+    }
+
+    // 3. Проверка уникальности (асинхронная, бизнес-правило)
+    const uniqueSpec = new UniqueResourceNameSpec(this.repository, namespace)
+    const uniqueResult = await uniqueSpec.isSatisfiedBy(command.name)
+    if (uniqueResult.isLeft()) {
+      return invalid([uniqueResult.value])
+    }
+
+    // 4. Создание ресурса
+    const resource = Resource.create({
+      namespace,
+      name: nameResult.value,
+      secret: command.secret
+    })
+
+    // 5. Сохранение
+    await this.repository.save(resource)
+    
+    return valid(resource)
+  }
+}
+```
+
+### Query Handler с фильтрацией по спецификации [#code|#structure:]
+
+```typescript
+// src/application/queries/handlers/GetStrongPasswordsHandler.ts  #structure:
+import { ValidPasswordStrengthSpec } from '@/domain/resource/specifications/ValidPasswordStrengthSpec'  // #structure:
+
+export class GetStrongPasswordsHandler {  // #class:GetStrongPasswordsHandler
+  constructor(private readonly repository: IResourceRepository) {}
+
+  async execute(): Promise<Resource[]> {
+    const allResources = await this.repository.findAll()
+    const strengthSpec = new ValidPasswordStrengthSpec()
+
+    // Фильтруем только ресурсы с сильными паролями
+    return allResources.filter(resource => {
+      const result = strengthSpec.isSatisfiedBy(resource.getSecret())
+      return result.isRight()
+    })
+  }
+}
+```
+
+---
+
+## 🧪 Тестирование спецификаций
+
+### Тестирование общих спецификаций [#code]
+
+```typescript
+// src/shared/specification/__tests__/NotEmptySpec.test.ts  #structure:
+import { describe, it, expect } from 'vitest'
+import { NotEmptySpec } from '../StringSpecifications'  // #structure:
+
+describe('NotEmptySpec', () => {  // #class:NotEmptySpec
+  const spec = new NotEmptySpec('TestEntity')
+
+  it('should pass for non-empty string', () => {
+    const result = spec.isSatisfiedBy('hello')
+    
+    expect(result.isRight()).toBe(true)
+    if (result.isRight()) {
+      expect(result.value).toBe('hello')
+    }
+  })
+
+  it('should fail for empty string', () => {
+    const result = spec.isSatisfiedBy('')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('cannot be empty')
+    }
+  })
+
+  it('should fail for whitespace-only string', () => {
+    const result = spec.isSatisfiedBy('   ')
+    
+    expect(result.isLeft()).toBe(true)
+  })
+})
+```
+
+### Тестирование бизнес-специфичных спецификаций [#code]
+
+```typescript
+// src/domain/resource/specifications/__tests__/NotReservedNamespaceSpec.test.ts  #structure:
+import { describe, it, expect } from 'vitest'
+import { NotReservedNamespaceSpec } from '../NotReservedNamespaceSpec'  // #structure:
+
+describe('NotReservedNamespaceSpec', () => {  // #class:NotReservedNamespaceSpec
+  const spec = new NotReservedNamespaceSpec()
+
+  it('should pass for non-reserved namespace', () => {
+    const result = spec.isSatisfiedBy('my-namespace')
+    
+    expect(result.isRight()).toBe(true)
+  })
+
+  it('should fail for reserved namespace "system"', () => {
+    const result = spec.isSatisfiedBy('system')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('reserved namespace')
+    }
+  })
+
+  it('should be case-insensitive', () => {
+    const result = spec.isSatisfiedBy('ADMIN')
+    
+    expect(result.isLeft()).toBe(true)
+  })
+})
+```
+
+### Тестирование композиции спецификаций [#code]
+
+```typescript
+// src/domain/resource/value-objects/__tests__/Namespace.test.ts  #structure:
+import { describe, it, expect } from 'vitest'
+import { Namespace } from '../Namespace'  // #structure:
+
+describe('Namespace.create', () => {  // #class:Namespace
+  it('should create valid namespace', () => {
+    const result = Namespace.create('my-namespace')
+    
+    expect(result.isRight()).toBe(true)
+    if (result.isRight()) {
+      expect(result.value.getValue()).toBe('my-namespace')
+    }
+  })
+
+  it('should fail for empty string', () => {
+    const result = Namespace.create('')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('cannot be empty')
+    }
+  })
+
+  it('should fail for too short namespace', () => {
+    const result = Namespace.create('a')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('2-50 characters')
+    }
+  })
+
+  it('should fail for invalid pattern', () => {
+    const result = Namespace.create('My Namespace')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('invalid format')
+    }
+  })
+
+  it('should fail for reserved namespace', () => {
+    const result = Namespace.create('system')
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('reserved namespace')
+    }
+  })
+})
+
+describe('Namespace.createWithAllErrors', () => {  // #class:Namespace
+  it('should accumulate all errors', () => {
+    const result = Namespace.createWithAllErrors('A')  // Слишком короткий + uppercase
+    
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toHaveLength(2)  // 2 ошибки
+      expect(result.value[0].message).toContain('2-50 characters')
+      expect(result.value[1].message).toContain('invalid format')
+    }
+  })
+})
+```
+
+### Тестирование асинхронных спецификаций [#code]
+
+```typescript
+// src/domain/resource/specifications/__tests__/UniqueResourceNameSpec.test.ts  #structure:
+import { describe, it, expect, vi } from 'vitest'
+import { UniqueResourceNameSpec } from '../UniqueResourceNameSpec'  // #structure:
+import { Namespace } from '../../value-objects/Namespace'  // #structure:
+
+describe('UniqueResourceNameSpec', () => {  // #class:UniqueResourceNameSpec
+  it('should pass when resource does not exist', async () => {
+    // Arrange
+    const mockRepository = {
+      findByNamespaceAndName: vi.fn().mockResolvedValue(null)
+    }
+    const namespace = Namespace.create('test').value as Namespace
+    const spec = new UniqueResourceNameSpec(mockRepository as any, namespace)
+
+    // Act
+    const result = await spec.isSatisfiedBy('new-resource')
+
+    // Assert
+    expect(result.isRight()).toBe(true)
+    expect(mockRepository.findByNamespaceAndName).toHaveBeenCalledWith(
+      namespace,
+      'new-resource'
+    )
+  })
+
+  it('should fail when resource already exists', async () => {
+    // Arrange
+    const existingResource = { id: '123', name: 'existing' }
+    const mockRepository = {
+      findByNamespaceAndName: vi.fn().mockResolvedValue(existingResource)
+    }
+    const namespace = Namespace.create('test').value as Namespace
+    const spec = new UniqueResourceNameSpec(mockRepository as any, namespace)
+
+    // Act
+    const result = await spec.isSatisfiedBy('existing')
+
+    // Assert
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value.message).toContain('already exists')
+    }
+  })
+})
+```
+
+---
+
 ## 📁 Структура файлов [#structure:tree]
 
 ```
@@ -272,6 +738,10 @@ src/
 │       ├── CompositeSpecification.ts          #structure:
 │       ├── StringSpecifications.ts            #structure:
 │       ├── UuidSpecifications.ts              #structure:
+│       ├── __tests__/                         #structure:
+│       │   ├── NotEmptySpec.test.ts           #structure:
+│       │   ├── LengthRangeSpec.test.ts        #structure:
+│       │   └── UuidV4Spec.test.ts             #structure:
 │       └── index.ts                           #structure:
 │
 └── domain/
@@ -280,10 +750,21 @@ src/
     │       └── InvariantViolationError.ts     #structure:
     │
     └── resource/
+        ├── specifications/                    #structure:
+        │   ├── NotReservedNamespaceSpec.ts    #structure:
+        │   ├── UniqueResourceNameSpec.ts      #structure:
+        │   ├── ValidPasswordStrengthSpec.ts   #structure:
+        │   ├── __tests__/                     #structure:
+        │   │   ├── NotReservedNamespaceSpec.test.ts  #structure:
+        │   │   └── UniqueResourceNameSpec.test.ts    #structure:
+        │   └── index.ts                       #structure:
+        │
         └── value-objects/                     #structure:
             ├── Namespace.ts                   #structure:
             ├── ResourceName.ts                #structure:
-            └── ResourceId.ts                  #structure:
+            ├── ResourceId.ts                  #structure:
+            └── __tests__/                     #structure:
+                └── Namespace.test.ts          #structure:
 ```
 
 ---
@@ -300,17 +781,34 @@ import { Validation, valid, invalid } from '@/shared/validation'
 import { Either, left, right } from '@sweet-monads/either'
 ```
 
-### 2. Спецификации в src/shared/
+### 2. Общие спецификации в src/shared/, бизнес-специфичные в src/domain/
 
 ```typescript
 // ✅ ХОРОШО: Общие спецификации в shared
-import { NotEmptySpec } from '@/shared/specification'
+import { NotEmptySpec, LengthRangeSpec } from '@/shared/specification'
 
-// ❌ ПЛОХО: Спецификации в domain
-import { NotEmptySpec } from '@/domain/shared/specification'
+// ✅ ХОРОШО: Бизнес-специфичные в domain
+import { NotReservedNamespaceSpec } from '@/domain/resource/specifications'
+
+// ❌ ПЛОХО: Бизнес-правила в shared
+import { NotReservedNamespaceSpec } from '@/shared/specification'  // ❌
 ```
 
-### 3. Fail-fast для UI, Accumulate для API
+### 3. Именование спецификаций
+
+```typescript
+// ✅ ХОРОШО: Глагол + существительное + Spec
+NotEmptySpec
+ValidPasswordStrengthSpec
+UniqueResourceNameSpec
+
+// ❌ ПЛОХО: Неясное назначение
+EmptySpec  // Проверяет на пустоту или на НЕ пустоту?
+PasswordSpec  // Что именно проверяет?
+ResourceSpec  // Слишком общее
+```
+
+### 4. Fail-fast для UI, Accumulate для API
 
 ```typescript
 // ✅ UI: показываем первую ошибку

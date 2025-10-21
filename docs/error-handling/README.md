@@ -24,6 +24,28 @@
 
 ---
 
+### 1.5 **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — Specification Pattern для валидации ⭐
+
+Документ описывает:
+- **Specification Pattern** для валидации БЕЗ if-ов
+- Библиотека переиспользуемых спецификаций (`NotEmptySpec`, `LengthRangeSpec`, `PatternSpec`)
+- Композиция спецификаций (`CompositeSpecification.allOf`)
+- Два режима: fail-fast и accumulate (все ошибки)
+- Примеры для `Namespace`, `ResourceName`, `ResourceId`
+- Кастомные бизнес-спецификации
+
+**Ключевые преимущества:**
+- ✅ Декларативно — читается как бизнес-правила
+- ✅ Переиспользуемо — спецификации используются везде
+- ✅ Тестируемо — каждая спецификация тестируется отдельно
+- ✅ БЕЗ if-ов — чистый функциональный стиль
+
+**Читай этот документ**, чтобы понять как избавиться от if-ов в валидации.
+
+> 📖 **Теория:** См. [../patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md) для полного описания паттерна
+
+---
+
 ### 2. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Иерархия ошибок
 
 Документ описывает:
@@ -87,21 +109,47 @@
 
 ### Для начинающих:
 1. **INVARIANTS.md** — понять валидацию
-2. **ERROR_HANDLING.md** — понять иерархию ошибок
-3. **ERROR_ESCALATION.md** — понять Either Pattern и @sweet-monads/either
+2. **SPECIFICATION_VALIDATION.md** — понять как валидировать БЕЗ if-ов ⭐
+3. **ERROR_HANDLING.md** — понять иерархию ошибок
+4. **ERROR_ESCALATION.md** — понять Either Pattern и @sweet-monads/either
 
 ### Для опытных:
-1. **ERROR_ESCALATION_EXTENDED.md** — детальное сравнение монад
-2. **ERROR_HANDLING.md** — архитектурные правила
-3. **INVARIANTS.md** — паттерны переиспользования
+1. **SPECIFICATION_VALIDATION.md** — Specification Pattern для валидации ⭐
+2. **ERROR_ESCALATION_EXTENDED.md** — детальное сравнение монад
+3. **ERROR_HANDLING.md** — архитектурные правила
+4. **INVARIANTS.md** — паттерны переиспользования
 
 ---
 
 ## 💡 Ключевые правила проекта
 
-### 1. Инварианты в Domain Layer
+### 1. Валидация через Specification Pattern (рекомендуется) ⭐
 ```typescript
-// ✅ ХОРОШО: Self-validating Value Object
+// ✅ ОТЛИЧНО: Specification Pattern - БЕЗ if-ов!
+class Namespace {
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): Either<InvariantViolationError, Namespace> {
+    const spec = CompositeSpecification.allOf(
+      new NotEmptySpec('Namespace'),
+      new LengthRangeSpec(2, 50, 'Namespace'),
+      new PatternSpec(/^[a-z0-9-_]+$/, 'invalid format', 'Namespace')
+    )
+    
+    return spec.isSatisfiedBy(value).map(v => new Namespace(v))
+  }
+  
+  getValue(): string {
+    return this.value
+  }
+}
+```
+
+> 📖 См. [SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md) для деталей
+
+### 2. Альтернатива: Инварианты (классический подход)
+```typescript
+// ✅ ХОРОШО: Self-validating Value Object через инварианты
 class ResourceName {
   private constructor(private readonly value: string) {}
   
@@ -119,7 +167,9 @@ class ResourceName {
 }
 ```
 
-### 2. Ошибки по слоям
+> 📖 См. [INVARIANTS.md](./INVARIANTS.md) для деталей
+
+### 3. Ошибки по слоям
 ```typescript
 // Domain Layer
 class InvariantViolationError extends DomainError { }
@@ -131,7 +181,7 @@ class ValidationError extends Error { }
 class NetworkError extends Error { }
 ```
 
-### 3. Either для type-safe обработки
+### 4. Either для type-safe обработки
 ```typescript
 // ✅ ХОРОШО: Either делает ошибки явными
 function findUser(id: string): Either<NotFoundError, User> {

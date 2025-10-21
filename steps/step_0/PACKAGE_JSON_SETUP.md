@@ -72,6 +72,8 @@
 
 #### pnpm-workspace.yaml [#config]
 
+#### Workspaces Structure [#structure:tree]
+
 ```yaml
 packages:
   - 'src/presentation/web/react'
@@ -91,6 +93,8 @@ packages:
 
 ## 3️⃣ Web Presentation через CLI
 
+#### Web Presentation Files [#structure:path]
+
 **Файлы**: 
 - `src/presentation/web/react/package.json`
 - `src/presentation/web/react/tsconfig.json`
@@ -100,7 +104,13 @@ packages:
 **Метод**: Использовать React Router CLI (автоматически создает актуальные версии)
 
 **Шаги**:
-1. Из `src/presentation/web/` запустить: `pnpm dlx create-react-router@latest temp`
+
+#### Create React Router App [#command|#structure:path]
+
+1. Из `src/presentation/web/` запустить:
+   ```bash
+   pnpm dlx create-react-router@latest temp
+   ```
 2. Выбрать: Template=Basic, TypeScript=Yes, Package manager=pnpm
 3. Скопировать конфиги:
 
@@ -113,7 +123,13 @@ packages:
    cp temp/react-router.config.ts react/react-router.config.ts
    ```
 4. Изменить `"name"` на `"@password-manager/web"` в `react/package.json`
-5. Удалить временную папку: `rm -rf temp`
+
+#### Cleanup [#command]
+
+5. Удалить временную папку:
+   ```bash
+   rm -rf temp
+   ```
 
 **⚠️ Важно**: Конфиги из CLI нужно будет адаптировать под DDD структуру (см. шаги 3-4 в главном README)
 
@@ -140,7 +156,7 @@ pnpm install
 
 **Проверка**:
 
-#### Check Installation [#command]
+#### Check Workspaces [#command|#structure:path]
 
 ```bash
 pnpm list --depth=0
@@ -177,7 +193,7 @@ pnpm add -D <package> --filter @password-manager/web
 
 **Способ 2: Перейти в workspace**
 
-#### Add to Web Directly [#command]
+#### Add to Web Directly [#command|#structure:path]
 
 ```bash
 cd src/presentation/web/react

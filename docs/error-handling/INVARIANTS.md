@@ -442,7 +442,7 @@ class ResourceName {
 
 // Использование
 const result = ResourceName.create(input)
-// Если result.isOk() → объект гарантированно валиден
+// Если result.isRight() → объект гарантированно валиден
 ```
 
 ### ❌ НЕПРАВИЛЬНО: Валидация СНАРУЖИ Value Object

@@ -511,10 +511,10 @@ class CreateResourceCommandHandler {
       return left(new ValidationError('name', 'name is required'))
     }
     
-    // Domain валидация будет в Value Object через Result
+    // Domain валидация будет в Value Object через Either
     const nameResult = ResourceName.create(command.name)
-    if (nameResult.isErr()) {
-      return left(new ValidationError('name', nameResult.error.message))
+    if (nameResult.isLeft()) {
+      return left(new ValidationError('name', nameResult.value.message))
     }
     
     return right({ success: true, data: { id: 'resource-id' } })
@@ -994,8 +994,8 @@ return left(new NotFoundError('Resource', id.getValue()))
 ```typescript
 // ❌ ПЛОХО: игнорируем ошибку
 const result = await repository.save(resource)
-if (result.isErr()) {
-  console.log('error', result.error)  // ❌ Молча логируем
+if (result.isLeft()) {
+  console.log('error', result.value)  // ❌ Молча логируем
   return null  // ❌ Потеряли ошибку!
 }
 
@@ -1023,11 +1023,13 @@ import { InvariantViolationError } from '@/domain/shared'
 import { ResourceName } from '@/domain/resource/value-objects'
 
 describe('ResourceName', () => {
-  it('должен вернуть Err для пустой строки', () => {
+  it('должен вернуть Left для пустой строки', () => {
     const result = ResourceName.create('')
     
-    expect(result.isErr()).toBe(true)
-    expect(result._unsafeUnwrapErr()).toBeInstanceOf(InvariantViolationError)
+    expect(result.isLeft()).toBe(true)
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvariantViolationError)
+    }
   })
   
   it('ошибка должна содержать правильное сообщение', () => {
@@ -1047,10 +1049,10 @@ describe('ResourceName', () => {
     })
   })
   
-  it('должен вернуть Ok для валидного значения', () => {
+  it('должен вернуть Right для валидного значения', () => {
     const result = ResourceName.create('valid-name')
     
-    expect(result.isOk()).toBe(true)
+    expect(result.isRight()).toBe(true)
     result.map((name) => {
       expect(name.getValue()).toBe('valid-name')
     })

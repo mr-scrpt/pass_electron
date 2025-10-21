@@ -105,6 +105,227 @@
 
 ---
 
+## 🔄 Эволюция подхода к валидации
+
+Этот раздел показывает **путь развития** подхода к валидации в проекте — от традиционного `try-catch` к монадам и Specification Pattern.
+
+### Этап 1: Try-Catch Hell (❌ Проблемный подход)
+
+**Проблемы:**
+- Вложенные `try-catch` блоки
+- `instanceof` на каждом уровне
+- Ошибки не видны в типах
+- Легко забыть обработку
+
+```typescript
+// ❌ ПЛОХО: Try-Catch Hell
+class ResourceName {
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): ResourceName {
+    // Проблема 1: throw не виден в сигнатуре типа
+    if (!value || value.length < 1) {
+      throw new Error('Name cannot be empty')
+    }
+    
+    if (value.length > 100) {
+      throw new Error('Name too long')
+    }
+    
+    if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+      throw new Error('Invalid characters')
+    }
+    
+    return new ResourceName(value)
+  }
+}
+
+// Использование - нужно помнить про try-catch
+try {
+  const name = ResourceName.create(userInput)
+  // ...
+} catch (error) {
+  // Проблема 2: error имеет тип unknown
+  if (error instanceof Error) {
+    console.error(error.message)
+  }
+}
+```
+
+**Почему это плохо:**
+1. ❌ Ошибки не видны в типе функции
+2. ❌ `error` имеет тип `unknown` в catch
+3. ❌ Легко забыть `try-catch`
+4. ❌ Много boilerplate кода
+5. ❌ Невозможно собрать ВСЕ ошибки валидации
+
+---
+
+### Этап 2: Either Pattern (✅ Монады)
+
+**Решение:** Используем монаду `Either` для type-safe обработки ошибок.
+
+```typescript
+// ✅ ХОРОШО: Either делает ошибки явными
+import { Either, left, right } from '@sweet-monads/either'
+
+class ResourceName {
+  private constructor(private readonly value: string) {}
+  
+  // Теперь ошибка ВИДНА в типе! ⭐
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
+    if (!value || value.length < 1) {
+      return left(new InvariantViolationError('ResourceName', 'cannot be empty'))
+    }
+    
+    if (value.length > 100) {
+      return left(new InvariantViolationError('ResourceName', 'too long'))
+    }
+    
+    if (!/^[a-zA-Z0-9-_]+$/.test(value)) {
+      return left(new InvariantViolationError('ResourceName', 'invalid characters'))
+    }
+    
+    return right(new ResourceName(value))
+  }
+}
+
+// Использование - компилятор ЗАСТАВИТ обработать ошибку!
+const result = ResourceName.create(userInput)
+
+if (result.isLeft()) {
+  // TypeScript ЗНАЕТ что здесь InvariantViolationError
+  console.error(result.value.message)
+} else {
+  // TypeScript ЗНАЕТ что здесь ResourceName
+  const name = result.value
+}
+```
+
+**Преимущества Either:**
+- ✅ Ошибки видны в типе функции
+- ✅ Компилятор заставляет обработать ошибку
+- ✅ Type-safe — нет `unknown`
+- ✅ Railway-oriented programming
+- ✅ Можно собрать все ошибки через `mergeInMany`
+
+**Но остались проблемы:**
+- ⚠️ Много `if`-ов в коде
+- ⚠️ Валидация не переиспользуется
+- ⚠️ Сложно тестировать отдельные правила
+
+> 📖 См. [ERROR_ESCALATION.md](./ERROR_ESCALATION.md) для деталей про Either
+
+---
+
+### Этап 3: Specification Pattern (⭐ Лучший подход)
+
+**Решение:** Инкапсулируем каждое правило в отдельную спецификацию.
+
+```typescript
+// ✅ ОТЛИЧНО: Specification Pattern - БЕЗ if-ов!
+import { Validation } from '@/shared/validation'
+import { CompositeSpecification } from '@/shared/specification'
+import { NotEmptySpec, LengthRangeSpec, PatternSpec } from '@/shared/specification'
+
+class ResourceName {
+  private constructor(private readonly value: string) {}
+  
+  static create(value: string): Validation<InvariantViolationError, ResourceName> {
+    // Декларативно описываем правила - БЕЗ if-ов! ⭐
+    const spec = CompositeSpecification.allOf(
+      new NotEmptySpec('ResourceName'),                    // Правило 1
+      new LengthRangeSpec(1, 100, 'ResourceName'),         // Правило 2
+      new PatternSpec(/^[a-zA-Z0-9-_]+$/, 'invalid', 'ResourceName')  // Правило 3
+    )
+    
+    // Одна строка вместо множества if-ов!
+    return spec.isSatisfiedBy(value).map(v => new ResourceName(v))
+  }
+  
+  // Бонус: можем собрать ВСЕ ошибки
+  static createWithAllErrors(value: string): Validation<InvariantViolationError[], ResourceName> {
+    const spec = CompositeSpecification.allOfAccumulate(
+      new NotEmptySpec('ResourceName'),
+      new LengthRangeSpec(1, 100, 'ResourceName'),
+      new PatternSpec(/^[a-zA-Z0-9-_]+$/, 'invalid', 'ResourceName')
+    )
+    
+    return spec.isSatisfiedBy(value).map(v => new ResourceName(v))
+  }
+}
+
+// Использование - так же type-safe как Either!
+const result = ResourceName.create(userInput)
+
+if (result.isLeft()) {
+  console.error(result.value.message)  // Одна ошибка
+}
+
+// Или получить ВСЕ ошибки сразу
+const allErrorsResult = ResourceName.createWithAllErrors(userInput)
+
+if (allErrorsResult.isLeft()) {
+  // Массив ВСЕХ ошибок валидации!
+  allErrorsResult.value.forEach(err => console.error(err.message))
+}
+```
+
+**Преимущества Specification Pattern:**
+- ✅ **БЕЗ if-ов** — декларативный стиль
+- ✅ **Переиспользуемо** — `NotEmptySpec` используется везде
+- ✅ **Тестируемо** — каждая спецификация тестируется отдельно
+- ✅ **Композируемо** — легко комбинировать правила
+- ✅ **Читаемо** — код читается как бизнес-правила
+- ✅ **Два режима** — fail-fast или accumulate (все ошибки)
+- ✅ **Type-safe** — как Either
+
+> 📖 См. [SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md) для деталей
+
+---
+
+### Сравнительная таблица
+
+| Критерий | Try-Catch | Either Pattern | Specification Pattern |
+|----------|-----------|----------------|----------------------|
+| **Ошибки в типах** | ❌ Нет | ✅ Да | ✅ Да |
+| **Type-safe** | ❌ `unknown` | ✅ Полностью | ✅ Полностью |
+| **Компилятор проверяет** | ❌ Нет | ✅ Да | ✅ Да |
+| **Количество if-ов** | ⚠️ Много | ⚠️ Много | ✅ Ноль! |
+| **Переиспользование** | ❌ Сложно | ⚠️ Возможно | ✅ Легко |
+| **Тестируемость** | ⚠️ Средняя | ⚠️ Средняя | ✅ Отличная |
+| **Читаемость** | ❌ Плохая | ⚠️ Средняя | ✅ Отличная |
+| **Все ошибки сразу** | ❌ Нет | ✅ Да (`mergeInMany`) | ✅ Да (`allOfAccumulate`) |
+| **Декларативность** | ❌ Нет | ⚠️ Частично | ✅ Полностью |
+
+---
+
+### Итоговая рекомендация
+
+**Используйте Specification Pattern для валидации:**
+
+1. **Общие правила** → `src/shared/specification/`
+   - `NotEmptySpec`, `LengthRangeSpec`, `PatternSpec`, `UuidV4Spec`
+
+2. **Бизнес-правила** → `src/domain/{context}/specifications/`
+   - `NotReservedNamespaceSpec`, `UniqueResourceNameSpec`
+
+3. **Композиция** → `CompositeSpecification.allOf()`
+   - Комбинируйте общие и бизнес-специфичные спецификации
+
+4. **Два режима:**
+   - `allOf()` — fail-fast (для UI)
+   - `allOfAccumulate()` — все ошибки (для API/форм)
+
+**Результат:**
+- ✅ Код без if-ов
+- ✅ Type-safe обработка ошибок
+- ✅ Переиспользуемые правила
+- ✅ Легко тестировать
+- ✅ Читается как документация
+
+---
+
 ## 🎯 Рекомендуемый порядок изучения
 
 ### Для начинающих:

@@ -335,7 +335,71 @@ export class ResourceName {
 }
 ```
 
-#### 1.5 Создать DTO для списка ресурсов
+#### 1.5 Создать Aggregate Root: Resource
+
+> **📚 Детали**: [TYPES_AND_ENTITIES.md#aggregates](../../docs/TYPES_AND_ENTITIES.md#aggregates) — Что такое Aggregate Root
+
+**Файл: `src/domain/resource/aggregates/Resource.ts`**
+
+#### Resource Aggregate [#class:Resource|#code|#structure:path]
+
+```typescript
+// src/domain/resource/aggregates/Resource.ts
+import { ResourceId, ResourceName, Namespace } from "../value-objects";
+
+/**
+ * Resource Aggregate Root
+ * Упрощенная версия для Шага 1 (только чтение)
+ * 
+ * В полной версии будет:
+ * - Фабричный метод create() с валидацией
+ * - Бизнес-методы (rename, lock, addCustomField)
+ * - Domain Events
+ * - CustomField entities
+ */
+export class Resource {
+  constructor(
+    public readonly id: ResourceId,
+    public readonly namespace: Namespace,
+    public readonly name: ResourceName,
+    public readonly secret: string,
+    public readonly createdAt: Date,
+    public readonly updatedAt: Date,
+  ) {}
+
+  /**
+   * Генерирует новый Resource (упрощенная версия)
+   */
+  static generate(
+    namespace: Namespace,
+    name: ResourceName,
+    secret: string,
+  ): Resource {
+    return new Resource(
+      ResourceId.generate(),
+      namespace,
+      name,
+      secret,
+      new Date(),
+      new Date(),
+    );
+  }
+}
+```
+
+**Зачем Aggregate Root?**
+- Точка входа для работы с группой связанных объектов
+- Гарантирует консистентность данных
+- Инкапсулирует бизнес-логику
+- Управляет жизненным циклом дочерних Entity
+
+**Файл: `src/domain/resource/aggregates/index.ts`**
+
+```typescript
+export { Resource } from "./Resource";
+```
+
+#### 1.6 Создать DTO для списка ресурсов
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer) — Зачем нужны DTO
 
@@ -365,7 +429,7 @@ export interface ResourceListItemDTO {
 - Удобно для JSON сериализации в React Router loaders
 - Query Handler преобразует Domain модель в DTO
 
-#### 1.6 Создать Public API для resource модуля
+#### 1.7 Создать Public API для resource модуля
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#public-api-модулей](../../docs/PROJECT_STRUCTURE.md#public-api-модулей) — Правила Public API
 
@@ -389,15 +453,15 @@ export { ResourceName } from './ResourceName'
 // src/domain/resource/index.ts
 // Public API модуля resource
 export * from './value-objects'
+export * from './aggregates'     // Resource
+export * from './repositories'   // IResourceRepository
 
 // В будущем здесь появятся:
-// export * from './aggregates'  // Resource
 // export * from './entities'    // CustomField
-// export * from './repositories'
 // export * from './events'
 ```
 
-#### 1.7 Создать интерфейс репозитория
+#### 1.8 Создать интерфейс репозитория
 
 **Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
 
@@ -429,15 +493,15 @@ export interface IResourceRepository {
 - Infrastructure реализует детали
 - Dependency Inversion Principle (DIP)
 
-#### 1.7 Создать Public API для repositories
+#### 1.9 Создать Public API для repositories
 
-**Файл: `src/domain/repositories/index.ts`**
+**Файл: `src/domain/resource/repositories/index.ts`**
 
 #### Domain Repositories Public API [#code|#structure:path]
 
 ```typescript
-// src/domain/repositories/index.ts
-export type { IResourceRepository } from './IResourceRepository'
+// src/domain/resource/repositories/index.ts
+export { IResourceRepository } from './IResourceRepository'
 ```
 
 ---

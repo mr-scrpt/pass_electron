@@ -164,8 +164,7 @@ export class Resource {
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
-import { StringInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError, StringInvariant } from '@/domain/shared'
 
 export class ResourceName {
   private constructor(private readonly value: string) {}

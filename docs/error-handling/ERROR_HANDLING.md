@@ -377,7 +377,7 @@ class Resource {
 
 ```typescript
 // src/domain/resource/errors/ResourceLockedError.ts
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 import { ResourceId } from '../value-objects/ResourceId'
 
 /**
@@ -421,7 +421,7 @@ class Resource {
 
 ```typescript
 // src/domain/resource/errors/DuplicateFieldLabelError.ts
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 
 /**
  * Ошибка дублирования метки поля
@@ -692,7 +692,7 @@ export class StorageError extends Error {
 ```typescript
 // src/presentation/web/react/src/components/ErrorBoundary.tsx
 import { Component, ReactNode } from 'react'
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 
 interface Props {
   children: ReactNode
@@ -751,7 +751,7 @@ export class ErrorBoundary extends Component<Props, State> {
 import { 
   InvariantViolationError, 
   DuplicateError 
-} from '@/domain/shared/errors'
+} from '@/domain/shared'
 import { ValidationError } from '@/application/errors'
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -904,7 +904,7 @@ Error (JavaScript)
 // ✅ ХОРОШО: Domain ошибка в Domain Layer через Result
 // src/domain/resource/value-objects/ResourceName.ts
 import { Result, ok, err } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
+import { InvariantViolationError } from '@/domain/shared'
 
 class ResourceName {
   private constructor(private readonly value: string) {}
@@ -1049,7 +1049,7 @@ return (await repository.save(resource))
 ### Тесты ResourceName [#code]
 
 ```typescript
-import { InvariantViolationError } from '@/domain/shared/errors'
+import { InvariantViolationError } from '@/domain/shared'
 import { ResourceName } from '@/domain/resource/value-objects'
 
 describe('ResourceName', () => {

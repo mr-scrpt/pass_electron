@@ -357,8 +357,7 @@ export * from './invariants'
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
-import { IdentifierInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
 
 /**
  * Value Object для имени ресурса
@@ -398,8 +397,7 @@ export class ResourceName {
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
-import { IdentifierInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
 
 export class Namespace {
   private constructor(private readonly value: string) {}

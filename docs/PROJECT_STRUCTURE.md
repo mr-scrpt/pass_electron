@@ -1055,8 +1055,7 @@ import { ApiClient } from '@/internal/infrastructure/api/ApiClient'  // ❌ ЗА
 import { ResourceId } from '../value-objects/ResourceId'  // ✅ Локальный импорт
 import { Namespace } from '../value-objects/Namespace'    // ✅
 import { CustomField } from '../entities/CustomField'     // ✅
-import { DomainError } from '@/domain/shared/errors'      // ✅ Shared Kernel
-import { DomainEvent } from '@/domain/shared/base'        // ✅ Базовый класс
+import { DomainError, DomainEvent } from '@/domain/shared' // ✅ Shared Kernel
 
 // Domain определяет интерфейсы, не зная о реализации
 interface IEventBus {

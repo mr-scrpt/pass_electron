@@ -162,8 +162,7 @@ export type ResourceId = string
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
 import { Result, ok, err } from 'neverthrow'
-import { UuidInvariant } from '@/domain/shared/invariants'
-import { InvariantViolationError } from '@/domain/shared/errors'
+import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
  * Value Object для ID ресурса
@@ -365,8 +364,7 @@ import { Namespace } from '../value-objects/Namespace'
 import { CustomField } from '../entities/CustomField'
 
 // ✅ Кросс-модульные импорты (через Public API)
-import { DomainError } from '@/domain/shared/errors'
-import { UuidInvariant } from '@/domain/shared/invariants'
+import { DomainError, UuidInvariant } from '@/domain/shared'
 ```
 
 ### 2. Application Layer - Импорт из Domain [#code|#structure:path]
@@ -424,7 +422,7 @@ import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
 import { CustomField } from '../entities/CustomField'
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 
 export class Resource {
   constructor(

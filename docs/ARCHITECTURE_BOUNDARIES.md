@@ -184,7 +184,7 @@ export class GetResourcesHandler {
 // ✅ Только другие Domain объекты (относительные пути или через @/domain)
 import { ResourceId } from '../value-objects/ResourceId'
 import { Namespace } from '../value-objects/Namespace'
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 
 // ❌ НЕЛЬЗЯ импортировать из других слоев!
 // import { GetResourcesHandler } from '@/application/queries'  // ❌
@@ -426,7 +426,7 @@ import { CreateResourceCommand } from '@/application/commands'
 
 // ✅ ПРАВИЛЬНО - только Domain
 import { ResourceId } from '../value-objects/ResourceId'
-import { DomainError } from '@/domain/shared/errors'
+import { DomainError } from '@/domain/shared'
 ```
 
 ### 3. Прямой импорт Infrastructure в Presentation

@@ -197,8 +197,7 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
 import { Result } from 'neverthrow'
-import { InvariantViolationError } from '@/domain/shared/errors'
-import { UuidInvariant } from '@/domain/shared/invariants'
+import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
  * Value Object для ID ресурса

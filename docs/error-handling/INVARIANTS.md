@@ -509,9 +509,9 @@ function processResource(name: ResourceName) {
 
 // Валидация только при создании
 const result = ResourceName.create(userInput)
-result.match(
-  (validName) => processResource(validName), // ✅ Гарантированно валиден
-  (error) => console.error(error)            // Обработка ошибки
+result.fold(
+  (error) => console.error(error),           // Обработка ошибки
+  (validName) => processResource(validName)  // ✅ Гарантированно валиден
 )
 ```
 
@@ -530,7 +530,7 @@ result.match(
 class ResourceName {
   static create(value: string) {
     return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
-      .andThen(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName'))
+      .chain(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName'))
       .map(v => new ResourceName(v))
   }
 }
@@ -538,7 +538,7 @@ class ResourceName {
 class Namespace {
   static create(value: string) {
     return StringInvariant.validateLength(value, 1, 50, 'Namespace')  // Та же композиция!
-      .andThen(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'Namespace'))
+      .chain(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'Namespace'))
       .map(v => new Namespace(v))
   }
 }

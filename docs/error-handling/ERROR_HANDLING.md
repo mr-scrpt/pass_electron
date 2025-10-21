@@ -758,42 +758,12 @@ import { ValidationError } from '@/application/errors'
 export async function action({ request }: ActionFunctionArgs) {
   const result = await commands.resources.create(request)
   
-  return result.match(
-    // Success case
-    (data) => redirect(`/resources/${data.id}`),
+  return result.fold(
+    // Error case (first!)
+    (error) => json({ error: error.message }, { status: 400 }),
     
-    // Error case - обрабатываем разные типы ошибок
-    (error) => {
-      // Domain ошибки — понятные пользователю
-      if (error instanceof InvariantViolationError) {
-        return json(
-          { error: error.message },
-          { status: 400 }
-        )
-      }
-      
-      if (error instanceof DuplicateError) {
-        return json(
-          { error: `Ресурс с таким ${error.field} уже существует` },
-          { status: 409 }
-        )
-      }
-      
-      // Application ошибки
-      if (error instanceof ValidationError) {
-        return json(
-          { error: error.message, field: error.field },
-          { status: 422 }
-        )
-      }
-      
-      // Неожиданные ошибки
-      console.error('Unexpected error:', error)
-      return json(
-        { error: 'Произошла ошибка сервера' },
-        { status: 500 }
-      )
-    }
+    // Success case (second!)
+    (data) => redirect(`/resources/${data.id}`)
   )
 }
 ```
@@ -816,10 +786,10 @@ class ApiResourceRepository implements IResourceRepository {
   async findById(id: ResourceId): Promise<Either<NotFoundError | NetworkError, Resource>> {
     return this.httpClient
       .get<ResourceDTO>(`/resources/${id.getValue()}`)
-      .andThen((response) => 
+      .chain((response) => 
         this.mapper.toDomain(response)
       )
-      .mapErr((error) => {
+      .mapLeft((error) => {
         // API вернул 404 → NotFoundError (Domain)
         if (error instanceof NetworkError && error.statusCode === 404) {
           return new NotFoundError('Resource', id.getValue())
@@ -851,11 +821,11 @@ class CreateResourceCommandHandler {
     const namespaceResult = Namespace.create(command.namespace)
     
     // Комбинируем результаты (fail-fast)
-    return combine([nameResult, namespaceResult])
-      .andThen(([name, namespace]) => 
+    return merge([nameResult, namespaceResult])
+      .chain(([name, namespace]) => 
         Resource.create({ name, namespace })
       )
-      .asyncAndThen(async (resource) => {
+      .asyncChain(async (resource) => {
         // Сохраняем через Repository (тоже возвращает Result)
         return (await this.repository.save(resource))
           .map(() => ({
@@ -942,9 +912,9 @@ return left(new Error('cannot delete'))
 #### Преобразование ошибок [#code]
 
 ```typescript
-// ✅ ХОРОШО: Infrastructure ошибка → Domain ошибка через mapErr
+// ✅ ХОРОШО: Infrastructure ошибка → Domain ошибка через mapLeft
 return httpClient.get(url)
-  .mapErr((error) => {
+  .mapLeft((error) => {
     if (error instanceof NetworkError && error.statusCode === 404) {
       return new NotFoundError('Resource', id)
     }
@@ -957,15 +927,15 @@ return httpClient.get(url)
 #### CommandResult [#code]
 
 ```typescript
-// ✅ ХОРОШО: Domain ошибка → Result
+// ✅ ХОРОШО: Domain ошибка → Either
 return this.useCase.execute(command)
   .map((result) => ({ success: true, data: result }))
-  .mapErr((error) => ({ success: false, error: error.message }))
+  .mapLeft((error) => ({ success: false, error: error.message }))
 
-// Или с match для разных типов ошибок
-return this.useCase.execute(command).match(
-  (result) => ({ success: true, data: result }),
-  (error) => ({ success: false, error: error.message })
+// Или с fold для разных типов ошибок
+return this.useCase.execute(command).fold(
+  (error) => ({ success: false, error: error.message }),
+  (result) => ({ success: true, data: result })
 )
 ```
 
@@ -1031,15 +1001,14 @@ if (result.isErr()) {
 
 // ✅ ХОРОШО: обрабатываем или пробрасываем
 return (await repository.save(resource))
-  .match(
-    () => ({ success: true }),
+  .fold(
     (error) => {
       if (error instanceof DuplicateError) {
-        return { success: false, error: 'Ресурс уже существует' }
+        return { success: false, error: 'Resource already exists' }
       }
-      // Неожиданные ошибки пробрасываем
-      throw error
-    }
+      throw error  // Пробрасываем неожиданные ошибки
+    },
+    () => ({ success: true })
   )
 ```
 
@@ -1064,7 +1033,7 @@ describe('ResourceName', () => {
   it('ошибка должна содержать правильное сообщение', () => {
     const result = ResourceName.create('')
     
-    result.mapErr((error) => {
+    result.mapLeft((error) => {
       expect(error.message).toBe('ResourceName: cannot be empty')
     })
   })
@@ -1072,7 +1041,7 @@ describe('ResourceName', () => {
   it('ошибка должна иметь правильный entityType', () => {
     const result = ResourceName.create('')
     
-    result.mapErr((error) => {
+    result.mapLeft((error) => {
       expect(error.entityType).toBe('ResourceName')
       expect(error.invariant).toBe('cannot be empty')
     })

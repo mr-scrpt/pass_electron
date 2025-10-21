@@ -167,15 +167,16 @@ import { Result } from 'neverthrow'
 import { InvariantViolationError, StringInvariant } from '@/domain/shared'
 
 export class ResourceName {
+  private static readonly ENTITY_TYPE = 'ResourceName'
   private constructor(private readonly value: string) {}
 
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     // ✅ Используем именованные переиспользуемые инварианты
-    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
+    return StringInvariant.validateLength(value, 1, 100, ResourceName.ENTITY_TYPE)
       .andThen(validValue =>
         StringInvariant.validateAlphanumericWithDashUnderscore(
           validValue,
-          'ResourceName'
+          ResourceName.ENTITY_TYPE
         )
       )
       .map(validValue => new ResourceName(validValue))

@@ -169,6 +169,7 @@ import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
  * Инвариант: должен быть валидным UUID v4
  */ //
 export class ResourceId {
+  private static readonly ENTITY_TYPE = 'ResourceId'
   private constructor(private readonly _value: string) {}
   
   /**
@@ -182,7 +183,7 @@ export class ResourceId {
    * Создает ID из строки с валидацией
    */
   static create(value: string): Result<ResourceId, InvariantViolationError> {
-    return UuidInvariant.validate(value, 'ResourceId')
+    return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }
   

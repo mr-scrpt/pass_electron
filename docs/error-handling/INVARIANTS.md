@@ -368,6 +368,7 @@ import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
  * - Формат: буквы, цифры, дефис, подчеркивание
  */
 export class ResourceName {
+  private static readonly ENTITY_TYPE = 'ResourceName'
   private constructor(private readonly value: string) {}
   
   /**
@@ -380,7 +381,7 @@ export class ResourceName {
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     // ✅ Value Object использует утилиту ВНУТРИ себя
     // ✅ Конструктор private → невозможно обойти валидацию
-    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
+    return IdentifierInvariant.validateResourceIdentifier(value, ResourceName.ENTITY_TYPE)
       .map(validValue => new ResourceName(validValue))
   }
   
@@ -400,11 +401,12 @@ import { Result } from 'neverthrow'
 import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
 
 export class Namespace {
+  private static readonly ENTITY_TYPE = 'Namespace'
   private constructor(private readonly value: string) {}
   
   static create(value: string): Result<Namespace, InvariantViolationError> {
     // ✅ Переиспользуем композитный инвариант!
-    return IdentifierInvariant.validateShortIdentifier(value, 'Namespace')
+    return IdentifierInvariant.validateShortIdentifier(value, Namespace.ENTITY_TYPE)
       .map(validValue => new Namespace(validValue))
   }
   

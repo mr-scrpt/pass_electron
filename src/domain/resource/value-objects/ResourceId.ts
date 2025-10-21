@@ -7,6 +7,7 @@ import { InvariantViolationError, UuidInvariant } from "@/domain/shared";
  * Инвариант: должен быть валидным UUID v4
  */
 export class ResourceId {
+  private static readonly ENTITY_TYPE = 'ResourceId';
   private constructor(private readonly _value: string) {}
 
   static generate(): ResourceId {
@@ -15,7 +16,7 @@ export class ResourceId {
 
   static create(value: string): Result<ResourceId, InvariantViolationError> {
     // ✅ Используем переиспользуемый инвариант с Result
-    return UuidInvariant.validate(value, "ResourceId").map(
+    return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE).map(
       (validValue) => new ResourceId(validValue),
     );
   }

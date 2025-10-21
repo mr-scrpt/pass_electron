@@ -6,7 +6,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import type { Route } from "./+types/root";
 import styles from "./styles/tailwind.css?url";
 
 export function links() {

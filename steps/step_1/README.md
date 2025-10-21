@@ -76,14 +76,8 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 
 ```bash
 # Создать структуру Domain Layer
-mkdir -p src/domain/resource/aggregates
-mkdir -p src/domain/resource/entities
-mkdir -p src/domain/resource/value-objects
-mkdir -p src/domain/resource/repositories
-mkdir -p src/domain/resource/events
-mkdir -p src/domain/shared/errors
-mkdir -p src/domain/shared/invariants
-mkdir -p src/domain/shared/base
+mkdir -p src/domain/resource/{aggregates,entities,value-objects,repositories,events}
+mkdir -p src/domain/shared/{errors,invariants,base}
 ```
 
 **Структура:**

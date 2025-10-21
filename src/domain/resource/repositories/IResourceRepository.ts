@@ -1,6 +1,6 @@
-// src/domain/resource/repositories/IResourceRepository.ts
+//  src/domain/resource/repositories/IResourceRepository.ts
 import type { Namespace, ResourceId } from "../value-objects";
-import type { Resource } from "../aggregates/Resource";
+import type { Resource } from "../aggregates";
 
 /**
  * Интерфейс репозитория ресурсов

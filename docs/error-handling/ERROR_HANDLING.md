@@ -2,48 +2,50 @@
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
-## 📦 Библиотека neverthrow
+## 📦 Библиотека @sweet-monads/either
 
-В проекте используется библиотека **[neverthrow](https://github.com/supermacro/neverthrow)** для функциональной обработки ошибок через `Result<T, E>` вместо `throw`/`try-catch`.
+В проекте используется библиотека **[@sweet-monads/either](https://github.com/JSMonk/sweet-monads)** для функциональной обработки ошибок через `Either<E, T>` вместо `throw`/`try-catch`.
 
-### Почему Result вместо throw?
+### Почему Either вместо throw?
 
 1. **Явность** - тип функции показывает что она может вернуть ошибку
 2. **Type Safety** - TypeScript заставляет обработать ошибку
-3. **Композиция** - легко комбинировать операции через `andThen`, `map`, `mapErr`
-4. **Нет исключений** - ошибки это часть нормального flow, не exceptional cases
+3. **Композиция** - легко комбинировать операции через `chain`, `map`, `mapLeft`
+4. **mergeInMany** - накопление ВСЕХ ошибок валидации (уникально!)
+5. **mapLeft** - трансформация ошибок между слоями
 
 ### Основные типы:
 
 ```typescript
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
-// Синхронный Result
-Result<T, E>  // Ok(T) | Err(E)
+// Either тип
+Either<E, T>  // Left(E) | Right(T)
+// ⚠️ Порядок: ошибка первая, успех второй!
 
-// Асинхронный Result
-ResultAsync<T, E>  // Promise<Result<T, E>>
+// Async операции
+asyncChain, asyncMap  // встроены в Either
 ```
 
 ### Базовые операции:
 
 ```typescript
 // Создание
-ok(value)           // Result<T, never>
-err(error)          // Result<never, E>
+right(value)        // Either<never, T>
+left(error)         // Either<E, never>
 
 // Проверка
-result.isOk()       // boolean
-result.isErr()      // boolean
+result.isLeft()     // boolean
+result.isRight()    // boolean
 
 // Трансформация
-result.map(fn)      // Result<U, E>
-result.mapErr(fn)   // Result<T, F>
-result.andThen(fn)  // Result<U, E>
+result.map(fn)      // Either<E, U> - трансформация Right
+result.mapLeft(fn)  // Either<F, T> - трансформация Left (ошибки)
+result.chain(fn)    // Either<E, U> - flatMap
 
 // Извлечение
-result.match(okFn, errFn)  // U
-result._unsafeUnwrap()     // T | throws
+result.fold(leftFn, rightFn)  // U
+// ⚠️ Порядок: (error, success) - ошибка первая!
 ```
 
 ---

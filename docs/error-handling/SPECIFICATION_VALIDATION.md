@@ -1,6 +1,6 @@
 # Specification Pattern для валидации Value Objects
 
-**Теги:** `#validation` `#specification` `#value-objects` `#invariants`
+**Теги:** `[#validation|#specification|#value-objects|#invariants]`
 
 ---
 
@@ -10,7 +10,7 @@
 
 > 📖 **Теория:** См. [patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md) для полного описания паттерна
 
-> 💡 **Архитектура:** См. [.docs-meta/VALIDATION_ARCHITECTURE.md](../../.docs-meta/VALIDATION_ARCHITECTURE.md) для полного плана архитектуры
+> 💡 **Эволюция подхода:** См. [VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md) для полного пути от try-catch к Specification Pattern
 
 ---
 
@@ -25,25 +25,10 @@
 7. [Best Practices](#-best-practices)
 8. [Структура файлов](#-структура-файлов)
 
----# Specification Pattern для валидации Value Objects
-
-**Теги:** `#validation` `#specification` `#value-objects` `#invariants`
-
----
-
-## 🎯 Применение Specification Pattern для валидации
-
-Этот документ описывает **практическое применение** Specification Pattern для валидации инвариантов Value Objects в нашем проекте.
-
-> 📖 **Теория:** См. [patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md) для полного описания паттерна
-
-> 💡 **Архитектура:** См. [.docs-meta/VALIDATION_ARCHITECTURE.md](../../.docs-meta/VALIDATION_ARCHITECTURE.md) для полного плана архитектуры
-
----
 
 ## 📐 Архитектура валидации
 
-### Обертка Validation [#code|#structure:]
+### Обертка Validation [#code]
 
 ```typescript
 // src/shared/validation/Validation.ts  #structure:
@@ -59,7 +44,7 @@ export const valid = <T>(value: T): Validation<never, T> => right(value)
 export const invalid = <E>(error: E): Validation<E, never> => left(error)
 ```
 
-### Базовый интерфейс [#code|#structure:|#interface:ISpecification]
+### Базовый интерфейс [#interface:ISpecification|#code]
 
 ```typescript
 // src/shared/specification/ISpecification.ts  #structure:
@@ -73,7 +58,7 @@ export interface ISpecification<T> {  // #interface:ISpecification
 }
 ```
 
-### Композитор спецификаций [#code|#structure:|#class:CompositeSpecification]
+### Композитор спецификаций [#class:CompositeSpecification|#code]
 
 ```typescript
 // src/shared/specification/CompositeSpecification.ts  #structure:
@@ -125,7 +110,7 @@ export class CompositeSpecification<T> {  // #class:CompositeSpecification
 
 ## 📚 Библиотека переиспользуемых спецификаций
 
-### Строковые спецификации [#code|#structure:]
+### Строковые спецификации [#code]
 
 ```typescript
 // src/shared/specification/StringSpecifications.ts  #structure:
@@ -183,7 +168,7 @@ export class PatternSpec implements ISpecification<string> {  // #class:PatternS
 }
 ```
 
-### UUID спецификации [#code|#structure:]
+### UUID спецификации [#code]
 
 ```typescript
 // src/shared/specification/UuidSpecifications.ts  #structure:
@@ -221,7 +206,7 @@ export class UuidV4Spec implements ISpecification<string> {  // #class:UuidV4Spe
 - ✅ Могут требовать доступ к Repository
 - ✅ Инкапсулируют Ubiquitous Language
 
-### Примеры бизнес-специфичных спецификаций [#code|#structure:]
+### Примеры бизнес-специфичных спецификаций [#code]
 
 #### 1. NotReservedNamespaceSpec - проверка зарезервированных имен [#class:NotReservedNamespaceSpec]
 
@@ -308,33 +293,41 @@ import { ValidationError } from '@/shared/specification'  // #structure:
  */
 export class ValidPasswordStrengthSpec implements ISpecification<string> {  // #class:ValidPasswordStrengthSpec
   private static readonly MIN_LENGTH = 8
-  private static readonly REQUIRE_UPPERCASE = true
-  private static readonly REQUIRE_LOWERCASE = true
-  private static readonly REQUIRE_DIGIT = true
-  private static readonly REQUIRE_SPECIAL = true
+  
+  // Коллекция правил валидации
+  private static readonly RULES = [
+    {
+      enabled: true,
+      test: (value: string) => value.length >= ValidPasswordStrengthSpec.MIN_LENGTH,
+      message: `at least ${ValidPasswordStrengthSpec.MIN_LENGTH} characters`
+    },
+    {
+      enabled: true,
+      test: (value: string) => /[A-Z]/.test(value),
+      message: 'at least one uppercase letter'
+    },
+    {
+      enabled: true,
+      test: (value: string) => /[a-z]/.test(value),
+      message: 'at least one lowercase letter'
+    },
+    {
+      enabled: true,
+      test: (value: string) => /\d/.test(value),
+      message: 'at least one digit'
+    },
+    {
+      enabled: true,
+      test: (value: string) => /[!@#$%^&*(),.?":{}|<>]/.test(value),
+      message: 'at least one special character'
+    }
+  ]
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    const errors: string[] = []
-
-    if (value.length < ValidPasswordStrengthSpec.MIN_LENGTH) {
-      errors.push(`at least ${ValidPasswordStrengthSpec.MIN_LENGTH} characters`)
-    }
-
-    if (ValidPasswordStrengthSpec.REQUIRE_UPPERCASE && !/[A-Z]/.test(value)) {
-      errors.push('at least one uppercase letter')
-    }
-
-    if (ValidPasswordStrengthSpec.REQUIRE_LOWERCASE && !/[a-z]/.test(value)) {
-      errors.push('at least one lowercase letter')
-    }
-
-    if (ValidPasswordStrengthSpec.REQUIRE_DIGIT && !/\d/.test(value)) {
-      errors.push('at least one digit')
-    }
-
-    if (ValidPasswordStrengthSpec.REQUIRE_SPECIAL && !/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
-      errors.push('at least one special character')
-    }
+    // Собираем ошибки из правил
+    const errors = ValidPasswordStrengthSpec.RULES
+      .filter(rule => rule.enabled && !rule.test(value))
+      .map(rule => rule.message)
 
     return errors.length === 0
       ? valid(value)
@@ -460,7 +453,7 @@ export class Namespace {  // #class:Namespace
 
 ## 🔄 Использование в Application Layer
 
-### Command Handler с валидацией [#code|#structure:]
+### Command Handler с валидацией [#code]
 
 ```typescript
 // src/application/commands/handlers/CreateResourceHandler.ts  #structure:
@@ -510,7 +503,7 @@ export class CreateResourceHandler {  // #class:CreateResourceHandler
 }
 ```
 
-### Query Handler с фильтрацией по спецификации [#code|#structure:]
+### Query Handler с фильтрацией по спецификации [#code]
 
 ```typescript
 // src/application/queries/handlers/GetStrongPasswordsHandler.ts  #structure:

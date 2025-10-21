@@ -248,7 +248,7 @@ export class NotFoundError extends DomainError {
 import { Either, right, left } from '@sweet-monads/either'
 
 class MockResourceRepository implements IResourceRepository {
-  async findById(id: ResourceId): Promise<Result<Resource, NotFoundError>> {
+  async findById(id: ResourceId): Promise<Either<NotFoundError, Resource>> {
     const resource = this.data.find(r => r.id === id.getValue())
     
     if (!resource) {
@@ -296,7 +296,7 @@ export class DuplicateError extends DomainError {
 import { Either, right, left } from '@sweet-monads/either'
 
 class Resource {
-  addCustomField(field: CustomField): Result<void, DuplicateError> {
+  addCustomField(field: CustomField): Either<DuplicateError, void> {
     const exists = this._customFields.some(
       f => f.label.equals(field.label)
     )
@@ -351,7 +351,7 @@ export class InvalidOperationError extends DomainError {
 import { Either, right, left } from '@sweet-monads/either'
 
 class Resource {
-  delete(): Result<void, InvalidOperationError> {
+  delete(): Either<InvalidOperationError, void> {
     if (this._isLocked) {
       return left(new InvalidOperationError(
         'Resource',
@@ -405,7 +405,7 @@ import { ResourceLockedError } from './errors'
 
 // В Resource Aggregate
 class Resource {
-  rename(name: ResourceName): Result<void, ResourceLockedError> {
+  rename(name: ResourceName): Either<ResourceLockedError, void> {
     if (this._isLocked) {
       return left(new ResourceLockedError(this._id))
     }
@@ -505,7 +505,7 @@ export class ValidationError extends Error {
 import { Either, right, left } from '@sweet-monads/either'
 
 class CreateResourceCommandHandler {
-  async handle(command: CreateResourceCommand): Promise<Result<CommandResult, ValidationError>> {
+  async handle(command: CreateResourceCommand): Promise<Either<ValidationError, CommandResult>> {
     // Валидация входных данных
     if (!command.name || command.name.trim().length === 0) {
       return left(new ValidationError('name', 'name is required'))
@@ -846,7 +846,7 @@ import { Result, ok, combine } from 'neverthrow'
 class CreateResourceCommandHandler {
   async handle(
     command: CreateResourceCommand
-  ): Promise<Result<CommandResult, DomainError>> {
+  ): Promise<Either<DomainError, CommandResult>> {
     // Создаем Value Objects через Result
     const nameResult = ResourceName.create(command.name)
     const namespaceResult = Namespace.create(command.namespace)
@@ -985,7 +985,7 @@ import { Result, err } from 'neverthrow'
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<ResourceName, NetworkError> {
+  static create(value: string): Either<NetworkError, ResourceName> {
     if (!value) {
       return left(new NetworkError('invalid name'))  // ❌ Не та ошибка!
     }
@@ -1100,12 +1100,12 @@ describe('ResourceName', () => {
 ✅ Возвращает Result<T, E> где E:
    - DomainError и его подклассы (InvariantViolationError, NotFoundError, etc.)
    
-❌ НЕ может использовать в Result<T, E>:
+❌ НЕ может использовать в Either<E, T>:
    - NetworkError, ApiError, StorageError
    - ValidationError, CommandError, QueryError
    
 ❌ НЕ использует throw/try-catch:
-   - Только Result<T, E> для обработки ошибок
+   - Только Either<E, T> для обработки ошибок
 ```
 
 ### 2. Application Layer
@@ -1150,4 +1150,4 @@ describe('ResourceName', () => {
 
 ---
 
-**💡 Правило**: Используй `Result<T, E>` из neverthrow вместо `throw`/`try-catch`. Ошибки должны соответствовать слою, в котором они возникают. Domain ошибки — часть Ubiquitous Language!
+**💡 Правило**: Используй `Either<E, T>` из @sweet-monads/either вместо `throw`/`try-catch`. Ошибки должны соответствовать слою, в котором они возникают. Domain ошибки — часть Ubiquitous Language!

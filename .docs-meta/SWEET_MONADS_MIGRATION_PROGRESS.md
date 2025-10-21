@@ -8,9 +8,9 @@
 ## 📋 План миграции
 
 ### Этап 1: Основная документация (error-handling/)
-- [ ] ERROR_ESCALATION.md (50% - в процессе)
-- [ ] ERROR_ESCALATION_EXTENDED.md (обновить рекомендацию)
-- [ ] INVARIANTS.md
+- [x] ERROR_ESCALATION.md ✅ (100%)
+- [x] ERROR_ESCALATION_EXTENDED.md ✅ (100%)
+- [x] INVARIANTS.md ✅ (100%)
 - [ ] ERROR_HANDLING.md
 
 ### Этап 2: Архитектурная документация
@@ -38,8 +38,9 @@
 
 ### 2025-10-21
 
-#### ERROR_ESCALATION.md (50%)
+#### ERROR_ESCALATION.md (100%) ✅
 - ✅ Заголовок и введение
+- ✅ Установка библиотеки
 - ✅ Установка библиотеки
 - ✅ Базовое использование
 - ✅ Монадические операции (map, chain, fold, merge, mergeInMany, mapLeft)
@@ -48,10 +49,28 @@
 - ✅ Преимущества библиотеки
 - ✅ Эскалация Domain → Application
 - ✅ Эскалация Infrastructure → Domain
-- ✅ Начало Presentation Layer
-- ⏳ Осталось: завершить Presentation Layer примеры
+- ✅ Presentation Layer примеры
+- ✅ План миграции
 
-**Коммит:** `50cfc6c` - docs: начать переход на @sweet-monads/either в ERROR_ESCALATION.md (часть 1/5)
+**Коммиты:** 
+- `50cfc6c` - docs: начать переход на @sweet-monads/either в ERROR_ESCALATION.md (часть 1/5)
+- `bf0323e` - docs: завершить миграцию ERROR_ESCALATION.md на @sweet-monads/either (100%)
+
+#### ERROR_ESCALATION_EXTENDED.md (100%) ✅
+- ✅ Изменена рекомендация с neverthrow на @sweet-monads/either
+- ✅ Обновлены примеры архитектуры
+- ✅ Добавлены уникальные возможности (mergeInMany, mapLeft)
+
+**Коммит:** `38dda25` - docs: обновить рекомендацию в ERROR_ESCALATION_EXTENDED.md
+
+#### INVARIANTS.md (100%) ✅
+- ✅ StringInvariant - все методы
+- ✅ IdentifierInvariant - композитные инварианты
+- ✅ Value Objects примеры (ResourceName, Namespace)
+- ✅ Правильные и неправильные паттерны
+- ✅ Рекомендации
+
+**Коммит:** `4ac7d9e` - docs: мигрировать INVARIANTS.md на @sweet-monads/either
 
 ---
 
@@ -108,19 +127,21 @@
 ## 📊 Статистика
 
 - **Всего файлов для обновления:** ~15-20
-- **Завершено:** 0.5 файла (ERROR_ESCALATION.md 50%)
-- **Прогресс:** ~2%
-- **Оценка времени:** 6-8 часов
+- **Завершено:** 3 файла (ERROR_ESCALATION.md, ERROR_ESCALATION_EXTENDED.md, INVARIANTS.md)
+- **Прогресс:** ~18% (3/17 файлов)
+- **Оценка времени:** 5-7 часов осталось
 
 ---
 
 ## 🎯 Следующие шаги
 
-1. Завершить ERROR_ESCALATION.md (Presentation Layer примеры)
-2. Обновить ERROR_ESCALATION_EXTENDED.md (изменить рекомендацию)
-3. Обновить INVARIANTS.md
-4. Обновить ERROR_HANDLING.md
-5. Коммитить после каждого файла
+1. ✅ ~~Завершить ERROR_ESCALATION.md~~
+2. ✅ ~~Обновить ERROR_ESCALATION_EXTENDED.md~~
+3. ✅ ~~Обновить INVARIANTS.md~~
+4. ⏳ Обновить ERROR_HANDLING.md (следующий)
+5. Обновить steps/step_1/README.md
+6. Обновить архитектурную документацию (5 файлов)
+7. Коммитить после каждого файла
 
 ---
 

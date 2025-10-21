@@ -2,6 +2,8 @@
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
+> 💡 **Валидация:** Для валидации инвариантов используйте **[Specification Pattern](./SPECIFICATION_VALIDATION.md)** - декларативный подход БЕЗ if-ов!
+
 ## 📦 Библиотека @sweet-monads/either
 
 В проекте используется библиотека **[@sweet-monads/either](https://github.com/JSMonk/sweet-monads)** для функциональной обработки ошибок через `Either<E, T>` вместо `throw`/`try-catch`.

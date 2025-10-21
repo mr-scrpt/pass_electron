@@ -2,6 +2,8 @@
 
 Документ описывает как правильно эскалировать ошибки между архитектурными слоями используя **@sweet-monads/either** и Either Pattern, избегая Try-Catch Hell.
 
+> 💡 **Валидация:** Для валидации инвариантов используйте **[Specification Pattern](./SPECIFICATION_VALIDATION.md)** - декларативный подход БЕЗ if-ов!
+
 > 📖 **Сравнение библиотек:** [ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md) — детальное сравнение @sweet-monads/either, neverthrow, fp-ts с объяснением монад и выбора библиотеки.
 
 ---

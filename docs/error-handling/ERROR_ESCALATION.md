@@ -394,11 +394,9 @@ Presentation Layer использует `.fold()` для обработки Eith
 export async function action({ request }: ActionFunctionArgs) {
   const result = await commands.resources.create(request)
   
-  return result.match(
-    // Success → redirect
-    (resource) => redirect(`/resources/${resource.id}`),
-    
-    // Error → JSON response
+  // ⚠️ Порядок аргументов fold: (error, success)
+  return result.fold(
+    // Error → JSON response (первый аргумент!)
     (error) => {
       if (error instanceof InvariantViolationError) {
         return json({ error: error.message }, { status: 400 })
@@ -407,7 +405,10 @@ export async function action({ request }: ActionFunctionArgs) {
         return json({ error: 'Already exists' }, { status: 409 })
       }
       return json({ error: 'Server error' }, { status: 500 })
-    }
+    },
+    
+    // Success → redirect (второй аргумент!)
+    (resource) => redirect(`/resources/${resource.id}`)
   )
 }
 ```
@@ -418,20 +419,28 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ```
 Этап 1: Domain Layer
-├── Создать Result type (нативный)
-├── Обновить Value Objects (create → Result)
+├── Установить @sweet-monads/either
+├── Обновить Value Objects (create → Either)
 └── Обновить Repository интерфейсы
 
 Этап 2: Application Layer
-├── Установить neverthrow
-├── Создать адаптеры toNeverthrow/fromNeverthrow
-├── Обновить Command Handlers
-└── Обновить Query Handlers
+├── Обновить Command Handlers (merge/mergeInMany)
+├── Обновить Query Handlers (chain/asyncChain)
+└── Использовать mapLeft для трансформации ошибок
 
-Этап 3: Presentation Layer
+Этап 3: Infrastructure Layer
+├── Обновить Repositories (asyncChain)
+├── Использовать fromPromise для async операций
+└── Преобразовывать ошибки через mapLeft
+
+Этап 4: Presentation Layer
 ├── Создать handleDomainError helper
-├── Обновить Actions (использовать match)
+├── Обновить Actions (использовать fold)
 └── Обновить Loaders
+
+⚠️ Важно: Помнить о порядке аргументов!
+- Either<Error, Success> - ошибка первая
+- fold(error, success) - ошибка первая
 ```
 
 ---
@@ -444,4 +453,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ---
 
-**💡 Ключевая идея**: Result делает ошибки частью сигнатуры типа. Компилятор заставляет обработать все возможные ошибки!
+**💡 Ключевая идея**: Either делает ошибки частью сигнатуры типа. Компилятор заставляет обработать все возможные ошибки!
+
+**⭐ Уникальные возможности @sweet-monads/either**:
+- `mergeInMany` - собирает ВСЕ ошибки валидации (идеально для форм!)
+- `mapLeft` - трансформация ошибок между слоями

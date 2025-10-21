@@ -20,18 +20,21 @@ if (name.length < 1 || name.length > 100) {
   throw new Error('Invalid name')
 }
 
-// ✅ ХОРОШО: инвариант в Value Object
+// ✅ ХОРОШО: инвариант в Value Object через Specification Pattern
 class ResourceName {
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): ResourceName {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     // Инвариант: имя от 1 до 100 символов
-    if (!value || value.length < 1 || value.length > 100) {
-      throw new InvariantViolationError('ResourceName', 'length must be 1-100 characters')
-    }
-    return new ResourceName(value)
+    const spec = CompositeSpecification.allOf(
+      new NotEmptySpec('ResourceName'),
+      new LengthRangeSpec(1, 100, 'ResourceName')
+    )
+    return spec.isSatisfiedBy(value).map(v => new ResourceName(v))
   }
 }
+
+// 📖 См. SPECIFICATION_VALIDATION.md для деталей
 ```
 
 ### 2. Aggregates

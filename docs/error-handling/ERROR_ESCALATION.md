@@ -130,11 +130,13 @@ pnpm add @sweet-monads/either
 ```typescript
 import { Either, right, left } from '@sweet-monads/either'
 
+// 💡 Упрощенный пример для демонстрации Either
+// В реальном коде используйте Specification Pattern (см. SPECIFICATION_VALIDATION.md)
 class ResourceName {
   private constructor(private readonly value: string) {}
   
   static create(value: string): Either<InvariantViolationError, ResourceName> {
-    if (!value) {
+    if (!value) {  // Упрощенная валидация для примера
       return left(new InvariantViolationError('ResourceName', 'empty'))
     }
     return right(new ResourceName(value))

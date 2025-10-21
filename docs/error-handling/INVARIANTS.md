@@ -198,7 +198,7 @@ export class UuidInvariant {
 
 ```typescript
 // src/domain/shared/invariants/StringInvariant.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError } from '../errors'
 
 /**
@@ -208,29 +208,29 @@ import { InvariantViolationError } from '../errors'
 export class StringInvariant {
   /**
    * Проверка длины строки
-   * Возвращает Result для type-safe обработки
+   * Возвращает Either для type-safe обработки
    */
   static validateLength(
     value: string,
     minLength: number,
     maxLength: number,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     if (!value) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         entityType,
-        `value cannot be empty`
+        'cannot be empty'
       ))
     }
     
     if (value.length < minLength || value.length > maxLength) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         entityType,
-        `length must be between ${minLength} and ${maxLength} characters`
+        `must be ${minLength}-${maxLength} characters`
       ))
     }
     
-    return ok(value)
+    return right(value)
   }
   
   /**
@@ -240,16 +240,17 @@ export class StringInvariant {
   static validateAlphanumericWithDashUnderscore(
     value: string,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     const PATTERN = /^[a-zA-Z0-9-_]+$/
     
     if (!PATTERN.test(value)) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         entityType,
-        'must contain only alphanumeric characters, dashes and underscores'
+        'must contain only letters, numbers, - and _'
       ))
     }
-    return ok(value)
+    
+    return right(value)
   }
   
   /**
@@ -259,16 +260,17 @@ export class StringInvariant {
   static validateSlug(
     value: string,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
     
     if (!PATTERN.test(value)) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         entityType,
-        'must be a valid slug (lowercase letters, numbers, and dashes)'
+        'must be a valid slug (lowercase, numbers, hyphens)'
       ))
     }
-    return ok(value)
+    
+    return right(value)
   }
 }
 ```
@@ -279,43 +281,39 @@ export class StringInvariant {
 
 ```typescript
 // src/domain/shared/invariants/IdentifierInvariant.ts
-import { Result } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 import { InvariantViolationError } from '../errors'
 import { StringInvariant } from './StringInvariant'
 
 /**
- * Композитный инвариант для идентификаторов
- * Применяет набор правил валидации как единое целое
- */ // #class:IdentifierInvariant
+ * Композитные инварианты для идентификаторов
+ * Комбинируют несколько проверок
+ */
 export class IdentifierInvariant {
   /**
-   * Валидация длинного идентификатора (для ресурсов)
-   * Применяет:
-   * - Длина: 1-100 символов
-   * - Формат: буквы, цифры, дефис, подчеркивание
+   * Валидация идентификатора ресурса
+   * 1-100 символов, буквы/цифры/-/_
    */
   static validateResourceIdentifier(
     value: string,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     return StringInvariant.validateLength(value, 1, 100, entityType)
-      .andThen(v => 
+      .chain(v => 
         StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
       )
   }
   
   /**
-   * Валидация короткого идентификатора (для namespace, labels)
-   * Применяет:
-   * - Длина: 1-50 символов
-   * - Формат: буквы, цифры, дефис, подчеркивание
+   * Валидация короткого идентификатора (namespace)
+   * 1-50 символов, буквы/цифры/-/_
    */
   static validateShortIdentifier(
     value: string,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     return StringInvariant.validateLength(value, 1, 50, entityType)
-      .andThen(v => 
+      .chain(v => 
         StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
       )
   }
@@ -356,7 +354,7 @@ export * from './invariants'
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Result } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
 
 /**
@@ -378,7 +376,7 @@ export class ResourceName {
    * IdentifierInvariant - это утилита для переиспользования логики,
    * не внешний валидатор.
    */
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     // ✅ Value Object использует утилиту ВНУТРИ себя
     // ✅ Конструктор private → невозможно обойти валидацию
     return IdentifierInvariant.validateResourceIdentifier(value, ResourceName.ENTITY_TYPE)
@@ -397,14 +395,14 @@ export class ResourceName {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Result } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
 
 export class Namespace {
   private static readonly ENTITY_TYPE = 'Namespace'
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<Namespace, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, Namespace> {
     // ✅ Переиспользуем композитный инвариант!
     return IdentifierInvariant.validateShortIdentifier(value, Namespace.ENTITY_TYPE)
       .map(validValue => new Namespace(validValue))
@@ -434,7 +432,7 @@ class ResourceName {
   private constructor(private readonly value: string) {}
   
   // ✅ Валидация происходит ВНУТРИ Value Object
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     // Value Object использует инварианты как УТИЛИТЫ
     return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
       .map(validValue => new ResourceName(validValue))
@@ -458,7 +456,7 @@ class ResourceName {
 }
 
 // ❌ Валидация снаружи - нарушение инкапсуляции
-function createResourceName(value: string): Result<ResourceName, InvariantViolationError> {
+function createResourceName(value: string): Either<InvariantViolationError, ResourceName> {
   return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
     .map(v => new ResourceName(v))
 }
@@ -599,7 +597,7 @@ class Namespace {
 - ResourceName и Namespace используют один инвариант
 
 ### 3. **Type Safety**
-- `Result<T, E>` делает ошибки явными
+- `Either<E, T>` делает ошибки явными
 - Компилятор заставит обработать
 
 ### 4. **Читаемость**
@@ -616,7 +614,7 @@ if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
 ## 🎯 Рекомендации
 
 1. **Всегда именуй regex** - не используй magic patterns
-2. **Result вместо throw** - type-safe обработка ошибок
+2. **Either вместо throw** - type-safe обработка ошибок
 3. **Переиспользуй** - общие инварианты в Shared Kernel
 4. **Документируй** - описывай что проверяет инвариант
 
@@ -625,7 +623,7 @@ if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
 ## 🔗 См. также
 
 - **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Обработка ошибок: Domain/Application/Infrastructure Errors
-- **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок: Result Pattern и монады
+- **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок: Either Pattern и монады
 - **[DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md)** — Value Objects и Entities
 - **[contracts/domain-types.md](../contracts/domain-types.md)** — Domain типы и ошибки
 - **[PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)** — Структура Domain Layer

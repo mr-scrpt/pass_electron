@@ -326,6 +326,264 @@ if (allErrorsResult.isLeft()) {
 
 ---
 
+## 🔀 Эскалация ошибок между слоями
+
+### Проблема: instanceof Hell при эскалации
+
+**Вопрос:** Как ошибки проходят через слои архитектуры? Нужно ли на каждом слое проверять `instanceof`?
+
+**Ответ:** В нашей архитектуре ошибки **трансформируются** на границах слоев через `mapLeft`, а НЕ проверяются через `instanceof`!
+
+---
+
+### ❌ Антипаттерн: instanceof на каждом слое
+
+```typescript
+// ❌ ПЛОХО: instanceof Hell при эскалации через слои
+
+// Infrastructure Layer
+class ApiClient {
+  async get(url: string): Promise<Response> {
+    try {
+      return await fetch(url)
+    } catch (error) {
+      throw new NetworkError('Connection failed')  // Infrastructure Error
+    }
+  }
+}
+
+// Domain Layer - Repository
+class ResourceRepository {
+  async findById(id: string): Promise<Resource> {
+    try {
+      const response = await this.apiClient.get(`/resources/${id}`)
+      return this.mapper.toDomain(response)
+    } catch (error) {
+      // Проблема 1: instanceof на границе Infrastructure → Domain
+      if (error instanceof NetworkError && error.statusCode === 404) {
+        throw new NotFoundError('Resource', id)  // Domain Error
+      }
+      throw error  // Пробрасываем дальше
+    }
+  }
+}
+
+// Application Layer - Query Handler
+class GetResourceHandler {
+  async execute(id: string): Promise<ResourceDTO> {
+    try {
+      const resource = await this.repository.findById(id)
+      return this.mapper.toDTO(resource)
+    } catch (error) {
+      // Проблема 2: instanceof на границе Domain → Application
+      if (error instanceof NotFoundError) {
+        throw new QueryError(`Resource ${id} not found`)  // Application Error
+      }
+      throw error
+    }
+  }
+}
+
+// Presentation Layer - Route Handler
+async function resourceRoute(request: Request) {
+  try {
+    const id = request.params.id
+    const dto = await handler.execute(id)
+    return json(dto)
+  } catch (error) {
+    // Проблема 3: instanceof на границе Application → Presentation
+    if (error instanceof QueryError) {
+      return json({ error: error.message }, { status: 404 })
+    }
+    if (error instanceof NetworkError) {
+      return json({ error: 'Service unavailable' }, { status: 503 })
+    }
+    return json({ error: 'Unknown error' }, { status: 500 })
+  }
+}
+```
+
+**Проблемы:**
+1. ❌ `instanceof` на КАЖДОЙ границе слоя
+2. ❌ Много вложенных `try-catch`
+3. ❌ Ошибки не видны в типах
+4. ❌ Легко забыть обработку
+5. ❌ Сложно добавить новый тип ошибки
+
+---
+
+### ✅ Решение: mapLeft для трансформации ошибок
+
+**Ключевая идея:** Ошибки трансформируются на границах слоев через `mapLeft`, а НЕ через `instanceof`!
+
+```typescript
+// ✅ ХОРОШО: Either + mapLeft для эскалации
+
+// Infrastructure Layer
+class ApiClient {
+  get(url: string): Either<NetworkError, Response> {
+    // Возвращаем Either вместо throw
+    return tryCatch(
+      () => fetch(url),
+      (error) => new NetworkError('Connection failed')
+    )
+  }
+}
+
+// Domain Layer - Repository
+class ResourceRepository implements IResourceRepository {
+  findById(id: ResourceId): Either<NotFoundError, Resource> {
+    return this.apiClient.get(`/resources/${id.getValue()}`)
+      // mapLeft трансформирует Infrastructure Error → Domain Error
+      .mapLeft((networkError) => {
+        if (networkError.statusCode === 404) {
+          return new NotFoundError('Resource', id.getValue())
+        }
+        // Другие сетевые ошибки тоже преобразуем в Domain
+        return new NotFoundError('Resource', id.getValue())
+      })
+      .chain((response) => this.mapper.toDomain(response))
+  }
+}
+
+// Application Layer - Query Handler
+class GetResourceHandler {
+  execute(id: string): Either<QueryError, ResourceDTO> {
+    return ResourceId.create(id)
+      // mapLeft трансформирует Domain Error → Application Error
+      .mapLeft((domainError) => 
+        new QueryError(`Invalid resource ID: ${domainError.message}`)
+      )
+      .chain((resourceId) => 
+        this.repository.findById(resourceId)
+          // mapLeft трансформирует Domain Error → Application Error
+          .mapLeft((notFoundError) => 
+            new QueryError(`Resource not found: ${notFoundError.message}`)
+          )
+      )
+      .map((resource) => this.mapper.toDTO(resource))
+  }
+}
+
+// Presentation Layer - Route Handler
+async function resourceRoute(request: Request) {
+  const id = request.params.id
+  const result = await handler.execute(id)
+  
+  // fold обрабатывает Either БЕЗ instanceof!
+  return result.fold(
+    // Left (ошибка) - TypeScript ЗНАЕТ что это QueryError
+    (error) => json({ error: error.message }, { status: 404 }),
+    // Right (успех) - TypeScript ЗНАЕТ что это ResourceDTO
+    (dto) => json(dto)
+  )
+}
+```
+
+**Преимущества:**
+- ✅ **НЕТ instanceof** - трансформация через `mapLeft`
+- ✅ **НЕТ try-catch** - ошибки в типах
+- ✅ **Type-safe** - компилятор проверяет
+- ✅ **Явная трансформация** - видно где ошибка меняет тип
+- ✅ **Легко расширять** - добавить новый тип ошибки просто
+
+---
+
+### Архитектурные правила эскалации
+
+#### 1. Infrastructure → Domain
+
+**Правило:** Infrastructure ошибки (`NetworkError`, `ApiError`) **ВСЕГДА** преобразуются в Domain ошибки (`NotFoundError`, `DomainError`)
+
+```typescript
+// Infrastructure Layer возвращает NetworkError
+apiClient.get(url): Either<NetworkError, Response>
+
+// Domain Layer трансформирует через mapLeft
+repository.findById(id): Either<NotFoundError, Resource> {
+  return apiClient.get(url)
+    .mapLeft((networkError) => new NotFoundError(...))  // ⭐ Трансформация!
+}
+```
+
+#### 2. Domain → Application
+
+**Правило:** Domain ошибки (`NotFoundError`, `InvariantViolationError`) **могут** преобразовываться в Application ошибки (`QueryError`, `CommandError`)
+
+```typescript
+// Domain Layer возвращает NotFoundError
+repository.findById(id): Either<NotFoundError, Resource>
+
+// Application Layer трансформирует через mapLeft
+handler.execute(id): Either<QueryError, ResourceDTO> {
+  return repository.findById(id)
+    .mapLeft((domainError) => new QueryError(...))  // ⭐ Трансформация!
+}
+```
+
+#### 3. Application → Presentation
+
+**Правило:** Application ошибки (`QueryError`, `CommandError`) обрабатываются в Presentation через `fold` или `match`
+
+```typescript
+// Application Layer возвращает QueryError
+handler.execute(id): Either<QueryError, ResourceDTO>
+
+// Presentation Layer обрабатывает через fold
+result.fold(
+  (error) => json({ error: error.message }, { status: 404 }),  // ⭐ Обработка!
+  (dto) => json(dto)
+)
+```
+
+---
+
+### Сравнение: instanceof vs mapLeft
+
+| Критерий | instanceof (try-catch) | mapLeft (Either) |
+|----------|------------------------|------------------|
+| **Проверка типа** | ❌ На каждом слое | ✅ Не нужна |
+| **Трансформация** | ⚠️ Через throw/catch | ✅ Через mapLeft |
+| **Type-safe** | ❌ Нет | ✅ Да |
+| **Видимость в типах** | ❌ Нет | ✅ Да |
+| **Вложенность** | ❌ try-catch Hell | ✅ Плоская цепочка |
+| **Расширяемость** | ❌ Сложно | ✅ Легко |
+
+---
+
+### Итоговая схема эскалации
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Infrastructure Layer                                    │
+│  Either<NetworkError, Response>                          │
+└────────────┬────────────────────────────────────────────┘
+             │ mapLeft(networkError => new NotFoundError())
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Domain Layer                                            │
+│  Either<NotFoundError, Resource>                         │
+└────────────┬────────────────────────────────────────────┘
+             │ mapLeft(domainError => new QueryError())
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Application Layer                                       │
+│  Either<QueryError, ResourceDTO>                         │
+└────────────┬────────────────────────────────────────────┘
+             │ fold(error => json(...), dto => json(...))
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Presentation Layer                                      │
+│  Response                                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Ключевое:** На каждой границе используется `mapLeft` для трансформации, а НЕ `instanceof` для проверки!
+
+> 📖 См. [ERROR_HANDLING.md](./ERROR_HANDLING.md) для деталей про преобразование ошибок между слоями
+
+---
+
 ## 🎯 Рекомендуемый порядок изучения
 
 ### Для начинающих:

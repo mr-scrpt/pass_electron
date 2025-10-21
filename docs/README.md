@@ -22,6 +22,9 @@
 - **[COMPOSITION_LAYER.md](./COMPOSITION_LAYER.md)** - Декомпозиция Composition Layer, Multi-UI поддержка, константы
 - **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Канонический подход к внедрению внешних зависимостей (Adapter Pattern + DI)
 
+### 🎯 Паттерны проектирования (`patterns/`)
+- **[SPECIFICATION_PATTERN.md](./patterns/SPECIFICATION_PATTERN.md)** - Specification Pattern для валидации без if-ов ⭐
+
 ### 📦 Electron (`electron/`)
 Документация по Packaging Layer - упаковка приложения в desktop формат.
 

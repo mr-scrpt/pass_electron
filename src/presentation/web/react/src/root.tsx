@@ -6,11 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import styles from "./styles/tailwind.css?url";
-
-export function links() {
-  return [{ rel: "stylesheet", href: styles }];
-}
+import "./styles/tailwind.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

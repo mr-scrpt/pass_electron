@@ -251,10 +251,7 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss --filter @password-manager
 #### Install Dependencies [#command]
 
 ```bash
-# В root
-pnpm install
-
-# В web presentation (автоматически установится через workspaces)
+# Из корня проекта - установит зависимости во всех workspaces автоматически
 pnpm install
 ```
 

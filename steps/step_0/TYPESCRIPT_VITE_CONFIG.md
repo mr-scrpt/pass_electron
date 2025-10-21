@@ -22,7 +22,69 @@ import { Resource } from '@/domain'               // ← Через Public API!
 
 ---
 
-## 1️⃣ TypeScript Configuration (Web Presentation)
+## 1️⃣ TypeScript Configuration (Root) - для DDD слоев
+
+**Файл: `tsconfig.json`** (в корне проекта)
+
+Создать root tsconfig для проверки типов в DDD слоях (domain, application, infrastructure, composition).
+
+#### Root tsconfig.json [#config|#structure:path]
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowJs": true,
+    "noEmit": true,
+    
+    "baseUrl": ".",
+    "paths": {
+      "@/domain": ["./src/domain/index.ts"],
+      "@/domain/*": ["./src/domain/*"],
+      "@/application": ["./src/application/index.ts"],
+      "@/application/*": ["./src/application/*"],
+      "@/infrastructure": ["./src/infrastructure/index.ts"],
+      "@/infrastructure/*": ["./src/infrastructure/*"],
+      "@/composition": ["./src/composition/index.ts"],
+      "@/composition/*": ["./src/composition/*"]
+    }
+  },
+  
+  "include": [
+    "src/domain/**/*.ts",
+    "src/application/**/*.ts",
+    "src/infrastructure/**/*.ts",
+    "src/composition/**/*.ts",
+    "src/shared/**/*.ts"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "src/presentation"
+  ]
+}
+```
+
+**Зачем:**
+- ✅ Проверка типов в DDD слоях независимо от UI
+- ✅ `pnpm typecheck` проверяет domain/application/infrastructure/composition
+- ✅ Presentation проверяется отдельно (свой tsconfig)
+- ✅ Алиасы для кросс-модульных импортов внутри DDD слоев
+
+---
+
+## 2️⃣ TypeScript Configuration (Web Presentation)
 
 > **📦 Файл уже создан**: React Router CLI сгенерировал `src/presentation/web/react/tsconfig.json`
 
@@ -114,7 +176,7 @@ src/presentation/web/react/  ← мы здесь (tsconfig.json)
 
 ---
 
-## 2️⃣ Vite Configuration (Web Presentation)
+## 3️⃣ Vite Configuration (Web Presentation)
 
 > **📦 Файл уже создан**: React Router CLI сгенерировал `src/presentation/web/react/vite.config.ts`
 >
@@ -177,7 +239,7 @@ export default defineConfig({
 
 ---
 
-## 3️⃣ Примеры импортов
+## 4️⃣ Примеры импортов
 
 ### В presentation/web/react/src/routes/_index.tsx
 
@@ -258,7 +320,7 @@ export const queries = {
 
 ---
 
-## 4️⃣ Проверка конфигурации
+## 5️⃣ Проверка конфигурации
 
 ### TypeScript
 
@@ -307,7 +369,7 @@ console.log('✅ Все импорты работают!')
 
 ---
 
-## 5️⃣ Troubleshooting
+## 6️⃣ Troubleshooting
 
 ### Ошибка: Cannot find module '@/domain' или '@/composition'
 
@@ -387,14 +449,25 @@ console.log('✅ Все импорты работают!')
 
 ## ✅ Чеклист
 
-- [ ] Создан `tsconfig.json` в корне с `paths`
+### Root tsconfig (для DDD слоев):
+- [ ] Создан `tsconfig.json` в корне проекта
+- [ ] Настроены `paths` для алиасов `@/domain`, `@/application`, etc.
+- [ ] `include` содержит DDD слои (domain, application, infrastructure, composition)
+- [ ] `exclude` содержит `src/presentation`
+- [ ] `pnpm typecheck` проходит без ошибок (когда будут файлы в DDD слоях)
+
+### Web tsconfig (для Presentation):
+- [ ] ✅ `src/presentation/web/react/tsconfig.json` уже создан React Router CLI
+- [ ] Изменен `paths` - добавлены алиасы для DDD слоев
+- [ ] Изменен `~/*` на `@/*` для локальных файлов
 - [ ] ✅ `vite.config.ts` уже создан React Router CLI
 - [ ] ✅ `vite-tsconfig-paths` уже установлен и настроен
 - [ ] (Опционально) Добавлены дополнительные настройки в `vite.config.ts` (порт, etc.)
-- [ ] `pnpm typecheck` проходит без ошибок
-- [ ] `pnpm dev:web` запускается
+
+### Проверка:
+- [ ] `pnpm dev:web` запускается без ошибок
 - [ ] Импорты `@/domain`, `@/composition` работают в routes
-- [ ] Локальные импорты `@/components` работают
+- [ ] Локальные импорты `@/*` работают в components
 
 ---
 

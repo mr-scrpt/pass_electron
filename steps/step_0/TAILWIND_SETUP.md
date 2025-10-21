@@ -37,39 +37,37 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss --filter @password-manager
 
 ### 1. Обновить `vite.config.ts`
 
-Добавить Tailwind plugin:
+> **📦 Файл уже создан**: React Router CLI создал `src/presentation/web/react/vite.config.ts`
+
+**Что нужно добавить**: Импорт и плагин Tailwind
 
 **Файл:** `src/presentation/web/react/vite.config.ts`
 
-#### Vite Config [#config|#structure:path]
+#### Vite Config - только изменения [#config|#structure:path]
 
 ```typescript
 // src/presentation/web/react/vite.config.ts
 import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite"; // ← Добавить
+import tailwindcss from "@tailwindcss/vite"; // ← ДОБАВИТЬ импорт
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-import path from "path";
-
-const projectRoot = path.resolve(__dirname, "../../../..");
 
 export default defineConfig({
-  root: projectRoot,
   plugins: [
-    tailwindcss(), // ← Добавить перед reactRouter!
-    reactRouter({
-      appDirectory: "src/presentation/web/react/src",
-    }),
-    tsconfigPaths(),
+    tailwindcss(), // ← ДОБАВИТЬ плагин (перед reactRouter!)
+    reactRouter(),
+    tsconfigPaths()
   ],
-  // ❌ НЕ НУЖНО - vite-tsconfig-paths автоматически читает алиасы из tsconfig.json
-  // resolve: {
-  //   alias: {
-  //     ...
-  //   },
-  // },
 });
 ```
+
+**Что добавляется:**
+1. **Импорт** `tailwindcss` из `@tailwindcss/vite`
+2. **Плагин** `tailwindcss()` в массив plugins (перед `reactRouter()`)
+
+**Зачем перед reactRouter:**
+- Tailwind обрабатывает CSS до того, как React Router обработает компоненты
+- Правильный порядок загрузки стилей
 
 ### 2. Создать `tailwind.config.js`
 

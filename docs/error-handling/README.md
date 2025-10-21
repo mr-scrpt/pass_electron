@@ -43,20 +43,20 @@
 
 ---
 
-### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Result Pattern
+### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Either Pattern
 
 Документ описывает:
 - Проблемы традиционного `try-catch` подхода (Try-Catch Hell)
-- **Result Pattern** (нативный TypeScript) — без библиотек
-- **neverthrow** — Result монада (рекомендуется!)
-- **fp-ts** — академическое функциональное программирование
-- Гибридный подход для нашего проекта
+- **@sweet-monads/either** — Either монада (рекомендуется!) ⭐
+- `mergeInMany` — накопление ВСЕХ ошибок валидации
+- `mapLeft` — трансформация ошибок между слоями
 - План миграции
 
 **Ключевые концепции:**
 - Type-safe обработка ошибок
 - Railway-oriented programming
 - Ошибки как часть сигнатуры типа
+- Накопление всех ошибок (уникально!)
 
 **Читай этот документ**, чтобы понять как избавиться от `try-catch` и сделать обработку ошибок type-safe.
 
@@ -67,15 +67,16 @@
 Расширенный документ с полным сравнением:
 - Что такое монады и как они работают
 - Result vs Either — в чем разница
+- **@sweet-monads/either** (Either монада, Haskell-style) — РЕКОМЕНДУЕТСЯ ⭐
 - **neverthrow** (Result монада, Rust-style)
-- **@sweet-monads/either** (Either монада, Haskell-style) с примерами
 - **fp-ts** (полная экосистема монад)
 - Детальная таблица сравнения всех библиотек
 - Когда какую библиотеку использовать
 
-**Особенности @sweet-monads/either:**
+**Почему @sweet-monads/either:**
 - `mergeInMany` — накопление ВСЕХ ошибок (идеально для форм!)
-- `mapLeft` — трансформация ошибок
+- `mapLeft` — трансформация ошибок между слоями
+- `asyncChain`/`asyncMap` — встроены
 - Right/Left терминология (Haskell)
 
 **Читай этот документ**, если нужно глубоко понять различия между библиотеками для принятия решения.
@@ -87,7 +88,7 @@
 ### Для начинающих:
 1. **INVARIANTS.md** — понять валидацию
 2. **ERROR_HANDLING.md** — понять иерархию ошибок
-3. **ERROR_ESCALATION.md** — понять Result Pattern и neverthrow
+3. **ERROR_ESCALATION.md** — понять Either Pattern и @sweet-monads/either
 
 ### Для опытных:
 1. **ERROR_ESCALATION_EXTENDED.md** — детальное сравнение монад
@@ -104,9 +105,9 @@
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
-      .andThen(v => 
+      .chain(v => 
         StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName')
       )
       .map(validValue => new ResourceName(validValue))
@@ -130,11 +131,12 @@ class ValidationError extends Error { }
 class NetworkError extends Error { }
 ```
 
-### 3. Result для type-safe обработки
+### 3. Either для type-safe обработки
 ```typescript
-// ✅ ХОРОШО: Result делает ошибки явными
-function findUser(id: string): Result<User, NotFoundError> {
+// ✅ ХОРОШО: Either делает ошибки явными
+function findUser(id: string): Either<NotFoundError, User> {
   // Компилятор заставит обработать NotFoundError!
+  // ⚠️ Порядок: Either<Error, Success>
 }
 ```
 

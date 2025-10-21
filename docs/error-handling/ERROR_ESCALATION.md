@@ -449,6 +449,103 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ---
 
+## 🔀 Эскалация ошибок между слоями
+
+### Проблема: instanceof Hell при эскалации
+
+**Вопрос:** Как ошибки проходят через слои архитектуры? Нужно ли на каждом слое проверять `instanceof`?
+
+**Ответ:** В нашей архитектуре ошибки **трансформируются** на границах слоев через `mapLeft`, а НЕ проверяются через `instanceof`!
+
+### Архитектурные правила эскалации
+
+#### 1. Infrastructure → Domain
+
+**Правило:** Infrastructure ошибки (`NetworkError`, `ApiError`) **ВСЕГДА** преобразуются в Domain ошибки
+
+```typescript
+// Infrastructure Layer возвращает NetworkError
+apiClient.get(url): Either<NetworkError, Response>
+
+// Domain Layer трансформирует через mapLeft
+repository.findById(id): Either<NotFoundError, Resource> {
+  return apiClient.get(url)
+    .mapLeft((networkError) => {
+      if (networkError.statusCode === 404) {
+        return new NotFoundError('Resource', id)
+      }
+      return new DomainError('Failed to fetch resource')
+    })
+    .chain((response) => this.mapper.toDomain(response))
+}
+```
+
+#### 2. Domain → Application
+
+**Правило:** Domain ошибки **могут** преобразовываться в Application ошибки
+
+```typescript
+// Domain Layer возвращает NotFoundError
+repository.findById(id): Either<NotFoundError, Resource>
+
+// Application Layer трансформирует через mapLeft
+handler.execute(id): Either<QueryError, ResourceDTO> {
+  return repository.findById(id)
+    .mapLeft((domainError) => 
+      new QueryError(`Resource not found: ${domainError.message}`)
+    )
+    .map((resource) => this.mapper.toDTO(resource))
+}
+```
+
+#### 3. Application → Presentation
+
+**Правило:** Application ошибки обрабатываются в Presentation через `fold`
+
+```typescript
+// Application Layer возвращает QueryError
+handler.execute(id): Either<QueryError, ResourceDTO>
+
+// Presentation Layer обрабатывает через fold
+result.fold(
+  (error) => json({ error: error.message }, { status: 404 }),
+  (dto) => json(dto)
+)
+```
+
+### Схема эскалации
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Infrastructure Layer                                    │
+│  Either<NetworkError, Response>                          │
+└────────────┬────────────────────────────────────────────┘
+             │ mapLeft(networkError => new NotFoundError())
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Domain Layer                                            │
+│  Either<NotFoundError, Resource>                         │
+└────────────┬────────────────────────────────────────────┘
+             │ mapLeft(domainError => new QueryError())
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Application Layer                                       │
+│  Either<QueryError, ResourceDTO>                         │
+└────────────┬────────────────────────────────────────────┘
+             │ fold(error => json(...), dto => json(...))
+             ↓
+┌────────────┴────────────────────────────────────────────┐
+│  Presentation Layer                                      │
+│  Response                                                │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Ключевое:** На каждой границе используется `mapLeft` для трансформации, а НЕ `instanceof` для проверки!
+
+> 📖 **Полный пример эскалации через все слои:** См. [VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)
+
+---
+
 ## 🔗 См. также
 
 - **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Иерархия ошибок Domain/Application/Infrastructure

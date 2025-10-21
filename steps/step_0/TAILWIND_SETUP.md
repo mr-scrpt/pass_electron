@@ -71,6 +71,8 @@ export default defineConfig({
 
 ### 2. Создать `tailwind.config.js`
 
+> **💡 Важно**: Используем `.js` (не `.ts`), так как Catppuccin не экспортирует TypeScript типы
+
 **Файл:** `src/presentation/web/react/tailwind.config.js`
 
 #### Tailwind Config [#config|#structure:path]
@@ -99,6 +101,11 @@ export default {
 **Опции Catppuccin:**
 - `prefix: 'ctp'` - префикс для классов (например: `bg-ctp-base`, `text-ctp-mauve`)
 - `defaultFlavour: 'mocha'` - темная тема Catppuccin
+
+**Почему `.js`, а не `.ts`:**
+- Catppuccin - JavaScript пакет без TypeScript типов
+- В `.ts` файле будут ошибки типов (но код работает)
+- `.js` файл избегает ошибок TypeScript
 
 > **📚 См. также**: [docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md) - полное описание цветовой схемы
 

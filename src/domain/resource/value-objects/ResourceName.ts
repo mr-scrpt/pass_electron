@@ -1,5 +1,5 @@
 // src/domain/resource/value-objects/ResourceName.ts
-import { Result, ok, err } from "neverthrow";
+import { Either, right, left } from "@sweet-monads/either";
 import { InvariantViolationError } from "@/domain/shared";
 
 /**
@@ -13,9 +13,9 @@ export class ResourceName {
 
   private constructor(private readonly _value: string) {}
 
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value) {
-      return err(
+      return left(
         new InvariantViolationError(
           ResourceName.ENTITY_TYPE,
           "cannot be empty",
@@ -27,7 +27,7 @@ export class ResourceName {
       value.length < ResourceName.MIN_LENGTH ||
       value.length > ResourceName.MAX_LENGTH
     ) {
-      return err(
+      return left(
         new InvariantViolationError(
           ResourceName.ENTITY_TYPE,
           `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`,
@@ -35,7 +35,7 @@ export class ResourceName {
       );
     }
 
-    return ok(new ResourceName(value));
+    return right(new ResourceName(value));
   }
 
   getValue(): string {

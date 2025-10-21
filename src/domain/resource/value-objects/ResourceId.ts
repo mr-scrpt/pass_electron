@@ -1,5 +1,5 @@
 // src/domain/resource/value-objects/ResourceId.ts
-import { Result } from "neverthrow";
+import { Either } from "@sweet-monads/either";
 import { InvariantViolationError, UuidInvariant } from "@/domain/shared";
 
 /**
@@ -14,8 +14,8 @@ export class ResourceId {
     return new ResourceId(crypto.randomUUID());
   }
 
-  static create(value: string): Result<ResourceId, InvariantViolationError> {
-    // ✅ Используем переиспользуемый инвариант с Result
+  static create(value: string): Either<InvariantViolationError, ResourceId> {
+    // ✅ Используем переиспользуемый инвариант с Either
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE).map(
       (validValue) => new ResourceId(validValue),
     );

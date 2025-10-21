@@ -1,5 +1,5 @@
 // src/domain/resource/value-objects/Namespace.ts
-import { Result, ok, err } from "neverthrow";
+import { Either, right, left } from "@sweet-monads/either";
 import { InvariantViolationError } from "@/domain/shared";
 
 /**
@@ -14,9 +14,9 @@ export class Namespace {
 
   private constructor(private readonly _value: string) {}
 
-  static create(value: string): Result<Namespace, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, Namespace> {
     if (!value) {
-      return err(
+      return left(
         new InvariantViolationError(
           Namespace.ENTITY_TYPE,
           "cannot be empty",
@@ -25,7 +25,7 @@ export class Namespace {
     }
 
     if (value.length < Namespace.MIN_LENGTH || value.length > Namespace.MAX_LENGTH) {
-      return err(
+      return left(
         new InvariantViolationError(
           Namespace.ENTITY_TYPE,
           `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`,
@@ -34,7 +34,7 @@ export class Namespace {
     }
 
     if (!Namespace.PATTERN.test(value)) {
-      return err(
+      return left(
         new InvariantViolationError(
           Namespace.ENTITY_TYPE,
           "must contain only lowercase letters, numbers, - and _",
@@ -42,7 +42,7 @@ export class Namespace {
       );
     }
 
-    return ok(new Namespace(value));
+    return right(new Namespace(value));
   }
 
   getValue(): string {

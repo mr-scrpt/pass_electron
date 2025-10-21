@@ -424,52 +424,65 @@ class CreateResourceCommandHandler {
 
 ## 💡 Рекомендация для нашего проекта
 
-### Гибридный подход с neverthrow
+### ⭐ @sweet-monads/either - ЛУЧШИЙ ВЫБОР
 
-**Почему neverthrow, а не sweet-monads?**
+**Почему @sweet-monads/either?**
 
-1. **Интуитивность** — Ok/Err понятнее чем Right/Left
-2. **Популярность** — больше примеров и комьюнити
-3. **Rust-style** — современный и понятный стиль
-4. **Достаточность** — 90% случаев покрывает neverthrow
+1. **mergeInMany** — накопление ВСЕХ ошибок (критично для форм!)
+2. **mapLeft** — трансформация ошибок между слоями
+3. **Async встроен** — asyncChain, asyncMap из коробки
+4. **Легкая** — ~2kb, 0 dependencies
+5. **Классическая Either** — проверенный паттерн из Haskell
 
-**Когда sweet-monads лучше?**
-- Если нужно накопление всех ошибок (формы с множественной валидацией)
-- Если нужна трансформация ошибок через mapLeft
-- Если команда знакома с Haskell
+**Когда neverthrow лучше?**
+- Если не нужно накопление ошибок
+- Если команда предпочитает Ok/Err терминологию
+- Если больше примеров в интернете важнее
 
 ### Итоговая архитектура
 
 ```typescript
-// Domain Layer — нативный Result (простота)
+// Domain Layer — @sweet-monads/either
+import { Either, right, left } from '@sweet-monads/either'
+
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
-    // Валидация
-    if (!value) return failure(new InvariantViolationError(...))
-    return success(new ResourceName(value))
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
+    if (!value) return left(new InvariantViolationError(...))
+    return right(new ResourceName(value))
   }
 }
 
-// Application Layer — neverthrow (композиция)
+// Application Layer — merge/mergeInMany
+import { merge, mergeInMany } from '@sweet-monads/either'
+
 class CreateResourceCommandHandler {
-  async handle(command): Promise<Result<Resource, DomainError>> {
-    return combine([
-      toNeverthrow(ResourceName.create(command.name)),
-      toNeverthrow(Namespace.create(command.namespace))
+  async handle(command): Promise<Either<DomainError, Resource>> {
+    // Вариант 1: fail-fast
+    return merge([
+      ResourceName.create(command.name),
+      Namespace.create(command.namespace)
     ])
       .map(([name, namespace]) => Resource.create({ name, namespace }))
-      .andThen(resource => this.repository.save(resource))
+      .asyncChain(resource => this.repository.save(resource))
+    
+    // Вариант 2: все ошибки (для форм)
+    return mergeInMany([
+      ResourceName.create(command.name),
+      Namespace.create(command.namespace)
+    ])
+      .mapLeft(errors => new ValidationError(errors)) // трансформация!
+      .map(([name, namespace]) => Resource.create({ name, namespace }))
   }
 }
 
-// Presentation Layer — match (обработка)
+// Presentation Layer — fold (обработка)
 export async function action({ request }) {
   const result = await commands.resources.create(request)
-  return result.match(
-    (resource) => redirect(`/resources/${resource.id}`),
-    (error) => handleError(error)
+  return result.fold(
+    (error) => handleError(error),  // ошибка первая!
+    (resource) => redirect(`/resources/${resource.id}`)
   )
 }
 ```

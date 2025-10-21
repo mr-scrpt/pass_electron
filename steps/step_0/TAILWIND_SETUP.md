@@ -21,11 +21,8 @@
 #### Install Tailwind [#command]
 
 ```bash
-# Перейти в presentation/web/react директорию
-cd src/presentation/web/react
-
-# Установить Tailwind v4 и Catppuccin
-pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
+# Из корня проекта - установить в web workspace через --filter
+pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss --filter @password-manager/web
 ```
 
 **Что устанавливаем:**
@@ -65,15 +62,12 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
-  resolve: {
-    alias: {
-      "@domain": path.resolve(projectRoot, "src/domain/index.ts"),
-      "@api": path.resolve(projectRoot, "src/composition/index.ts"),
-      "@client": path.resolve(projectRoot, "src/presentation/web/react/src"),
-      "@internal/application": path.resolve(projectRoot, "src/application"),
-      "@internal/infrastructure": path.resolve(projectRoot, "src/infrastructure"),
-    },
-  },
+  // ❌ НЕ НУЖНО - vite-tsconfig-paths автоматически читает алиасы из tsconfig.json
+  // resolve: {
+  //   alias: {
+  //     ...
+  //   },
+  // },
 });
 ```
 

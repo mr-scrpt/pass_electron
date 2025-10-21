@@ -9,30 +9,163 @@
 
 ### Структура слоев
 ```
-src/
-├── domain/              # Domain Layer (центр, без зависимостей)
-│   └── resource/
-│       ├── value-objects/
-│       │   ├── Namespace.ts
-│       │   └── ResourceName.ts
-│       ├── aggregates/
-│       │   └── Resource.ts
-│       └── repositories/
-│           └── IResourceRepository.ts
-├── application/         # Application Layer (Use Cases, Commands, Queries)
-│   ├── commands/
-│   │   └── handlers/
-│   │       └── CreateResourceHandler.ts
-│   └── queries/
-├── infrastructure/      # Infrastructure Layer (DB, API, External Services)
-├── composition/         # Composition Root (DI Container)
-└── shared/              # Shared utilities (используется всеми слоями)
-    ├── specification/   # Specification Pattern
-    │   ├── ISpecification.ts
-    │   ├── CompositeSpecification.ts
-    │   └── StringSpecifications.ts (NotEmptySpec, LengthRangeSpec, PatternSpec)
-    └── validation/
-        └── Validation.ts (Either-based Result type)
+password-manager/
+├── package.json                   # Root: общие зависимости для DDD слоев
+├── tsconfig.json                  # TypeScript для ВСЕГО проекта
+├── pnpm-workspace.yaml           # pnpm workspaces configuration
+│
+├── docs/                          # Документация
+│   ├── concepts/                  # Концептуальные документы
+│   ├── contracts/                 # Типы и контракты
+│   ├── error-handling/            # Документация по обработке ошибок
+│   ├── ADAPTER_PATTERN_DI.md     # Ports & Adapters
+│   ├── DDD_AND_CLEAN_ARCHITECTURE.md
+│   ├── GETTING_STARTED.md
+│   ├── README.md
+│   └── PROJECT_STRUCTURE.md      # ← Полная структура проекта
+│
+├── electron/                      # Electron (packaging layer, вне архитектуры)
+│   ├── main.ts
+│   └── preload.ts
+│
+└── src/                           # Application code
+    │
+    ├── domain/                    # Domain Layer (DDD центр, без зависимостей)
+    │   ├── resource/              # Resource Bounded Context
+    │   │   ├── aggregates/        # Aggregate Roots
+    │   │   │   ├── Resource.ts
+    │   │   │   └── index.ts
+    │   │   ├── entities/          # Entities
+    │   │   ├── value-objects/     # Value Objects
+    │   │   │   ├── Namespace.ts
+    │   │   │   ├── ResourceName.ts
+    │   │   │   ├── ResourceId.ts
+    │   │   │   └── index.ts
+    │   │   ├── repositories/      # Repository Interfaces (Ports)
+    │   │   │   ├── IResourceRepository.ts
+    │   │   │   └── index.ts
+    │   │   ├── events/            # Domain Events
+    │   │   └── index.ts           # Public API
+    │   │
+    │   ├── user/                  # User Bounded Context (пример)
+    │   │   └── ...
+    │   │
+    │   └── shared/                # Shared Kernel
+    │       ├── errors/            # Domain Errors
+    │       │   ├── DomainError.ts
+    │       │   ├── InvariantViolationError.ts
+    │       │   └── index.ts
+    │       ├── invariants/        # Reusable Invariants
+    │       │   ├── UuidInvariant.ts
+    │       │   └── index.ts
+    │       ├── base/              # Base classes/interfaces
+    │       └── index.ts
+    │
+    ├── application/               # Application Layer (Use Cases, CQRS)
+    │   ├── queries/               # CQRS Queries (чтение)
+    │   │   ├── handlers/
+    │   │   │   ├── ListResourcesQueryHandler.ts
+    │   │   │   └── index.ts
+    │   │   ├── dtos/              # Data Transfer Objects
+    │   │   │   ├── ResourceListItemDTO.ts
+    │   │   │   └── index.ts
+    │   │   ├── IQueryBus.ts
+    │   │   ├── QueryTypes.ts
+    │   │   └── index.ts
+    │   │
+    │   ├── commands/              # CQRS Commands (запись)
+    │   │   ├── handlers/
+    │   │   │   ├── CreateResourceHandler.ts
+    │   │   │   ├── UpdateResourceHandler.ts
+    │   │   │   ├── DeleteResourceHandler.ts
+    │   │   │   └── index.ts
+    │   │   ├── ICommandBus.ts
+    │   │   ├── CommandTypes.ts
+    │   │   └── index.ts
+    │   │
+    │   ├── ports/                 # Ports для внешних сервисов (Hexagonal)
+    │   │   ├── IClipboardService.ts
+    │   │   ├── INotificationService.ts
+    │   │   ├── IStorageService.ts
+    │   │   └── index.ts
+    │   │
+    │   └── services/              # Application Services
+    │       ├── modal/
+    │       ├── keymap/
+    │       ├── focus/
+    │       └── notification/
+    │
+    ├── infrastructure/            # Infrastructure Layer (Adapters, External Systems)
+    │   ├── persistence/           # Database, Storage
+    │   │   ├── repositories/
+    │   │   │   ├── MockResourceRepository.ts  # Adapter для IResourceRepository
+    │   │   │   └── index.ts
+    │   │   └── mocks/
+    │   │       ├── resources.mock.ts
+    │   │       └── index.ts
+    │   │
+    │   ├── services/              # External Service Adapters
+    │   │   ├── WebClipboardAdapter.ts
+    │   │   ├── ElectronClipboardAdapter.ts
+    │   │   ├── ClipboardServiceFactory.ts
+    │   │   └── index.ts
+    │   │
+    │   ├── queries/               # Query Bus Implementation
+    │   │   ├── InMemoryQueryBus.ts
+    │   │   └── index.ts
+    │   │
+    │   └── event-bus/             # Event Bus Implementation
+    │       └── index.ts
+    │
+    ├── composition/               # Composition Root (DI Container)
+    │   ├── ServiceContainer.ts    # DI Container
+    │   ├── modules/               # DI Modules
+    │   │   ├── ResourceModule.ts
+    │   │   └── index.ts
+    │   ├── queries/               # Query Facades
+    │   │   ├── resources.ts
+    │   │   └── index.ts
+    │   ├── commands/              # Command Facades
+    │   │   ├── resources.ts
+    │   │   └── index.ts
+    │   └── index.ts
+    │
+    ├── shared/                    # Shared utilities (framework-agnostic)
+    │   ├── specification/         # Specification Pattern
+    │   │   ├── ISpecification.ts
+    │   │   ├── CompositeSpecification.ts
+    │   │   ├── StringSpecifications.ts  # NotEmptySpec, LengthRangeSpec, PatternSpec
+    │   │   ├── UuidSpecifications.ts
+    │   │   └── index.ts
+    │   │
+    │   ├── validation/            # Validation utilities
+    │   │   ├── Validation.ts      # Either-based Result type
+    │   │   └── index.ts
+    │   │
+    │   └── types/                 # Shared types
+    │       └── index.ts
+    │
+    └── presentation/              # Presentation Layer (UI)
+        │
+        └── web/                   # Web presentation
+            └── react/             # React Router implementation
+                ├── package.json   # Web-specific dependencies
+                ├── vite.config.ts # Vite build tool config
+                ├── tailwind.config.js
+                ├── postcss.config.js
+                │
+                └── src/           # React Router code
+                    ├── routes/    # React Router v7 routes
+                    │   ├── _index.tsx
+                    │   └── resources.$id.tsx
+                    ├── components/
+                    │   ├── ResourceList.tsx
+                    │   ├── ResourceListItem.tsx
+                    │   └── index.ts
+                    ├── hooks/
+                    ├── styles/
+                    ├── root.tsx
+                    └── entry.client.tsx
 ```
 
 ### Используемые паттерны

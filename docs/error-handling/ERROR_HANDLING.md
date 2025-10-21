@@ -607,26 +607,25 @@ export class NetworkError extends Error {
 
 ```typescript
 // В API Client
-import { ResultAsync, errAsync, okAsync } from 'neverthrow'
+import { left, right } from '@sweet-monads/either'
 
 class HttpClient {
-  fetch<T>(url: string): ResultAsync<T, NetworkError> {
-    return ResultAsync.fromPromise(
-      fetch(url),
-      (error) => new NetworkError('Failed to fetch', undefined, error)
-    ).andThen((response) => {
+  async fetch<T>(url: string): Promise<Either<NetworkError, T>> {
+    try {
+      const response = await fetch(url)
+      
       if (!response.ok) {
-        return errAsync(new NetworkError(
+        return left(new NetworkError(
           `HTTP ${response.status}: ${response.statusText}`,
           response.status
         ))
       }
       
-      return ResultAsync.fromPromise(
-        response.json() as Promise<T>,
-        (error) => new NetworkError('Failed to parse JSON', undefined, error)
-      )
-    })
+      const data = await response.json() as T
+      return right(data)
+    } catch (error) {
+      return left(new NetworkError('Failed to fetch', undefined, error))
+    }
   }
 }
 ```
@@ -811,10 +810,10 @@ export async function action({ request }: ActionFunctionArgs) {
 // Infrastructure Layer перехватывает технические ошибки
 // и может преобразовать их в доменные
 // src/infrastructure/repositories/ApiResourceRepository.ts
-import { ResultAsync } from 'neverthrow'
+import { Either, left, right } from '@sweet-monads/either'
 
 class ApiResourceRepository implements IResourceRepository {
-  findById(id: ResourceId): ResultAsync<Resource, NotFoundError | NetworkError> {
+  async findById(id: ResourceId): Promise<Either<NotFoundError | NetworkError, Resource>> {
     return this.httpClient
       .get<ResourceDTO>(`/resources/${id.getValue()}`)
       .andThen((response) => 
@@ -839,9 +838,9 @@ class ApiResourceRepository implements IResourceRepository {
 
 ```typescript
 // Application Layer перехватывает Domain ошибки
-// и оборачивает в Result
+// и оборачивает в Either
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
-import { Result, ok, combine } from 'neverthrow'
+import { Either, right, merge } from '@sweet-monads/either'
 
 class CreateResourceCommandHandler {
   async handle(
@@ -980,7 +979,7 @@ return this.useCase.execute(command).match(
 
 ```typescript
 // ❌ ПЛОХО: NetworkError в Domain Layer
-import { Result, err } from 'neverthrow'
+import { Either, left } from '@sweet-monads/either'
 
 class ResourceName {
   private constructor(private readonly value: string) {}

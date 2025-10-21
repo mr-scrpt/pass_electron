@@ -26,9 +26,9 @@ class Resource {
   readonly updatedAt: DateTime
   
   // Методы Aggregate Root
-  addCustomField(field: CustomField): Result<void, DomainError>
-  updateCustomField(fieldId: FieldId, value: string): Result<void, DomainError>
-  removeCustomField(fieldId: FieldId): Result<void, DomainError>
+  addCustomField(field: CustomField): Either<DomainError, void>
+  updateCustomField(fieldId: FieldId, value: string): Either<DomainError, void>
+  removeCustomField(fieldId: FieldId): Either<DomainError, void>
 }
 
 /**
@@ -39,7 +39,7 @@ class ResourceId {
   private constructor(private readonly _value: string) {}
   
   static generate(): ResourceId
-  static create(value: string): Result<ResourceId, InvariantViolationError>
+  static create(value: string): Either<InvariantViolationError, ResourceId>
   getValue(): string
   equals(other: ResourceId): boolean
 }
@@ -51,7 +51,7 @@ class ResourceId {
 class ResourceName {
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError>
+  static create(value: string): Either<InvariantViolationError, ResourceName>
   getValue(): string
   equals(other: ResourceName): boolean
 }
@@ -62,7 +62,7 @@ class ResourceName {
 class Namespace {
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Result<Namespace, InvariantViolationError>
+  static create(value: string): Either<InvariantViolationError, Namespace>
   getValue(): string
   equals(other: Namespace): boolean
 }
@@ -408,17 +408,24 @@ type PasswordStrengthLevel =
 type DateTime = string  // ISO 8601: "2024-01-15T10:30:00Z"
 ```
 
-### Result Type
+### Either Type
 
-#### Result Type [#code]
+#### Either Type [#code]
 
 ```typescript
 /**
- * Result тип для обработки ошибок
+ * Either тип для обработки ошибок
+ * Используется библиотека @sweet-monads/either
+ * 
+ * Either<E, T> где:
+ * - E (Left) - тип ошибки
+ * - T (Right) - тип успешного значения
  */
-type Result<T, E = Error> = 
-  | { success: true; value: T }
-  | { success: false; error: E }
+import { Either, left, right } from '@sweet-monads/either'
+
+// Пример использования
+const result: Either<InvariantViolationError, ResourceName> = 
+  ResourceName.create("example")
 ```
 
 ---
@@ -493,14 +500,20 @@ function isEditingState(state: ModeState): state is EditingState {
 }
 
 /**
- * Type guard для Result
+ * Type guard для Either
+ * Библиотека @sweet-monads/either предоставляет методы:
+ * - either.isLeft() - проверка на ошибку
+ * - either.isRight() - проверка на успех
  */
-function isSuccess<T, E>(result: Result<T, E>): result is { success: true; value: T } {
-  return result.success === true
-}
+import { Either } from '@sweet-monads/either'
 
-function isFailure<T, E>(result: Result<T, E>): result is { success: false; error: E } {
-  return result.success === false
+// Использование встроенных методов
+const result: Either<Error, string> = right("success")
+if (result.isRight()) {
+  console.log(result.value) // string
+}
+if (result.isLeft()) {
+  console.log(result.value) // Error
 }
 ```
 

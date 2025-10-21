@@ -258,69 +258,7 @@ pnpm install
 pnpm install
 ```
 
-### 5.2 Создать минимальные файлы для теста
-
-Создай простые файлы чтобы проверить что всё работает:
-
-**Файл: `src/presentation/web/react/src/root.tsx`**
-
-#### Root Component [#code|#structure:path]
-
-```typescript
-// src/presentation/web/react/src/root.tsx
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
-import styles from "./styles/tailwind.css?url"
-
-export function links() {
-  return [{ rel: "stylesheet", href: styles }]
-}
-
-export function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
-        <Links />
-      </head>
-      <body>
-        {children}
-        <ScrollRestoration />
-        <Scripts />
-      </body>
-    </html>
-  )
-}
-
-export default function App() {
-  return <Outlet />
-}
-```
-
-**Файл: `src/presentation/web/react/src/routes/_index.tsx`**
-
-#### Index Route [#code|#structure:path]
-
-```typescript
-// src/presentation/web/react/src/routes/_index.tsx
-export default function Index() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-ctp-base">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-ctp-mauve mb-4">
-          🔐 Password Manager
-        </h1>
-        <p className="text-ctp-text">
-          Setup complete! ✅
-        </p>
-      </div>
-    </div>
-  )
-}
-```
-
-### 5.3 Запустить dev сервер
+### 5.2 Запустить dev сервер
 
 #### Run Dev Server [#command]
 

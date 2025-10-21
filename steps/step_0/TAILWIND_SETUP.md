@@ -126,16 +126,14 @@ export default {
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
 
+> **💡 Tailwind v4**: Используем прямой импорт, не через `links()` функцию
+
 #### Root Component [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/root.tsx
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
-import styles from "./styles/tailwind.css?url"
-
-export function links() {
-  return [{ rel: "stylesheet", href: styles }]
-}
+import "./styles/tailwind.css"  // ← Прямой импорт для Tailwind v4
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

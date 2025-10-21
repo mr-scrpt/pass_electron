@@ -255,7 +255,89 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss --filter @password-manager
 pnpm install
 ```
 
-### 5.2 Запустить dev сервер
+### 5.2 Минимальные файлы для запуска
+
+React Router требует несколько обязательных файлов. Они уже созданы в проекте:
+
+#### 1. `src/presentation/web/react/react-router.config.ts`
+
+```typescript
+import type { Config } from "@react-router/dev/config";
+
+export default {
+  appDirectory: "src",
+  ssr: true,
+} satisfies Config;
+```
+
+#### 2. `src/presentation/web/react/src/root.tsx`
+
+```typescript
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import "./styles/tailwind.css";
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body className="bg-ctp-base text-ctp-text">
+        {children}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
+export default function Root() {
+  return <Outlet />;
+}
+```
+
+#### 3. `src/presentation/web/react/src/routes.ts`
+
+```typescript
+import { type RouteConfig, index } from "@react-router/dev/routes";
+
+export default [
+  index("routes/home.tsx"),
+] satisfies RouteConfig;
+```
+
+#### 4. `src/presentation/web/react/src/routes/home.tsx`
+
+```typescript
+export default function Home() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-ctp-mauve mb-4">
+          Password Manager
+        </h1>
+        <p className="text-ctp-subtext0">
+          Step 0 Complete! 🎉
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+#### 5. `src/presentation/web/react/src/styles/tailwind.css`
+
+```css
+@import "tailwindcss";
+@import "@catppuccin/tailwindcss/mocha.css";
+```
+
+> **💡 Примечание**: Эти файлы уже созданы в проекте. Если их нет - создай вручную.
+
+### 5.3 Запустить dev сервер
 
 #### Run Dev Server [#command]
 
@@ -264,7 +346,7 @@ pnpm install
 pnpm dev:web
 ```
 
-Открой браузер на `http://localhost:5173` — должна показаться тестовая страница.
+Открой браузер на `http://localhost:5173` — должна показаться темная страница с фиолетовым заголовком.
 
 ---
 

@@ -22,60 +22,95 @@ import { Resource } from '@/domain'               // ← Через Public API!
 
 ---
 
-## 1️⃣ TypeScript Configuration (Root)
+## 1️⃣ TypeScript Configuration (Web Presentation)
 
-**Файл: `tsconfig.json`** (в корне проекта)
+> **📦 Файл уже создан**: React Router CLI сгенерировал `src/presentation/web/react/tsconfig.json`
 
-#### Root tsconfig.json [#config|#structure:path]
+**Что нужно изменить**: Добавить алиасы для доступа к DDD слоям
+
+### Изменения в tsconfig.json
+
+**Файл: `src/presentation/web/react/tsconfig.json`**
+
+#### Web tsconfig.json - только изменения [#config|#structure:path]
 
 ```json
-// tsconfig.json
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "jsx": "react-jsx",
-    
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
-    "noEmit": true,
-    
-    "baseUrl": ".",
-    "paths": {
-      "@domain": ["./src/domain/index.ts"],
-      "@domain/*": ["./src/domain/*"],
-      "@api": ["./src/composition/index.ts"],
-      "@client/*": ["./src/presentation/web/react/src/*"],
-      "@internal/application/*": ["./src/application/*"],
-      "@internal/infrastructure/*": ["./src/infrastructure/*"]
-    }
-  },
-  
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "electron/**/*.ts"
+    // ... остальная конфигурация без изменений
+    "**/*",
+    "**/.server/**/*",
+    "**/.client/**/*",
+    ".react-router/types/**/*"
   ],
-  
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ]
+  "compilerOptions": {
+    // ... остальная конфигурация без изменений
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["node", "vite/client"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "rootDirs": [".", "./.react-router/types"],
+    "baseUrl": ".",
+    
+    // ✏️ ИЗМЕНИТЬ ЭТОТ БЛОК:
+    "paths": {
+      "@/*": ["./src/*"],                                    // Локальные файлы
+      "@/domain": ["../../../domain/index.ts"],              // Domain Public API
+      "@/composition": ["../../../composition/index.ts"],    // Composition Facades
+      "@/application": ["../../../application/index.ts"],    // Application Public API (для DTO)
+      "@/infrastructure": ["../../../infrastructure/index.ts"] // Infrastructure Public API
+    },
+    
+    // ... остальная конфигурация без изменений
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true
+  }
 }
 ```
 
+**Что изменилось:**
+
+**Было (сгенерировано CLI):**
+```json
+"paths": {
+  "~/*": ["./app/*"]
+}
+```
+
+**Стало (с доступом к DDD слоям):**
+```json
+"paths": {
+  "@/*": ["./src/*"],                                    // ← Изменили ~ на @
+  "@/domain": ["../../../domain/index.ts"],              // ← Добавили
+  "@/composition": ["../../../composition/index.ts"],    // ← Добавили
+  "@/application": ["../../../application/index.ts"],    // ← Добавили
+  "@/infrastructure": ["../../../infrastructure/index.ts"] // ← Добавили
+}
+```
+
+**Почему `../../../`?**
+```
+src/presentation/web/react/  ← мы здесь (tsconfig.json)
+    ↑
+    ├── src/           ← локальные файлы (@/*)
+    └── ../../../      ← 3 уровня вверх = корень проекта
+        ├── domain/
+        ├── composition/
+        └── application/
+```
+
 **Ключевые моменты:**
-- ✅ `baseUrl: "."` - относительно корня проекта
-- ✅ `paths` - алиасы для DDD слоев
-- ✅ `moduleResolution: "Bundler"` - для Vite
-- ✅ `include` охватывает весь `src/`
+- ✅ `@/*` - локальные файлы presentation (вместо `~/*`)
+- ✅ `@/domain` - Public API Domain Layer
+- ✅ `@/composition` - Facades из Composition
+- ✅ `@/application` - Public API Application (для DTO)
+- ✅ Остальная конфигурация остается без изменений
 
 ---
 

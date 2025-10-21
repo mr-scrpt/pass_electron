@@ -8,19 +8,24 @@
     "build:web": "pnpm --filter @password-manager/web build",
     "typecheck": "tsc -p src/presentation/web/react/tsconfig.json --noEmit",
     "typecheck:root": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "eslint src --ignore-pattern 'src/presentation'",
+    "lint:web": "pnpm --filter @password-manager/web lint",
+    "lint:fix": "eslint src --ignore-pattern 'src/presentation' --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "neverthrow": "^8.1.2"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5",
-    "typescript": "^5.7.2",
-    "eslint": "^9.18.0",
     "@eslint/js": "^9.18.0",
-    "typescript-eslint": "^8.20.0",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
+    "eslint": "^9.38.0",
+    "eslint-plugin-boundaries": "^5.1.0",
     "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.20.0",
     "vitest": "^2.1.8"
   },
   "engines": {

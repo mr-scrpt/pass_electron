@@ -36,11 +36,19 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 
 ## ⚙️ Конфигурация ESLint
 
+**Нужно два независимых конфига:**
+1. **Root eslint.config.js** - для DDD слоев (только `.ts`, без React)
+2. **Web eslint.config.js** - для React Router (`.ts` + `.tsx`, с React правилами)
+
+---
+
+### 1️⃣ Root ESLint (для DDD слоев)
+
 > **📦 Файл уже создан**: `eslint.config.js` в корне проекта
 
 **Что нужно добавить**: Плагин `boundaries` для проверки архитектурных границ
 
-### Изменения в eslint.config.js
+#### Изменения в eslint.config.js
 
 **Файл: `eslint.config.js`** (в корне проекта)
 
@@ -154,6 +162,81 @@ export default tseslint.config(
 4. **Правило `boundaries/element-types`** - проверка архитектурных границ
 5. **Правило `no-restricted-imports`** - запрет `@internal/*` в Presentation
 
+**Зачем Root ESLint:**
+- ✅ Проверяет только DDD слои (domain, application, infrastructure, composition)
+- ✅ Только `.ts` файлы (без React/JSX)
+- ✅ Архитектурные границы между слоями
+- ✅ Не знает про React Router
+
+---
+
+### 2️⃣ Web ESLint (для React Router)
+
+> **📦 Файл уже создан**: React Router CLI создал конфиг в `src/presentation/web/react/`
+
+**Проверка:** React Router обычно создает свой ESLint конфиг автоматически.
+
+Если файла нет, создать `src/presentation/web/react/eslint.config.js`:
+
+#### Web eslint.config.js [#config|#structure:path]
+
+```javascript
+// src/presentation/web/react/eslint.config.js
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import reactPlugin from 'eslint-plugin-react'
+import reactHooksPlugin from 'eslint-plugin-react-hooks'
+
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    files: ['**/*.{ts,tsx}'],
+    
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': reactHooksPlugin,
+    },
+    
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      
+      // React правила
+      'react/react-in-jsx-scope': 'off',  // React 17+
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
+  },
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/build/**',
+      '**/.react-router/**',
+      'vite.config.ts',
+      'react-router.config.ts',
+    ],
+  }
+)
+```
+
+**Зачем Web ESLint:**
+- ✅ Проверяет React компоненты и routes
+- ✅ `.ts` и `.tsx` файлы
+- ✅ React hooks правила
+- ✅ JSX специфика
+- ✅ Не проверяет DDD слои (это делает Root ESLint)
+
 ---
 
 ## 📋 Добавить scripts в package.json
@@ -165,8 +248,27 @@ export default tseslint.config(
 ```json
 {
   "scripts": {
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix"
+    "lint": "eslint src --ignore-pattern 'src/presentation'",
+    "lint:web": "pnpm --filter @password-manager/web lint",
+    "lint:fix": "eslint src --ignore-pattern 'src/presentation' --fix"
+  }
+}
+```
+
+**Что делают команды:**
+- `lint` - проверяет DDD слои (исключая presentation)
+- `lint:web` - проверяет Web presentation (через workspace)
+- `lint:fix` - автофикс для DDD слоев
+
+**Web `package.json`** (если нет):
+
+Добавить в `src/presentation/web/react/package.json`:
+
+```json
+{
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   }
 }
 ```
@@ -175,12 +277,16 @@ export default tseslint.config(
 
 ## ✅ Проверка работы
 
-### 1. Запустить линтер
+### 1. Запустить линтеры
 
 #### Run Lint [#command]
 
 ```bash
+# Проверить DDD слои (когда будут файлы после Step 1)
 pnpm lint
+
+# Проверить Web presentation
+pnpm lint:web
 ```
 
 ### 2. Тест: попробовать нарушить правила
@@ -250,12 +356,21 @@ import { queries } from '@api'
 
 ## ✅ Чеклист
 
-- [ ] `eslint` и плагины установлены
-- [ ] `eslint.config.js` создан
-- [ ] Scripts добавлены в `package.json`
-- [ ] `pnpm lint` работает без ошибок
+### Root ESLint (для DDD слоев):
+- [ ] `eslint` и `eslint-plugin-boundaries` установлены
+- [ ] `eslint.config.js` обновлен (добавлен boundaries плагин)
+- [ ] Scripts добавлены в root `package.json`
+- [ ] `pnpm lint` работает (когда будут файлы в DDD слоях)
+
+### Web ESLint (для React Router):
+- [ ] ✅ `eslint.config.js` уже создан React Router CLI (или создан вручную)
+- [ ] Scripts добавлены в web `package.json`
+- [ ] `pnpm lint:web` работает без ошибок
 - [ ] Тест на нарушение правил показывает ошибку
+
+### Общее:
 - [ ] IDE подхватывает ESLint конфигурацию
+- [ ] Два независимых конфига работают корректно
 
 ---
 

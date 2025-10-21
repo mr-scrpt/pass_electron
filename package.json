@@ -6,7 +6,8 @@
   "scripts": {
     "dev:web": "pnpm --filter @password-manager/web dev",
     "build:web": "pnpm --filter @password-manager/web build",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p src/presentation/web/react/tsconfig.json --noEmit",
+    "typecheck:root": "tsc --noEmit",
     "lint": "eslint src",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },

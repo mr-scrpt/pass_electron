@@ -327,8 +327,11 @@ export const queries = {
 #### Check TypeScript [#command]
 
 ```bash
-# Из корня проекта
+# Проверка Web Presentation (есть файлы)
 pnpm typecheck
+
+# Проверка DDD слоев (когда будут файлы после Step 1)
+pnpm typecheck:root
 
 # Не должно быть ошибок импортов
 ```

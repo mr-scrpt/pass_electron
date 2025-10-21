@@ -192,19 +192,19 @@ export class InvariantViolationError extends DomainError {
 
 ```typescript
 // В Value Object
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class ResourceName {
   private constructor(private readonly value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value || value.length < 1) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         'ResourceName',
         'name cannot be empty'
       ))
     }
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
   
   getValue(): string {
@@ -245,17 +245,17 @@ export class NotFoundError extends DomainError {
 
 ```typescript
 // В Repository
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class MockResourceRepository implements IResourceRepository {
   async findById(id: ResourceId): Promise<Result<Resource, NotFoundError>> {
     const resource = this.data.find(r => r.id === id.getValue())
     
     if (!resource) {
-      return err(new NotFoundError('Resource', id.getValue()))
+      return left(new NotFoundError('Resource', id.getValue()))
     }
     
-    return ok(resource)
+    return right(resource)
   }
 }
 ```
@@ -293,7 +293,7 @@ export class DuplicateError extends DomainError {
 
 ```typescript
 // В Aggregate
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class Resource {
   addCustomField(field: CustomField): Result<void, DuplicateError> {
@@ -302,7 +302,7 @@ class Resource {
     )
     
     if (exists) {
-      return err(new DuplicateError(
+      return left(new DuplicateError(
         'CustomField',
         'label',
         field.label.getValue()
@@ -310,7 +310,7 @@ class Resource {
     }
     
     this._customFields.push(field)
-    return ok(undefined)
+    return right(undefined)
   }
 }
 ```
@@ -348,19 +348,19 @@ export class InvalidOperationError extends DomainError {
 
 ```typescript
 // В Aggregate
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class Resource {
   delete(): Result<void, InvalidOperationError> {
     if (this._isLocked) {
-      return err(new InvalidOperationError(
+      return left(new InvalidOperationError(
         'Resource',
         'delete',
         'resource is locked'
       ))
     }
     // delete logic
-    return ok(undefined)
+    return right(undefined)
   }
 }
 ```
@@ -400,17 +400,17 @@ export class ResourceLockedError extends DomainError {
 #### Resource с Result [#code]
 
 ```typescript
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { ResourceLockedError } from './errors'
 
 // В Resource Aggregate
 class Resource {
   rename(name: ResourceName): Result<void, ResourceLockedError> {
     if (this._isLocked) {
-      return err(new ResourceLockedError(this._id))
+      return left(new ResourceLockedError(this._id))
     }
     this._name = name
-    return ok(undefined)
+    return right(undefined)
   }
 }
 ```
@@ -502,22 +502,22 @@ export class ValidationError extends Error {
 
 ```typescript
 // В Command Handler
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 
 class CreateResourceCommandHandler {
   async handle(command: CreateResourceCommand): Promise<Result<CommandResult, ValidationError>> {
     // Валидация входных данных
     if (!command.name || command.name.trim().length === 0) {
-      return err(new ValidationError('name', 'name is required'))
+      return left(new ValidationError('name', 'name is required'))
     }
     
     // Domain валидация будет в Value Object через Result
     const nameResult = ResourceName.create(command.name)
     if (nameResult.isErr()) {
-      return err(new ValidationError('name', nameResult.error.message))
+      return left(new ValidationError('name', nameResult.error.message))
     }
     
-    return ok({ success: true, data: { id: 'resource-id' } })
+    return right({ success: true, data: { id: 'resource-id' } })
   }
 }
 ```
@@ -905,7 +905,7 @@ Error (JavaScript)
 ```typescript
 // ✅ ХОРОШО: Domain ошибка в Domain Layer через Result
 // src/domain/resource/value-objects/ResourceName.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError } from '@/domain/shared'
 
 class ResourceName {
@@ -913,9 +913,9 @@ class ResourceName {
   
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) {
-      return err(new InvariantViolationError('ResourceName', 'cannot be empty'))
+      return left(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
   
   getValue(): string {
@@ -930,12 +930,12 @@ class ResourceName {
 
 ```typescript
 // ✅ ХОРОШО: понятные имена в Result
-return err(new DuplicateError('Resource', 'name', name))
-return err(new InvalidOperationError('Resource', 'delete', 'resource is locked'))
+return left(new DuplicateError('Resource', 'name', name))
+return left(new InvalidOperationError('Resource', 'delete', 'resource is locked'))
 
 // ❌ ПЛОХО: общие имена
-return err(new Error('duplicate'))
-return err(new Error('cannot delete'))
+return left(new Error('duplicate'))
+return left(new Error('cannot delete'))
 ```
 
 ### 3. Преобразование на границах слоев
@@ -987,9 +987,9 @@ class ResourceName {
   
   static create(value: string): Result<ResourceName, NetworkError> {
     if (!value) {
-      return err(new NetworkError('invalid name'))  // ❌ Не та ошибка!
+      return left(new NetworkError('invalid name'))  // ❌ Не та ошибка!
     }
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
 }
 
@@ -999,9 +999,9 @@ class ResourceName {
   
   static create(value: string): Result<ResourceName, InvariantViolationError> {
     if (!value) {
-      return err(new InvariantViolationError('ResourceName', 'cannot be empty'))
+      return left(new InvariantViolationError('ResourceName', 'cannot be empty'))
     }
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
 }
 ```
@@ -1012,10 +1012,10 @@ class ResourceName {
 
 ```typescript
 // ❌ ПЛОХО: общая ошибка
-return err(new Error('not found'))
+return left(new Error('not found'))
 
 // ✅ ХОРОШО: специализированная
-return err(new NotFoundError('Resource', id.getValue()))
+return left(new NotFoundError('Resource', id.getValue()))
 ```
 
 ### 3. Проглатывание ошибок

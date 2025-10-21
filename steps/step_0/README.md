@@ -154,10 +154,10 @@ password-manager/
 - Vite правильно резолвит пути при сборке
 
 **Алиасы:**
-- `@domain` - Public API Domain Layer
-- `@api` - Facades из Composition Layer
-- `@client/*` - Локальные файлы presentation
-- `@internal/*` - Только для Composition (запрещены в Presentation)
+- `@/domain` - Public API Domain Layer
+- `@/composition` - Facades из Composition Layer
+- `@/*` - Локальные файлы presentation
+- `@/application`, `@/infrastructure` - Только для Composition (запрещены в Presentation)
 
 **Файлы:**
 - `tsconfig.json` (root)
@@ -178,7 +178,7 @@ password-manager/
 
 **Зачем:**
 - Автоматическая проверка архитектурных правил
-- Presentation НЕ может импортировать `@internal/*`
+- Presentation НЕ может импортировать напрямую из `@/application` или `@/infrastructure`
 - Domain полностью изолирован от других слоев
 - Ошибки на уровне линтера, а не runtime
 
@@ -187,7 +187,7 @@ password-manager/
 - ✅ Application импортирует только Domain
 - ✅ Infrastructure импортирует только Domain
 - ✅ Composition имеет доступ ко всем слоям
-- ✅ Presentation НЕ может использовать `@internal/*`
+- ✅ Presentation НЕ может импортировать напрямую из Application/Infrastructure
 
 **Установка:**
 
@@ -373,7 +373,7 @@ pnpm dev
 ✅ **DDD структура**: `src/domain/`, `src/application/`, `src/infrastructure/`, `src/composition/`  
 ✅ **Presentation Layer изолирован**: `src/presentation/web/react/`  
 ✅ **pnpm workspaces**: Root + Web зависимости разделены  
-✅ **TypeScript + Vite алиасы**: `@domain`, `@api`, `@client/*`, `@internal/*` ⭐  
+✅ **TypeScript + Vite алиасы**: `@/domain`, `@/composition`, `@/*`, `@/application`, `@/infrastructure` ⭐  
 ✅ **ESLint с архитектурными границами**: Автоматическая проверка правил импортов ⭐  
 ✅ **Vite + React Router**: Готово для разработки  
 ✅ **Tailwind CSS + Catppuccin**: Стили настроены  

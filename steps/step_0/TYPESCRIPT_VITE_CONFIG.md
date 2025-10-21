@@ -286,8 +286,8 @@ import { Namespace } from './Namespace'
 import { DomainError } from '@/domain/shared/errors'
 
 // ❌ Domain НЕ импортирует из других слоев!
-// import { queries } from '@api'  // ← ЗАПРЕЩЕНО
-// import { Handler } from '@internal/application'  // ← ЗАПРЕЩЕНО
+// import { queries } from '@/composition'  // ← ЗАПРЕЩЕНО
+// import { Handler } from '@/application'  // ← ЗАПРЕЩЕНО
 ```
 
 ### В src/composition/queries/ResourceQueries.ts

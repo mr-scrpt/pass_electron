@@ -7,7 +7,7 @@
 ## 🎯 Цель
 
 Настроить ESLint с **автоматической проверкой архитектурных границ**:
-- ✅ Presentation НЕ может импортировать `@internal/*`
+- ✅ Presentation НЕ может импортировать напрямую из Application/Infrastructure
 - ✅ Domain полностью изолирован
 - ✅ Infrastructure НЕ зависит от Application
 - ✅ Каждый слой импортирует ТОЛЬКО то, что разрешено
@@ -131,12 +131,12 @@ export default tseslint.config(
         ],
       }],
       
-      // ✏️ ДОБАВИТЬ запрет @internal/* в Presentation
+      // ✏️ ДОБАВИТЬ запрет прямых импортов из Application/Infrastructure
       'no-restricted-imports': ['error', {
         patterns: [
           {
-            group: ['@internal/*'],
-            message: 'Presentation cannot use @internal/* aliases. Use @domain or @api instead.',
+            group: ['@/application/*', '@/infrastructure/*'],
+            message: 'Presentation cannot import directly from Application or Infrastructure. Use @/domain or @/composition instead.',
           },
         ],
       }],
@@ -160,7 +160,7 @@ export default tseslint.config(
 2. **Секция `plugins`** с boundaries
 3. **Секция `settings`** с определением слоев
 4. **Правило `boundaries/element-types`** - проверка архитектурных границ
-5. **Правило `no-restricted-imports`** - запрет `@internal/*` в Presentation
+5. **Правило `no-restricted-imports`** - запрет прямых импортов из Application/Infrastructure
 
 **Зачем Root ESLint:**
 - ✅ Проверяет только DDD слои (domain, application, infrastructure, composition)
@@ -299,14 +299,14 @@ pnpm lint:web
 // src/presentation/web/react/src/test-boundaries.ts
 
 // ❌ Это должно вызвать ошибку ESLint!
-import { GetResourcesHandler } from '@internal/application/queries/GetResourcesHandler'
+import { GetResourcesHandler } from '@/application/queries/handlers/GetResourcesHandler'
 
 // ✅ Это должно работать
-import { Resource } from '@domain'
-import { queries } from '@api'
+import { Resource } from '@/domain'
+import { queries } from '@/composition'
 ```
 
-Запусти `pnpm lint` - должна быть ошибка для `@internal/*` импорта!
+Запусти `pnpm lint:web` - должна быть ошибка для прямого импорта из `@/application`!
 
 ---
 
@@ -317,8 +317,8 @@ import { queries } from '@api'
 | **Domain** | НИЧЕГО | `@domain/*` | ✅ Только внутри себя |
 | **Application** | Domain | `@domain` | ✅ Только Public API |
 | **Infrastructure** | Domain | `@domain` | ✅ Только интерфейсы |
-| **Composition** ⭐ | Domain, Application, Infrastructure | `@domain`, `@internal/*` | ✅ Единственный кто может `@internal/*` |
-| **Presentation** | Domain, Composition | `@domain`, `@api`, `@client/*` | ✅ НЕ может `@internal/*` |
+| **Composition** ⭐ | Domain, Application, Infrastructure | `@/domain`, `@/application`, `@/infrastructure` | ✅ Единственный кто может импортировать из всех слоев |
+| **Presentation** | Domain, Composition | `@/domain`, `@/composition`, `@/*` | ✅ НЕ может импортировать из `@/application` или `@/infrastructure` |
 
 ---
 

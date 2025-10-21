@@ -120,7 +120,7 @@ git init
 > **📚 ДЕТАЛЬНАЯ ИНСТРУКЦИЯ**: [PACKAGE_JSON_SETUP.md](./PACKAGE_JSON_SETUP.md)
 
 **Что настраиваем:**
-- Root `package.json` - зависимости для DDD слоев (neverthrow, typescript, eslint)
+- Root `package.json` - зависимости для DDD слоев (@sweet-monads/either, typescript, eslint)
 - `pnpm-workspace.yaml` - конфигурация workspaces
 - Web `package.json` - зависимости для UI (react, vite, tailwind)
 

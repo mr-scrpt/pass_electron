@@ -10,7 +10,7 @@
 ### 🚨 Обработка ошибок (`error-handling/`)
 - **[INVARIANTS.md](./error-handling/INVARIANTS.md)** - Инварианты и Shared Kernel для переиспользуемых правил валидации
 - **[ERROR_HANDLING.md](./error-handling/ERROR_HANDLING.md)** - Обработка ошибок: Domain/Application/Infrastructure Errors
-- **[ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** - Эскалация ошибок: Result Pattern и монады (neverthrow)
+- **[ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** - Эскалация ошибок: Either Pattern и монады (@sweet-monads/either)
   - **[ERROR_ESCALATION_EXTENDED.md](./error-handling/ERROR_ESCALATION_EXTENDED.md)** - Расширенное сравнение всех библиотек (@sweet-monads/either, fp-ts)
 
 ### 🏗️ Архитектура и паттерны

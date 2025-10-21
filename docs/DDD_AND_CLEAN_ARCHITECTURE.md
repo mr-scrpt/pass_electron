@@ -105,7 +105,7 @@ Domain Layer полностью построен на тактических п�
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
@@ -119,25 +119,25 @@ export class Resource {
     private _isLocked: boolean
   ) {}
 
-  // Бизнес-метод возвращает Result с aggregate-specific ошибкой
-  rename(newName: ResourceName): Result<void, ResourceLockedError> {
+  // Бизнес-метод возвращает Either с aggregate-specific ошибкой
+  rename(newName: ResourceName): Either<ResourceLockedError, void> {
     if (this._isLocked) {
-      return err(new ResourceLockedError(this._id))
+      return left(new ResourceLockedError(this._id))
     }
     
     this._name = newName
     this.addDomainEvent(new ResourceRenamedEvent(this._id, newName))
-    return ok(undefined)
+    return right(undefined)
   }
 
   // Фабричный метод (DDD паттерн)
   static create(
     name: string,
     namespace: string
-  ): Result<Resource, InvariantViolationError> {
+  ): Either<InvariantViolationError, Resource> {
     // Создание через Value Objects (они валидируют)
     return ResourceName.create(name)
-      .andThen(validName =>
+      .chain(validName =>
         Namespace.create(namespace)
           .map(validNamespace => ({ validName, validNamespace }))
       )
@@ -163,17 +163,17 @@ export class Resource {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Result } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 import { InvariantViolationError, StringInvariant } from '@/domain/shared'
 
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName'
   private constructor(private readonly value: string) {}
 
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     // ✅ Используем именованные переиспользуемые инварианты
     return StringInvariant.validateLength(value, 1, 100, ResourceName.ENTITY_TYPE)
-      .andThen(validValue =>
+      .chain(validValue =>
         StringInvariant.validateAlphanumericWithDashUnderscore(
           validValue,
           ResourceName.ENTITY_TYPE

@@ -161,7 +161,7 @@ export type ResourceId = string
 
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
@@ -418,7 +418,7 @@ import { queries } from '@/composition'
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'

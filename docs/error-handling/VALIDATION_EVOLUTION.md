@@ -1,7 +1,5 @@
 # Эволюция подхода к валидации и обработке ошибок
 
-**Теги:** `#validation` `#evolution` `#error-handling` `#monads` `#specification`
-
 Этот документ показывает **полный путь развития** подхода к валидации и обработке ошибок в проекте — от традиционного `try-catch` через монады к Specification Pattern.
 
 ---
@@ -216,29 +214,25 @@ class ResourceName {
 #### Infrastructure Layer - API Client [#code]
 
 ```typescript
-// ✅ ХОРОШО: Either вместо throw
-import { Either, tryCatch } from '@sweet-monads/either'
+// ✅ ХОРОШО: Either БЕЗ throw
+import { Either, left, right } from '@sweet-monads/either'
 
 class ApiClient {
-  post(url: string, data: any): Either<NetworkError, Response> {
-    return tryCatch(
-      async () => {
-        const response = await fetch(url, {
-          method: 'POST',
-          body: JSON.stringify(data)
-        })
-        
-        if (!response.ok) {
-          throw new NetworkError(`HTTP ${response.status}`, response.status)
-        }
-        
-        return response
-      },
-      (error) => {
-        if (error instanceof NetworkError) return error
-        return new NetworkError('Connection failed')
+  async post(url: string, data: any): Promise<Either<NetworkError, Response>> {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+      
+      if (!response.ok) {
+        return left(new NetworkError(`HTTP ${response.status}`, response.status))
       }
-    )
+      
+      return right(response)
+    } catch (error) {
+      return left(new NetworkError('Connection failed'))
+    }
   }
 }
 ```

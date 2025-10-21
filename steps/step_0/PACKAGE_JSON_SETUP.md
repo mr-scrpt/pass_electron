@@ -36,7 +36,7 @@
   },
   
   "dependencies": {
-    "neverthrow": "^8.1.2"
+    "@sweet-monads/either": "^3.3.1"
   },
   
   "devDependencies": {
@@ -58,7 +58,7 @@
 
 **Что настраиваем:**
 - `scripts` - команды для запуска workspaces через `pnpm --filter`
-- `dependencies` - neverthrow для error handling (Application Layer)
+- `dependencies` - @sweet-monads/either для error handling (Application Layer)
 - `devDependencies` - TypeScript, ESLint, Prettier, Vitest
 - `engines` - требования к версиям Node.js и pnpm
 
@@ -204,7 +204,7 @@ pnpm add -D <package> --filter @password-manager/web
 ### Примеры
 
 **Root:**
-- `neverthrow` - используется в Application Layer
+- `@sweet-monads/either` - используется в Domain и Application Layer
 - `typescript` - используется везде
 
 **Web workspace:**
@@ -217,7 +217,7 @@ pnpm add -D <package> --filter @password-manager/web
 
 ```bash
 # Root
-pnpm add neverthrow
+pnpm add @sweet-monads/either
 pnpm add -D typescript vitest
 
 # Web (из корня через --filter)

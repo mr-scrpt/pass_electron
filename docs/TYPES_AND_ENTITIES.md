@@ -30,7 +30,7 @@
 // 1. Value Object (класс с логикой)
 export class ResourceId {
   private constructor(private readonly _value: string) {}
-  static create(value: string): Result<ResourceId, InvariantViolationError>
+  static create(value: string): Either<InvariantViolationError, ResourceId>
   getValue(): string
 }
 
@@ -182,7 +182,7 @@ export class ResourceId {
   /**
    * Создает ID из строки с валидацией
    */
-  static create(value: string): Result<ResourceId, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceId> {
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }
@@ -443,14 +443,14 @@ export class Resource {
     namespace: string,
     name: string,
     secret: string
-  ): Result<Resource, DomainError> {
+  ): Either<DomainError, Resource> {
     // Создаем Value Objects из примитивов
     const namespaceVO = Namespace.create(namespace)
     const nameVO = ResourceName.create(name)
     const id = ResourceId.generate()
     
     // Комбинируем результаты валидации
-    return Result.combine([namespaceVO, nameVO])
+    return merge([namespaceVO, nameVO])
       .map(([ns, nm]) => new Resource(
         id,
         ns,
@@ -465,15 +465,15 @@ export class Resource {
   /**
    * Бизнес-метод - работает с классами
    */
-  addCustomField(label: string, value: string): Result<void, DomainError> {
+  addCustomField(label: string, value: string): Either<DomainError, void> {
     // Инвариант: не более 20 полей
     if (this.customFields.length >= 20) {
-      return err(new InvalidOperationError('Cannot add more than 20 fields'))
+      return left(new InvalidOperationError('Cannot add more than 20 fields'))
     }
     
     // Инвариант: уникальные метки
     if (this.customFields.some(f => f.label === label)) {
-      return err(new DuplicateFieldLabelError(label))
+      return left(new DuplicateFieldLabelError(label))
     }
     
     // Создаем Entity
@@ -481,7 +481,7 @@ export class Resource {
     const field = new CustomField(fieldId, label, value, false)
     
     this.customFields.push(field)
-    return ok(undefined)
+    return right(undefined)
   }
 }
 ```

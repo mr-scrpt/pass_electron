@@ -69,47 +69,7 @@ export default defineConfig({
 - Tailwind обрабатывает CSS до того, как React Router обработает компоненты
 - Правильный порядок загрузки стилей
 
-### 2. Создать `tailwind.config.js`
-
-> **💡 Важно**: Используем `.js` (не `.ts`), так как Catppuccin не экспортирует TypeScript типы
-
-**Файл:** `src/presentation/web/react/tailwind.config.js`
-
-#### Tailwind Config [#config|#structure:path]
-
-```javascript
-// src/presentation/web/react/tailwind.config.js
-import { catppuccin } from '@catppuccin/tailwindcss'
-
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    './src/**/*.{js,jsx,ts,tsx}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [
-    catppuccin({
-      prefix: 'ctp',
-      defaultFlavour: 'mocha',
-    }),
-  ],
-}
-```
-
-**Опции Catppuccin:**
-- `prefix: 'ctp'` - префикс для классов (например: `bg-ctp-base`, `text-ctp-mauve`)
-- `defaultFlavour: 'mocha'` - темная тема Catppuccin
-
-**Почему `.js`, а не `.ts`:**
-- Catppuccin - JavaScript пакет без TypeScript типов
-- В `.ts` файле будут ошибки типов (но код работает)
-- `.js` файл избегает ошибок TypeScript
-
-> **📚 См. также**: [docs/ui/CATPPUCCIN_MOCHA.md](../../docs/ui/CATPPUCCIN_MOCHA.md) - полное описание цветовой схемы
-
-### 3. Создать CSS файл
+### 2. Создать CSS файл
 
 **Файл:** `src/presentation/web/react/src/styles/tailwind.css`
 
@@ -118,11 +78,24 @@ export default {
 ```css
 /* src/presentation/web/react/src/styles/tailwind.css */
 @import "tailwindcss";
+
+/* Catppuccin Mocha theme for Tailwind v4 */
+@import "@catppuccin/tailwindcss/mocha.css";
 ```
 
-> **💡 Tailwind v4**: В новой версии достаточно одной строки `@import "tailwindcss"`!
+> **💡 Tailwind v4**: Конфиг не нужен! Все настраивается через CSS импорты.
 
-### 4. Импортировать в `root.tsx`
+**Что импортируем:**
+1. `tailwindcss` - базовые стили Tailwind v4
+2. `@catppuccin/tailwindcss/mocha.css` - тема Catppuccin Mocha
+
+**Доступные темы:**
+- `mocha.css` - темная тема (рекомендуется)
+- `frappe.css` - темная тема (альтернатива)
+- `macchiato.css` - темная тема (альтернатива)
+- `latte.css` - светлая тема (включена автоматически)
+
+### 3. Импортировать в `root.tsx`
 
 **Файл:** `src/presentation/web/react/src/root.tsx`
 
@@ -277,13 +250,15 @@ import "./styles/global.css"
 
 ## 📋 Чеклист
 
-- [ ] `@tailwindcss/vite` установлен
-- [ ] `@catppuccin/tailwindcss` установлен
-- [ ] `tailwind.config.js` создан
+- [ ] `@tailwindcss/vite` установлен через `--filter`
+- [ ] `@catppuccin/tailwindcss` установлен через `--filter`
 - [ ] `tailwindcss()` добавлен в `vite.config.ts`
-- [ ] `styles/tailwind.css` создан
-- [ ] `tailwind.css` импортирован в `root.tsx`
-- [ ] Тестовая страница показывает Catppuccin цвета
+- [ ] `styles/tailwind.css` создан с импортами:
+  - `@import "tailwindcss"`
+  - `@import "@catppuccin/tailwindcss/mocha.css"`
+- [ ] `tailwind.css` импортирован в `root.tsx` (прямой импорт)
+- [ ] Тестовая страница показывает темную тему Catppuccin
+- [ ] ❌ `tailwind.config.js` НЕ нужен для Tailwind v4
 
 ---
 

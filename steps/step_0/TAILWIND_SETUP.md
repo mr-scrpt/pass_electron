@@ -193,8 +193,8 @@ export default function Index() {
 #### Run Dev Server [#command]
 
 ```bash
-cd src/presentation/web/react
-pnpm dev
+# Из корня проекта
+pnpm dev:web
 ```
 
 Открой `http://localhost:5173` - должна быть темная страница с фиолетовым заголовком!
@@ -252,9 +252,9 @@ pnpm dev
 #### Install Styled Components [#command]
 
 ```bash
-cd src/presentation/web/react
-pnpm add styled-components
-pnpm add -D @types/styled-components
+# Из корня проекта - установить в web workspace
+pnpm add styled-components --filter @password-manager/web
+pnpm add -D @types/styled-components --filter @password-manager/web
 ```
 
 ### Emotion
@@ -262,8 +262,8 @@ pnpm add -D @types/styled-components
 #### Install Emotion [#command]
 
 ```bash
-cd src/presentation/web/react
-pnpm add @emotion/react @emotion/styled
+# Из корня проекта - установить в web workspace
+pnpm add @emotion/react @emotion/styled --filter @password-manager/web
 ```
 
 ### Обычный CSS

@@ -220,8 +220,8 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 #### Install Tailwind [#command]
 
 ```bash
-cd src/presentation/web/react
-pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
+# Из корня проекта
+pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss --filter @password-manager/web
 ```
 
 **⚠️ ВАЖНО:** Устанавливать ТОЛЬКО в web presentation, НЕ в root!
@@ -251,13 +251,11 @@ pnpm add -D @tailwindcss/vite @catppuccin/tailwindcss
 #### Install Dependencies [#command]
 
 ```bash
-# В корне проекта
+# В root
 pnpm install
 
-# В web presentation
-cd src/presentation/web/react
+# В web presentation (автоматически установится через workspaces)
 pnpm install
-cd ../../../..
 ```
 
 ### 5.2 Создать минимальные файлы для теста
@@ -327,9 +325,8 @@ export default function Index() {
 #### Run Dev Server [#command]
 
 ```bash
-# Из root presentation директории
-cd src/presentation/web/react
-pnpm dev
+# Из корня проекта
+pnpm dev:web
 ```
 
 Открой браузер на `http://localhost:5173` — должна показаться тестовая страница.

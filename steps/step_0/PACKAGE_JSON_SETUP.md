@@ -196,9 +196,9 @@ pnpm add -D <package> --filter @password-manager/web
 #### Add to Web Directly [#command|#structure:path]
 
 ```bash
-cd src/presentation/web/react
-pnpm add <package>
-pnpm add -D <package>
+# Из корня проекта - установить в web workspace через --filter
+pnpm add <package> --filter @password-manager/web
+pnpm add -D <package> --filter @password-manager/web
 ```
 
 ### Примеры

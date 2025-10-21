@@ -1,7 +1,5 @@
 # Specification Pattern для валидации Value Objects
 
-**Теги:** `[#validation|#specification|#value-objects|#invariants]`
-
 ---
 
 ## 🎯 Применение Specification Pattern для валидации

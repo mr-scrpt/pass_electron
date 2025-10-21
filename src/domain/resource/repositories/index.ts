@@ -1,0 +1,1 @@
+export { IResourceRepository } from "./IResourceRepository";

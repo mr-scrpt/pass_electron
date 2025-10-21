@@ -127,7 +127,7 @@ export class InvariantViolationError extends Error {
 
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
 
 /**
@@ -138,27 +138,27 @@ export class UuidInvariant {
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
   
   /**
-   * Валидация UUID v4 через Result
+   * Валидация UUID v4 через Either
    */
   static validate(
     value: string,
     entityType: string
-  ): Result<string, InvariantViolationError> {
+  ): Either<InvariantViolationError, string> {
     if (!value) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         entityType,
-        'UUID cannot be empty'
+        'cannot be empty'
       ))
     }
     
-    if (!this.UUID_V4_REGEX.test(value)) {
-      return err(new InvariantViolationError(
+    if (!UuidInvariant.UUID_V4_REGEX.test(value)) {
+      return left(new InvariantViolationError(
         entityType,
-        `Invalid UUID format: ${value}`
+        'must be a valid UUID v4'
       ))
     }
     
-    return ok(value)
+    return right(value)
   }
   
   /**
@@ -196,7 +196,7 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
-import { Result } from 'neverthrow'
+import { Either } from '@sweet-monads/either'
 import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
@@ -211,8 +211,8 @@ export class ResourceId {
     return new ResourceId(crypto.randomUUID())
   }
   
-  static create(value: string): Result<ResourceId, InvariantViolationError> {
-    // ✅ Используем переиспользуемый инвариант с Result
+  static create(value: string): Either<InvariantViolationError, ResourceId> {
+    // ✅ Используем переиспользуемый инвариант с Either
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }
@@ -235,7 +235,7 @@ export class ResourceId {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError } from '@/domain/shared'
 
 /**
@@ -250,26 +250,26 @@ export class Namespace {
   
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Result<Namespace, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, Namespace> {
     if (!value) {
-      return err(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty'))
+      return left(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty'))
     }
     
     if (value.length < Namespace.MIN_LENGTH || value.length > Namespace.MAX_LENGTH) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         Namespace.ENTITY_TYPE,
         `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`
       ))
     }
     
     if (!Namespace.PATTERN.test(value)) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         Namespace.ENTITY_TYPE,
         'must contain only lowercase letters, numbers, - and _'
       ))
     }
     
-    return ok(new Namespace(value))
+    return right(new Namespace(value))
   }
   
   getValue(): string {
@@ -296,7 +296,7 @@ export class Namespace {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Result, ok, err } from 'neverthrow'
+import { Either, right, left } from '@sweet-monads/either'
 import { InvariantViolationError } from '@/domain/shared'
 
 /**
@@ -310,19 +310,19 @@ export class ResourceName {
   
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Result<ResourceName, InvariantViolationError> {
+  static create(value: string): Either<InvariantViolationError, ResourceName> {
     if (!value) {
-      return err(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty'))
+      return left(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty'))
     }
     
     if (value.length < ResourceName.MIN_LENGTH || value.length > ResourceName.MAX_LENGTH) {
-      return err(new InvariantViolationError(
+      return left(new InvariantViolationError(
         ResourceName.ENTITY_TYPE,
         `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`
       ))
     }
     
-    return ok(new ResourceName(value))
+    return right(new ResourceName(value))
   }
   
   getValue(): string {

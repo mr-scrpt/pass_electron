@@ -10,35 +10,50 @@
 
 > 📖 **Теория:** См. [patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md) для полного описания паттерна
 
+> 💡 **Архитектура:** См. [.docs-meta/VALIDATION_ARCHITECTURE.md](../../.docs-meta/VALIDATION_ARCHITECTURE.md) для полного плана архитектуры
+
 ---
 
 ## 📐 Архитектура валидации
 
-### Базовый интерфейс
+### Обертка Validation [#code|#structure:]
 
 ```typescript
-// src/domain/shared/specification/ISpecification.ts
-import { Either } from '@sweet-monads/either'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+// src/shared/validation/Validation.ts  #structure:
+import { Either, left, right } from '@sweet-monads/either'
+
+/**
+ * Результат валидации
+ * Обертка над Either для изоляции библиотеки
+ */
+export type Validation<E, T> = Either<E, T>  // #interface:Validation
+
+export const valid = <T>(value: T): Validation<never, T> => right(value)
+export const invalid = <E>(error: E): Validation<E, never> => left(error)
+```
+
+### Базовый интерфейс [#code|#structure:|#interface:ISpecification]
+
+```typescript
+// src/shared/specification/ISpecification.ts  #structure:
+import { Validation } from '@/shared/validation'  // #structure:
 
 /**
  * Спецификация для валидации
- * Возвращает Either вместо boolean для обработки ошибок
  */
-export interface ISpecification<T> {
-  isSatisfiedBy(value: T): Either<InvariantViolationError, T>
+export interface ISpecification<T> {  // #interface:ISpecification
+  isSatisfiedBy(value: T): Validation<any, T>
 }
 ```
 
-### Композитор спецификаций
+### Композитор спецификаций [#code|#structure:|#class:CompositeSpecification]
 
 ```typescript
-// src/domain/shared/specification/CompositeSpecification.ts
-import { Either, left, right } from '@sweet-monads/either'
-import { ISpecification } from './ISpecification'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+// src/shared/specification/CompositeSpecification.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from './ISpecification'  // #structure:
 
-export class CompositeSpecification<T> {
+export class CompositeSpecification<T> {  // #class:CompositeSpecification
   /**
    * Все спецификации должны пройти (AND)
    * Fail-fast: останавливается на первой ошибке
@@ -50,21 +65,20 @@ export class CompositeSpecification<T> {
           const result = spec.isSatisfiedBy(value)
           if (result.isLeft()) return result
         }
-        return right(value)
+        return valid(value)
       }
     }
   }
 
   /**
    * Накопление ВСЕХ ошибок
-   * Для показа всех проблем валидации сразу
    */
-  static allOfAccumulate<T>(...specs: ISpecification<T>[]): {
-    isSatisfiedBy: (value: T) => Either<InvariantViolationError[], T>
+  static allOfAccumulate<T, E = any>(...specs: ISpecification<T>[]): {
+    isSatisfiedBy: (value: T) => Validation<E[], T>
   } {
     return {
       isSatisfiedBy: (value: T) => {
-        const errors: InvariantViolationError[] = []
+        const errors: E[] = []
         
         for (const spec of specs) {
           const result = spec.isSatisfiedBy(value)
@@ -73,7 +87,7 @@ export class CompositeSpecification<T> {
           }
         }
         
-        return errors.length > 0 ? left(errors) : right(value)
+        return errors.length > 0 ? invalid(errors) : valid(value)
       }
     }
   }
@@ -84,41 +98,40 @@ export class CompositeSpecification<T> {
 
 ## 📚 Библиотека переиспользуемых спецификаций
 
-### Строковые спецификации
+### Строковые спецификации [#code|#structure:]
 
 ```typescript
-// src/domain/shared/specification/StringSpecifications.ts
-import { Either, left, right } from '@sweet-monads/either'
-import { ISpecification } from './ISpecification'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+// src/shared/specification/StringSpecifications.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from './ISpecification'  // #structure:
 
 /**
  * Проверка на пустую строку
  */
-export class NotEmptySpec implements ISpecification<string> {
+export class NotEmptySpec implements ISpecification<string> {  // #class:NotEmptySpec
   constructor(private entityType: string) {}
   
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return value && value.trim()
-      ? right(value)
-      : left(new InvariantViolationError(this.entityType, "cannot be empty"))
+      ? valid(value)
+      : invalid(new ValidationError(this.entityType, "cannot be empty"))
   }
 }
 
 /**
  * Проверка диапазона длины
  */
-export class LengthRangeSpec implements ISpecification<string> {
+export class LengthRangeSpec implements ISpecification<string> {  // #class:LengthRangeSpec
   constructor(
     private min: number,
     private max: number,
     private entityType: string
   ) {}
   
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return value.length >= this.min && value.length <= this.max
-      ? right(value)
-      : left(new InvariantViolationError(
+      ? valid(value)
+      : invalid(new ValidationError(
           this.entityType,
           `must be ${this.min}-${this.max} characters`
         ))
@@ -128,58 +141,38 @@ export class LengthRangeSpec implements ISpecification<string> {
 /**
  * Проверка по регулярному выражению
  */
-export class PatternSpec implements ISpecification<string> {
+export class PatternSpec implements ISpecification<string> {  // #class:PatternSpec
   constructor(
     private pattern: RegExp,
     private message: string,
     private entityType: string
   ) {}
   
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return this.pattern.test(value)
-      ? right(value)
-      : left(new InvariantViolationError(this.entityType, this.message))
-  }
-}
-
-/**
- * Проверка на lowercase
- */
-export class LowercaseSpec implements ISpecification<string> {
-  constructor(private entityType: string) {}
-  
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
-    return value === value.toLowerCase()
-      ? right(value)
-      : left(new InvariantViolationError(this.entityType, "must be lowercase"))
+      ? valid(value)
+      : invalid(new ValidationError(this.entityType, this.message))
   }
 }
 ```
 
-### UUID спецификации
+### UUID спецификации [#code|#structure:]
 
 ```typescript
-// src/domain/shared/specification/UuidSpecifications.ts
-import { Either, left, right } from '@sweet-monads/either'
-import { ISpecification } from './ISpecification'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+// src/shared/specification/UuidSpecifications.ts  #structure:
+import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
+import { ISpecification } from './ISpecification'  // #structure:
 
-/**
- * Проверка UUID v4
- */
-export class UuidV4Spec implements ISpecification<string> {
+export class UuidV4Spec implements ISpecification<string> {  // #class:UuidV4Spec
   private static readonly UUID_V4_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
   constructor(private entityType: string) {}
   
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return UuidV4Spec.UUID_V4_REGEX.test(value)
-      ? right(value)
-      : left(new InvariantViolationError(
-          this.entityType,
-          `Invalid UUID format: ${value}`
-        ))
+      ? valid(value)
+      : invalid(new ValidationError(this.entityType, `Invalid UUID: ${value}`))
   }
 }
 ```
@@ -188,20 +181,20 @@ export class UuidV4Spec implements ISpecification<string> {
 
 ## 🎯 Использование в Value Objects
 
-### Пример 1: Namespace
+### Пример: Namespace [#code|#structure:|#class:Namespace]
 
 ```typescript
-// src/domain/resource/value-objects/Namespace.ts
-import { Either } from "@sweet-monads/either"
-import { InvariantViolationError } from "@/domain/shared"
-import { CompositeSpecification } from "@/domain/shared/specification"
+// src/domain/resource/value-objects/Namespace.ts  #structure:
+import { Validation } from '@/shared/validation'  // #structure:
+import { ValidationError } from '@/shared/specification'  // #structure:
+import { CompositeSpecification } from '@/shared/specification'  // #structure:
 import { 
   NotEmptySpec, 
   LengthRangeSpec, 
   PatternSpec 
-} from "@/domain/shared/specification/StringSpecifications"
+} from '@/shared/specification'  // #structure:
 
-export class Namespace {
+export class Namespace {  // #class:Namespace
   private static readonly ENTITY_TYPE = "Namespace"
   private static readonly MIN_LENGTH = 2
   private static readonly MAX_LENGTH = 50
@@ -210,10 +203,9 @@ export class Namespace {
   private constructor(private readonly _value: string) {}
 
   /**
-   * Fail-fast: останавливается на первой ошибке
-   * Используется для UI форм (показываем одну ошибку за раз)
+   * Создать Namespace (fail-fast)
    */
-  static create(value: string): Either<InvariantViolationError, Namespace> {
+  static create(value: string): Validation<ValidationError, Namespace> {
     const spec = CompositeSpecification.allOf(
       new NotEmptySpec(Namespace.ENTITY_TYPE),
       new LengthRangeSpec(
@@ -232,12 +224,11 @@ export class Namespace {
   }
 
   /**
-   * Accumulate: собирает ВСЕ ошибки
-   * Используется для серверной валидации (возвращаем все проблемы сразу)
+   * Создать Namespace (accumulate - все ошибки)
    */
   static createWithAllErrors(
     value: string
-  ): Either<InvariantViolationError[], Namespace> {
+  ): Validation<ValidationError[], Namespace> {
     const spec = CompositeSpecification.allOfAccumulate(
       new NotEmptySpec(Namespace.ENTITY_TYPE),
       new LengthRangeSpec(
@@ -265,356 +256,74 @@ export class Namespace {
 }
 ```
 
-### Пример 2: ResourceName
-
-```typescript
-// src/domain/resource/value-objects/ResourceName.ts
-import { Either } from "@sweet-monads/either"
-import { InvariantViolationError } from "@/domain/shared"
-import { CompositeSpecification } from "@/domain/shared/specification"
-import { 
-  NotEmptySpec, 
-  LengthRangeSpec 
-} from "@/domain/shared/specification/StringSpecifications"
-
-export class ResourceName {
-  private static readonly ENTITY_TYPE = "ResourceName"
-  private static readonly MIN_LENGTH = 1
-  private static readonly MAX_LENGTH = 100
-
-  private constructor(private readonly _value: string) {}
-
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    const spec = CompositeSpecification.allOf(
-      new NotEmptySpec(ResourceName.ENTITY_TYPE),
-      new LengthRangeSpec(
-        ResourceName.MIN_LENGTH,
-        ResourceName.MAX_LENGTH,
-        ResourceName.ENTITY_TYPE
-      )
-    )
-
-    return spec.isSatisfiedBy(value).map(v => new ResourceName(v))
-  }
-
-  getValue(): string {
-    return this._value
-  }
-
-  equals(other: ResourceName): boolean {
-    return this._value === other._value
-  }
-}
-```
-
-### Пример 3: ResourceId
-
-```typescript
-// src/domain/resource/value-objects/ResourceId.ts
-import { Either } from "@sweet-monads/either"
-import { InvariantViolationError } from "@/domain/shared"
-import { CompositeSpecification } from "@/domain/shared/specification"
-import { NotEmptySpec } from "@/domain/shared/specification/StringSpecifications"
-import { UuidV4Spec } from "@/domain/shared/specification/UuidSpecifications"
-
-export class ResourceId {
-  private static readonly ENTITY_TYPE = 'ResourceId'
-  
-  private constructor(private readonly _value: string) {}
-
-  static generate(): ResourceId {
-    return new ResourceId(crypto.randomUUID())
-  }
-
-  static create(value: string): Either<InvariantViolationError, ResourceId> {
-    const spec = CompositeSpecification.allOf(
-      new NotEmptySpec(ResourceId.ENTITY_TYPE),
-      new UuidV4Spec(ResourceId.ENTITY_TYPE)
-    )
-
-    return spec.isSatisfiedBy(value).map(v => new ResourceId(v))
-  }
-
-  getValue(): string {
-    return this._value
-  }
-
-  equals(other: ResourceId): boolean {
-    return this._value === other._value
-  }
-}
-```
-
 ---
 
-## 🔧 Кастомные бизнес-спецификации
+## 📁 Структура файлов [#structure:tree]
 
-### Проверка на зарезервированные значения
-
-```typescript
-// src/domain/resource/specifications/ResourceSpecifications.ts
-import { Either, left, right } from '@sweet-monads/either'
-import { ISpecification } from '@/domain/shared/specification'
-import { InvariantViolationError } from '@/domain/shared'
-
-/**
- * Проверка на зарезервированные namespace
- */
-export class NotReservedNamespaceSpec implements ISpecification<string> {
-  private static readonly RESERVED = ['system', 'admin', 'root', 'default']
-  
-  constructor(private entityType: string) {}
-  
-  isSatisfiedBy(value: string): Either<InvariantViolationError, string> {
-    if (NotReservedNamespaceSpec.RESERVED.includes(value.toLowerCase())) {
-      return left(
-        new InvariantViolationError(
-          this.entityType,
-          `"${value}" is a reserved namespace`
-        )
-      )
-    }
-    return right(value)
-  }
-}
 ```
-
-### Async спецификация: проверка уникальности
-
-```typescript
-/**
- * Async спецификация: проверка уникальности в БД
- */
-export class UniqueNamespaceSpec implements ISpecification<string> {
-  constructor(
-    private checkUnique: (value: string) => Promise<boolean>,
-    private entityType: string
-  ) {}
-  
-  async isSatisfiedBy(value: string): Promise<Either<InvariantViolationError, string>> {
-    const isUnique = await this.checkUnique(value)
-    if (!isUnique) {
-      return left(
-        new InvariantViolationError(this.entityType, `"${value}" already exists`)
-      )
-    }
-    return right(value)
-  }
-}
-```
-
-### Использование кастомных спецификаций
-
-```typescript
-// Добавляем проверку на зарезервированные namespace
-static create(value: string): Either<InvariantViolationError, Namespace> {
-  const spec = CompositeSpecification.allOf(
-    new NotEmptySpec(Namespace.ENTITY_TYPE),
-    new LengthRangeSpec(2, 50, Namespace.ENTITY_TYPE),
-    new PatternSpec(/^[a-z0-9-_]+$/, 'invalid format', Namespace.ENTITY_TYPE),
-    new NotReservedNamespaceSpec(Namespace.ENTITY_TYPE)  // ✨ Кастомная!
-  )
-
-  return spec.isSatisfiedBy(value).map(v => new Namespace(v))
-}
-
-// Async валидация с проверкой уникальности
-static async createUnique(
-  value: string,
-  repository: INamespaceRepository
-): Promise<Either<InvariantViolationError, Namespace>> {
-  // Сначала sync валидация
-  const syncSpec = CompositeSpecification.allOf(
-    new NotEmptySpec(Namespace.ENTITY_TYPE),
-    new LengthRangeSpec(2, 50, Namespace.ENTITY_TYPE),
-    new PatternSpec(/^[a-z0-9-_]+$/, 'invalid format', Namespace.ENTITY_TYPE)
-  )
-
-  const syncResult = syncSpec.isSatisfiedBy(value)
-  if (syncResult.isLeft()) return syncResult
-
-  // Потом async проверка
-  const uniqueSpec = new UniqueNamespaceSpec(
-    (v) => repository.isUnique(v),
-    Namespace.ENTITY_TYPE
-  )
-
-  return (await uniqueSpec.isSatisfiedBy(value)).map(v => new Namespace(v))
-}
-```
-
----
-
-## 🧪 Тестирование
-
-### Тестирование отдельных спецификаций
-
-```typescript
-// tests/domain/shared/specification/NotEmptySpec.test.ts
-import { NotEmptySpec } from '@/domain/shared/specification/StringSpecifications'
-
-describe('NotEmptySpec', () => {
-  const spec = new NotEmptySpec('TestEntity')
-
-  it('should pass for non-empty string', () => {
-    const result = spec.isSatisfiedBy('test')
-    expect(result.isRight()).toBe(true)
-  })
-
-  it('should fail for empty string', () => {
-    const result = spec.isSatisfiedBy('')
-    expect(result.isLeft()).toBe(true)
-    if (result.isLeft()) {
-      expect(result.value.message).toContain('cannot be empty')
-    }
-  })
-
-  it('should fail for whitespace only', () => {
-    const result = spec.isSatisfiedBy('   ')
-    expect(result.isLeft()).toBe(true)
-  })
-})
-```
-
-### Тестирование Value Object с спецификациями
-
-```typescript
-// tests/domain/resource/value-objects/Namespace.test.ts
-import { Namespace } from '@/domain/resource/value-objects/Namespace'
-
-describe('Namespace', () => {
-  describe('create (fail-fast)', () => {
-    it('should create valid namespace', () => {
-      const result = Namespace.create('my-namespace')
-      expect(result.isRight()).toBe(true)
-    })
-
-    it('should fail for empty value', () => {
-      const result = Namespace.create('')
-      expect(result.isLeft()).toBe(true)
-      if (result.isLeft()) {
-        expect(result.value.message).toContain('cannot be empty')
-      }
-    })
-
-    it('should fail for too short value', () => {
-      const result = Namespace.create('a')
-      expect(result.isLeft()).toBe(true)
-      if (result.isLeft()) {
-        expect(result.value.message).toContain('must be 2-50 characters')
-      }
-    })
-
-    it('should fail for invalid pattern', () => {
-      const result = Namespace.create('My-Namespace')  // uppercase
-      expect(result.isLeft()).toBe(true)
-      if (result.isLeft()) {
-        expect(result.value.message).toContain('lowercase')
-      }
-    })
-  })
-
-  describe('createWithAllErrors (accumulate)', () => {
-    it('should accumulate all errors', () => {
-      const result = Namespace.createWithAllErrors('A')  // uppercase + too short
-      
-      expect(result.isLeft()).toBe(true)
-      if (result.isLeft()) {
-        expect(result.value).toHaveLength(2)  // 2 ошибки!
-        expect(result.value[0].message).toContain('must be 2-50 characters')
-        expect(result.value[1].message).toContain('lowercase')
-      }
-    })
-  })
-})
+src/
+├── shared/                                    #structure:
+│   ├── validation/                            #structure:
+│   │   ├── Validation.ts                      #structure:
+│   │   └── index.ts                           #structure:
+│   │
+│   └── specification/                         #structure:
+│       ├── ISpecification.ts                  #structure:
+│       ├── CompositeSpecification.ts          #structure:
+│       ├── StringSpecifications.ts            #structure:
+│       ├── UuidSpecifications.ts              #structure:
+│       └── index.ts                           #structure:
+│
+└── domain/
+    ├── shared/
+    │   └── errors/                            #structure:
+    │       └── InvariantViolationError.ts     #structure:
+    │
+    └── resource/
+        └── value-objects/                     #structure:
+            ├── Namespace.ts                   #structure:
+            ├── ResourceName.ts                #structure:
+            └── ResourceId.ts                  #structure:
 ```
 
 ---
 
 ## 🎯 Best Practices
 
-### 1. Одна спецификация = одно правило
+### 1. Используйте Validation вместо Either
 
 ```typescript
-// ✅ ХОРОШО: Каждая спецификация проверяет одно правило
-new NotEmptySpec('Namespace')
-new LengthRangeSpec(2, 50, 'Namespace')
-new PatternSpec(/^[a-z0-9-_]+$/, 'invalid', 'Namespace')
+// ✅ ХОРОШО: Validation изолирует библиотеку
+import { Validation, valid, invalid } from '@/shared/validation'
 
-// ❌ ПЛОХО: Одна спецификация проверяет всё
-class NamespaceValidationSpec implements ISpecification<string> {
-  isSatisfiedBy(value: string) {
-    // Проверяет и пустоту, и длину, и паттерн
-  }
+// ❌ ПЛОХО: Прямой импорт Either
+import { Either, left, right } from '@sweet-monads/either'
+```
+
+### 2. Спецификации в src/shared/
+
+```typescript
+// ✅ ХОРОШО: Общие спецификации в shared
+import { NotEmptySpec } from '@/shared/specification'
+
+// ❌ ПЛОХО: Спецификации в domain
+import { NotEmptySpec } from '@/domain/shared/specification'
+```
+
+### 3. Fail-fast для UI, Accumulate для API
+
+```typescript
+// ✅ UI: показываем первую ошибку
+static create(value: string): Validation<Error, T> {
+  const spec = CompositeSpecification.allOf(...)
+  return spec.isSatisfiedBy(value).map(v => new T(v))
 }
-```
 
-### 2. Переиспользуйте общие спецификации
-
-```typescript
-// ✅ ХОРОШО: Общие спецификации в shared/
-import { NotEmptySpec, LengthRangeSpec } from '@/domain/shared/specification'
-
-// ❌ ПЛОХО: Дублируем спецификации в каждом модуле
-class NamespaceNotEmptySpec { ... }
-class ResourceNameNotEmptySpec { ... }
-```
-
-### 3. Бизнес-специфичные спецификации в модуле
-
-```typescript
-// ✅ ХОРОШО: Специфичные правила рядом с Value Object
-// src/domain/resource/specifications/ResourceSpecifications.ts
-export class NotReservedNamespaceSpec { ... }
-
-// src/domain/resource/value-objects/Namespace.ts
-import { NotReservedNamespaceSpec } from '../specifications/ResourceSpecifications'
-```
-
-### 4. Используйте fail-fast для UI форм
-
-```typescript
-// ✅ ХОРОШО: Показываем первую ошибку
-static create(value: string): Either<InvariantViolationError, Namespace> {
-  const spec = CompositeSpecification.allOf(...)  // fail-fast
-  return spec.isSatisfiedBy(value).map(v => new Namespace(v))
+// ✅ API: возвращаем ВСЕ ошибки
+static createWithAllErrors(value: string): Validation<Error[], T> {
+  const spec = CompositeSpecification.allOfAccumulate(...)
+  return spec.isSatisfiedBy(value).map(v => new T(v))
 }
-```
-
-### 5. Используйте accumulate для серверной валидации
-
-```typescript
-// ✅ ХОРОШО: Возвращаем ВСЕ ошибки сразу
-static createWithAllErrors(
-  value: string
-): Either<InvariantViolationError[], Namespace> {
-  const spec = CompositeSpecification.allOfAccumulate(...)  // accumulate
-  return spec.isSatisfiedBy(value).map(v => new Namespace(v))
-}
-```
-
----
-
-## 📁 Структура файлов
-
-```
-src/domain/
-├── shared/
-│   ├── specification/
-│   │   ├── ISpecification.ts              # Базовый интерфейс
-│   │   ├── CompositeSpecification.ts      # Композитор
-│   │   ├── StringSpecifications.ts        # Общие строковые спецификации
-│   │   └── UuidSpecifications.ts          # UUID спецификации
-│   └── errors/
-│       └── InvariantViolationError.ts
-│
-└── resource/
-    ├── specifications/
-    │   └── ResourceSpecifications.ts      # Бизнес-специфичные спецификации
-    └── value-objects/
-        ├── Namespace.ts                   # Использует спецификации
-        ├── ResourceName.ts
-        └── ResourceId.ts
 ```
 
 ---
@@ -622,6 +331,7 @@ src/domain/
 ## 🔗 Связанные документы
 
 - **[patterns/SPECIFICATION_PATTERN.md](../patterns/SPECIFICATION_PATTERN.md)** - Полное описание Specification Pattern ⭐
+- **[.docs-meta/VALIDATION_ARCHITECTURE.md](../../.docs-meta/VALIDATION_ARCHITECTURE.md)** - План архитектуры Validation
 - **[INVARIANTS.md](./INVARIANTS.md)** - Инварианты и Shared Kernel
 - **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** - Обработка ошибок
 - **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** - Either Pattern и монады

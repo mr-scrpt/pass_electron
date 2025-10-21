@@ -235,21 +235,44 @@ export class ResourceId {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
+import { Result, ok, err } from 'neverthrow'
+import { InvariantViolationError } from '@/domain/shared'
+
+/**
+ * Value Object для namespace ресурса
+ * Инвариант: 2-50 символов, lowercase, буквы/цифры/-/_
+ */
 export class Namespace {
+  private static readonly ENTITY_TYPE = 'Namespace'
+  private static readonly MIN_LENGTH = 2
+  private static readonly MAX_LENGTH = 50
+  private static readonly PATTERN = /^[a-z0-9-_]+$/
+  
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Namespace {
-    // Валидация: 2-50 символов, lowercase
-    if (!value || value.length < 2 || value.length > 50) {
-      throw new Error('Namespace must be 2-50 characters')
+  static create(value: string): Result<Namespace, InvariantViolationError> {
+    if (!value) {
+      return err(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty'))
     }
-    if (!/^[a-z0-9-_]+$/.test(value)) {
-      throw new Error('Namespace must contain only lowercase letters, numbers, - and _')
+    
+    if (value.length < Namespace.MIN_LENGTH || value.length > Namespace.MAX_LENGTH) {
+      return err(new InvariantViolationError(
+        Namespace.ENTITY_TYPE,
+        `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`
+      ))
     }
-    return new Namespace(value)
+    
+    if (!Namespace.PATTERN.test(value)) {
+      return err(new InvariantViolationError(
+        Namespace.ENTITY_TYPE,
+        'must contain only lowercase letters, numbers, - and _'
+      ))
+    }
+    
+    return ok(new Namespace(value))
   }
   
-  get value(): string {
+  getValue(): string {
     return this._value
   }
   
@@ -273,17 +296,36 @@ export class Namespace {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
+import { Result, ok, err } from 'neverthrow'
+import { InvariantViolationError } from '@/domain/shared'
+
+/**
+ * Value Object для имени ресурса
+ * Инвариант: 1-100 символов
+ */
 export class ResourceName {
+  private static readonly ENTITY_TYPE = 'ResourceName'
+  private static readonly MIN_LENGTH = 1
+  private static readonly MAX_LENGTH = 100
+  
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): ResourceName {
-    if (!value || value.length < 1 || value.length > 100) {
-      throw new Error('ResourceName must be 1-100 characters')
+  static create(value: string): Result<ResourceName, InvariantViolationError> {
+    if (!value) {
+      return err(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty'))
     }
-    return new ResourceName(value)
+    
+    if (value.length < ResourceName.MIN_LENGTH || value.length > ResourceName.MAX_LENGTH) {
+      return err(new InvariantViolationError(
+        ResourceName.ENTITY_TYPE,
+        `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`
+      ))
+    }
+    
+    return ok(new ResourceName(value))
   }
   
-  get value(): string {
+  getValue(): string {
     return this._value
   }
   

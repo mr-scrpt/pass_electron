@@ -36,34 +36,39 @@ pnpm add -D eslint eslint-plugin-boundaries @typescript-eslint/parser @typescrip
 
 ## ⚙️ Конфигурация ESLint
 
-### Создать `eslint.config.js` (в корне проекта)
+> **📦 Файл уже создан**: `eslint.config.js` в корне проекта
 
-#### eslint.config.js [#config|#structure:path]
+**Что нужно добавить**: Плагин `boundaries` для проверки архитектурных границ
+
+### Изменения в eslint.config.js
+
+**Файл: `eslint.config.js`** (в корне проекта)
+
+#### eslint.config.js - только изменения [#config|#structure:path]
 
 ```javascript
 // eslint.config.js
-import boundaries from 'eslint-plugin-boundaries'
-import typescriptEslint from '@typescript-eslint/eslint-plugin'
-import typescriptParser from '@typescript-eslint/parser'
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import boundaries from 'eslint-plugin-boundaries'  // ← ДОБАВИТЬ
 
-export default [
+export default tseslint.config(
+  js.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ['src/**/*.{ts,tsx}'],
-    
     languageOptions: {
-      parser: typescriptParser,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './tsconfig.json',
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     
+    // ✏️ ДОБАВИТЬ плагин boundaries
     plugins: {
-      '@typescript-eslint': typescriptEslint,
       boundaries,
     },
     
+    // ✏️ ДОБАВИТЬ настройки boundaries
     settings: {
       'boundaries/elements': [
         { type: 'domain', pattern: 'src/domain/**/*' },
@@ -76,7 +81,13 @@ export default [
     },
     
     rules: {
-      // ✅ Архитектурные границы
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      
+      // ✏️ ДОБАВИТЬ правила архитектурных границ
       'boundaries/element-types': ['error', {
         default: 'disallow',
         rules: [
@@ -112,7 +123,7 @@ export default [
         ],
       }],
       
-      // ✅ Запрет использования @internal/* в Presentation
+      // ✏️ ДОБАВИТЬ запрет @internal/* в Presentation
       'no-restricted-imports': ['error', {
         patterns: [
           {
@@ -121,17 +132,27 @@ export default [
           },
         ],
       }],
-      
-      // TypeScript правила
-      '@typescript-eslint/no-unused-vars': ['warn', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
-      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
-]
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/build/**',
+      '**/dist/**',
+      '**/.cache/**',
+      'eslint.config.js',
+    ],
+  }
+)
 ```
+
+**Что добавляется:**
+
+1. **Импорт** `boundaries` плагина
+2. **Секция `plugins`** с boundaries
+3. **Секция `settings`** с определением слоев
+4. **Правило `boundaries/element-types`** - проверка архитектурных границ
+5. **Правило `no-restricted-imports`** - запрет `@internal/*` в Presentation
 
 ---
 

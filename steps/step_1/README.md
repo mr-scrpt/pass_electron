@@ -25,7 +25,7 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 └────────────────────┬────────────────────────────────────┘
                      ↓
 ┌────────────────────┴────────────────────────────────────┐
-│              Remix Loader (Server)                       │
+│         React Router v7 Loader (Server)                 │
 │  src/presentation/web/react/src/routes/_index.tsx::loader()                         │
 └────────────────────┬────────────────────────────────────┘
                      ↓
@@ -326,7 +326,7 @@ export interface ResourceListItemDTO {
 **Почему здесь строки, а не Value Objects?**
 - ResourceListItemDTO - это Data Transfer Object для Presentation Layer
 - Не содержит бизнес-логики
-- Удобно для JSON сериализации в Remix loaders
+- Удобно для JSON сериализации в React Router loaders
 - Query Handler преобразует Domain модель в DTO
 
 #### 1.6 Создать Public API для resource модуля
@@ -710,8 +710,16 @@ export type { IQueryHandler, QueryResult } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export { ListResourcesQuery } from './ListResourcesQuery'
 export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
+
+// DTO для Presentation (через Composition)
 export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 ```
+
+**Почему DTO экспортируются в Public API?**
+- DTO нужны Presentation Layer для типизации компонентов
+- Presentation НЕ может импортировать из внутренностей (`/dtos/`)
+- DTO экспортируются в Public API Application, затем реэкспортируются в Composition
+- Это позволяет Presentation импортировать DTO через `@/composition`
 
 ---
 
@@ -932,8 +940,18 @@ export const queries = {
 // src/composition/index.ts
 export { queries } from './queries'
 export { ServiceContainer } from './ServiceContainer'
+
+// DTO для Presentation (реэкспорт из Application)
+export type { ResourceListItemDTO } from '@/application/queries'
+
 // В будущих шагах здесь появятся commands и другие exports
 ```
+
+**Почему реэкспорт DTO через Composition?**
+- Presentation НЕ должен импортировать из Application напрямую (нарушение Dependency Rule)
+- Composition - единственный посредник между Presentation и Application
+- DTO экспортируются в Application Public API, затем реэкспортируются в Composition
+- Presentation импортирует DTO из `@/composition`, а не из `@/application/queries/dtos`
 
 **Зачем такая декомпозиция?**
 - **Масштабируемость**: каждая сущность в своем Module
@@ -956,7 +974,7 @@ Presentation Layer отвечает за отображение данных п�
 
 ```typescript
 // src/presentation/web/react/src/components/ResourceList/ResourceListItem.tsx
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
+import type { ResourceListItemDTO } from '@/composition'
 
 interface Props {
   resource: ResourceListItemDTO
@@ -1004,7 +1022,7 @@ export function ResourceListItem({ resource }: Props) {
 
 ```typescript
 // src/presentation/web/react/src/components/ResourceList/ResourceList.tsx
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
+import type { ResourceListItemDTO } from '@/composition'
 import { ResourceListItem } from './ResourceListItem'
 
 interface Props {

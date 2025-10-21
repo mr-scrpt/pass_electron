@@ -1,2 +1,11 @@
 /* src/presentation/web/react/src/styles/tailwind.css */
 @import "tailwindcss";
+
+/* Catppuccin Mocha colors */
+@theme {
+  --color-ctp-base: #1e1e2e;
+  --color-ctp-text: #cdd6f4;
+  --color-ctp-subtext0: #a6adc8;
+  --color-ctp-mauve: #cba6f7;
+  --color-ctp-surface0: #313244;
+}

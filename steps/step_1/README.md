@@ -890,10 +890,10 @@ export class ResourceName {
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/shared/specification'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
-import { InvariantViolationError } from '@/domain/shared/errors'
 
 /**
  * Resource Aggregate Root
@@ -907,7 +907,7 @@ import { InvariantViolationError } from '@/domain/shared/errors'
  * 3. Aggregate гарантирует инварианты
  * 
  * Для Step 1 (упрощенная версия):
- * - Фабричный метод create() с валидацией
+ * - Фабричный метод create() с валидацией через спецификации
  * - Базовые getters
  * - Без CustomField entities (будет в Step 2)
  * - Без Domain Events (будет в Step 3)
@@ -924,14 +924,14 @@ export class Resource {
   
   /**
    * Создать новый Resource с валидацией
-   * Накапливает ВСЕ ошибки валидации Value Objects
+   * Накапливает ВСЕ ошибки валидации Value Objects (через спецификации)
    */
   static create(
     namespace: string,
     name: string,
     secret: string
-  ): Validation<InvariantViolationError[], Resource> {
-    // Создаем Value Objects
+  ): Validation<ValidationError[], Resource> {
+    // Создаем Value Objects (они используют спецификации внутри)
     const namespaceVO = Namespace.create(namespace)
     const nameVO = ResourceName.create(name)
     const id = ResourceId.generate()
@@ -1510,10 +1510,10 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
 import { Validation, valid, invalid } from '@/shared/validation'
+import { ValidationError } from '@/shared/specification'
 import { Resource } from '@/domain/resource/aggregates/Resource'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 import { 
-  InvariantViolationError, 
   DuplicateResourceError,
   CommandError 
 } from '@/domain/shared/errors'
@@ -1524,7 +1524,7 @@ import type { CreateResourceCommand } from '../CreateResourceCommand'
  * Command Handler для создания нового ресурса
  * 
  * Трехэтапная валидация:
- * 1. Domain Layer - валидация VO через ValidationCombinators (stateless)
+ * 1. Domain Layer - валидация VO через спецификации (stateless)
  * 2. Application Layer - проверка уникальности через Repository (I/O)
  * 3. Persistence - сохранение в Repository
  */
@@ -1537,14 +1537,14 @@ export class CreateResourceCommandHandler
   
   async handle(
     command: CreateResourceCommand
-  ): Promise<Validation<InvariantViolationError[], string>> {
+  ): Promise<Validation<ValidationError[], string>> {
     
     // ==================== ЭТАП 1: Domain Layer (Stateless) ====================
     
-    // ✅ Создаем Aggregate - ValidationCombinators накапливает ВСЕ ошибки VO
+    // ✅ Создаем Aggregate - спецификации накапливают ВСЕ ошибки VO
     // "Namespace слишком короткий?"
     // "Name содержит недопустимые символы?"
-    // "Secret слишком слабый?"
+    // "Namespace зарезервирован?"
     const resourceResult = Resource.create(
       command.namespace,
       command.name,
@@ -1553,7 +1553,7 @@ export class CreateResourceCommandHandler
     
     if (resourceResult.isLeft()) {
       // Возвращаем ВСЕ накопленные ошибки Domain Layer
-      return resourceResult as Validation<InvariantViolationError[], string>
+      return resourceResult as Validation<ValidationError[], string>
     }
     
     const resource = resourceResult.value
@@ -1611,10 +1611,10 @@ export class CreateResourceCommandHandler
 ```typescript
 // src/application/commands/handlers/RenameResourceCommandHandler.ts
 import { Validation, valid, invalid, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/shared/specification'
 import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 import { 
-  InvariantViolationError,
   NotFoundError,
   DuplicateResourceError,
   CommandError 
@@ -1625,9 +1625,9 @@ import type { RenameResourceCommand } from '../RenameResourceCommand'
 /**
  * Command Handler для переименования ресурса
  * 
- * Четырехэтапная валидация с накоплением ошибок:
- * 1. Подготовка - загрузка Aggregate из Repository
- * 2. Domain Layer - валидация нового имени (stateless)
+ * Четырехэтапная валидация:
+ * 1. Domain Layer - валидация нового имени через спецификации (stateless)
+ * 2. Application Layer - поиск ресурса (I/O)
  * 3. Application Layer - проверка уникальности (I/O)
  * 4. Aggregate Layer - бизнес-правила (stateful: "ресурс заархивирован?")
  */
@@ -1640,7 +1640,7 @@ export class RenameResourceCommandHandler
   
   async handle(
     command: RenameResourceCommand
-  ): Promise<Validation<InvariantViolationError[], void>> {
+  ): Promise<Validation<ValidationError[], void>> {
     
     // ==================== ПОДГОТОВКА ====================
     
@@ -1661,7 +1661,7 @@ export class RenameResourceCommandHandler
     
     if (newNameResult.isLeft()) {
       // Возвращаем ошибки валидации имени
-      return newNameResult as Validation<InvariantViolationError[], void>
+      return newNameResult as Validation<ValidationError[], void>
     }
     
     const newName = newNameResult.value
@@ -1706,7 +1706,7 @@ export class RenameResourceCommandHandler
     
     if (renameResult.isLeft()) {
       // Aggregate вернул свои ВНУТРЕННИЕ (stateful) ошибки
-      return renameResult as Validation<InvariantViolationError[], void>
+      return renameResult as Validation<ValidationError[], void>
     }
     
     // ==================== ЭТАП 4: Persistence ====================
@@ -1748,13 +1748,13 @@ export class Resource {
    * - Новое имя не должно совпадать с namespace
    * - Ресурс не должен быть заблокирован
    */
-  rename(newName: ResourceName): Validation<InvariantViolationError[], void> {
-    const errors: InvariantViolationError[] = []
+  rename(newName: ResourceName): Validation<ValidationError[], void> {
+    const errors: ValidationError[] = []
     
     // Проверка 1: Ресурс заархивирован?
     if (this._isArchived) {
       errors.push(
-        new InvariantViolationError(
+        new ValidationError(
           'Resource',
           'Cannot rename archived resource'
         )
@@ -1764,7 +1764,7 @@ export class Resource {
     // Проверка 2: Имя совпадает с namespace?
     if (newName.getValue() === this._namespace.getValue()) {
       errors.push(
-        new InvariantViolationError(
+        new ValidationError(
           'ResourceName',
           'Resource name cannot be the same as namespace'
         )
@@ -1774,7 +1774,7 @@ export class Resource {
     // Проверка 3: Ресурс заблокирован?
     if (this._isLocked) {
       errors.push(
-        new InvariantViolationError(
+        new ValidationError(
           'Resource',
           'Cannot rename locked resource'
         )
@@ -1859,7 +1859,7 @@ export class Resource {
    ```typescript
    // Domain Layer → Application Layer → Presentation Layer
    // 
-   // Domain создает InvariantViolationError[]
+   // Domain создает ValidationError[] через спецификации
    // Application получает их через resourceResult.isLeft()
    // Application возвращает их дальше (или добавляет свои)
    // Presentation получает финальный список ошибок
@@ -1912,18 +1912,18 @@ class CreateResourceCommandHandler {
 const resourceResult = Resource.create("a", "My@Resource", "123")
 
 // Resource.create() внутри вызывает ValidationCombinators
-// Он создает ВСЕ Value Objects и накапливает ошибки:
+// Он создает ВСЕ Value Objects и накапливает ошибки через спецификации:
 //
-// Namespace.create("a") → Left([InvariantViolationError("Namespace", "Length must be between 2 and 50")])
-// ResourceName.create("My@Resource") → Left([InvariantViolationError("ResourceName", "Must match pattern")])
-// Secret validation → Left([InvariantViolationError("Secret", "Length must be at least 8")])
+// Namespace.create("a") → Left([ValidationError("Namespace", "must be 2-50 characters")])
+// ResourceName.create("My@Resource") → Left([ValidationError("ResourceName", "must contain only letters, numbers, - and _")])
+// Namespace.create("admin") → Left([ValidationError("Namespace", "admin is a reserved namespace and cannot be used")])
 //
 // ValidationCombinators.sequence накапливает ВСЕ ошибки:
 
 // Left([
-//   InvariantViolationError("Namespace", "Length must be between 2 and 50"),
-//   InvariantViolationError("ResourceName", "Must match pattern: ^[a-zA-Z0-9-_]+$"),
-//   InvariantViolationError("Secret", "Length must be at least 8 characters")
+//   ValidationError("Namespace", "must be 2-50 characters"),
+//   ValidationError("ResourceName", "must contain only letters, numbers, - and _"),
+//   ValidationError("Namespace", "admin is a reserved namespace and cannot be used")
 // ])
 
 if (resourceResult.isLeft()) {
@@ -2418,9 +2418,14 @@ app/
 ├── domain/
 │   ├── shared/                       # ← Shared Kernel (переиспользуемые инварианты)
 │   │   ├── errors/
-│   │   │   └── InvariantViolationError.ts
+│   │   │   └── InvariantViolationError.ts  # Для простых проверок (UUID)
 │   │   ├── invariants/
-│   │   │   └── UuidInvariant.ts
+│   │   │   └── UuidInvariant.ts            # Простые инварианты
+│   │   └── index.ts
+│   ├── specifications/             # ← Спецификации (бизнес-правила)
+│   │   ├── NamespaceSpecs.ts
+│   │   ├── NotReservedNamespaceSpec.ts
+│   │   ├── ResourceNameSpecs.ts
 │   │   └── index.ts
 │   ├── value-objects/               # ← Value Objects
 │   │   ├── ResourceId.ts
@@ -2429,6 +2434,21 @@ app/
 │   │   └── index.ts
 │   └── repositories/
 │       ├── IResourceRepository.ts
+│       └── index.ts
+│
+├── shared/                          # ← Shared utilities (не Domain!)
+│   ├── validation/                  # ← Фасад над @sweet-monads/either
+│   │   ├── Validation.ts
+│   │   ├── helpers.ts               # isTrue fluent API
+│   │   ├── ValidationCombinators.ts
+│   │   └── index.ts
+│   └── specification/               # ← Specification Pattern
+│       ├── ISpecification.ts
+│       ├── ValidationError.ts
+│       ├── common/                  # ← Common* спецификации
+│       │   ├── CommonLengthSpec.ts
+│       │   ├── CommonPatternSpec.ts
+│       │   └── CommonNotEmptySpec.ts
 │       └── index.ts
 │
 ├── application/

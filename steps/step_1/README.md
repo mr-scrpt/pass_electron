@@ -94,6 +94,131 @@ mkdir -p src/domain/shared/{errors,invariants,base}
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#domain-layer](../../docs/PROJECT_STRUCTURE.md#1-domain-layer-srcdomain-) — Структура Domain Layer
 
+---
+
+## 📦 Подготовка: Validation API (Shared Layer)
+
+Перед созданием Value Objects нужно создать абстракцию над монадами для валидации.
+
+> **📚 Детали**: [VALIDATION_COMBINATORS.md](../../docs/error-handling/VALIDATION_COMBINATORS.md) — ValidationCombinators с mergeInMany ⭐
+
+### Зачем нужна абстракция?
+
+**Проблема прямого использования `@sweet-monads/either`:**
+- ❌ Зависимость Domain от конкретной библиотеки
+- ❌ Сложно заменить библиотеку в будущем
+- ❌ Неинтуитивные имена: `Either`, `left`, `right`
+
+**Решение - Validation API:**
+- ✅ Изоляция от библиотеки
+- ✅ Понятные имена: `Validation`, `valid`, `invalid`
+- ✅ Накопление ВСЕХ ошибок для лучшего UX
+- ✅ Легко заменить библиотеку
+
+---
+
+### 0.1. Создать структуру Shared Layer
+
+#### Create Shared Structure [#command]
+
+```bash
+# Создать структуру Shared Layer
+mkdir -p src/shared/validation
+mkdir -p src/shared/specification
+```
+
+---
+
+### 0.2. Создать Validation API
+
+#### Validation.ts [#code|#structure:path]
+
+```typescript
+// src/shared/validation/Validation.ts
+import { Either, left, right } from '@sweet-monads/either'
+
+/**
+ * Результат валидации
+ * Обертка над Either для изоляции библиотеки
+ */
+export type Validation<E, T> = Either<E, T>
+
+/**
+ * Создать успешный результат валидации
+ */
+export const valid = <T>(value: T): Validation<never, T> => right(value)
+
+/**
+ * Создать неудачный результат валидации
+ */
+export const invalid = <E>(error: E): Validation<E, never> => left(error)
+```
+
+---
+
+### 0.3. Создать ValidationCombinators
+
+#### ValidationCombinators.ts [#class:ValidationCombinators|#code|#structure:path]
+
+```typescript
+// src/shared/validation/ValidationCombinators.ts
+import { mergeInMany } from '@sweet-monads/either'
+import { Validation } from './Validation'
+
+/**
+ * Комбинаторы для работы с валидацией
+ * Используют функциональный подход (монады) вместо императивного
+ */
+export class ValidationCombinators {
+  /**
+   * Накопление ВСЕХ ошибок валидации
+   * Использует mergeInMany из @sweet-monads/either
+   * 
+   * @returns Either<E[], T[]> - массив ошибок ИЛИ массив успешных значений
+   */
+  static accumulate<E, T>(
+    validations: Validation<E, T>[]
+  ): Validation<E[], T[]> {
+    return mergeInMany(validations)
+  }
+
+  /**
+   * Применить функцию к успешным значениям
+   * Если есть ошибки - вернуть их
+   * 
+   * Это applicative functor pattern:
+   * - Если все validations успешны -> применяем fn к значениям
+   * - Если есть ошибки -> возвращаем массив ошибок
+   */
+  static sequence<E, T, U>(
+    validations: Validation<E, T>[],
+    fn: (values: T[]) => U
+  ): Validation<E[], U> {
+    return mergeInMany(validations).map(fn)
+  }
+}
+```
+
+**Почему `mergeInMany`?**
+- ✅ Функциональный подход (монады)
+- ✅ Накапливает ВСЕ ошибки
+- ✅ Лучший UX - пользователь видит все проблемы сразу
+- ✅ Нет циклов и if/else
+
+---
+
+### 0.4. Создать Public API
+
+#### Validation Public API [#code|#structure:path]
+
+```typescript
+// src/shared/validation/index.ts
+export * from './Validation'
+export * from './ValidationCombinators'
+```
+
+---
+
 ### Step 1: Domain Layer - Создание доменного слоя
 
 Создание ядра приложения - Domain Layer. - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
@@ -127,7 +252,7 @@ export class InvariantViolationError extends Error {
 
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation, valid, invalid } from '@/shared/validation'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
 
 /**
@@ -138,27 +263,27 @@ export class UuidInvariant {
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
   
   /**
-   * Валидация UUID v4 через Either
+   * Валидация UUID v4 через Validation API
    */
   static validate(
     value: string,
     entityType: string
-  ): Either<InvariantViolationError, string> {
+  ): Validation<InvariantViolationError, string> {
     if (!value) {
-      return left(new InvariantViolationError(
+      return invalid(new InvariantViolationError(
         entityType,
         'cannot be empty'
       ))
     }
     
     if (!UuidInvariant.UUID_V4_REGEX.test(value)) {
-      return left(new InvariantViolationError(
+      return invalid(new InvariantViolationError(
         entityType,
         'must be a valid UUID v4'
       ))
     }
     
-    return right(value)
+    return valid(value)
   }
   
   /**
@@ -235,12 +360,14 @@ export class ResourceId {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
 import { InvariantViolationError } from '@/domain/shared'
 
 /**
  * Value Object для namespace ресурса
  * Инвариант: 2-50 символов, lowercase, буквы/цифры/-/_
+ * 
+ * Использует ValidationCombinators для накопления ВСЕХ ошибок
  */
 export class Namespace {
   private static readonly ENTITY_TYPE = 'Namespace'
@@ -250,26 +377,43 @@ export class Namespace {
   
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Either<InvariantViolationError, Namespace> {
-    if (!value) {
-      return left(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty'))
-    }
+  /**
+   * Создать Namespace с накоплением ВСЕХ ошибок валидации
+   * 
+   * @returns Validation<InvariantViolationError[], Namespace>
+   *          - Left: массив ВСЕХ ошибок (лучший UX)
+   *          - Right: валидный Namespace
+   */
+  static create(value: string): Validation<InvariantViolationError[], Namespace> {
+    // Определяем все проверки
+    const validations = [
+      // Проверка на пустоту
+      value && value.trim()
+        ? valid(value)
+        : invalid(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty')),
+      
+      // Проверка длины
+      value.length >= Namespace.MIN_LENGTH && value.length <= Namespace.MAX_LENGTH
+        ? valid(value)
+        : invalid(new InvariantViolationError(
+            Namespace.ENTITY_TYPE,
+            `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`
+          )),
+      
+      // Проверка паттерна
+      Namespace.PATTERN.test(value)
+        ? valid(value)
+        : invalid(new InvariantViolationError(
+            Namespace.ENTITY_TYPE,
+            'must contain only lowercase letters, numbers, - and _'
+          ))
+    ]
     
-    if (value.length < Namespace.MIN_LENGTH || value.length > Namespace.MAX_LENGTH) {
-      return left(new InvariantViolationError(
-        Namespace.ENTITY_TYPE,
-        `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`
-      ))
-    }
-    
-    if (!Namespace.PATTERN.test(value)) {
-      return left(new InvariantViolationError(
-        Namespace.ENTITY_TYPE,
-        'must contain only lowercase letters, numbers, - and _'
-      ))
-    }
-    
-    return right(new Namespace(value))
+    // ValidationCombinators.sequence накапливает ВСЕ ошибки
+    return ValidationCombinators.sequence(
+      validations,
+      () => new Namespace(value)
+    )
   }
   
   getValue(): string {
@@ -282,11 +426,32 @@ export class Namespace {
 }
 ```
 
-**Зачем класс, а не просто строка?**
-- Инкапсуляция валидации
-- Гарантия корректности данных
-- Невозможность создать невалидный Namespace
-- Бизнес-логика в одном месте
+**Почему ValidationCombinators вместо if/else?**
+
+**Было (императивно):**
+```typescript
+if (!value) return left(...)
+if (value.length < 2) return left(...)  // Останавливается на первой ошибке!
+if (!pattern.test(value)) return left(...)
+```
+
+**Стало (функционально):**
+```typescript
+const validations = [
+  value ? valid(value) : invalid(...),
+  value.length >= 2 ? valid(value) : invalid(...),
+  pattern.test(value) ? valid(value) : invalid(...)
+]
+return ValidationCombinators.sequence(validations, () => new Namespace(value))
+```
+
+**Преимущества:**
+- ✅ **Лучший UX** - пользователь видит ВСЕ ошибки сразу
+- ✅ **Функциональный подход** - нет циклов и if/else
+- ✅ **Декларативность** - просто список проверок
+- ✅ **Готовность к Specification Pattern** - легко вынести в переиспользуемые спецификации
+
+> 💡 **Для более сложных случаев:** См. [SPECIFICATION_VALIDATION.md](../../docs/error-handling/SPECIFICATION_VALIDATION.md) - Specification Pattern с переиспользуемыми правилами валидации.
 
 #### 1.4 Создать Value Object: ResourceName
 
@@ -296,12 +461,14 @@ export class Namespace {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
 import { InvariantViolationError } from '@/domain/shared'
 
 /**
  * Value Object для имени ресурса
  * Инвариант: 1-100 символов
+ * 
+ * Использует ValidationCombinators для накопления ВСЕХ ошибок
  */
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName'
@@ -310,19 +477,29 @@ export class ResourceName {
   
   private constructor(private readonly _value: string) {}
   
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    if (!value) {
-      return left(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty'))
-    }
+  /**
+   * Создать ResourceName с накоплением ВСЕХ ошибок валидации
+   */
+  static create(value: string): Validation<InvariantViolationError[], ResourceName> {
+    const validations = [
+      // Проверка на пустоту
+      value && value.trim()
+        ? valid(value)
+        : invalid(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty')),
+      
+      // Проверка длины
+      value.length >= ResourceName.MIN_LENGTH && value.length <= ResourceName.MAX_LENGTH
+        ? valid(value)
+        : invalid(new InvariantViolationError(
+            ResourceName.ENTITY_TYPE,
+            `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`
+          ))
+    ]
     
-    if (value.length < ResourceName.MIN_LENGTH || value.length > ResourceName.MAX_LENGTH) {
-      return left(new InvariantViolationError(
-        ResourceName.ENTITY_TYPE,
-        `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`
-      ))
-    }
-    
-    return right(new ResourceName(value))
+    return ValidationCombinators.sequence(
+      validations,
+      () => new ResourceName(value)
+    )
   }
   
   getValue(): string {

@@ -522,53 +522,125 @@ export class ResourceName {
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-import { ResourceId, ResourceName, Namespace } from "../value-objects";
+import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ResourceId } from '../value-objects/ResourceId'
+import { ResourceName } from '../value-objects/ResourceName'
+import { Namespace } from '../value-objects/Namespace'
+import { InvariantViolationError } from '@/domain/shared/errors'
 
 /**
  * Resource Aggregate Root
- * Упрощенная версия для Шага 1 (только чтение)
  * 
- * В полной версии будет:
+ * Aggregate Root - это точка входа для работы с группой связанных объектов.
+ * Гарантирует консистентность данных и инкапсулирует бизнес-логику.
+ * 
+ * Правила Aggregate:
+ * 1. Внешний мир работает ТОЛЬКО через Aggregate Root
+ * 2. Все изменения через методы Aggregate Root
+ * 3. Aggregate гарантирует инварианты
+ * 
+ * Для Step 1 (упрощенная версия):
  * - Фабричный метод create() с валидацией
- * - Бизнес-методы (rename, lock, addCustomField)
- * - Domain Events
- * - CustomField entities
+ * - Базовые getters
+ * - Без CustomField entities (будет в Step 2)
+ * - Без Domain Events (будет в Step 3)
  */
 export class Resource {
-  constructor(
-    public readonly id: ResourceId,
-    public readonly namespace: Namespace,
-    public readonly name: ResourceName,
-    public readonly secret: string,
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date,
+  private constructor(
+    private readonly _id: ResourceId,
+    private readonly _namespace: Namespace,
+    private readonly _name: ResourceName,
+    private readonly _secret: string,
+    private readonly _createdAt: Date,
+    private readonly _updatedAt: Date
   ) {}
-
+  
   /**
-   * Генерирует новый Resource (упрощенная версия)
+   * Создать новый Resource с валидацией
+   * Накапливает ВСЕ ошибки валидации Value Objects
    */
-  static generate(
+  static create(
+    namespace: string,
+    name: string,
+    secret: string
+  ): Validation<InvariantViolationError[], Resource> {
+    // Создаем Value Objects
+    const namespaceVO = Namespace.create(namespace)
+    const nameVO = ResourceName.create(name)
+    const id = ResourceId.generate()
+    
+    // Комбинируем результаты валидации
+    return ValidationCombinators.sequence(
+      [namespaceVO, nameVO],
+      ([ns, nm]) => new Resource(
+        id,
+        ns,
+        nm,
+        secret,
+        new Date(),
+        new Date()
+      )
+    )
+  }
+  
+  /**
+   * Восстановить Resource из хранилища
+   * Используется Repository для гидратации
+   */
+  static reconstitute(
+    id: ResourceId,
     namespace: Namespace,
     name: ResourceName,
     secret: string,
+    createdAt: Date,
+    updatedAt: Date
   ): Resource {
-    return new Resource(
-      ResourceId.generate(),
-      namespace,
-      name,
-      secret,
-      new Date(),
-      new Date(),
-    );
+    return new Resource(id, namespace, name, secret, createdAt, updatedAt)
+  }
+  
+  // ==================== Getters ====================
+  
+  getId(): ResourceId {
+    return this._id
+  }
+  
+  getNamespace(): Namespace {
+    return this._namespace
+  }
+  
+  getName(): ResourceName {
+    return this._name
+  }
+  
+  getSecret(): string {
+    return this._secret
+  }
+  
+  getCreatedAt(): Date {
+    return this._createdAt
+  }
+  
+  getUpdatedAt(): Date {
+    return this._updatedAt
   }
 }
 ```
 
+**Ключевые особенности Aggregate Root:**
+
+1. **Private constructor** - создание только через фабричные методы
+2. **create()** - для новых объектов с валидацией
+3. **reconstitute()** - для восстановления из БД (без валидации)
+4. **Getters вместо public полей** - инкапсуляция
+5. **ValidationCombinators** - накопление ошибок
+
 **Зачем Aggregate Root?**
-- Точка входа для работы с группой связанных объектов
-- Гарантирует консистентность данных
-- Инкапсулирует бизнес-логику
-- Управляет жизненным циклом дочерних Entity
+- ✅ Точка входа для работы с группой связанных объектов
+- ✅ Гарантирует консистентность данных
+- ✅ Инкапсулирует бизнес-логику
+- ✅ Управляет жизненным циклом дочерних Entity
+
+> 💡 **В следующих шагах:** Добавим CustomField entities, бизнес-методы (addCustomField, updateName) и Domain Events
 
 **Файл: `src/domain/resource/aggregates/index.ts`**
 

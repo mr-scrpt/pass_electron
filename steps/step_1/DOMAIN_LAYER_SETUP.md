@@ -449,6 +449,19 @@ import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
 
 /**
+ * Props для создания Resource
+ * Object Parameter Pattern - именованные параметры вместо позиционных
+ */
+interface ResourceProps {
+  id: ResourceId
+  namespace: Namespace
+  name: ResourceName
+  secret: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+/**
  * Resource Aggregate Root
  * 
  * Aggregate Root - это точка входа для работы с группой связанных объектов.
@@ -462,18 +475,26 @@ import { Namespace } from '../value-objects/Namespace'
  * Для Step 1 (упрощенная версия):
  * - Фабричный метод create() с валидацией через спецификации
  * - Базовые getters
+ * - Object Parameter Pattern для конструктора
  * - Без CustomField entities (будет в Step 2)
  * - Без Domain Events (будет в Step 3)
  */
 export class Resource {
-  private constructor(
-    private readonly _id: ResourceId,
-    private readonly _namespace: Namespace,
-    private readonly _name: ResourceName,
-    private readonly _secret: string,
-    private readonly _createdAt: Date,
-    private readonly _updatedAt: Date
-  ) {}
+  private readonly _id: ResourceId
+  private readonly _namespace: Namespace
+  private readonly _name: ResourceName
+  private readonly _secret: string
+  private readonly _createdAt: Date
+  private readonly _updatedAt: Date
+
+  private constructor(props: ResourceProps) {
+    this._id = props.id
+    this._namespace = props.namespace
+    this._name = props.name
+    this._secret = props.secret
+    this._createdAt = props.createdAt
+    this._updatedAt = props.updatedAt
+  }
   
   /**
    * Создать новый Resource с валидацией
@@ -492,14 +513,14 @@ export class Resource {
     // Комбинируем результаты валидации
     return ValidationCombinators.sequence(
       [namespaceVO, nameVO],
-      ([ns, nm]) => new Resource(
+      ([ns, nm]) => new Resource({
         id,
-        ns,
-        nm,
+        namespace: ns,
+        name: nm,
         secret,
-        new Date(),
-        new Date()
-      )
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
     )
   }
   
@@ -509,22 +530,13 @@ export class Resource {
    * Используется когда все Value Objects уже созданы и валидны.
    * НЕ выполняет валидацию повторно.
    * 
-   * @param id - уже валидный ResourceId
-   * @param namespace - уже валидный Namespace
-   * @param name - уже валидный ResourceName
+   * Object Parameter Pattern - именованные параметры, порядок не важен
    * 
    * Паттерн из DDD: reconstitution без повторной валидации.
    * Domain не знает откуда пришли данные (память, файл, сеть).
    */
-  static reconstitute(
-    id: ResourceId,
-    namespace: Namespace,
-    name: ResourceName,
-    secret: string,
-    createdAt: Date,
-    updatedAt: Date
-  ): Resource {
-    return new Resource(id, namespace, name, secret, createdAt, updatedAt)
+  static reconstitute(props: ResourceProps): Resource {
+    return new Resource(props)
   }
   
   // ==================== Getters ====================

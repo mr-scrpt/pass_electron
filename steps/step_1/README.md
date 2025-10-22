@@ -76,8 +76,9 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 
 ```bash
 # Создать структуру Domain Layer
-mkdir -p src/domain/resource/{aggregates,entities,value-objects,repositories,events}
-mkdir -p src/domain/shared/{errors,invariants,base}
+mkdir -p src/domain/resource/{aggregates,entities,value-objects,repositories,events,specifications}
+mkdir -p src/domain/shared/{errors,invariants,specification/common}
+mkdir -p src/shared/validation
 ```
 
 **Структура:**
@@ -85,12 +86,15 @@ mkdir -p src/domain/shared/{errors,invariants,base}
   - `aggregates/` - Aggregate Roots (главные сущности)
   - `entities/` - Entities (сущности внутри Aggregate)
   - `value-objects/` - Value Objects (неизменяемые значения)
+  - `specifications/` - Бизнес-правила (синглтоны спецификаций)
   - `repositories/` - Repository Interfaces
   - `events/` - Domain Events
-- `shared/` - Shared Kernel (переиспользуемое)
-  - `errors/` - Базовые ошибки
-  - `invariants/` - Переиспользуемые правила валидации
-  - `base/` - Базовые классы/интерфейсы
+- `shared/` (Domain) - Shared Kernel (переиспользуемое между контекстами)
+  - `errors/` - InvariantViolationError, ValidationError
+  - `invariants/` - UuidInvariant (простые проверки)
+  - `specification/` - Specification Pattern (ISpecification, Common*, helpers)
+- `shared/` (Root) - Технические утилиты (фасады над библиотеками)
+  - `validation/` - Validation API (фасад над @sweet-monads/either)
 
 > **📚 Детали**: [PROJECT_STRUCTURE.md#domain-layer](../../docs/PROJECT_STRUCTURE.md#1-domain-layer-srcdomain-) — Структура Domain Layer
 

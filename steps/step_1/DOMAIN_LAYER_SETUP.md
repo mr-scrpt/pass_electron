@@ -174,7 +174,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/shared/specification'
+} from '@/domain/shared/specification'
 
 /**
  * Спецификации для Namespace
@@ -199,7 +199,7 @@ export const NAMESPACE_PATTERN_SPEC = new CommonPatternSpec(
 ```typescript
 // src/domain/resource/specifications/NotReservedNamespaceSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification, ValidationError } from '@/shared/specification'
+import { ISpecification, ValidationError } from '@/domain/shared/specification'
 
 /**
  * Бизнес-правило: некоторые namespace зарезервированы системой
@@ -261,7 +261,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import {
   NAMESPACE_NOT_EMPTY_SPEC,
   NAMESPACE_LENGTH_SPEC,
@@ -330,7 +330,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/shared/specification'
+} from '@/domain/shared/specification'
 
 /**
  * Спецификации для ResourceName
@@ -384,7 +384,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import {
   RESOURCE_NAME_NOT_EMPTY_SPEC,
   RESOURCE_NAME_LENGTH_SPEC,
@@ -439,7 +439,7 @@ export class ResourceName {
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'

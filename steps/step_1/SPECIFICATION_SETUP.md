@@ -30,10 +30,10 @@
 
 ## 0.5.1. Создать ISpecification интерфейс
 
-**Файл: `src/shared/specification/ISpecification.ts`**
+**Файл: `src/domain/shared/specification/ISpecification.ts`**
 
 ```typescript
-// src/shared/specification/ISpecification.ts
+// src/domain/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
 import { ValidationError } from './ValidationError'
 
@@ -55,10 +55,10 @@ export interface ISpecification<T> {
 
 ## 0.5.2. Создать ValidationError
 
-**Файл: `src/shared/specification/ValidationError.ts`**
+**Файл: `src/domain/shared/specification/ValidationError.ts`**
 
 ```typescript
-// src/shared/specification/ValidationError.ts
+// src/domain/shared/specification/ValidationError.ts
 
 /**
  * Ошибка валидации
@@ -175,10 +175,10 @@ export { ValidationCombinators } from './ValidationCombinators'
 
 ### CommonLengthSpec
 
-**Файл: `src/shared/specification/common/CommonLengthSpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonLengthSpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonLengthSpec.ts
+// src/domain/shared/specification/common/CommonLengthSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -219,10 +219,10 @@ export class CommonLengthSpec implements ISpecification<string> {
 
 ### CommonPatternSpec
 
-**Файл: `src/shared/specification/common/CommonPatternSpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonPatternSpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonPatternSpec.ts
+// src/domain/shared/specification/common/CommonPatternSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -249,10 +249,10 @@ export class CommonPatternSpec implements ISpecification<string> {
 
 ### CommonNotEmptySpec
 
-**Файл: `src/shared/specification/common/CommonNotEmptySpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonNotEmptySpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonNotEmptySpec.ts
+// src/domain/shared/specification/common/CommonNotEmptySpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -282,10 +282,10 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 
 ## 0.5.5. Создать Public API для спецификаций
 
-**Файл: `src/shared/specification/index.ts`**
+**Файл: `src/domain/shared/specification/index.ts`**
 
 ```typescript
-// src/shared/specification/index.ts
+// src/domain/shared/specification/index.ts
 
 export type { ISpecification } from './ISpecification'
 export { ValidationError } from './ValidationError'
@@ -304,21 +304,23 @@ export { CommonNotEmptySpec } from './common/CommonNotEmptySpec'
 После выполнения этого шага у вас будет:
 
 ```
-src/shared/
-├── validation/
-│   ├── Validation.ts              # Фасад + fromCondition
-│   ├── helpers.ts                 # isTrue fluent API
-│   ├── ValidationCombinators.ts   # accumulate, sequence
-│   └── index.ts                   # Public API
+src/
+├── shared/                        # Технические утилиты
+│   └── validation/
+│       ├── Validation.ts          # Фасад над @sweet-monads/either
+│       ├── ValidationCombinators.ts
+│       └── index.ts
 │
-└── specification/
-    ├── ISpecification.ts          # Интерфейс спецификации
-    ├── ValidationError.ts         # Ошибка валидации
-    ├── common/
-    │   ├── CommonLengthSpec.ts    # Проверка длины
-    │   ├── CommonPatternSpec.ts   # Проверка паттерна
-    │   └── CommonNotEmptySpec.ts  # Проверка на пустоту
-    └── index.ts                   # Public API
+└── domain/shared/                 # Shared Kernel
+    └── specification/
+        ├── ISpecification.ts      # Интерфейс спецификации
+        ├── ValidationError.ts     # Ошибка валидации
+        ├── helpers.ts             # isTrue fluent API
+        ├── common/
+        │   ├── CommonLengthSpec.ts
+        │   ├── CommonPatternSpec.ts
+        │   └── CommonNotEmptySpec.ts
+        └── index.ts
 ```
 
 **Что дальше?**

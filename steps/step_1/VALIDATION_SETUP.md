@@ -35,7 +35,6 @@
 ```bash
 # Создать структуру Shared Layer
 mkdir -p src/shared/validation
-mkdir -p src/shared/specification
 ```
 
 ---

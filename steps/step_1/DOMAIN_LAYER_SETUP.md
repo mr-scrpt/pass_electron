@@ -583,13 +583,21 @@ export { Resource } from './Resource'
 src/domain/
 ├── shared/                       # Shared Kernel
 │   ├── errors/
-│   │   └── InvariantViolationError.ts
+│   │   ├── InvariantViolationError.ts  # Для простых инвариантов (UUID)
+│   │   └── ValidationError.ts          # Для спецификаций (создан в SPECIFICATION_SETUP)
 │   ├── invariants/
 │   │   └── UuidInvariant.ts
+│   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
+│   │   ├── ISpecification.ts
+│   │   ├── common/
+│   │   │   ├── CommonLengthSpec.ts
+│   │   │   ├── CommonPatternSpec.ts
+│   │   │   └── CommonNotEmptySpec.ts
+│   │   └── index.ts
 │   └── index.ts
 │
 └── resource/                     # Resource Bounded Context
-    ├── specifications/           # Спецификации (бизнес-правила)
+    ├── specifications/           # Бизнес-правила (синглтоны)
     │   ├── NamespaceSpecs.ts
     │   ├── NotReservedNamespaceSpec.ts
     │   ├── ResourceNameSpecs.ts

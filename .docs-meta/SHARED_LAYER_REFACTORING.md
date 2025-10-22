@@ -53,6 +53,7 @@ src/
 │   └── validation/
 │       ├── Validation.ts            # Фасад над @sweet-monads/either
 │       ├── ValidationCombinators.ts # Фасад над mergeInMany
+│       ├── helpers.ts               # isTrue fluent API (технический хелпер)
 │       └── index.ts
 │
 └── domain/
@@ -66,7 +67,6 @@ src/
         │
         ├── specification/           # ← ПЕРЕНЕСЛИ
         │   ├── ISpecification.ts
-        │   ├── helpers.ts           # isTrue fluent API
         │   ├── common/
         │   │   ├── CommonLengthSpec.ts
         │   │   ├── CommonPatternSpec.ts
@@ -90,11 +90,12 @@ mkdir -p src/domain/shared/specification/common
 
 1. `src/domain/shared/specification/ISpecification.ts`
 2. `src/domain/shared/specification/ValidationError.ts`
-3. `src/domain/shared/specification/helpers.ts`
-4. `src/domain/shared/specification/common/CommonLengthSpec.ts`
-5. `src/domain/shared/specification/common/CommonPatternSpec.ts`
-6. `src/domain/shared/specification/common/CommonNotEmptySpec.ts`
-7. `src/domain/shared/specification/index.ts`
+3. `src/domain/shared/specification/common/CommonLengthSpec.ts`
+4. `src/domain/shared/specification/common/CommonPatternSpec.ts`
+5. `src/domain/shared/specification/common/CommonNotEmptySpec.ts`
+6. `src/domain/shared/specification/index.ts`
+
+⚠️ **Примечание:** `helpers.ts` (isTrue) остается в `src/shared/validation/` - это технический хелпер, не Domain логика.
 
 ### Этап 3: Обновить импорты
 

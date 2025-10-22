@@ -85,6 +85,8 @@ export class ValidationError extends Error {
 
 **Файл: `src/shared/validation/helpers.ts`**
 
+⚠️ **Примечание:** `helpers.ts` остается в `src/shared/validation/` потому что это технический хелпер (fluent API), а не Domain логика.
+
 ```typescript
 // src/shared/validation/helpers.ts
 import { Validation, fromCondition } from './Validation'
@@ -309,13 +311,13 @@ src/
 │   └── validation/
 │       ├── Validation.ts          # Фасад над @sweet-monads/either
 │       ├── ValidationCombinators.ts
+│       ├── helpers.ts             # isTrue fluent API
 │       └── index.ts
 │
 └── domain/shared/                 # Shared Kernel
     └── specification/
         ├── ISpecification.ts      # Интерфейс спецификации
         ├── ValidationError.ts     # Ошибка валидации
-        ├── helpers.ts             # isTrue fluent API
         ├── common/
         │   ├── CommonLengthSpec.ts
         │   ├── CommonPatternSpec.ts

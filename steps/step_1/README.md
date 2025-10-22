@@ -584,8 +584,17 @@ export class Resource {
   }
   
   /**
-   * Восстановить Resource из хранилища
-   * Используется Repository для гидратации
+   * Восстановить Resource в валидном состоянии
+   * 
+   * Используется когда все Value Objects уже созданы и валидны.
+   * НЕ выполняет валидацию повторно.
+   * 
+   * @param id - уже валидный ResourceId
+   * @param namespace - уже валидный Namespace
+   * @param name - уже валидный ResourceName
+   * 
+   * Паттерн из DDD: reconstitution без повторной валидации.
+   * Domain не знает откуда пришли данные (память, файл, сеть).
    */
   static reconstitute(
     id: ResourceId,
@@ -630,7 +639,7 @@ export class Resource {
 
 1. **Private constructor** - создание только через фабричные методы
 2. **create()** - для новых объектов с валидацией
-3. **reconstitute()** - для восстановления из БД (без валидации)
+3. **reconstitute()** - для восстановления в валидном состоянии (без повторной валидации)
 4. **Getters вместо public полей** - инкапсуляция
 5. **ValidationCombinators** - накопление ошибок
 
@@ -850,8 +859,8 @@ import { mockResources } from '../mocks'
  */
 export class MockResourceRepository implements IResourceRepository {
   async findAll(): Promise<Resource[]> {
-    // В реальном проекте здесь будет преобразование из БД в Domain модель
-    // Для упрощения возвращаем mock данные как есть
+    // Repository отвечает за преобразование данных в Domain модель
+    // Domain не знает откуда данные (память, файл, API, БД)
     return Promise.resolve([...mockResources])
   }
   
@@ -1494,7 +1503,7 @@ export default function Index() {
 
 1. **`loader()` - это СЕРВЕР**, не клиент
    - Выполняется на Node.js
-   - Имеет доступ к файловой системе, БД, env переменным
+   - Имеет доступ к файловой системе, env переменным, внешним сервисам
    - Вызывается перед каждым рендерингом страницы
 
 2. **Facade Pattern** - loader в одну строку

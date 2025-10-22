@@ -46,41 +46,70 @@ export class InvariantViolationError extends Error {
 
 #### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
 
+#### UuidSpecs [#code|#structure:path]
+
+Сначала создаем синглтоны-спецификации с фиксированной конфигурацией (бизнес-правила).
+
+**Файл: `src/domain/shared/invariants/UuidSpecs.ts`**
+
+```typescript
+// src/domain/shared/invariants/UuidSpecs.ts
+import { 
+  CommonNotEmptySpec,
+  CommonPatternSpec
+} from '@/domain/shared/specification'
+
+/**
+ * Спецификации для UUID
+ * Синглтоны с фиксированной конфигурацией (бизнес-правила)
+ * 
+ * ✅ Единообразно с Namespace и ResourceName спецификациями
+ */
+
+export const UUID_NOT_EMPTY_SPEC = new CommonNotEmptySpec('UUID')
+
+export const UUID_FORMAT_SPEC = new CommonPatternSpec(
+  'UUID',
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  'must be a valid UUID v4'
+)
+```
+
+**Почему CommonPatternSpec?**
+- ✅ Переиспользование - UUID это просто regex паттерн
+- ✅ Единообразие - тот же подход что и NAMESPACE_PATTERN_SPEC
+- ✅ Конфигурация в синглтоне - regex и message в одном месте
+
+#### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
+
+**Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
+
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
-import { Validation, isTrue, ValidationCombinators } from '@/shared/validation'
-import { InvariantViolationError } from '../errors/InvariantViolationError'
+import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/domain/shared/specification'
+import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from './UuidSpecs'
 
 /**
  * Инварианты для UUID
- * Использует fluent API (isTrue) вместо if-конструкций
+ * Использует Specification Pattern - единообразно с Value Objects
  */
 export class UuidInvariant {
-  private static readonly UUID_V4_REGEX = 
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  
   /**
-   * Валидация UUID v4 через Validation API
+   * Валидация UUID v4 через спецификации
    * Накапливает ВСЕ ошибки (пустота + формат)
+   * 
+   * ✅ Единообразно с Namespace.create() и ResourceName.create()
    */
   static validate(
     value: string,
     entityType: string
-  ): Validation<InvariantViolationError[], string> {
-    const notEmptyValidation = isTrue(!!value && value.trim().length > 0, value)
-      .valid()
-      .invalid(new InvariantViolationError(entityType, 'cannot be empty'))
-    
-    const formatValidation = isTrue(
-      !!value && UuidInvariant.UUID_V4_REGEX.test(value),
-      value
-    )
-      .valid()
-      .invalid(new InvariantViolationError(entityType, 'must be a valid UUID v4'))
-    
-    // Накапливаем ВСЕ ошибки
+  ): Validation<ValidationError[], string> {
     return ValidationCombinators.sequence(
-      [notEmptyValidation, formatValidation],
+      [
+        UUID_NOT_EMPTY_SPEC.isSatisfiedBy(value),
+        UUID_FORMAT_SPEC.isSatisfiedBy(value)
+      ],
       () => value
     )
   }
@@ -89,9 +118,16 @@ export class UuidInvariant {
    * Type guard (не бросает)
    */
   static isValidUuid(value: string): boolean {
-    return !!value && this.UUID_V4_REGEX.test(value)
+    return UUID_FORMAT_SPEC.isSatisfiedBy(value).isRight()
   }
 }
+```
+
+**Почему спецификации?**
+- ✅ Единообразие - тот же паттерн что и у Value Objects
+- ✅ Переиспользование - можно использовать UUID_FORMAT_SPEC отдельно
+- ✅ Накопление ошибок - пользователь видит все проблемы сразу
+- ✅ Один стиль везде - консистентность кода
 ```
 
 ### Public API для Shared Kernel
@@ -104,6 +140,7 @@ export class UuidInvariant {
 // src/domain/shared/index.ts
 export { InvariantViolationError } from './errors/InvariantViolationError'
 export { UuidInvariant } from './invariants/UuidInvariant'
+export * from './invariants/UuidSpecs'  // UUID спецификации
 ```
 
 **Зачем Shared Kernel?**
@@ -599,15 +636,17 @@ export { Resource } from './Resource'
 src/domain/
 ├── shared/                       # Shared Kernel
 │   ├── errors/
-│   │   ├── InvariantViolationError.ts  # Для простых инвариантов (UUID)
+│   │   ├── InvariantViolationError.ts  # Для простых инвариантов
 │   │   └── ValidationError.ts          # Для спецификаций (создан в SPECIFICATION_SETUP)
 │   ├── invariants/
-│   │   └── UuidInvariant.ts
+│   │   ├── UuidInvariant.ts            # Использует спецификации
+│   │   ├── UuidSpecs.ts                # UUID синглтоны-спецификации
+│   │   └── index.ts
 │   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
 │   │   ├── ISpecification.ts
 │   │   ├── common/
 │   │   │   ├── CommonLengthSpec.ts
-│   │   │   ├── CommonPatternSpec.ts
+│   │   │   ├── CommonPatternSpec.ts    # ← Используется для UUID!
 │   │   │   └── CommonNotEmptySpec.ts
 │   │   └── index.ts
 │   └── index.ts

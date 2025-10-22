@@ -65,7 +65,7 @@ src/
 
 ```typescript
 // src/shared/validation/Validation.ts  #structure:
-import { Either, left, right, merge, mergeInMany } from '@sweet-monads/either'
+import { Either, left, right } from '@sweet-monads/either'
 
 /**
  * Результат валидации
@@ -93,49 +93,60 @@ export const valid = <T>(value: T): Validation<never, T> => right(value)
 export const invalid = <E>(error: E): Validation<E, never> => left(error)
 
 /**
- * Комбинаторы для работы с валидацией
- */
-export const ValidationCombinators = {  // #class:ValidationCombinators
-  /**
-   * Комбинировать валидации (fail-fast)
-   * Останавливается на первой ошибке
-   * 
-   * @example
-   * const results = [valid(1), valid(2), invalid(new Error())]
-   * const combined = ValidationCombinators.combine(results)
-   * // Вернет invalid(new Error()) - первую ошибку
-   */
-  combine<E, T>(validations: Validation<E, T>[]): Validation<E, T[]> {
-    return merge(validations) as Validation<E, T[]>
-  },
-
-  /**
-   * Комбинировать валидации (accumulate)
-   * Собирает ВСЕ ошибки
-   * 
-   * @example
-   * const results = [invalid(err1), valid(2), invalid(err2)]
-   * const combined = ValidationCombinators.combineAll(results)
-   * // Вернет invalid([err1, err2]) - ВСЕ ошибки
-   */
-  combineAll<E, T>(validations: Validation<E, T>[]): Validation<E[], T[]> {
-    return mergeInMany(validations) as Validation<E[], T[]>
-  }
-}
-
-/**
  * Re-export методов Either для работы с Validation
  * Позволяет использовать map, chain, fold без прямого импорта Either
  */
 export type { Either } from '@sweet-monads/either'
 ```
 
-### 2. Public API [#code|#structure:]
+### 2. ValidationCombinators [#class:ValidationCombinators|#code|#structure:]
+
+```typescript
+// src/shared/validation/ValidationCombinators.ts  #structure:
+import { mergeInMany } from '@sweet-monads/either'
+import { Validation } from './Validation'
+
+/**
+ * Комбинаторы для работы с валидацией
+ * Используют функциональный подход (монады) вместо императивного
+ */
+export class ValidationCombinators {  // #class:ValidationCombinators
+  /**
+   * Накопление ВСЕХ ошибок валидации
+   * Использует mergeInMany из @sweet-monads/either
+   * 
+   * @returns Either<E[], T[]> - массив ошибок ИЛИ массив успешных значений
+   */
+  static accumulate<E, T>(
+    validations: Validation<E, T>[]
+  ): Validation<E[], T[]> {
+    return mergeInMany(validations)
+  }
+
+  /**
+   * Применить функцию к успешным значениям
+   * Если есть ошибки - вернуть их
+   * 
+   * Это applicative functor pattern:
+   * - Если все validations успешны -> применяем fn к значениям
+   * - Если есть ошибки -> возвращаем массив ошибок
+   */
+  static sequence<E, T, U>(
+    validations: Validation<E, T>[],
+    fn: (values: T[]) => U
+  ): Validation<E[], U> {
+    return mergeInMany(validations).map(fn)
+  }
+}
+```
+
+### 3. Public API [#code|#structure:]
 
 ```typescript
 // src/shared/validation/index.ts  #structure:
 export type { Validation } from './Validation'
-export { valid, invalid, ValidationCombinators } from './Validation'
+export { valid, invalid } from './Validation'
+export { ValidationCombinators } from './ValidationCombinators'
 
 // Re-export Either методов для удобства
 export { left, right } from '@sweet-monads/either'

@@ -48,11 +48,12 @@ export class InvariantViolationError extends Error {
 
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
-import { Validation, valid, invalid } from '@/shared/validation'
+import { Validation, isTrue, ValidationCombinators } from '@/shared/validation'
 import { InvariantViolationError } from '../errors/InvariantViolationError'
 
 /**
  * Инварианты для UUID
+ * Использует fluent API (isTrue) вместо if-конструкций
  */
 export class UuidInvariant {
   private static readonly UUID_V4_REGEX = 
@@ -60,26 +61,28 @@ export class UuidInvariant {
   
   /**
    * Валидация UUID v4 через Validation API
+   * Накапливает ВСЕ ошибки (пустота + формат)
    */
   static validate(
     value: string,
     entityType: string
-  ): Validation<InvariantViolationError, string> {
-    if (!value) {
-      return invalid(new InvariantViolationError(
-        entityType,
-        'cannot be empty'
-      ))
-    }
+  ): Validation<InvariantViolationError[], string> {
+    const notEmptyValidation = isTrue(!!value && value.trim().length > 0, value)
+      .valid()
+      .invalid(new InvariantViolationError(entityType, 'cannot be empty'))
     
-    if (!UuidInvariant.UUID_V4_REGEX.test(value)) {
-      return invalid(new InvariantViolationError(
-        entityType,
-        'must be a valid UUID v4'
-      ))
-    }
+    const formatValidation = isTrue(
+      !!value && UuidInvariant.UUID_V4_REGEX.test(value),
+      value
+    )
+      .valid()
+      .invalid(new InvariantViolationError(entityType, 'must be a valid UUID v4'))
     
-    return valid(value)
+    // Накапливаем ВСЕ ошибки
+    return ValidationCombinators.sequence(
+      [notEmptyValidation, formatValidation],
+      () => value
+    )
   }
   
   /**
@@ -121,7 +124,7 @@ export { UuidInvariant } from './invariants/UuidInvariant'
 
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
-import { Either } from '@sweet-monads/either'
+import { Validation } from '@/shared/validation'
 import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
@@ -136,8 +139,9 @@ export class ResourceId {
     return new ResourceId(crypto.randomUUID())
   }
   
-  static create(value: string): Either<InvariantViolationError, ResourceId> {
-    // ✅ Используем переиспользуемый инвариант с Either
+  static create(value: string): Validation<InvariantViolationError[], ResourceId> {
+    // ✅ Используем переиспользуемый инвариант
+    // Возвращает массив ошибок (пустота + формат) или валидный ResourceId
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }

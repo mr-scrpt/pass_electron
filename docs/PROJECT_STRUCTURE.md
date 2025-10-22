@@ -47,7 +47,7 @@ password-manager/
     │   ├── user/                  # User Bounded Context (пример)
     │   │   └── ...
     │   │
-    │   └── shared/                # Shared Kernel
+    │   └── shared/                # Shared Kernel (DDD)
     │       ├── errors/            # Domain Errors
     │       ├── invariants/        # Reusable Invariants
     │       ├── base/              # Base classes/interfaces
@@ -70,8 +70,10 @@ password-manager/
     │   ├── queries/               # Query Facades
     │   └── commands/              # Command Facades
     │
-    ├── shared/                    # Shared utilities (framework-agnostic)
-    │   └── types/
+    ├── shared/                    # Shared Utilities (framework-agnostic)
+    │   ├── validation/            # Validation API (фасад над @sweet-monads/either)
+    │   ├── specification/         # Specification Pattern
+    │   └── types/                 # Type re-exports
     │
     └── presentation/              # Presentation Layer (DDD)
         │
@@ -270,9 +272,10 @@ src/domain/
 **🎯 Ключевой принцип DDD**: Domain Layer знает **ЧТО** нужно сделать (интерфейсы), но НЕ знает **КАК** (реализации в Infrastructure).
 
 **📋 Правила импортов:**
-- ✅ **МОЖЕТ импортировать:** НИЧЕГО! Полностью изолирован
-- ✅ **Внутренние импорты:** Только другие Domain объекты через `@/domain/*` `#alias:@/`
-- ❌ **НЕ МОЖЕТ импортировать:** Application, Infrastructure, Presentation, React, HTTP, etc.
+- ✅ **МОЖЕТ импортировать:** 
+  - Другие Domain объекты через `@/domain/*` `#alias:@/`
+  - Shared утилиты через `@/shared/*` `#alias:@/` (Validation API, Specification Pattern)
+- ❌ **НЕ МОЖЕТ импортировать:** Application, Infrastructure, Composition, Presentation, React, HTTP, etc.
 - ✅ **Public API:** Entities, Value Objects, Domain Events, Repository Interfaces, Domain Errors
 - 🔒 **Внутренности:** Приватные методы entities - НЕ экспортируются
 
@@ -472,26 +475,82 @@ src/infrastructure/
 
 ### 5. Shared Utilities (`src/shared/`) 🔧
 
-**Назначение**: Переиспользуемые утилиты и типы, которые не относятся к конкретному слою.
+**📚 Откуда:**
+- **НЕ из DDD** - это технический слой для утилит
+- **Clean Architecture** - Framework-agnostic utilities
+- **Hexagonal Architecture** - Shared infrastructure
+
+**🎯 Назначение**: Framework-agnostic утилиты и паттерны, которые могут использоваться всеми слоями.
+
+**❓ Почему нужен:**
+- Изоляция Domain от конкретных библиотек (например, `@sweet-monads/either`)
+- Переиспользуемые технические паттерны (Specification Pattern)
+- Единая точка изменений при замене библиотек
+
+**✅ Что решает:**
+- **Фасад над монадами** - Domain не зависит от конкретной библиотеки
+- **Specification Pattern** - переиспользуемые правила валидации
+- **Type re-exports** - удобство импорта типов
+
+**⚠️ ВАЖНО:** `src/shared/` ≠ `src/domain/shared/`
+- `src/domain/shared/` - **Shared Kernel (DDD)** - бизнес-логика (Domain Errors, Invariants)
+- `src/shared/` - **Shared Utilities** - технические утилиты (Validation API, Specification Pattern)
 
 ### Структура Shared Layer [#structure:tree]
 
 ```
 src/shared/
+├── validation/                # Validation API (фасад над @sweet-monads/either)
+│   ├── Validation.ts          # type Validation<E, T>
+│   ├── ValidationCombinators.ts  # Фасад для accumulate/sequence
+│   └── index.ts
+│
+├── specification/             # Specification Pattern (переиспользуемые правила)
+│   ├── ISpecification.ts      # Базовый интерфейс
+│   ├── CompositeSpecification.ts  # Композитор (allOf, anyOf)
+│   ├── StringSpecifications.ts    # NotEmpty, LengthRange, Pattern
+│   ├── UuidSpecifications.ts      # UuidV4Spec
+│   └── index.ts
+│
 └── types/                     # Type re-exports
     ├── domain.ts              # Re-export domain types
     ├── infrastructure.ts      # Re-export infrastructure types
-    └── index.ts               # Single entry point
+    └── index.ts
 ```
 
 **Что здесь:**
-- **types/** - Переэкспорт типов из разных слоев для удобства
+
+1. **validation/** - Фасад над `@sweet-monads/either`
+   - ✅ Domain импортирует `Validation<E, T>` вместо `Either<E, T>`
+   - ✅ Легко заменить библиотеку (sweet-monads → fp-ts → neverthrow)
+   - ✅ Единая точка изменений
+
+2. **specification/** - Specification Pattern для валидации
+   - ✅ Переиспользуемые правила (NotEmpty, LengthRange, Pattern, UUID)
+   - ✅ Композиторы (allOf, anyOf, accumulate)
+   - ✅ Не зависят от бизнес-логики
+
+3. **types/** - Переэкспорт типов для удобства
+   - ✅ Удобство импорта типов из разных слоев
 
 **Правила:**
-- ✅ Только утилиты и типы
-- ✅ Не содержит бизнес-логики
-- ✅ Может использоваться любым слоем
-- ❌ Не должен зависеть от конкретных слоев (только импортирует и реэкспортирует)
+- ✅ **Только framework-agnostic утилиты** (не зависят от React, Express, etc.)
+- ✅ **Не содержит бизнес-логики** (бизнес-логика в `src/domain/`)
+- ✅ **Может использоваться любым слоем** (Domain, Application, Infrastructure)
+- ✅ **Может зависеть от библиотек-утилит** (`@sweet-monads/either`, `lodash`, etc.)
+- ❌ **Не должен зависеть от слоев архитектуры** (Domain, Application, Infrastructure)
+
+**📋 Правила импортов:**
+- ✅ **МОЖЕТ импортировать:** Библиотеки-утилиты (`@sweet-monads/either`, `lodash`)
+- ❌ **НЕ МОЖЕТ импортировать:** Domain, Application, Infrastructure, Presentation
+- ✅ **Public API:** Validation API, Specification Pattern, Type re-exports
+- 🔒 **Внутренности:** Адаптеры библиотек - скрыты за фасадом
+
+**Характеристики:**
+- Framework-agnostic (не зависит от UI фреймворков)
+- Технические паттерны (не бизнес-логика)
+- Фасады над библиотеками (защита от vendor lock-in)
+- Переиспользуемые утилиты (для всех слоев)
 
 #### Shared types index.ts [#code|#structure:path]
 
@@ -641,22 +700,35 @@ src/presentation/
 
 | Слой | Может импортировать | Алиасы | Примечание |
 |------|---------------------|--------|------------|
-| **Domain** | НИЧЕГО | `@/domain/*` (только внутри себя) | Полностью изолирован |
-| **Application** | Domain | `@/domain` | Только через Public API |
-| **Infrastructure** | Domain (интерфейсы) | `@/domain` | Только интерфейсы, НЕ реализации |
-| **Composition** ⭐ | Domain, Application, Infrastructure | `@/domain`, `@/application/*`, `@/infrastructure/*` | **Единственный** слой с доступом ко всем |
-| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/composition` | ❌ НЕ может импортировать Application/Infrastructure |
+| **Domain** | Shared | `@/domain/*`, `@/shared/*` | Изолирован от других слоев |
+| **Application** | Domain, Shared | `@/domain`, `@/shared/*` | Только через Public API |
+| **Infrastructure** | Domain (интерфейсы), Shared | `@/domain`, `@/shared/*` | Только интерфейсы, НЕ реализации |
+| **Composition** ⭐ | Domain, Application, Infrastructure, Shared | `@/domain`, `@/application/*`, `@/infrastructure/*`, `@/shared/*` | **Единственный** слой с доступом ко всем |
+| **Presentation** | Domain (типы), Composition (facades), Shared | `@/domain`, `@/composition`, `@/shared/*` | ❌ НЕ может импортировать Application/Infrastructure |
+| **Shared** 🔧 | Библиотеки-утилиты | - | ❌ НЕ может импортировать слои архитектуры |
 
-**Ключевое правило:** Все импорты через Public API (`index.ts`). Composition - единственный слой с доступом ко всем остальным.
+**Ключевые правила:**
+- ✅ Все импорты через Public API (`index.ts`)
+- ✅ **Shared** может использоваться **всеми слоями** (framework-agnostic утилиты)
+- ✅ **Shared** НЕ может импортировать из слоев (Domain, Application, Infrastructure)
+- ✅ Composition - единственный слой с доступом ко всем остальным
 
 ### ❌ Запрещенные зависимости
 
 **Domain Layer НЕ МОЖЕТ**:
-- Импортировать из других слоев
+- Импортировать из Application, Infrastructure, Composition, Presentation
+- ✅ **МОЖЕТ импортировать** из Shared (`@/shared/*`) - framework-agnostic утилиты
 - Зависеть от React
 - Зависеть от Remix
 - Зависеть от HTTP библиотек
 - Знать о UI
+
+**Shared Layer НЕ МОЖЕТ**:
+- Импортировать из Domain, Application, Infrastructure, Composition, Presentation
+- Зависеть от UI фреймворков (React, Vue)
+- Зависеть от серверных фреймворков (Express, Fastify)
+- Содержать бизнес-логику
+- ✅ **МОЖЕТ зависеть** от библиотек-утилит (`@sweet-monads/either`, `lodash`)
 
 **Application Layer НЕ МОЖЕТ**:
 - Импортировать из Presentation

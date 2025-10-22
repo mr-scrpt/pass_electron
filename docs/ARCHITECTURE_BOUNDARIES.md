@@ -8,44 +8,56 @@
 
 ### 1. Domain Layer
 - **Роль**: Бизнес-логика, инварианты, доменные события
-- **Зависимости**: Никаких! Полностью изолирован
+- **Зависимости**: Shared (framework-agnostic утилиты)
 - **Экспорты**: Entities, Value Objects, Domain Events, Domain Errors, Repository Interfaces
 
 ### 2. Application Layer
 - **Роль**: Use Cases (Query/Command Handlers), валидация, оркестрация
-- **Зависимости**: Domain
+- **Зависимости**: Domain, Shared
 - **Экспорты**: Query/Command типы, Result типы
 
 ### 3. Infrastructure Layer
 - **Роль**: Адаптеры (API, Storage, Clipboard, etc.)
-- **Зависимости**: Domain (реализует интерфейсы)
+- **Зависимости**: Domain (реализует интерфейсы), Shared
 - **Экспорты**: Repository реализации, Service реализации, Factories
 
-### 4. Composition Layer ⭐
+### 4. Shared Utilities 🔧
+- **Роль**: Framework-agnostic утилиты (Validation API, Specification Pattern)
+- **Зависимости**: Библиотеки-утилиты (`@sweet-monads/either`, `lodash`)
+- **Экспорты**: Validation API, Specification Pattern, Type re-exports
+
+**Примечание:** Это НЕ DDD слой! Это технические утилиты для изоляции от конкретных библиотек.
+
+### 5. Composition Layer ⭐
 - **Роль**: DI Container + Facades для упрощения UI
-- **Зависимости**: Domain, Application, Infrastructure
+- **Зависимости**: Domain, Application, Infrastructure, Shared
 - **Экспорты**: `queries`, `commands` facades
 
 **Примечание:** Это НЕ классический DDD слой! Это **Composition Root** из DI паттернов.
 
-### 5. Presentation Layer
+### 6. Presentation Layer
 - **Роль**: UI (React Router routes, компоненты)
-- **Зависимости**: Domain (типы), Composition (facades)
+- **Зависимости**: Domain (типы), Composition (facades), Shared
 - **Экспорты**: Нет (конечный слой)
 
 ---
 
 ## 🔒 Правила импортов между слоями
 
-| Из слоя \ В слой | Domain | Application | Infrastructure | Composition | Presentation |
-|-----------------|--------|-------------|----------------|-------------|--------------|
-| **Domain** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Application** | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Infrastructure** | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Composition** | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **Presentation** | ✅* | ❌ | ❌ | ✅ | ✅ |
+| Из слоя \ В слой | Domain | Application | Infrastructure | Shared | Composition | Presentation |
+|-----------------|--------|-------------|----------------|--------|-------------|--------------|
+| **Domain** | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Application** | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Infrastructure** | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ |
+| **Shared** | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Composition** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Presentation** | ✅* | ❌ | ❌ | ✅ | ✅ | ✅ |
 
 **\*** Presentation импортирует из Domain **ТОЛЬКО типы** (через Public API)
+
+**Ключевые правила:**
+- ✅ **Shared** может использоваться **всеми слоями** (Domain, Application, Infrastructure, Composition, Presentation)
+- ❌ **Shared** НЕ может импортировать из слоев архитектуры (только библиотеки-утилиты)
 
 ---
 
@@ -76,13 +88,18 @@
 
 | Слой | Может импортировать | Через алиас | Примеры |
 |------|-------------------|-------------|--------|
-| **Domain** | Только Domain | `@/domain/shared/*` | Errors, Invariants |
-| **Application** | Domain | `@/domain` | Entities, Value Objects |
-| **Infrastructure** | Domain | `@/domain` | Repository Interfaces |
-| **Composition** | Domain, Application, Infrastructure | `@/domain`, `@/application/*`, `@/infrastructure/*` | Handlers, Repositories |
-| **Presentation** | Domain (типы), Composition (facades) | `@/domain`, `@/composition` | DTO, queries, commands |
+| **Domain** | Domain, Shared | `@/domain/shared/*`, `@/shared/*` | Errors, Invariants, Validation API |
+| **Application** | Domain, Shared | `@/domain`, `@/shared/*` | Entities, Value Objects, Specifications |
+| **Infrastructure** | Domain, Shared | `@/domain`, `@/shared/*` | Repository Interfaces, Validation API |
+| **Shared** | Библиотеки-утилиты | - | `@sweet-monads/either`, `lodash` |
+| **Composition** | Domain, Application, Infrastructure, Shared | `@/domain`, `@/application/*`, `@/infrastructure/*`, `@/shared/*` | Handlers, Repositories, Validation |
+| **Presentation** | Domain (типы), Composition (facades), Shared | `@/domain`, `@/composition`, `@/shared/*` | DTO, queries, commands, Validation |
 
-**Важно:** Все импорты через Public API (`index.ts`). Composition - единственный слой с доступом ко всем остальным.
+**Важно:** 
+- ✅ Все импорты через Public API (`index.ts`)
+- ✅ **Shared** может использоваться всеми слоями
+- ✅ **Shared** НЕ может импортировать из слоев архитектуры
+- ✅ Composition - единственный слой с доступом ко всем остальным
 
 ---
 

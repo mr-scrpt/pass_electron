@@ -65,25 +65,26 @@ export { mockResources } from './resources.mock'
 ```typescript
 // src/infrastructure/repositories/MockResourceRepository.ts
 import type { IResourceRepository } from '@/domain/resource/repositories'
-import type { Resource, ResourceId, Namespace } from '@/domain/resource'
+import { Resource, ResourceId, Namespace, ResourceName } from '@/domain/resource'
 import { mockResources } from '../mocks'
 
 /**
  * Mock реализация репозитория
  * Преобразует plain objects → Domain типы
+ * Использует Object Parameter Pattern для reconstitute
  */
 export class MockResourceRepository implements IResourceRepository {
   async findAll(): Promise<Resource[]> {
     // Преобразуем mock данные в Domain типы через reconstitute
     return mockResources.map(mock => 
-      Resource.reconstitute(
-        ResourceId.create(mock.id).unwrap(),
-        Namespace.create(mock.namespace).unwrap(),
-        ResourceName.create(mock.name).unwrap(),
-        mock.secret,
-        new Date(mock.createdAt),
-        new Date(mock.updatedAt)
-      )
+      Resource.reconstitute({
+        id: ResourceId.create(mock.id).unwrap(),
+        namespace: Namespace.create(mock.namespace).unwrap(),
+        name: ResourceName.create(mock.name).unwrap(),
+        secret: mock.secret,
+        createdAt: new Date(mock.createdAt),
+        updatedAt: new Date(mock.updatedAt)
+      })
     )
   }
 
@@ -91,28 +92,28 @@ export class MockResourceRepository implements IResourceRepository {
     const mock = mockResources.find(r => r.id === id.getValue())
     if (!mock) return null
     
-    return Resource.reconstitute(
+    return Resource.reconstitute({
       id,
-      Namespace.create(mock.namespace).unwrap(),
-      ResourceName.create(mock.name).unwrap(),
-      mock.secret,
-      new Date(mock.createdAt),
-      new Date(mock.updatedAt)
-    )
+      namespace: Namespace.create(mock.namespace).unwrap(),
+      name: ResourceName.create(mock.name).unwrap(),
+      secret: mock.secret,
+      createdAt: new Date(mock.createdAt),
+      updatedAt: new Date(mock.updatedAt)
+    })
   }
 
   async findByNamespace(namespace: Namespace): Promise<Resource[]> {
     return mockResources
       .filter(r => r.namespace === namespace.getValue())
       .map(mock => 
-        Resource.reconstitute(
-          ResourceId.create(mock.id).unwrap(),
+        Resource.reconstitute({
+          id: ResourceId.create(mock.id).unwrap(),
           namespace,
-          ResourceName.create(mock.name).unwrap(),
-          mock.secret,
-          new Date(mock.createdAt),
-          new Date(mock.updatedAt)
-        )
+          name: ResourceName.create(mock.name).unwrap(),
+          secret: mock.secret,
+          createdAt: new Date(mock.createdAt),
+          updatedAt: new Date(mock.updatedAt)
+        })
       )
   }
 
@@ -124,14 +125,14 @@ export class MockResourceRepository implements IResourceRepository {
         r.name.includes(lowerQuery)
       )
       .map(mock => 
-        Resource.reconstitute(
-          ResourceId.create(mock.id).unwrap(),
-          Namespace.create(mock.namespace).unwrap(),
-          ResourceName.create(mock.name).unwrap(),
-          mock.secret,
-          new Date(mock.createdAt),
-          new Date(mock.updatedAt)
-        )
+        Resource.reconstitute({
+          id: ResourceId.create(mock.id).unwrap(),
+          namespace: Namespace.create(mock.namespace).unwrap(),
+          name: ResourceName.create(mock.name).unwrap(),
+          secret: mock.secret,
+          createdAt: new Date(mock.createdAt),
+          updatedAt: new Date(mock.updatedAt)
+        })
       )
   }
 }

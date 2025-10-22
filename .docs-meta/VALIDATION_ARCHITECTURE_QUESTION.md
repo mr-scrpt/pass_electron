@@ -1,5 +1,15 @@
 # Вопрос: Архитектура валидации Value Objects с fail-fast и accumulate режимами
 
+> ⚠️ **УСТАРЕВШИЙ ДОКУМЕНТ** - Этот файл содержит исторические варианты решений.
+> 
+> **Актуальная документация:**
+> - [docs/error-handling/VALIDATION_COMBINATORS.md](../docs/error-handling/VALIDATION_COMBINATORS.md) - ValidationCombinators с mergeInMany ⭐
+> - [docs/error-handling/SPECIFICATION_VALIDATION.md](../docs/error-handling/SPECIFICATION_VALIDATION.md) - Specification Pattern
+>
+> **Решение:** Используем `ValidationCombinators.sequence` с накоплением ВСЕХ ошибок.
+
+---
+
 ## 📋 Контекст проекта
 
 ### Архитектура

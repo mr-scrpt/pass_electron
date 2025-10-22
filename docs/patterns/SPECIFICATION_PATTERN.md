@@ -62,14 +62,14 @@ const filteredResources = allResources.filter(resource =>
 
 ```typescript
 // Генерация пароля по спецификации
-const passwordSpec = CompositeSpecification.allOf(
+const specs = [
   new MinLengthSpec(12),
   new ContainsUppercaseSpec(),
   new ContainsNumberSpec(),
   new ContainsSpecialCharSpec()
-)
+]
 
-const password = generatePasswordSatisfying(passwordSpec)
+const password = generatePasswordSatisfying(specs)
 ```
 
 **Примеры:**

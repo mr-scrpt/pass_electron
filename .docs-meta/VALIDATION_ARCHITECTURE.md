@@ -178,56 +178,11 @@ export interface ISpecification<T> {  // #interface:ISpecification
 }
 ```
 
-### CompositeSpecification [#code|#structure:|#class:CompositeSpecification]
+### ValidationCombinators для накопления ошибок
 
-```typescript
-// src/shared/specification/CompositeSpecification.ts  #structure:
-import { Validation, valid, invalid } from '@/shared/validation'  // #structure:
-import { ISpecification } from './ISpecification'  // #structure:
-import { InvariantViolationError } from '@/domain/shared/errors'  // #structure:
+> 📖 **См. полное описание:** [docs/error-handling/VALIDATION_COMBINATORS.md](../docs/error-handling/VALIDATION_COMBINATORS.md)
 
-export class CompositeSpecification<T> {  // #class:CompositeSpecification
-  /**
-   * Все спецификации должны пройти (AND)
-   * Fail-fast: останавливается на первой ошибке
-   */
-  static allOf<T>(...specs: ISpecification<T>[]): ISpecification<T> {
-    return {
-      isSatisfiedBy: (value: T) => {
-        for (const spec of specs) {
-          const result = spec.isSatisfiedBy(value)
-          // Используем методы Either через Validation
-          if (result.isLeft()) return result
-        }
-        return valid(value)
-      }
-    }
-  }
-
-  /**
-   * Накопление ВСЕХ ошибок
-   * Для показа всех проблем валидации сразу
-   */
-  static allOfAccumulate<T>(...specs: ISpecification<T>[]): {
-    isSatisfiedBy: (value: T) => Validation<InvariantViolationError[], T>
-  } {
-    return {
-      isSatisfiedBy: (value: T) => {
-        const errors: InvariantViolationError[] = []
-        
-        for (const spec of specs) {
-          const result = spec.isSatisfiedBy(value)
-          if (result.isLeft()) {
-            errors.push(result.value)
-          }
-        }
-        
-        return errors.length > 0 ? invalid(errors) : valid(value)
-      }
-    }
-  }
-}
-```
+ValidationCombinators используется для накопления ВСЕХ ошибок валидации. Подробности в отдельном документе.
 
 ---
 
@@ -296,9 +251,8 @@ export class PatternSpec implements ISpecification<string> {  // #class:PatternS
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts  #structure:
-import { Validation } from '@/shared/validation'  // #structure:
+import { Validation, ValidationCombinators } from '@/shared/validation'  // #structure:
 import { InvariantViolationError } from '@/domain/shared/errors'  // #structure:
-import { CompositeSpecification } from '@/shared/specification'  // #structure:
 import { 
   NotEmptySpec, 
   LengthRangeSpec, 
@@ -314,10 +268,10 @@ export class Namespace {  // #class:Namespace
   private constructor(private readonly _value: string) {}
 
   /**
-   * Создать Namespace с валидацией (fail-fast)
+   * Создать Namespace с накоплением ВСЕХ ошибок
    */
-  static create(value: string): Validation<InvariantViolationError, Namespace> {
-    const spec = CompositeSpecification.allOf(
+  static create(value: string): Validation<InvariantViolationError[], Namespace> {
+    const specs = [
       new NotEmptySpec(Namespace.ENTITY_TYPE),
       new LengthRangeSpec(
         Namespace.MIN_LENGTH,
@@ -329,33 +283,13 @@ export class Namespace {  // #class:Namespace
         "must contain only lowercase letters, numbers, - and _",
         Namespace.ENTITY_TYPE
       )
+    ]
+
+    // ValidationCombinators.sequence накапливает ВСЕ ошибки
+    return ValidationCombinators.sequence(
+      specs.map(spec => spec.isSatisfiedBy(value)),
+      () => new Namespace(value)
     )
-
-    // Используем map из Either (доступен через Validation)
-    return spec.isSatisfiedBy(value).map(v => new Namespace(v))
-  }
-
-  /**
-   * Создать Namespace с валидацией (accumulate - все ошибки)
-   */
-  static createWithAllErrors(
-    value: string
-  ): Validation<InvariantViolationError[], Namespace> {
-    const spec = CompositeSpecification.allOfAccumulate(
-      new NotEmptySpec(Namespace.ENTITY_TYPE),
-      new LengthRangeSpec(
-        Namespace.MIN_LENGTH,
-        Namespace.MAX_LENGTH,
-        Namespace.ENTITY_TYPE
-      ),
-      new PatternSpec(
-        Namespace.PATTERN,
-        "must contain only lowercase letters, numbers, - and _",
-        Namespace.ENTITY_TYPE
-      )
-    )
-
-    return spec.isSatisfiedBy(value).map(v => new Namespace(v))
   }
 
   getValue(): string {
@@ -380,10 +314,10 @@ export class Namespace {  // #class:Namespace
 ### Этап 2: Переместить Specification
 - [ ] Создать `src/shared/specification/`
 - [ ] Переместить `ISpecification.ts`
-- [ ] Переместить `CompositeSpecification.ts`
 - [ ] Переместить `StringSpecifications.ts`
 - [ ] Переместить `UuidSpecifications.ts`
 - [ ] Обновить все импорты на `Validation`
+- [ ] Использовать `ValidationCombinators` вместо `CompositeSpecification`
 
 ### Этап 3: Обновить Value Objects
 - [ ] Обновить `Namespace.ts` - использовать `Validation`
@@ -415,6 +349,7 @@ export class Namespace {  // #class:Namespace
 
 ## 📖 Связанные документы
 
-- `docs/error-handling/SPECIFICATION_VALIDATION.md` - основной документ (требует обновления)
+- `docs/error-handling/VALIDATION_COMBINATORS.md` - ValidationCombinators с mergeInMany ⭐
+- `docs/error-handling/SPECIFICATION_VALIDATION.md` - основной документ ✅ Обновлен
 - `docs/patterns/SPECIFICATION_PATTERN.md` - теория паттерна
 - `docs/PROJECT_STRUCTURE.md` - структура проекта

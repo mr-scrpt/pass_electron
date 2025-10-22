@@ -67,7 +67,6 @@ src/shared/
 │
 ├── specification/             # Specification Pattern (переиспользуемые правила)
 │   ├── ISpecification.ts      # Базовый интерфейс
-│   ├── CompositeSpecification.ts  # Композитор (allOf, anyOf)
 │   ├── StringSpecifications.ts    # NotEmpty, LengthRange, Pattern
 │   ├── UuidSpecifications.ts      # UuidV4Spec
 │   └── index.ts
@@ -151,9 +150,9 @@ import { Either, left, right } from '@sweet-monads/either'
 // src/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
 
-// src/shared/specification/CompositeSpecification.ts
-import { Validation, valid, invalid } from '@/shared/validation'
-import { ISpecification } from './ISpecification'
+// src/shared/validation/ValidationCombinators.ts
+import { mergeInMany } from '@sweet-monads/either'
+import { Validation } from './Validation'
 ```
 
 **Вывод:** Документация по спецификациям **уже согласована** с новой архитектурой `shared/` слоя.
@@ -262,7 +261,6 @@ touch src/shared/validation/ValidationCombinators.ts
 touch src/shared/validation/index.ts
 
 touch src/shared/specification/ISpecification.ts
-touch src/shared/specification/CompositeSpecification.ts
 touch src/shared/specification/StringSpecifications.ts
 touch src/shared/specification/UuidSpecifications.ts
 touch src/shared/specification/index.ts

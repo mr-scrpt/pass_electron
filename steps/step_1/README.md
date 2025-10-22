@@ -219,6 +219,273 @@ export * from './ValidationCombinators'
 
 ---
 
+### 0.5. Specification Pattern (Shared Layer)
+
+Спецификации - это переиспользуемые правила валидации, которые можно комбинировать.
+
+> **📚 Детали**: [.docs-meta/VALIDATION_SPECIFICATION_APPROACH.md](../../.docs-meta/VALIDATION_SPECIFICATION_APPROACH.md) — Полный согласованный подход ⭐
+
+#### Зачем нужны спецификации?
+
+**Проблема прямой валидации:**
+- ❌ Дублирование правил (длина, паттерн, пустота)
+- ❌ Бизнес-правила размазаны по коду
+- ❌ Сложно тестировать
+
+**Решение - Specification Pattern:**
+- ✅ Переиспользуемые правила
+- ✅ Бизнес-правила инкапсулированы
+- ✅ Легко комбинировать
+- ✅ Накопление ВСЕХ ошибок
+
+---
+
+#### 0.5.1. Создать ISpecification интерфейс
+
+**Файл: `src/shared/specification/ISpecification.ts`**
+
+```typescript
+// src/shared/specification/ISpecification.ts
+import { Validation } from '@/shared/validation'
+import { ValidationError } from './ValidationError'
+
+/**
+ * Спецификация для валидации
+ * Возвращает Validation вместо boolean для накопления ошибок
+ */
+export interface ISpecification<T> {
+  isSatisfiedBy(value: T): Validation<ValidationError, T>
+}
+```
+
+---
+
+#### 0.5.2. Создать ValidationError
+
+**Файл: `src/shared/specification/ValidationError.ts`**
+
+```typescript
+// src/shared/specification/ValidationError.ts
+
+/**
+ * Ошибка валидации
+ * Используется в спецификациях для описания нарушений правил
+ */
+export class ValidationError extends Error {
+  constructor(
+    public readonly entityType: string,
+    public readonly message: string
+  ) {
+    super(`${entityType}: ${message}`)
+    this.name = 'ValidationError'
+  }
+}
+```
+
+---
+
+#### 0.5.3. Создать Fluent API для условной валидации
+
+**Файл: `src/shared/validation/helpers.ts`**
+
+```typescript
+// src/shared/validation/helpers.ts
+import { Validation, fromCondition } from './Validation'
+
+class ValidationBuilder<T> {
+  constructor(
+    private readonly condition: boolean,
+    private readonly value: T
+  ) {}
+
+  valid(): ValidBranch<T> {
+    return new ValidBranch(this.condition, this.value)
+  }
+}
+
+class ValidBranch<T> {
+  constructor(
+    private readonly condition: boolean,
+    private readonly value: T
+  ) {}
+
+  invalid<E>(error: E): Validation<E, T> {
+    return fromCondition(this.condition, this.value, error)
+  }
+}
+
+/**
+ * Fluent API для условной валидации
+ * 
+ * @example
+ * isTrue(value && value.trim().length > 0, value)
+ *   .valid()
+ *   .invalid(new ValidationError('Entity', 'cannot be empty'))
+ */
+export function isTrue<T>(condition: boolean, value: T): ValidationBuilder<T> {
+  return new ValidationBuilder(condition, value)
+}
+```
+
+**Обновить `src/shared/validation/Validation.ts`:**
+
+```typescript
+// src/shared/validation/Validation.ts
+import { Either, left, right } from '@sweet-monads/either'
+
+export type Validation<E, T> = Either<E, T>
+
+export const valid = <T>(value: T): Validation<never, T> => right(value)
+export const invalid = <E>(error: E): Validation<E, never> => left(error)
+
+/**
+ * Создать Validation на основе условия
+ * 
+ * ЕДИНСТВЕННОЕ место где используется тернарник для создания Validation
+ * Аналоги: fp-ts.fromPredicate, Ramda.ifElse, Haskell guards
+ * 
+ * Тернарник здесь неизбежен - это фундаментальная операция условного ветвления
+ */
+export const fromCondition = <E, T>(
+  condition: boolean,
+  value: T,
+  error: E
+): Validation<E, T> => {
+  return condition ? valid(value) : invalid(error)
+}
+```
+
+**Обновить `src/shared/validation/index.ts`:**
+
+```typescript
+// src/shared/validation/index.ts
+export type { Validation } from './Validation'
+export { valid, invalid, fromCondition } from './Validation'
+export { isTrue } from './helpers'
+export { ValidationCombinators } from './ValidationCombinators'
+```
+
+---
+
+#### 0.5.4. Создать общие спецификации (Common)
+
+⚠️ **ВАЖНО:** Префикс `Common` показывает что это базовые классы для создания синглтонов в Domain Layer. НЕ использовать напрямую!
+
+**Файл: `src/shared/specification/common/CommonLengthSpec.ts`**
+
+```typescript
+// src/shared/specification/common/CommonLengthSpec.ts
+import { Validation, isTrue } from '@/shared/validation'
+import { ISpecification } from '../ISpecification'
+import { ValidationError } from '../ValidationError'
+
+/**
+ * Общая спецификация для проверки длины строки
+ * 
+ * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
+ * Создавайте синглтоны в domain/specifications/ с фиксированной конфигурацией
+ * 
+ * @example
+ * // ❌ НЕПРАВИЛЬНО - использование напрямую
+ * new CommonLengthSpec('Namespace', 2, 50)
+ * 
+ * // ✅ ПРАВИЛЬНО - создать синглтон в domain/specifications/
+ * export const NAMESPACE_LENGTH_SPEC = new CommonLengthSpec('Namespace', 2, 50)
+ */
+export class CommonLengthSpec implements ISpecification<string> {
+  constructor(
+    private readonly entityType: string,
+    private readonly minLength: number,
+    private readonly maxLength: number
+  ) {}
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    return isTrue(
+      value.length >= this.minLength && value.length <= this.maxLength,
+      value
+    )
+      .valid()
+      .invalid(new ValidationError(
+        this.entityType,
+        `must be ${this.minLength}-${this.maxLength} characters`
+      ))
+  }
+}
+```
+
+**Файл: `src/shared/specification/common/CommonPatternSpec.ts`**
+
+```typescript
+// src/shared/specification/common/CommonPatternSpec.ts
+import { Validation, isTrue } from '@/shared/validation'
+import { ISpecification } from '../ISpecification'
+import { ValidationError } from '../ValidationError'
+
+/**
+ * Общая спецификация для проверки по регулярному выражению
+ * 
+ * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
+ */
+export class CommonPatternSpec implements ISpecification<string> {
+  constructor(
+    private readonly entityType: string,
+    private readonly pattern: RegExp,
+    private readonly message: string
+  ) {}
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    return isTrue(this.pattern.test(value), value)
+      .valid()
+      .invalid(new ValidationError(this.entityType, this.message))
+  }
+}
+```
+
+**Файл: `src/shared/specification/common/CommonNotEmptySpec.ts`**
+
+```typescript
+// src/shared/specification/common/CommonNotEmptySpec.ts
+import { Validation, isTrue } from '@/shared/validation'
+import { ISpecification } from '../ISpecification'
+import { ValidationError } from '../ValidationError'
+
+/**
+ * Общая спецификация для проверки на пустоту
+ * 
+ * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
+ */
+export class CommonNotEmptySpec implements ISpecification<string> {
+  constructor(private readonly entityType: string) {}
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    return isTrue(value && value.trim().length > 0, value)
+      .valid()
+      .invalid(new ValidationError(this.entityType, 'cannot be empty'))
+  }
+}
+```
+
+---
+
+#### 0.5.5. Создать Public API для спецификаций
+
+**Файл: `src/shared/specification/index.ts`**
+
+```typescript
+// src/shared/specification/index.ts
+
+export type { ISpecification } from './ISpecification'
+export { ValidationError } from './ValidationError'
+
+// ⚠️ Общие спецификации - НЕ использовать напрямую в Domain!
+// Создавайте синглтоны в domain/specifications/
+export { CommonLengthSpec } from './common/CommonLengthSpec'
+export { CommonPatternSpec } from './common/CommonPatternSpec'
+export { CommonNotEmptySpec } from './common/CommonNotEmptySpec'
+```
+
+---
+
 ### Step 1: Domain Layer - Создание доменного слоя
 
 Создание ядра приложения - Domain Layer. - это основа архитектуры. Здесь определяются типы и контракты, независимые от фреймворков.
@@ -352,7 +619,93 @@ export class ResourceId {
 }
 ```
 
-#### 1.3 Создать Value Object: Namespace
+#### 1.3 Создать спецификации для Namespace (Domain Layer)
+
+Сначала создаем синглтоны-спецификации с фиксированной конфигурацией (бизнес-правила).
+
+**Файл: `src/domain/resource/specifications/NamespaceSpecs.ts`**
+
+```typescript
+// src/domain/resource/specifications/NamespaceSpecs.ts
+import { 
+  CommonLengthSpec,
+  CommonPatternSpec,
+  CommonNotEmptySpec
+} from '@/shared/specification'
+
+/**
+ * Спецификации для Namespace
+ * Синглтоны с фиксированной конфигурацией (бизнес-правила)
+ */
+
+export const NAMESPACE_NOT_EMPTY_SPEC = new CommonNotEmptySpec('Namespace')
+
+export const NAMESPACE_LENGTH_SPEC = new CommonLengthSpec('Namespace', 2, 50)
+
+export const NAMESPACE_PATTERN_SPEC = new CommonPatternSpec(
+  'Namespace',
+  /^[a-z0-9-_]+$/,
+  'must contain only lowercase letters, numbers, - and _'
+)
+```
+
+**Файл: `src/domain/resource/specifications/NotReservedNamespaceSpec.ts`**
+
+```typescript
+// src/domain/resource/specifications/NotReservedNamespaceSpec.ts
+import { Validation, isTrue } from '@/shared/validation'
+import { ISpecification, ValidationError } from '@/shared/specification'
+
+/**
+ * Бизнес-правило: некоторые namespace зарезервированы системой
+ */
+export class NotReservedNamespaceSpec implements ISpecification<string> {
+  private static readonly RESERVED_NAMESPACES = [
+    'system',
+    'admin',
+    'root',
+    'config',
+    'settings'
+  ]
+
+  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+    const isNotReserved = !NotReservedNamespaceSpec.RESERVED_NAMESPACES.includes(
+      value.toLowerCase()
+    )
+    
+    return isTrue(isNotReserved, value)
+      .valid()
+      .invalid(new ValidationError(
+        'Namespace',
+        `"${value}" is a reserved namespace and cannot be used`
+      ))
+  }
+}
+
+export const NOT_RESERVED_NAMESPACE_SPEC = new NotReservedNamespaceSpec()
+```
+
+**Файл: `src/domain/resource/specifications/index.ts`**
+
+```typescript
+// src/domain/resource/specifications/index.ts
+
+// Namespace спецификации
+export {
+  NAMESPACE_NOT_EMPTY_SPEC,
+  NAMESPACE_LENGTH_SPEC,
+  NAMESPACE_PATTERN_SPEC
+} from './NamespaceSpecs'
+
+export { 
+  NotReservedNamespaceSpec,
+  NOT_RESERVED_NAMESPACE_SPEC 
+} from './NotReservedNamespaceSpec'
+```
+
+---
+
+#### 1.4 Создать Value Object: Namespace
 
 **Файл: `src/domain/resource/value-objects/Namespace.ts`**
 
@@ -360,58 +713,41 @@ export class ResourceId {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
-import { InvariantViolationError } from '@/domain/shared'
+import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/shared/specification'
+import {
+  NAMESPACE_NOT_EMPTY_SPEC,
+  NAMESPACE_LENGTH_SPEC,
+  NAMESPACE_PATTERN_SPEC,
+  NOT_RESERVED_NAMESPACE_SPEC
+} from '../specifications'
 
 /**
  * Value Object для namespace ресурса
- * Инвариант: 2-50 символов, lowercase, буквы/цифры/-/_
  * 
- * Использует ValidationCombinators для накопления ВСЕХ ошибок
+ * Использует Specification Pattern для композиции правил валидации
  */
 export class Namespace {
-  private static readonly ENTITY_TYPE = 'Namespace'
-  private static readonly MIN_LENGTH = 2
-  private static readonly MAX_LENGTH = 50
-  private static readonly PATTERN = /^[a-z0-9-_]+$/
-  
   private constructor(private readonly _value: string) {}
   
   /**
    * Создать Namespace с накоплением ВСЕХ ошибок валидации
+   * Композиция общих и бизнес-специфичных спецификаций
    * 
-   * @returns Validation<InvariantViolationError[], Namespace>
+   * @returns Validation<ValidationError[], Namespace>
    *          - Left: массив ВСЕХ ошибок (лучший UX)
    *          - Right: валидный Namespace
    */
-  static create(value: string): Validation<InvariantViolationError[], Namespace> {
-    // Определяем все проверки
-    const validations = [
-      // Проверка на пустоту
-      value && value.trim()
-        ? valid(value)
-        : invalid(new InvariantViolationError(Namespace.ENTITY_TYPE, 'cannot be empty')),
-      
-      // Проверка длины
-      value.length >= Namespace.MIN_LENGTH && value.length <= Namespace.MAX_LENGTH
-        ? valid(value)
-        : invalid(new InvariantViolationError(
-            Namespace.ENTITY_TYPE,
-            `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`
-          )),
-      
-      // Проверка паттерна
-      Namespace.PATTERN.test(value)
-        ? valid(value)
-        : invalid(new InvariantViolationError(
-            Namespace.ENTITY_TYPE,
-            'must contain only lowercase letters, numbers, - and _'
-          ))
+  static create(value: string): Validation<ValidationError[], Namespace> {
+    const specs = [
+      NAMESPACE_NOT_EMPTY_SPEC,        // Общая спецификация
+      NAMESPACE_LENGTH_SPEC,           // Общая спецификация
+      NAMESPACE_PATTERN_SPEC,          // Общая спецификация
+      NOT_RESERVED_NAMESPACE_SPEC      // Бизнес-специфичная
     ]
-    
-    // ValidationCombinators.sequence накапливает ВСЕ ошибки
+
     return ValidationCombinators.sequence(
-      validations,
+      specs.map(spec => spec.isSatisfiedBy(value)),
       () => new Namespace(value)
     )
   }
@@ -426,34 +762,73 @@ export class Namespace {
 }
 ```
 
-**Почему ValidationCombinators вместо if/else?**
-
-**Было (императивно):**
-```typescript
-if (!value) return left(...)
-if (value.length < 2) return left(...)  // Останавливается на первой ошибке!
-if (!pattern.test(value)) return left(...)
-```
-
-**Стало (функционально):**
-```typescript
-const validations = [
-  value ? valid(value) : invalid(...),
-  value.length >= 2 ? valid(value) : invalid(...),
-  pattern.test(value) ? valid(value) : invalid(...)
-]
-return ValidationCombinators.sequence(validations, () => new Namespace(value))
-```
+**Почему Specification Pattern?**
 
 **Преимущества:**
+- ✅ **Переиспользование** - одна спецификация для всех Value Objects
+- ✅ **Бизнес-правила инкапсулированы** - конфигурация в синглтонах
 - ✅ **Лучший UX** - пользователь видит ВСЕ ошибки сразу
-- ✅ **Функциональный подход** - нет циклов и if/else
-- ✅ **Декларативность** - просто список проверок
-- ✅ **Готовность к Specification Pattern** - легко вынести в переиспользуемые спецификации
+- ✅ **Легко тестировать** - каждая спецификация тестируется отдельно
+- ✅ **Композиция** - легко комбинировать правила
 
-> 💡 **Для более сложных случаев:** См. [SPECIFICATION_VALIDATION.md](../../docs/error-handling/SPECIFICATION_VALIDATION.md) - Specification Pattern с переиспользуемыми правилами валидации.
+---
 
-#### 1.4 Создать Value Object: ResourceName
+#### 1.5 Создать спецификации для ResourceName
+
+**Файл: `src/domain/resource/specifications/ResourceNameSpecs.ts`**
+
+```typescript
+// src/domain/resource/specifications/ResourceNameSpecs.ts
+import { 
+  CommonLengthSpec,
+  CommonPatternSpec,
+  CommonNotEmptySpec
+} from '@/shared/specification'
+
+/**
+ * Спецификации для ResourceName
+ * Синглтоны с фиксированной конфигурацией (бизнес-правила)
+ */
+
+export const RESOURCE_NAME_NOT_EMPTY_SPEC = new CommonNotEmptySpec('ResourceName')
+
+export const RESOURCE_NAME_LENGTH_SPEC = new CommonLengthSpec('ResourceName', 2, 100)
+
+export const RESOURCE_NAME_PATTERN_SPEC = new CommonPatternSpec(
+  'ResourceName',
+  /^[a-zA-Z0-9-_]+$/,
+  'must contain only letters, numbers, - and _'
+)
+```
+
+**Обновить `src/domain/resource/specifications/index.ts`:**
+
+```typescript
+// src/domain/resource/specifications/index.ts
+
+// Namespace спецификации
+export {
+  NAMESPACE_NOT_EMPTY_SPEC,
+  NAMESPACE_LENGTH_SPEC,
+  NAMESPACE_PATTERN_SPEC
+} from './NamespaceSpecs'
+
+export { 
+  NotReservedNamespaceSpec,
+  NOT_RESERVED_NAMESPACE_SPEC 
+} from './NotReservedNamespaceSpec'
+
+// ResourceName спецификации
+export {
+  RESOURCE_NAME_NOT_EMPTY_SPEC,
+  RESOURCE_NAME_LENGTH_SPEC,
+  RESOURCE_NAME_PATTERN_SPEC
+} from './ResourceNameSpecs'
+```
+
+---
+
+#### 1.6 Создать Value Object: ResourceName
 
 **Файл: `src/domain/resource/value-objects/ResourceName.ts`**
 
@@ -461,43 +836,35 @@ return ValidationCombinators.sequence(validations, () => new Namespace(value))
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
-import { InvariantViolationError } from '@/domain/shared'
+import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/shared/specification'
+import {
+  RESOURCE_NAME_NOT_EMPTY_SPEC,
+  RESOURCE_NAME_LENGTH_SPEC,
+  RESOURCE_NAME_PATTERN_SPEC
+} from '../specifications'
 
 /**
  * Value Object для имени ресурса
- * Инвариант: 1-100 символов
  * 
- * Использует ValidationCombinators для накопления ВСЕХ ошибок
+ * Использует Specification Pattern для композиции правил валидации
  */
 export class ResourceName {
-  private static readonly ENTITY_TYPE = 'ResourceName'
-  private static readonly MIN_LENGTH = 1
-  private static readonly MAX_LENGTH = 100
-  
   private constructor(private readonly _value: string) {}
   
   /**
    * Создать ResourceName с накоплением ВСЕХ ошибок валидации
+   * Композиция общих спецификаций
    */
-  static create(value: string): Validation<InvariantViolationError[], ResourceName> {
-    const validations = [
-      // Проверка на пустоту
-      value && value.trim()
-        ? valid(value)
-        : invalid(new InvariantViolationError(ResourceName.ENTITY_TYPE, 'cannot be empty')),
-      
-      // Проверка длины
-      value.length >= ResourceName.MIN_LENGTH && value.length <= ResourceName.MAX_LENGTH
-        ? valid(value)
-        : invalid(new InvariantViolationError(
-            ResourceName.ENTITY_TYPE,
-            `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`
-          ))
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    const specs = [
+      RESOURCE_NAME_NOT_EMPTY_SPEC,
+      RESOURCE_NAME_LENGTH_SPEC,
+      RESOURCE_NAME_PATTERN_SPEC
     ]
-    
+
     return ValidationCombinators.sequence(
-      validations,
+      specs.map(spec => spec.isSatisfiedBy(value)),
       () => new ResourceName(value)
     )
   }
@@ -512,7 +879,7 @@ export class ResourceName {
 }
 ```
 
-#### 1.5 Создать Aggregate Root: Resource
+#### 1.7 Создать Aggregate Root: Resource
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#aggregates](../../docs/TYPES_AND_ENTITIES.md#aggregates) — Что такое Aggregate Root
 

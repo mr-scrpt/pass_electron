@@ -128,7 +128,7 @@ mkdir -p src/shared/validation
 ```bash
 # Создать структуру Shared Layer
 mkdir -p src/shared/validation
-mkdir -p src/shared/specification
+mkdir -p src/domain/shared/specification/common
 ```
 
 ---
@@ -246,10 +246,10 @@ export * from './ValidationCombinators'
 
 #### 0.5.1. Создать ISpecification интерфейс
 
-**Файл: `src/shared/specification/ISpecification.ts`**
+**Файл: `src/domain/shared/specification/ISpecification.ts`**
 
 ```typescript
-// src/shared/specification/ISpecification.ts
+// src/domain/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
 import { ValidationError } from './ValidationError'
 
@@ -266,10 +266,10 @@ export interface ISpecification<T> {
 
 #### 0.5.2. Создать ValidationError
 
-**Файл: `src/shared/specification/ValidationError.ts`**
+**Файл: `src/domain/shared/specification/ValidationError.ts`**
 
 ```typescript
-// src/shared/specification/ValidationError.ts
+// src/domain/shared/specification/ValidationError.ts
 
 /**
  * Ошибка валидации
@@ -375,10 +375,10 @@ export { ValidationCombinators } from './ValidationCombinators'
 
 ⚠️ **ВАЖНО:** Префикс `Common` показывает что это базовые классы для создания синглтонов в Domain Layer. НЕ использовать напрямую!
 
-**Файл: `src/shared/specification/common/CommonLengthSpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonLengthSpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonLengthSpec.ts
+// src/domain/shared/specification/common/CommonLengthSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -417,10 +417,10 @@ export class CommonLengthSpec implements ISpecification<string> {
 }
 ```
 
-**Файл: `src/shared/specification/common/CommonPatternSpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonPatternSpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonPatternSpec.ts
+// src/domain/shared/specification/common/CommonPatternSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -445,10 +445,10 @@ export class CommonPatternSpec implements ISpecification<string> {
 }
 ```
 
-**Файл: `src/shared/specification/common/CommonNotEmptySpec.ts`**
+**Файл: `src/domain/shared/specification/common/CommonNotEmptySpec.ts`**
 
 ```typescript
-// src/shared/specification/common/CommonNotEmptySpec.ts
+// src/domain/shared/specification/common/CommonNotEmptySpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
@@ -473,10 +473,10 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 
 #### 0.5.5. Создать Public API для спецификаций
 
-**Файл: `src/shared/specification/index.ts`**
+**Файл: `src/domain/shared/specification/index.ts`**
 
 ```typescript
-// src/shared/specification/index.ts
+// src/domain/shared/specification/index.ts
 
 export type { ISpecification } from './ISpecification'
 export { ValidationError } from './ValidationError'
@@ -635,7 +635,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/shared/specification'
+} from '@/domain/shared/specification'
 
 /**
  * Спецификации для Namespace
@@ -658,7 +658,7 @@ export const NAMESPACE_PATTERN_SPEC = new CommonPatternSpec(
 ```typescript
 // src/domain/resource/specifications/NotReservedNamespaceSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification, ValidationError } from '@/shared/specification'
+import { ISpecification, ValidationError } from '@/domain/shared/specification'
 
 /**
  * Бизнес-правило: некоторые namespace зарезервированы системой
@@ -718,7 +718,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import {
   NAMESPACE_NOT_EMPTY_SPEC,
   NAMESPACE_LENGTH_SPEC,
@@ -787,7 +787,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/shared/specification'
+} from '@/domain/shared/specification'
 
 /**
  * Спецификации для ResourceName
@@ -841,7 +841,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import {
   RESOURCE_NAME_NOT_EMPTY_SPEC,
   RESOURCE_NAME_LENGTH_SPEC,
@@ -894,7 +894,7 @@ export class ResourceName {
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
@@ -1514,7 +1514,7 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
 import { Validation, valid, invalid } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import { Resource } from '@/domain/resource/aggregates/Resource'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 import { 
@@ -1615,7 +1615,7 @@ export class CreateResourceCommandHandler
 ```typescript
 // src/application/commands/handlers/RenameResourceCommandHandler.ts
 import { Validation, valid, invalid, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/specification'
+import { ValidationError } from '@/domain/shared/specification'
 import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 import { 
@@ -2418,42 +2418,47 @@ export default function Index() {
 После выполнения шага у вас будет:
 
 ```
-app/
-├── domain/
-│   ├── shared/                       # ← Shared Kernel (переиспользуемые инварианты)
-│   │   ├── errors/
-│   │   │   └── InvariantViolationError.ts  # Для простых проверок (UUID)
-│   │   ├── invariants/
-│   │   │   └── UuidInvariant.ts            # Простые инварианты
-│   │   └── index.ts
-│   ├── specifications/             # ← Спецификации (бизнес-правила)
-│   │   ├── NamespaceSpecs.ts
-│   │   ├── NotReservedNamespaceSpec.ts
-│   │   ├── ResourceNameSpecs.ts
-│   │   └── index.ts
-│   ├── value-objects/               # ← Value Objects
-│   │   ├── ResourceId.ts
-│   │   ├── Namespace.ts
-│   │   ├── ResourceName.ts
-│   │   └── index.ts
-│   └── repositories/
-│       ├── IResourceRepository.ts
+src/
+├── shared/                          # ← Технические утилиты (фасады)
+│   └── validation/                  # ← Фасад над @sweet-monads/either
+│       ├── Validation.ts
+│       ├── helpers.ts               # isTrue fluent API
+│       ├── ValidationCombinators.ts
 │       └── index.ts
 │
-├── shared/                          # ← Shared utilities (не Domain!)
-│   ├── validation/                  # ← Фасад над @sweet-monads/either
-│   │   ├── Validation.ts
-│   │   ├── helpers.ts               # isTrue fluent API
-│   │   ├── ValidationCombinators.ts
-│   │   └── index.ts
-│   └── specification/               # ← Specification Pattern
-│       ├── ISpecification.ts
-│       ├── ValidationError.ts
-│       ├── common/                  # ← Common* спецификации
-│       │   ├── CommonLengthSpec.ts
-│       │   ├── CommonPatternSpec.ts
-│       │   └── CommonNotEmptySpec.ts
-│       └── index.ts
+└── domain/
+    ├── shared/                      # ← Shared Kernel (DDD)
+    │   ├── errors/
+    │   │   ├── InvariantViolationError.ts  # Для простых проверок (UUID)
+    │   │   └── ValidationError.ts          # Для спецификаций
+    │   ├── invariants/
+    │   │   └── UuidInvariant.ts
+    │   ├── specification/           # ← Specification Pattern
+    │   │   ├── ISpecification.ts
+    │   │   ├── common/              # ← Common* спецификации
+    │   │   │   ├── CommonLengthSpec.ts
+    │   │   │   ├── CommonPatternSpec.ts
+    │   │   │   └── CommonNotEmptySpec.ts
+    │   │   └── index.ts
+    │   └── index.ts
+    │
+    └── resource/                    # ← Resource Bounded Context
+        ├── specifications/          # ← Бизнес-правила (синглтоны)
+        │   ├── NamespaceSpecs.ts
+        │   ├── NotReservedNamespaceSpec.ts
+        │   ├── ResourceNameSpecs.ts
+        │   └── index.ts
+        ├── value-objects/           # ← Value Objects
+        │   ├── ResourceId.ts
+        │   ├── Namespace.ts
+        │   ├── ResourceName.ts
+        │   └── index.ts
+        ├── aggregates/
+        │   ├── Resource.ts
+        │   └── index.ts
+        └── repositories/
+            ├── IResourceRepository.ts
+            └── index.ts
 │
 ├── application/
 │   └── queries/                      # ← CQRS: Queries

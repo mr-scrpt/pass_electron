@@ -114,7 +114,7 @@ Domain Layer полностью построен на тактических п�
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation, ValidationCombinators } from '@/shared/validation'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
@@ -172,7 +172,7 @@ export class Resource {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Either } from '@sweet-monads/either'
+import { Validation } from '@/shared/validation'
 import { InvariantViolationError, StringInvariant } from '@/domain/shared'
 
 export class ResourceName {

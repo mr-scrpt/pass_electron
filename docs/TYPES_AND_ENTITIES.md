@@ -161,7 +161,7 @@ export type ResourceId = string
 
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation } from '@/shared/validation'
 import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
 
 /**
@@ -418,7 +418,7 @@ import { queries } from '@/composition'
 
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
-import { Either, right, left } from '@sweet-monads/either'
+import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
@@ -443,15 +443,16 @@ export class Resource {
     namespace: string,
     name: string,
     secret: string
-  ): Either<DomainError, Resource> {
+  ): Validation<DomainError[], Resource> {
     // Создаем Value Objects из примитивов
     const namespaceVO = Namespace.create(namespace)
     const nameVO = ResourceName.create(name)
     const id = ResourceId.generate()
     
-    // Комбинируем результаты валидации
-    return merge([namespaceVO, nameVO])
-      .map(([ns, nm]) => new Resource(
+    // Комбинируем результаты валидации с накоплением ошибок
+    return ValidationCombinators.sequence(
+      [namespaceVO, nameVO],
+      ([ns, nm]) => new Resource(
         id,
         ns,
         nm,
@@ -459,21 +460,22 @@ export class Resource {
         [],
         new Date(),
         new Date()
-      ))
+      )
+    )
   }
   
   /**
    * Бизнес-метод - работает с классами
    */
-  addCustomField(label: string, value: string): Either<DomainError, void> {
+  addCustomField(label: string, value: string): Validation<DomainError, void> {
     // Инвариант: не более 20 полей
     if (this.customFields.length >= 20) {
-      return left(new InvalidOperationError('Cannot add more than 20 fields'))
+      return invalid(new InvalidOperationError('Cannot add more than 20 fields'))
     }
     
     // Инвариант: уникальные метки
     if (this.customFields.some(f => f.label === label)) {
-      return left(new DuplicateFieldLabelError(label))
+      return invalid(new DuplicateFieldLabelError(label))
     }
     
     // Создаем Entity
@@ -481,7 +483,7 @@ export class Resource {
     const field = new CustomField(fieldId, label, value, false)
     
     this.customFields.push(field)
-    return right(undefined)
+    return valid(undefined)
   }
 }
 ```

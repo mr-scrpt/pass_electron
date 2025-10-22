@@ -1138,14 +1138,12 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 └─────────────────────────────────────────────────────┘
 ```
 
-#### Пример: CreateResourceCommand Handler
+#### Пример 1: CreateResourceCommand Handler (простой случай)
 
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
-import { Validation, valid, invalid, ValidationCombinators } from '@/shared/validation'
+import { Validation, valid, invalid } from '@/shared/validation'
 import { Resource } from '@/domain/resource/aggregates/Resource'
-import { Namespace } from '@/domain/resource/value-objects/Namespace'
-import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 import { 
   InvariantViolationError, 
@@ -1158,14 +1156,10 @@ import type { CreateResourceCommand } from '../CreateResourceCommand'
 /**
  * Command Handler для создания нового ресурса
  * 
- * Двухуровневая валидация:
- * 1. Application Layer - проверка уникальности через Repository
- * 2. Domain Layer - валидация Value Objects через ValidationCombinators
- * 
- * Обработка ошибок:
- * - Накопление ошибок из Domain Layer
- * - Добавление ошибок Application Layer
- * - Раннее возвращение при критических ошибках
+ * Трехэтапная валидация:
+ * 1. Domain Layer - валидация VO через ValidationCombinators (stateless)
+ * 2. Application Layer - проверка уникальности через Repository (I/O)
+ * 3. Persistence - сохранение в Repository
  */
 export class CreateResourceCommandHandler 
   implements ICommandHandler<CreateResourceCommand, string> {
@@ -1178,28 +1172,29 @@ export class CreateResourceCommandHandler
     command: CreateResourceCommand
   ): Promise<Validation<InvariantViolationError[], string>> {
     
-    // ==================== Шаг 1: Domain Layer Validation ====================
+    // ==================== ЭТАП 1: Domain Layer (Stateless) ====================
     
-    // ✅ Создаем Aggregate (валидация Value Objects)
-    // Domain проверяет формат, длину, паттерны через ValidationCombinators
+    // ✅ Создаем Aggregate - ValidationCombinators накапливает ВСЕ ошибки VO
+    // "Namespace слишком короткий?"
+    // "Name содержит недопустимые символы?"
+    // "Secret слишком слабый?"
     const resourceResult = Resource.create(
       command.namespace,
       command.name,
       command.secret
     )
     
-    // Если есть ошибки валидации Domain - возвращаем их
-    // ValidationCombinators уже накопил ВСЕ ошибки
     if (resourceResult.isLeft()) {
+      // Возвращаем ВСЕ накопленные ошибки Domain Layer
       return resourceResult as Validation<InvariantViolationError[], string>
     }
     
     const resource = resourceResult.value
     
-    // ==================== Шаг 2: Application Layer Validation ====================
+    // ==================== ЭТАП 2: Application Layer (I/O) ====================
     
-    // ✅ Проверка уникальности - ТОЛЬКО Application Layer может это сделать!
-    // Domain не знает о Repository, не может проверить уникальность
+    // ✅ Проверка уникальности - ТОЛЬКО Application Layer может это сделать
+    // "Ресурс с таким namespace:name уже существует?"
     
     try {
       const existingResource = await this.repository.findByNamespaceAndName(
@@ -1208,7 +1203,6 @@ export class CreateResourceCommandHandler
       )
       
       if (existingResource) {
-        // ✅ Application Layer ошибка - дубликат
         return invalid([
           new DuplicateResourceError(
             resource.getNamespace().getValue(),
@@ -1218,7 +1212,6 @@ export class CreateResourceCommandHandler
         ])
       }
     } catch (error) {
-      // Инфраструктурная ошибка при проверке
       return invalid([
         new CommandError(
           'CreateResourceCommand',
@@ -1227,16 +1220,12 @@ export class CreateResourceCommandHandler
       ])
     }
     
-    // ==================== Шаг 3: Persistence ====================
+    // ==================== ЭТАП 3: Persistence ====================
     
     try {
       await this.repository.save(resource)
-      
-      // Возвращаем ID созданного ресурса
       return valid(resource.getId().getValue())
-      
     } catch (error) {
-      // Инфраструктурная ошибка при сохранении
       return invalid([
         new CommandError(
           'CreateResourceCommand',
@@ -1244,6 +1233,196 @@ export class CreateResourceCommandHandler
         )
       ])
     }
+  }
+}
+```
+
+---
+
+#### Пример 2: RenameResourceCommand Handler (сложный случай с Aggregate методом)
+
+```typescript
+// src/application/commands/handlers/RenameResourceCommandHandler.ts
+import { Validation, valid, invalid, ValidationCombinators } from '@/shared/validation'
+import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
+import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
+import { 
+  InvariantViolationError,
+  NotFoundError,
+  DuplicateResourceError,
+  CommandError 
+} from '@/domain/shared/errors'
+import type { ICommandHandler } from '../ICommandHandler'
+import type { RenameResourceCommand } from '../RenameResourceCommand'
+
+/**
+ * Command Handler для переименования ресурса
+ * 
+ * Четырехэтапная валидация с накоплением ошибок:
+ * 1. Подготовка - загрузка Aggregate из Repository
+ * 2. Domain Layer - валидация нового имени (stateless)
+ * 3. Application Layer - проверка уникальности (I/O)
+ * 4. Aggregate Layer - бизнес-правила (stateful: "ресурс заархивирован?")
+ */
+export class RenameResourceCommandHandler 
+  implements ICommandHandler<RenameResourceCommand, void> {
+  
+  constructor(
+    private readonly repository: IResourceRepository
+  ) {}
+  
+  async handle(
+    command: RenameResourceCommand
+  ): Promise<Validation<InvariantViolationError[], void>> {
+    
+    // ==================== ПОДГОТОВКА ====================
+    
+    const resource = await this.repository.findById(command.resourceId)
+    
+    if (!resource) {
+      return invalid([
+        new NotFoundError('Resource', command.resourceId)
+      ])
+    }
+    
+    // ==================== ЭТАП 1: Domain Layer (Stateless) ====================
+    
+    // ✅ Валидация нового имени через VO
+    // "Имя слишком длинное?"
+    // "Имя содержит недопустимые символы?"
+    const newNameResult = ResourceName.create(command.newName)
+    
+    if (newNameResult.isLeft()) {
+      // Возвращаем ошибки валидации имени
+      return newNameResult as Validation<InvariantViolationError[], void>
+    }
+    
+    const newName = newNameResult.value
+    
+    // ==================== ЭТАП 2: Application Layer (I/O) ====================
+    
+    // ✅ Проверка уникальности нового имени
+    // "Имя уже существует в этом namespace?"
+    
+    try {
+      const existingResource = await this.repository.findByNamespaceAndName(
+        resource.getNamespace(),
+        newName
+      )
+      
+      // Проверяем что это не тот же ресурс
+      if (existingResource && !existingResource.getId().equals(resource.getId())) {
+        return invalid([
+          new DuplicateResourceError(
+            resource.getNamespace().getValue(),
+            newName.getValue(),
+            `Resource with name "${newName.getValue()}" already exists in namespace "${resource.getNamespace().getValue()}"`
+          )
+        ])
+      }
+    } catch (error) {
+      return invalid([
+        new CommandError(
+          'RenameResourceCommand',
+          `Failed to check uniqueness: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+      ])
+    }
+    
+    // ==================== ЭТАП 3: Aggregate Layer (Stateful) ====================
+    
+    // ✅ Вызываем бизнес-метод Aggregate
+    // "Ресурс заархивирован?"
+    // "Новое имя совпадает с namespace?"
+    // "Ресурс заблокирован?"
+    const renameResult = resource.rename(newName)
+    
+    if (renameResult.isLeft()) {
+      // Aggregate вернул свои ВНУТРЕННИЕ (stateful) ошибки
+      return renameResult as Validation<InvariantViolationError[], void>
+    }
+    
+    // ==================== ЭТАП 4: Persistence ====================
+    
+    // resource.rename() уже изменил состояние Aggregate в памяти
+    try {
+      await this.repository.save(resource)
+      return valid(undefined)
+    } catch (error) {
+      return invalid([
+        new CommandError(
+          'RenameResourceCommand',
+          `Failed to save resource: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+      ])
+    }
+  }
+}
+```
+
+**Ключевое отличие от CreateResource:**
+- `Resource.create()` - создает новый Aggregate, нет stateful проверок
+- `resource.rename()` - вызывает метод существующего Aggregate, есть stateful проверки (заархивирован, заблокирован, и т.д.)
+
+---
+
+#### Пример бизнес-метода в Aggregate
+
+```typescript
+// src/domain/resource/aggregates/Resource.ts
+export class Resource {
+  // ...
+  
+  /**
+   * Переименовать ресурс
+   * 
+   * Stateful валидация:
+   * - Ресурс не должен быть заархивирован
+   * - Новое имя не должно совпадать с namespace
+   * - Ресурс не должен быть заблокирован
+   */
+  rename(newName: ResourceName): Validation<InvariantViolationError[], void> {
+    const errors: InvariantViolationError[] = []
+    
+    // Проверка 1: Ресурс заархивирован?
+    if (this._isArchived) {
+      errors.push(
+        new InvariantViolationError(
+          'Resource',
+          'Cannot rename archived resource'
+        )
+      )
+    }
+    
+    // Проверка 2: Имя совпадает с namespace?
+    if (newName.getValue() === this._namespace.getValue()) {
+      errors.push(
+        new InvariantViolationError(
+          'ResourceName',
+          'Resource name cannot be the same as namespace'
+        )
+      )
+    }
+    
+    // Проверка 3: Ресурс заблокирован?
+    if (this._isLocked) {
+      errors.push(
+        new InvariantViolationError(
+          'Resource',
+          'Cannot rename locked resource'
+        )
+      )
+    }
+    
+    if (errors.length > 0) {
+      return invalid(errors)
+    }
+    
+    // ✅ Все проверки прошли - изменяем состояние
+    this._name = newName
+    this._updatedAt = new Date()
+    
+    return valid(undefined)
   }
 }
 ```

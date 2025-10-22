@@ -181,8 +181,9 @@ export class ResourceId {
   
   /**
    * Создает ID из строки с валидацией
+   * Возвращает массив ошибок (пустота + формат)
    */
-  static create(value: string): Either<InvariantViolationError, ResourceId> {
+  static create(value: string): Validation<InvariantViolationError[], ResourceId> {
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }
@@ -423,27 +424,59 @@ import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
 import { CustomField } from '../entities/CustomField'
-import { DomainError } from '@/domain/shared'
+import { ValidationError } from '@/domain/shared/specification'
+
+/**
+ * Props для создания Resource
+ * Object Parameter Pattern - именованные параметры
+ */
+interface ResourceProps {
+  id: ResourceId
+  namespace: Namespace
+  name: ResourceName
+  secret: string
+  customFields: CustomField[]
+  createdAt: Date
+  updatedAt: Date
+}
 
 export class Resource {
-  constructor(
-    public readonly id: ResourceId,        // ✅ Класс
-    public readonly namespace: Namespace,  // ✅ Класс
-    public readonly name: ResourceName,    // ✅ Класс
-    private secret: string,
-    private customFields: CustomField[],   // ✅ Массив классов
-    public readonly createdAt: Date,
-    public readonly updatedAt: Date
-  ) {}
+  private readonly _id: ResourceId
+  private readonly _namespace: Namespace
+  private readonly _name: ResourceName
+  private _secret: string
+  private _customFields: CustomField[]
+  private readonly _createdAt: Date
+  private readonly _updatedAt: Date
+
+  private constructor(props: ResourceProps) {
+    this._id = props.id
+    this._namespace = props.namespace
+    this._name = props.name
+    this._secret = props.secret
+    this._customFields = props.customFields
+    this._createdAt = props.createdAt
+    this._updatedAt = props.updatedAt
+  }
+
+  // Getters
+  get id() { return this._id }
+  get namespace() { return this._namespace }
+  get name() { return this._name }
+  get secret() { return this._secret }
+  get customFields() { return this._customFields }
+  get createdAt() { return this._createdAt }
+  get updatedAt() { return this._updatedAt }
   
   /**
    * Фабричный метод - принимает примитивы, создает Value Objects
+   * Object Parameter Pattern для конструктора
    */
   static create(
     namespace: string,
     name: string,
     secret: string
-  ): Validation<DomainError[], Resource> {
+  ): Validation<ValidationError[], Resource> {
     // Создаем Value Objects из примитивов
     const namespaceVO = Namespace.create(namespace)
     const nameVO = ResourceName.create(name)
@@ -452,37 +485,37 @@ export class Resource {
     // Комбинируем результаты валидации с накоплением ошибок
     return ValidationCombinators.sequence(
       [namespaceVO, nameVO],
-      ([ns, nm]) => new Resource(
+      ([ns, nm]) => new Resource({
         id,
-        ns,
-        nm,
+        namespace: ns,
+        name: nm,
         secret,
-        [],
-        new Date(),
-        new Date()
-      )
+        customFields: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
     )
   }
   
   /**
    * Бизнес-метод - работает с классами
    */
-  addCustomField(label: string, value: string): Validation<DomainError, void> {
+  addCustomField(label: string, value: string): Validation<ValidationError, void> {
     // Инвариант: не более 20 полей
-    if (this.customFields.length >= 20) {
-      return invalid(new InvalidOperationError('Cannot add more than 20 fields'))
+    if (this._customFields.length >= 20) {
+      return invalid(new ValidationError('Resource', 'Cannot add more than 20 fields'))
     }
     
     // Инвариант: уникальные метки
-    if (this.customFields.some(f => f.label === label)) {
-      return invalid(new DuplicateFieldLabelError(label))
+    if (this._customFields.some(f => f.label === label)) {
+      return invalid(new ValidationError('Resource', `Field with label "${label}" already exists`))
     }
     
     // Создаем Entity
     const fieldId = FieldId.generate()
     const field = new CustomField(fieldId, label, value, false)
     
-    this.customFields.push(field)
+    this._customFields.push(field)
     return valid(undefined)
   }
 }

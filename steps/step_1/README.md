@@ -945,15 +945,23 @@ export interface IQuery {
 
 ```typescript
 // src/application/queries/IQueryHandler.ts
+import { Validation } from '@/shared/validation'
 import type { IQuery } from './IQuery'
+import type { QueryError } from '@/domain/shared/errors'
 
-export interface QueryResult<T = any> {
-  data: T
-  error?: string
-}
-
+/**
+ * Query Handler интерфейс
+ * 
+ * Возвращает Validation вместо QueryResult для:
+ * - Type-safe обработки ошибок
+ * - Накопления множественных ошибок
+ * - Единообразия с Domain Layer
+ * 
+ * @template Q - тип Query
+ * @template R - тип результата (обычно DTO)
+ */
 export interface IQueryHandler<Q extends IQuery = IQuery, R = any> {
-  handle(query: Q): Promise<QueryResult<R>>
+  handle(query: Q): Promise<Validation<QueryError[], R>>
 }
 ```
 
@@ -963,11 +971,13 @@ export interface IQueryHandler<Q extends IQuery = IQuery, R = any> {
 
 ```typescript
 // src/application/queries/IQueryBus.ts
-import type { IQuery, IQueryHandler, QueryResult } from './'
+import { Validation } from '@/shared/validation'
+import type { IQuery, IQueryHandler } from './'
+import type { QueryError } from '@/domain/shared/errors'
 
 export interface IQueryBus {
   register<Q extends IQuery>(type: string, handler: IQueryHandler<Q>): void
-  execute<Q extends IQuery, R = any>(query: Q): Promise<QueryResult<R>>
+  execute<Q extends IQuery, R = any>(query: Q): Promise<Validation<QueryError[], R>>
 }
 ```
 
@@ -1000,10 +1010,12 @@ export class ListResourcesQuery implements IQuery {
 
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
-import type { IQueryHandler, QueryResult } from '../IQueryHandler'
+import { Validation, valid, invalid } from '@/shared/validation'
+import type { IQueryHandler } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
 import type { IResourceRepository } from '@/domain/repositories'
 import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
+import { QueryError } from '@/domain/shared/errors'
 
 /**
  * Query Handler для получения списка ресурсов
@@ -1012,23 +1024,31 @@ import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
  * ⚠️ ВАЖНО: Преобразование Domain → DTO происходит ЗДЕСЬ!
  * Repository возвращает Domain типы (Resource)
  * Query Handler преобразует их в DTO для Presentation Layer
+ * 
+ * Application Layer валидация:
+ * - Обработка инфраструктурных ошибок
+ * - Преобразование Domain → DTO
+ * - Фильтрация данных (в будущем)
  */
-export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
+export class ListResourcesQueryHandler 
+  implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
+  
   constructor(private repository: IResourceRepository) {}
   
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
+  async handle(
+    query: ListResourcesQuery
+  ): Promise<Validation<QueryError[], ResourceListItemDTO[]>> {
     try {
       // Получаем Domain типы из репозитория
       const resources = await this.repository.findAll()
       
       // Преобразуем Domain → DTO
       const dtos: ResourceListItemDTO[] = resources.map(resource => ({
-        id: resource.id.getValue(),
-        namespace: resource.namespace.getValue(),
-        name: resource.name.getValue(),
-        secretPreview: resource.getSecretPreview(),
-        fieldsCount: resource.getFieldsCount(),
-        updatedAt: resource.updatedAt.toISOString()
+        id: resource.getId().getValue(),
+        namespace: resource.getNamespace().getValue(),
+        name: resource.getName().getValue(),
+        createdAt: resource.getCreatedAt().toISOString(),
+        updatedAt: resource.getUpdatedAt().toISOString()
       }))
       
       // В будущем: фильтрация по namespace и search
@@ -1036,23 +1056,37 @@ export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQue
       //   ? dtos.filter(dto => dto.namespace === query.namespace)
       //   : dtos
       
-      return { data: dtos }
+      return valid(dtos)
     } catch (error) {
-      return {
-        data: [],
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }
+      // Обрабатываем только инфраструктурные ошибки
+      return invalid([
+        new QueryError(
+          'ListResourcesQuery',
+          `Failed to fetch resources: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+      ])
     }
   }
 }
 ```
 
+**Ключевые особенности Query Handler:**
+
+1. **Validation API** - type-safe обработка ошибок
+2. **Domain → DTO** - преобразование происходит здесь
+3. **Try-catch** - только для инфраструктурных ошибок
+4. **Getters** - используем методы вместо прямого доступа
+
 **Зачем Query Handler?**
-- CQRS: разделение чтения (Query) и записи (Command)
-- Инкапсулирует логику получения данных
-- Легко тестировать
-- Легко кешировать результаты
-- Изолирован от UI
+- ✅ CQRS: разделение чтения (Query) и записи (Command)
+- ✅ Инкапсулирует логику получения данных
+- ✅ Легко тестировать
+- ✅ Легко кешировать результаты
+- ✅ Изолирован от UI
+
+> 💡 **Application Layer валидация:** Query Handlers НЕ делают валидацию данных (это Domain Layer). Они только обрабатывают инфраструктурные ошибки и преобразуют Domain → DTO.
+
+> 📚 **Для Command Handlers:** См. [APPLICATION_LAYER_VALIDATION.md](../../docs/APPLICATION_LAYER_VALIDATION.md) - примеры с проверкой уникальности через Repository.
 
 #### 3.5 Создать Public API для queries
 
@@ -1064,7 +1098,7 @@ export class ListResourcesQueryHandler implements IQueryHandler<ListResourcesQue
 // src/application/queries/index.ts
 export { QueryTypes } from './QueryTypes'
 export type { IQuery } from './IQuery'
-export type { IQueryHandler, QueryResult } from './IQueryHandler'
+export type { IQueryHandler } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
 export { ListResourcesQuery } from './ListResourcesQuery'
 export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
@@ -1078,6 +1112,168 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 - Presentation НЕ может импортировать из внутренностей (`/dtos/`)
 - DTO экспортируются в Public API Application, затем реэкспортируются в Composition
 - Это позволяет Presentation импортировать DTO через `@/composition`
+
+---
+
+### 💡 Пример: Application Layer валидация (Command Handler)
+
+> **Примечание:** В Step 1 мы создаем только Query Handler (чтение). Command Handlers (запись) будут в Step 4.
+> 
+> Но важно понять **разницу между Domain и Application валидацией** уже сейчас!
+
+#### Двухуровневая валидация
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Application Layer Validation                        │
+│  ✅ Проверка уникальности (через Repository)        │
+│  ✅ Проверка существования связанных объектов       │
+│  ✅ Бизнес-правила уровня приложения                │
+└────────────────────┬────────────────────────────────┘
+                     ↓
+┌────────────────────┴────────────────────────────────┐
+│  Domain Layer Validation                             │
+│  ✅ Инварианты Value Objects (формат, длина)       │
+│  ✅ Бизнес-правила внутри Aggregate                 │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Пример: CreateResourceCommand Handler
+
+```typescript
+// src/application/commands/handlers/CreateResourceCommandHandler.ts
+import { Validation, valid, invalid } from '@/shared/validation'
+import { Resource } from '@/domain/resource/aggregates/Resource'
+import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
+import { CommandError, DuplicateError } from '@/domain/shared/errors'
+
+export class CreateResourceCommandHandler {
+  constructor(
+    private readonly repository: IResourceRepository
+  ) {}
+  
+  async handle(
+    command: CreateResourceCommand
+  ): Promise<Validation<CommandError[], string>> {
+    // ==================== Шаг 1: Application Layer Validation ====================
+    
+    // ✅ Проверка уникальности - ТОЛЬКО Application Layer может это сделать!
+    // Domain не знает о Repository, не может проверить уникальность
+    const existingResource = await this.repository.findByNamespaceAndName(
+      command.namespace,
+      command.name
+    )
+    
+    if (existingResource) {
+      return invalid([
+        new DuplicateError(
+          'Resource',
+          `Resource "${command.namespace}:${command.name}" already exists`
+        )
+      ])
+    }
+    
+    // ==================== Шаг 2: Domain Layer Validation ====================
+    
+    // ✅ Создаем Aggregate (валидация Value Objects)
+    // Domain проверяет формат, длину, паттерны
+    const resourceResult = Resource.create(
+      command.namespace,
+      command.name,
+      command.secret
+    )
+    
+    // Если есть ошибки валидации Domain - возвращаем их
+    if (resourceResult.isLeft()) {
+      return resourceResult as Validation<CommandError[], string>
+    }
+    
+    // ==================== Шаг 3: Persistence ====================
+    
+    const resource = resourceResult.value
+    
+    try {
+      await this.repository.save(resource)
+      
+      // Возвращаем ID созданного ресурса
+      return valid(resource.getId().getValue())
+    } catch (error) {
+      return invalid([
+        new CommandError(
+          'CreateResourceCommand',
+          `Failed to save resource: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+      ])
+    }
+  }
+}
+```
+
+#### Ключевые моменты:
+
+1. **Application валидация ПЕРВАЯ** - проверка уникальности
+   ```typescript
+   // ✅ ПРАВИЛЬНО - Application Layer
+   const existing = await this.repository.findByNamespaceAndName(...)
+   if (existing) return invalid([new DuplicateError(...)])
+   ```
+
+2. **Domain валидация ВТОРАЯ** - создание Aggregate
+   ```typescript
+   // ✅ ПРАВИЛЬНО - Domain Layer
+   const resource = Resource.create(namespace, name, secret)
+   if (resource.isLeft()) return resource
+   ```
+
+3. **Раннее возвращение** - не продолжаем если есть ошибки
+   ```typescript
+   // ✅ ПРАВИЛЬНО
+   if (existingResource) return invalid([...])  // Останавливаемся
+   
+   const resource = Resource.create(...)
+   if (resource.isLeft()) return resource  // Останавливаемся
+   ```
+
+4. **Try-catch только для persistence** - инфраструктурные ошибки
+   ```typescript
+   // ✅ ПРАВИЛЬНО
+   try {
+     await this.repository.save(resource)
+   } catch (error) {
+     return invalid([new CommandError(...)])
+   }
+   ```
+
+#### Почему Domain не может проверить уникальность?
+
+```typescript
+// ❌ НЕПРАВИЛЬНО - Domain знает о Repository
+class Resource {
+  static async create(
+    namespace: string,
+    name: string,
+    repository: IResourceRepository  // ❌ Domain зависит от Infrastructure!
+  ) {
+    const existing = await repository.findByNamespaceAndName(...)  // ❌
+    if (existing) return invalid([...])
+    // ...
+  }
+}
+
+// ✅ ПРАВИЛЬНО - Application проверяет уникальность
+class CreateResourceCommandHandler {
+  async handle(command: CreateResourceCommand) {
+    // ✅ Application Layer имеет доступ к Repository
+    const existing = await this.repository.findByNamespaceAndName(...)
+    if (existing) return invalid([...])
+    
+    // ✅ Domain просто создает объект с валидацией формата
+    const resource = Resource.create(namespace, name, secret)
+  }
+}
+```
+
+> 📚 **Полная документация:** [APPLICATION_LAYER_VALIDATION.md](../../docs/APPLICATION_LAYER_VALIDATION.md) - детальные примеры Command и Query Handlers с валидацией.
 
 ---
 

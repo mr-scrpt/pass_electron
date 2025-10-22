@@ -1142,41 +1142,96 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
-import { Validation, valid, invalid } from '@/shared/validation'
+import { Validation, valid, invalid, ValidationCombinators } from '@/shared/validation'
 import { Resource } from '@/domain/resource/aggregates/Resource'
+import { Namespace } from '@/domain/resource/value-objects/Namespace'
+import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
 import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
-import { CommandError, DuplicateError } from '@/domain/shared/errors'
+import { 
+  InvariantViolationError, 
+  DuplicateResourceError,
+  CommandError 
+} from '@/domain/shared/errors'
+import type { ICommandHandler } from '../ICommandHandler'
+import type { CreateResourceCommand } from '../CreateResourceCommand'
 
-export class CreateResourceCommandHandler {
+/**
+ * Command Handler для создания нового ресурса
+ * 
+ * Двухуровневая валидация:
+ * 1. Application Layer - проверка уникальности через Repository
+ * 2. Domain Layer - валидация Value Objects через ValidationCombinators
+ * 
+ * Обработка ошибок:
+ * - Накопление ошибок из Domain Layer
+ * - Добавление ошибок Application Layer
+ * - Раннее возвращение при критических ошибках
+ */
+export class CreateResourceCommandHandler 
+  implements ICommandHandler<CreateResourceCommand, string> {
+  
   constructor(
     private readonly repository: IResourceRepository
   ) {}
   
   async handle(
     command: CreateResourceCommand
-  ): Promise<Validation<CommandError[], string>> {
+  ): Promise<Validation<InvariantViolationError[], string>> {
+    
     // ==================== Шаг 1: Application Layer Validation ====================
     
     // ✅ Проверка уникальности - ТОЛЬКО Application Layer может это сделать!
     // Domain не знает о Repository, не может проверить уникальность
-    const existingResource = await this.repository.findByNamespaceAndName(
-      command.namespace,
-      command.name
+    
+    // Сначала валидируем параметры для поиска (нужны валидные VO для запроса)
+    const namespaceResult = Namespace.create(command.namespace)
+    const nameResult = ResourceName.create(command.name)
+    
+    // Проверяем базовую валидацию перед запросом в Repository
+    // Если формат невалидный - нет смысла проверять уникальность
+    const basicValidation = ValidationCombinators.sequence(
+      [namespaceResult, nameResult],
+      ([ns, name]) => ({ namespace: ns, name })
     )
     
-    if (existingResource) {
+    if (basicValidation.isLeft()) {
+      // Возвращаем ошибки валидации формата
+      return basicValidation as Validation<InvariantViolationError[], string>
+    }
+    
+    const { namespace, name } = basicValidation.value
+    
+    // Теперь проверяем уникальность
+    try {
+      const existingResource = await this.repository.findByNamespaceAndName(
+        namespace,
+        name
+      )
+      
+      if (existingResource) {
+        // ✅ Application Layer ошибка - дубликат
+        return invalid([
+          new DuplicateResourceError(
+            namespace.getValue(),
+            name.getValue(),
+            `Resource "${namespace.getValue()}:${name.getValue()}" already exists`
+          )
+        ])
+      }
+    } catch (error) {
+      // Инфраструктурная ошибка при проверке
       return invalid([
-        new DuplicateError(
-          'Resource',
-          `Resource "${command.namespace}:${command.name}" already exists`
+        new CommandError(
+          'CreateResourceCommand',
+          `Failed to check uniqueness: ${error instanceof Error ? error.message : 'Unknown error'}`
         )
       ])
     }
     
     // ==================== Шаг 2: Domain Layer Validation ====================
     
-    // ✅ Создаем Aggregate (валидация Value Objects)
-    // Domain проверяет формат, длину, паттерны
+    // ✅ Создаем Aggregate (полная валидация всех Value Objects)
+    // Domain проверяет формат, длину, паттерны через ValidationCombinators
     const resourceResult = Resource.create(
       command.namespace,
       command.name,
@@ -1184,8 +1239,9 @@ export class CreateResourceCommandHandler {
     )
     
     // Если есть ошибки валидации Domain - возвращаем их
+    // ValidationCombinators уже накопил ВСЕ ошибки
     if (resourceResult.isLeft()) {
-      return resourceResult as Validation<CommandError[], string>
+      return resourceResult as Validation<InvariantViolationError[], string>
     }
     
     // ==================== Шаг 3: Persistence ====================
@@ -1197,7 +1253,9 @@ export class CreateResourceCommandHandler {
       
       // Возвращаем ID созданного ресурса
       return valid(resource.getId().getValue())
+      
     } catch (error) {
+      // Инфраструктурная ошибка при сохранении
       return invalid([
         new CommandError(
           'CreateResourceCommand',
@@ -1211,36 +1269,77 @@ export class CreateResourceCommandHandler {
 
 #### Ключевые моменты:
 
-1. **Application валидация ПЕРВАЯ** - проверка уникальности
+1. **Предварительная валидация перед запросом в Repository**
    ```typescript
-   // ✅ ПРАВИЛЬНО - Application Layer
-   const existing = await this.repository.findByNamespaceAndName(...)
-   if (existing) return invalid([new DuplicateError(...)])
-   ```
-
-2. **Domain валидация ВТОРАЯ** - создание Aggregate
-   ```typescript
-   // ✅ ПРАВИЛЬНО - Domain Layer
-   const resource = Resource.create(namespace, name, secret)
-   if (resource.isLeft()) return resource
-   ```
-
-3. **Раннее возвращение** - не продолжаем если есть ошибки
-   ```typescript
-   // ✅ ПРАВИЛЬНО
-   if (existingResource) return invalid([...])  // Останавливаемся
+   // ✅ Сначала валидируем формат (чтобы не делать лишний запрос в БД)
+   const namespaceResult = Namespace.create(command.namespace)
+   const nameResult = ResourceName.create(command.name)
    
-   const resource = Resource.create(...)
-   if (resource.isLeft()) return resource  // Останавливаемся
+   const basicValidation = ValidationCombinators.sequence(
+     [namespaceResult, nameResult],
+     ([ns, name]) => ({ namespace: ns, name })
+   )
+   
+   if (basicValidation.isLeft()) {
+     // Возвращаем ошибки формата (например: "Namespace too short")
+     return basicValidation
+   }
    ```
 
-4. **Try-catch только для persistence** - инфраструктурные ошибки
+2. **Application валидация - проверка уникальности**
    ```typescript
-   // ✅ ПРАВИЛЬНО
+   // ✅ Используем валидные VO для запроса
+   const { namespace, name } = basicValidation.value
+   
+   const existingResource = await this.repository.findByNamespaceAndName(
+     namespace,  // Уже валидный Namespace VO
+     name        // Уже валидный ResourceName VO
+   )
+   
+   if (existingResource) {
+     return invalid([
+       new DuplicateResourceError(
+         namespace.getValue(),
+         name.getValue(),
+         `Resource "${namespace.getValue()}:${name.getValue()}" already exists`
+       )
+     ])
+   }
+   ```
+
+3. **Domain валидация - создание Aggregate**
+   ```typescript
+   // ✅ ValidationCombinators накапливает ВСЕ ошибки
+   const resourceResult = Resource.create(
+     command.namespace,
+     command.name,
+     command.secret
+   )
+   
+   if (resourceResult.isLeft()) {
+     // Возвращаем ВСЕ накопленные ошибки Domain Layer
+     // Например: ["Namespace too short", "Name invalid format", "Secret too weak"]
+     return resourceResult
+   }
+   ```
+
+4. **Раннее возвращение при ошибках**
+   ```typescript
+   // ✅ Останавливаемся при первой критической ошибке
+   if (basicValidation.isLeft()) return basicValidation
+   if (existingResource) return invalid([...])
+   if (resourceResult.isLeft()) return resourceResult
+   ```
+
+5. **Try-catch только для инфраструктурных ошибок**
+   ```typescript
+   // ✅ Обрабатываем ошибки сети, БД, файловой системы
    try {
      await this.repository.save(resource)
    } catch (error) {
-     return invalid([new CommandError(...)])
+     return invalid([
+       new CommandError('CreateResourceCommand', error.message)
+     ])
    }
    ```
 
@@ -1272,6 +1371,78 @@ class CreateResourceCommandHandler {
   }
 }
 ```
+
+#### Пример накопления ошибок
+
+**Сценарий:** Пользователь отправляет невалидные данные
+
+```typescript
+// Пользователь отправляет:
+{
+  namespace: "a",        // ❌ Слишком короткий (минимум 2 символа)
+  name: "My@Resource",   // ❌ Недопустимый символ @
+  secret: "123"          // ❌ Слишком короткий (минимум 8 символов)
+}
+```
+
+**Шаг 1: Предварительная валидация**
+```typescript
+const namespaceResult = Namespace.create("a")
+// Left([InvariantViolationError("Namespace", "Length must be between 2 and 50")])
+
+const nameResult = ResourceName.create("My@Resource")
+// Left([InvariantViolationError("ResourceName", "Must match pattern: ^[a-zA-Z0-9-_]+$")])
+
+const basicValidation = ValidationCombinators.sequence(
+  [namespaceResult, nameResult],
+  ([ns, name]) => ({ namespace: ns, name })
+)
+
+// ✅ ValidationCombinators накопил ОБЕ ошибки!
+// Left([
+//   InvariantViolationError("Namespace", "Length must be between 2 and 50"),
+//   InvariantViolationError("ResourceName", "Must match pattern: ^[a-zA-Z0-9-_]+$")
+// ])
+
+if (basicValidation.isLeft()) {
+  // Возвращаем ВСЕ ошибки пользователю
+  // Он видит сразу ОБЕ проблемы, а не по одной!
+  return basicValidation
+}
+```
+
+**Если бы формат был валидный, но ресурс существует:**
+```typescript
+const existingResource = await this.repository.findByNamespaceAndName(...)
+
+if (existingResource) {
+  // Возвращаем ошибку уникальности
+  return invalid([
+    new DuplicateResourceError(
+      "social",
+      "facebook",
+      'Resource "social:facebook" already exists'
+    )
+  ])
+}
+```
+
+**Если бы все прошло, но secret слабый:**
+```typescript
+const resourceResult = Resource.create("social", "facebook", "123")
+
+// Resource.create() внутри вызывает ValidationCombinators
+// Он накопит ВСЕ ошибки валидации secret
+// Left([
+//   InvariantViolationError("Secret", "Length must be at least 8 characters")
+// ])
+
+if (resourceResult.isLeft()) {
+  return resourceResult
+}
+```
+
+**Итог:** Пользователь получает **все ошибки сразу**, а не по одной!
 
 > 📚 **Полная документация:** [APPLICATION_LAYER_VALIDATION.md](../../docs/APPLICATION_LAYER_VALIDATION.md) - детальные примеры Command и Query Handlers с валидацией.
 

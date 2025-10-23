@@ -1,4 +1,3 @@
-// src/domain/shared/errors/InvariantViolationError.ts
 export class InvariantViolationError extends Error {
   readonly code = "INVARIANT_VIOLATION";
 

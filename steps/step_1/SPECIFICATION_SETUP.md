@@ -35,7 +35,7 @@
 ```typescript
 // src/domain/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
-import { ValidationError } from './ValidationError'
+import { ValidationError } from '../errors/ValidationError'
 
 /**
  * Спецификация для валидации
@@ -55,10 +55,10 @@ export interface ISpecification<T> {
 
 ## 0.5.2. Создать ValidationError [#class:ValidationError|#code|#structure:path]
 
-**Файл: `src/domain/shared/specification/ValidationError.ts`**
+**Файл: `src/domain/shared/errors/ValidationError.ts`**
 
 ```typescript
-// src/domain/shared/specification/ValidationError.ts
+// src/domain/shared/errors/ValidationError.ts
 
 /**
  * Ошибка валидации
@@ -296,7 +296,7 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 // src/domain/shared/specification/index.ts
 
 export type { ISpecification } from './ISpecification'
-export { ValidationError } from './ValidationError'
+export { ValidationError } from '../errors/ValidationError'
 
 // ⚠️ Общие спецификации - НЕ использовать напрямую в Domain!
 // Создавайте синглтоны в domain/specifications/
@@ -321,9 +321,10 @@ src/
 │       └── index.ts
 │
 └── domain/shared/                 # Shared Kernel
+    ├── errors/
+    │   └── ValidationError.ts     # Ошибка валидации
     └── specification/
         ├── ISpecification.ts      # Интерфейс спецификации
-        ├── ValidationError.ts     # Ошибка валидации
         ├── common/
         │   ├── CommonLengthSpec.ts
         │   ├── CommonPatternSpec.ts

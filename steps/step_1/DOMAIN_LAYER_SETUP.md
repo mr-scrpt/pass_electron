@@ -50,10 +50,10 @@ export class InvariantViolationError extends Error {
 
 Сначала создаем синглтоны-спецификации с фиксированной конфигурацией (бизнес-правила).
 
-**Файл: `src/domain/shared/invariants/UuidSpecs.ts`**
+**Файл: `src/domain/shared/specification/UuidSpecs.ts`**
 
 ```typescript
-// src/domain/shared/invariants/UuidSpecs.ts
+// src/domain/shared/specification/UuidSpecs.ts
 import { 
   CommonNotEmptySpec,
   CommonPatternSpec
@@ -88,7 +88,7 @@ export const UUID_FORMAT_SPEC = new CommonPatternSpec(
 // src/domain/shared/invariants/UuidInvariant.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
 import { ValidationError } from '@/domain/shared/specification'
-import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from './UuidSpecs'
+import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from '../specification/UuidSpecs'
 
 /**
  * Инварианты для UUID
@@ -140,7 +140,7 @@ export class UuidInvariant {
 // src/domain/shared/index.ts
 export { InvariantViolationError } from './errors/InvariantViolationError'
 export { UuidInvariant } from './invariants/UuidInvariant'
-export * from './invariants/UuidSpecs'  // UUID спецификации
+export * from './specification/UuidSpecs'  // UUID спецификации
 ```
 
 **Зачем Shared Kernel?**
@@ -637,12 +637,12 @@ src/domain/
 ├── shared/                       # Shared Kernel
 │   ├── errors/
 │   │   ├── InvariantViolationError.ts  # Для простых инвариантов
-│   │   └── ValidationError.ts          # Для спецификаций (создан в SPECIFICATION_SETUP)
+│   │   └── ValidationError.ts          # Для спецификаций
 │   ├── invariants/
 │   │   ├── UuidInvariant.ts            # Использует спецификации
-│   │   ├── UuidSpecs.ts                # UUID синглтоны-спецификации
 │   │   └── index.ts
 │   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
+│   │   ├── UuidSpecs.ts                # UUID синглтоны-спецификации
 │   │   ├── ISpecification.ts
 │   │   ├── common/
 │   │   │   ├── CommonLengthSpec.ts

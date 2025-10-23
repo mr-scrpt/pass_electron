@@ -91,6 +91,7 @@ app/
 │   │   └── errors/                  # ← Общие Domain Errors #structure:
 │   │       ├── DomainError.ts       # Базовая доменная ошибка #class:DomainError
 │   │       ├── InvariantViolationError.ts  #class:InvariantViolationError
+│   │       ├── ValidationError.ts          #class:ValidationError (для спецификаций)
 │   │       ├── NotFoundError.ts     #class:NotFoundError
 │   │       ├── DuplicateError.ts    #class:DuplicateError
 │   │       ├── InvalidOperationError.ts  #class:InvalidOperationError
@@ -103,11 +104,6 @@ app/
 │           ├── DuplicateFieldLabelError.ts  #class:DuplicateFieldLabelError
 │           └── index.ts
 ├── application/                     #structure:
-│   └── errors/                        # ← Application Errors #structure:
-│       ├── ValidationError.ts       #class:ValidationError
-│       ├── CommandError.ts          #class:CommandError
-│       ├── QueryError.ts            #class:QueryError
-│       └── index.ts
 ├── infrastructure/                  #structure:
 │   └── errors/                        # ← Infrastructure Errors #structure:
 │       ├── NetworkError.ts          #class:NetworkError
@@ -162,6 +158,33 @@ export abstract class DomainError extends Error {
 }
 ```
 
+### ValidationError (для спецификаций)
+
+**Файл: `src/domain/shared/errors/ValidationError.ts`**
+
+Это **доменная** ошибка, которая используется внутри **спецификаций** для описания нарушения сложных, композитных бизнес-правил.
+
+```typescript
+// src/domain/shared/errors/ValidationError.ts
+
+/**
+ * Ошибка валидации, используемая в спецификациях
+ */
+export class ValidationError extends Error {
+  constructor(
+    public readonly entityType: string,
+    public readonly message: string
+  ) {
+    super(`${entityType}: ${message}`)
+    this.name = 'ValidationError'
+  }
+}
+```
+
+**Отличие от `InvariantViolationError`:**
+- `ValidationError` - для сложных композитных правил (спецификаций).
+- `InvariantViolationError` - для простых, атомарных инвариантов.
+
 ### InvariantViolationError
 
 **Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
@@ -184,33 +207,6 @@ export class InvariantViolationError extends DomainError {
     readonly invariant: string
   ) {
     super(`${entityType}: ${invariant}`)
-  }
-}
-```
-
-**Использование:**
-
-#### ResourceName с InvariantViolationError [#class:ResourceName|#code]
-
-```typescript
-// В Value Object
-import { Either, right, left } from '@sweet-monads/either'
-
-class ResourceName {
-  private constructor(private readonly value: string) {}
-  
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    if (!value || value.length < 1) {
-      return left(new InvariantViolationError(
-        'ResourceName',
-        'name cannot be empty'
-      ))
-    }
-    return right(new ResourceName(value))
-  }
-  
-  getValue(): string {
-    return this.value
   }
 }
 ```
@@ -471,110 +467,6 @@ export { InvalidOperationError } from './InvalidOperationError'
 
 ---
 
-## 🟡 Application Errors
-
-### ValidationError
-
-**Файл: `src/application/errors/ValidationError.ts`**
-
-#### ValidationError [#class:ValidationError|#code|#structure:path]
-
-```typescript
-// src/application/errors/ValidationError.ts
-/**
- * Ошибка валидации на уровне Application Layer
- * Используется для валидации Commands/Queries
- */
-export class ValidationError extends Error {
-  readonly code = 'VALIDATION_ERROR'
-  
-  constructor(
-    readonly field: string,
-    readonly message: string
-  ) {
-    super(`Validation failed for ${field}: ${message}`)
-    this.name = 'ValidationError'
-  }
-}
-```
-
-**Использование:**
-
-#### Command Handler с ValidationError [#code]
-
-```typescript
-// В Command Handler
-import { Either, right, left } from '@sweet-monads/either'
-
-class CreateResourceCommandHandler {
-  async handle(command: CreateResourceCommand): Promise<Either<ValidationError, CommandResult>> {
-    // Валидация входных данных
-    if (!command.name || command.name.trim().length === 0) {
-      return left(new ValidationError('name', 'name is required'))
-    }
-    
-    // Domain валидация будет в Value Object через Either
-    const nameResult = ResourceName.create(command.name)
-    if (nameResult.isLeft()) {
-      return left(new ValidationError('name', nameResult.value.message))
-    }
-    
-    return right({ success: true, data: { id: 'resource-id' } })
-  }
-}
-```
-
-### CommandError
-
-**Файл: `src/application/errors/CommandError.ts`**
-
-#### CommandError [#class:CommandError|#code|#structure:path]
-
-```typescript
-// src/application/errors/CommandError.ts
-/**
- * Ошибка выполнения команды
- */
-export class CommandError extends Error {
-  readonly code = 'COMMAND_ERROR'
-  
-  constructor(
-    readonly commandType: string,
-    message: string,
-    readonly cause?: Error
-  ) {
-    super(`Command ${commandType} failed: ${message}`)
-    this.name = 'CommandError'
-  }
-}
-```
-
-### QueryError
-
-**Файл: `src/application/errors/QueryError.ts`**
-
-#### QueryError [#class:QueryError|#code|#structure:path]
-
-```typescript
-// src/application/errors/QueryError.ts
-/**
- * Ошибка выполнения запроса
- */
-export class QueryError extends Error {
-  readonly code = 'QUERY_ERROR'
-  
-  constructor(
-    readonly queryType: string,
-    message: string,
-    readonly cause?: Error
-  ) {
-    super(`Query ${queryType} failed: ${message}`)
-    this.name = 'QueryError'
-  }
-}
-```
-
----
 
 ## 🔵 Infrastructure Errors
 
@@ -755,7 +647,7 @@ import {
   InvariantViolationError, 
   DuplicateError 
 } from '@/domain/shared'
-import { ValidationError } from '@/application/errors'
+import { ValidationError } from '@/domain/shared/errors'
 
 export async function action({ request }: ActionFunctionArgs) {
   const result = await commands.resources.create(request)
@@ -850,14 +742,10 @@ Error (JavaScript)
 │
 ├─ DomainError (Domain Layer) ✅
 │  ├─ InvariantViolationError
+│  ├─ ValidationError (для спецификаций)
 │  ├─ NotFoundError
 │  ├─ DuplicateError
 │  └─ InvalidOperationError
-│
-├─ ApplicationError (Application Layer) ✅
-│  ├─ ValidationError
-│  ├─ CommandError
-│  └─ QueryError
 │
 └─ InfrastructureError (Infrastructure Layer) ✅
    ├─ NetworkError

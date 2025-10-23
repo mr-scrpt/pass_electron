@@ -49,6 +49,10 @@ password-manager/
     │   │
     │   └── shared/                # Shared Kernel (DDD)
     │       ├── errors/            # Domain Errors
+    │       │   ├── DomainError.ts
+    │       │   ├── InvariantViolationError.ts
+    │       │   ├── ValidationError.ts
+    │       │   └── ...
     │       ├── invariants/        # Reusable Invariants
     │       ├── base/              # Base classes/interfaces
     │       └── index.ts

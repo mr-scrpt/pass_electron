@@ -57,7 +57,7 @@ export class InvariantViolationError extends Error {
 import { 
   CommonNotEmptySpec,
   CommonPatternSpec
-} from '@/domain/shared/specification'
+} from './common'  // Локальный импорт бизнес-спецификаций
 
 /**
  * Спецификации для UUID
@@ -162,7 +162,8 @@ export * from './specification/UuidSpecs'  // UUID спецификации
 ```typescript
 // src/domain/resource/value-objects/ResourceId.ts
 import { Validation } from '@/shared/validation'
-import { InvariantViolationError, UuidInvariant } from '@/domain/shared'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
+import { UuidInvariant } from '@/domain/shared'
 
 /**
  * Value Object для ID ресурса
@@ -176,7 +177,7 @@ export class ResourceId {
     return new ResourceId(crypto.randomUUID())
   }
   
-  static create(value: string): Validation<InvariantViolationError[], ResourceId> {
+  static create(value: string): Validation<ValidationError[], ResourceId> {
     // ✅ Используем переиспользуемый инвариант
     // Возвращает массив ошибок (пустота + формат) или валидный ResourceId
     return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
@@ -215,7 +216,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/domain/shared/specification'
+} from '@/domain/shared/specification'  // Бизнес-спецификации из Shared Kernel
 
 /**
  * Спецификации для Namespace
@@ -303,7 +304,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/domain/shared/specification'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
 import {
   NAMESPACE_NOT_EMPTY_SPEC,
   NAMESPACE_LENGTH_SPEC,
@@ -372,7 +373,7 @@ import {
   CommonLengthSpec,
   CommonPatternSpec,
   CommonNotEmptySpec
-} from '@/domain/shared/specification'
+} from '@/domain/shared/specification'  // Бизнес-спецификации из Shared Kernel
 
 /**
  * Спецификации для ResourceName
@@ -426,7 +427,7 @@ export {
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/domain/shared/specification'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
 import {
   RESOURCE_NAME_NOT_EMPTY_SPEC,
   RESOURCE_NAME_LENGTH_SPEC,
@@ -481,7 +482,7 @@ export class ResourceName {
 ```typescript
 // src/domain/resource/aggregates/Resource.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/domain/shared/specification'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'

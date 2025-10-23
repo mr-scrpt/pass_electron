@@ -1,6 +1,6 @@
 // src/domain/shared/invariants/UuidInvariant.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/domain/shared/specification'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
 import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from '../specification/UuidSpecs'
 
 /**

@@ -18,9 +18,9 @@ export class ResourceId {
   static create(
     value: string,
   ): Validation<ValidationError[], ResourceId> {
-    // ✅ Используем переиспользуемый инвариант
+    // ✅ Используем переиспользуемый инвариант (Singleton)
     // Возвращает массив ошибок (пустота + формат) или валидный ResourceId
-    return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE).map(
+    return UuidInvariant.instance.validate(value, ResourceId.ENTITY_TYPE).map(
       (validValue: string) => new ResourceId(validValue),
     );
   }

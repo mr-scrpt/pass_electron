@@ -1,6 +1,7 @@
 // src/domain/resource/value-objects/Namespace.ts
-import { Either, right, left } from "@sweet-monads/either";
-import { InvariantViolationError } from "@/domain/shared";
+import { Validation } from "@/shared/validation";
+import { ValidationError } from "@/shared/errors";
+import { StringInvariant } from "@/domain/shared";
 
 /**
  * Value Object для namespace ресурса
@@ -14,35 +15,17 @@ export class Namespace {
 
   private constructor(private readonly _value: string) {}
 
-  static create(value: string): Either<InvariantViolationError, Namespace> {
-    if (!value) {
-      return left(
-        new InvariantViolationError(
-          Namespace.ENTITY_TYPE,
-          "cannot be empty",
-        ),
-      );
-    }
-
-    if (value.length < Namespace.MIN_LENGTH || value.length > Namespace.MAX_LENGTH) {
-      return left(
-        new InvariantViolationError(
-          Namespace.ENTITY_TYPE,
-          `must be ${Namespace.MIN_LENGTH}-${Namespace.MAX_LENGTH} characters`,
-        ),
-      );
-    }
-
-    if (!Namespace.PATTERN.test(value)) {
-      return left(
-        new InvariantViolationError(
-          Namespace.ENTITY_TYPE,
-          "must contain only lowercase letters, numbers, - and _",
-        ),
-      );
-    }
-
-    return right(new Namespace(value));
+  static create(value: string): Validation<ValidationError[], Namespace> {
+    // Используем StringInvariant (Singleton)
+    return StringInvariant.instance
+      .validate(value, {
+        entityType: Namespace.ENTITY_TYPE,
+        minLength: Namespace.MIN_LENGTH,
+        maxLength: Namespace.MAX_LENGTH,
+        pattern: Namespace.PATTERN,
+        patternMessage: "must contain only lowercase letters, numbers, - and _",
+      })
+      .map(() => new Namespace(value));
   }
 
   getValue(): string {

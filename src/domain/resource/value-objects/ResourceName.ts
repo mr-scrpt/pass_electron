@@ -1,6 +1,7 @@
 // src/domain/resource/value-objects/ResourceName.ts
-import { Either, right, left } from "@sweet-monads/either";
-import { InvariantViolationError } from "@/domain/shared";
+import { Validation } from "@/shared/validation";
+import { ValidationError } from "@/shared/errors";
+import { StringInvariant } from "@/domain/shared";
 
 /**
  * Value Object для имени ресурса
@@ -13,29 +14,16 @@ export class ResourceName {
 
   private constructor(private readonly _value: string) {}
 
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    if (!value) {
-      return left(
-        new InvariantViolationError(
-          ResourceName.ENTITY_TYPE,
-          "cannot be empty",
-        ),
-      );
-    }
-
-    if (
-      value.length < ResourceName.MIN_LENGTH ||
-      value.length > ResourceName.MAX_LENGTH
-    ) {
-      return left(
-        new InvariantViolationError(
-          ResourceName.ENTITY_TYPE,
-          `must be ${ResourceName.MIN_LENGTH}-${ResourceName.MAX_LENGTH} characters`,
-        ),
-      );
-    }
-
-    return right(new ResourceName(value));
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    // Используем StringInvariant (Singleton)
+    return StringInvariant.instance
+      .validateLength(
+        value,
+        ResourceName.ENTITY_TYPE,
+        ResourceName.MIN_LENGTH,
+        ResourceName.MAX_LENGTH,
+      )
+      .map(() => new ResourceName(value));
   }
 
   getValue(): string {

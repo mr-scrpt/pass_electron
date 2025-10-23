@@ -5,4 +5,3 @@
 export { CommonLengthSpec } from './common/CommonLengthSpec'
 export { CommonPatternSpec } from './common/CommonPatternSpec'
 export { CommonNotEmptySpec } from './common/CommonNotEmptySpec'
-export * from './UuidSpecs'

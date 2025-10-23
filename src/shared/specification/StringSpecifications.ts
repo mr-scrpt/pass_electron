@@ -1,21 +1,31 @@
 /**
  * String Specifications - переиспользуемые спецификации для строк
+ * Singleton Factory Pattern - экземпляры кэшируются по entityType
  */
 
-import { Validation, valid, invalid } from '@/shared/validation'
-import { ISpecification } from '@/shared/specification';
-import { ValidationError } from '@/shared/errors';
+import { Validation, isTrue } from '@/shared/validation'
+import { ISpecification } from '@/shared/specification'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Проверка на пустую строку
  */
 export class NotEmptySpec implements ISpecification<string> {
-  constructor(private entityType: string) {}
+  private static readonly _instances = new Map<string, NotEmptySpec>();
+  
+  private constructor(private readonly entityType: string) {}
+  
+  static for(entityType: string): NotEmptySpec {
+    if (!NotEmptySpec._instances.has(entityType)) {
+      NotEmptySpec._instances.set(entityType, new NotEmptySpec(entityType));
+    }
+    return NotEmptySpec._instances.get(entityType)!;
+  }
   
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return value && value.trim()
-      ? valid(value)
-      : invalid(new ValidationError(this.entityType, "cannot be empty"))
+    return isTrue(!!(value && value.trim()), value)
+      .valid()
+      .invalid(new ValidationError(this.entityType, "cannot be empty"))
   }
 }
 
@@ -23,16 +33,26 @@ export class NotEmptySpec implements ISpecification<string> {
  * Проверка диапазона длины
  */
 export class LengthRangeSpec implements ISpecification<string> {
-  constructor(
-    private min: number,
-    private max: number,
-    private entityType: string
+  private static readonly _instances = new Map<string, LengthRangeSpec>();
+  
+  private constructor(
+    private readonly min: number,
+    private readonly max: number,
+    private readonly entityType: string
   ) {}
   
+  static for(entityType: string, min: number, max: number): LengthRangeSpec {
+    const key = `${entityType}:${min}:${max}`;
+    if (!LengthRangeSpec._instances.has(key)) {
+      LengthRangeSpec._instances.set(key, new LengthRangeSpec(min, max, entityType));
+    }
+    return LengthRangeSpec._instances.get(key)!;
+  }
+  
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return value.length >= this.min && value.length <= this.max
-      ? valid(value)
-      : invalid(new ValidationError(
+    return isTrue(value.length >= this.min && value.length <= this.max, value)
+      .valid()
+      .invalid(new ValidationError(
           this.entityType,
           `must be ${this.min}-${this.max} characters`
         ))
@@ -43,16 +63,26 @@ export class LengthRangeSpec implements ISpecification<string> {
  * Проверка по регулярному выражению
  */
 export class PatternSpec implements ISpecification<string> {
-  constructor(
-    private pattern: RegExp,
-    private message: string,
-    private entityType: string
+  private static readonly _instances = new Map<string, PatternSpec>();
+  
+  private constructor(
+    private readonly pattern: RegExp,
+    private readonly message: string,
+    private readonly entityType: string
   ) {}
   
+  static for(entityType: string, pattern: RegExp, message: string): PatternSpec {
+    const key = `${entityType}:${pattern.source}:${message}`;
+    if (!PatternSpec._instances.has(key)) {
+      PatternSpec._instances.set(key, new PatternSpec(pattern, message, entityType));
+    }
+    return PatternSpec._instances.get(key)!;
+  }
+  
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return this.pattern.test(value)
-      ? valid(value)
-      : invalid(new ValidationError(this.entityType, this.message))
+    return isTrue(this.pattern.test(value), value)
+      .valid()
+      .invalid(new ValidationError(this.entityType, this.message))
   }
 }
 
@@ -60,11 +90,20 @@ export class PatternSpec implements ISpecification<string> {
  * Проверка на lowercase
  */
 export class LowercaseSpec implements ISpecification<string> {
-  constructor(private entityType: string) {}
+  private static readonly _instances = new Map<string, LowercaseSpec>();
+  
+  private constructor(private readonly entityType: string) {}
+  
+  static for(entityType: string): LowercaseSpec {
+    if (!LowercaseSpec._instances.has(entityType)) {
+      LowercaseSpec._instances.set(entityType, new LowercaseSpec(entityType));
+    }
+    return LowercaseSpec._instances.get(entityType)!;
+  }
   
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return value === value.toLowerCase()
-      ? valid(value)
-      : invalid(new ValidationError(this.entityType, "must be lowercase"))
+    return isTrue(value === value.toLowerCase(), value)
+      .valid()
+      .invalid(new ValidationError(this.entityType, "must be lowercase"))
   }
 }

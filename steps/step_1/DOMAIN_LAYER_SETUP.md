@@ -19,118 +19,228 @@
 
 > **📚 Детали**: [INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
 
-### InvariantViolationError
-
-**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
-
-#### InvariantViolationError [#class:InvariantViolationError|#code|#structure:path]
-
-```typescript
-// src/domain/shared/errors/InvariantViolationError.ts
-export class InvariantViolationError extends Error {
-  readonly code = 'INVARIANT_VIOLATION'
-  
-  constructor(
-    readonly entityType: string,
-    readonly invariant: string
-  ) {
-    super(`${entityType}: ${invariant}`)
-    this.name = 'InvariantViolationError'
-  }
-}
-```
-
 ### UuidInvariant
+
+> **📚 Примечание:** Для валидации используется `ValidationError` из `@/shared/errors` (технический тип).  
+> Подробнее: [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
 
 **Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
 
-#### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
+#### IInvariant Interface [#interface:IInvariant|#code|#structure:path]
 
-#### UuidSpecs [#code|#structure:path]
+Сначала создаем интерфейс для всех инвариантов (контракт).
 
-Сначала создаем синглтоны-спецификации с фиксированной конфигурацией (бизнес-правила).
-
-**Файл: `src/domain/shared/specification/UuidSpecs.ts`**
+**Файл: `src/domain/shared/invariants/IInvariant.ts`**
 
 ```typescript
-// src/domain/shared/specification/UuidSpecs.ts
-import { 
-  CommonNotEmptySpec,
-  CommonPatternSpec
-} from './common'  // Локальный импорт бизнес-спецификаций
+// src/domain/shared/invariants/IInvariant.ts
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
 
 /**
- * Спецификации для UUID
- * Синглтоны с фиксированной конфигурацией (бизнес-правила)
+ * Интерфейс для инвариантов
+ * Инварианты валидируют данные через Specification Pattern
  * 
- * ✅ Единообразно с Namespace и ResourceName спецификациями
+ * @template T - тип валидируемого значения
  */
-
-export const UUID_NOT_EMPTY_SPEC = new CommonNotEmptySpec('UUID')
-
-export const UUID_FORMAT_SPEC = new CommonPatternSpec(
-  'UUID',
-  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-  'must be a valid UUID v4'
-)
+export interface IInvariant<T> {
+  /**
+   * Валидация значения
+   * 
+   * @param value - значение для валидации
+   * @param entityType - тип сущности (для сообщений об ошибках)
+   * @returns Validation с массивом ошибок или валидным значением
+   */
+  validate(value: T, entityType: string): Validation<ValidationError[], T>
+}
 ```
 
-**Почему CommonPatternSpec?**
-- ✅ Переиспользование - UUID это просто regex паттерн
-- ✅ Единообразие - тот же подход что и NAMESPACE_PATTERN_SPEC
-- ✅ Конфигурация в синглтоне - regex и message в одном месте
-
 #### UuidInvariant [#class:UuidInvariant|#code|#structure:path]
+
+**Паттерн:** Singleton (один экземпляр на всё приложение)
 
 **Файл: `src/domain/shared/invariants/UuidInvariant.ts`**
 
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт из технического слоя
-import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from '../specification/UuidSpecs'
+import { ValidationError } from '@/shared/errors'
+import { CommonNotEmptySpec, CommonPatternSpec } from '../specification'
+import { IInvariant } from './IInvariant'
 
 /**
- * Инварианты для UUID
- * Использует Specification Pattern - единообразно с Value Objects
+ * Инвариант для валидации UUID v4
+ * 
+ * Реализует IInvariant<string>
+ * Singleton паттерн - один экземпляр на всё приложение (stateless)
  */
-export class UuidInvariant {
+export class UuidInvariant implements IInvariant<string> {
+  private static readonly UUID_V4_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+  // Singleton instance
+  private static readonly _instance = new UuidInvariant();
+
+  // Приватный конструктор - нельзя создать извне
+  private constructor() {}
+
+  /**
+   * Получить singleton instance
+   */
+  static get instance(): UuidInvariant {
+    return UuidInvariant._instance;
+  }
+
   /**
    * Валидация UUID v4 через спецификации
    * Накапливает ВСЕ ошибки (пустота + формат)
    * 
-   * ✅ Единообразно с Namespace.create() и ResourceName.create()
+   * @param value - значение для валидации
+   * @param entityType - тип сущности (например "ResourceId", "FieldId")
+   * @returns массив ValidationError[] или валидный string
+   * 
+   * ✅ Создает спецификации динамически с правильным entityType
+   * ✅ Пользователь увидит "ResourceId: cannot be empty" вместо "UUID: cannot be empty"
    */
-  static validate(
+  validate(
     value: string,
     entityType: string
   ): Validation<ValidationError[], string> {
+    // Используем Singleton Factory для спецификаций
     return ValidationCombinators.sequence(
       [
-        UUID_NOT_EMPTY_SPEC.isSatisfiedBy(value),
-        UUID_FORMAT_SPEC.isSatisfiedBy(value)
+        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
+        CommonPatternSpec.for(
+          entityType,
+          UuidInvariant.UUID_V4_REGEX,
+          "must be a valid UUID v4"
+        ).isSatisfiedBy(value),
       ],
       () => value
-    )
+    );
   }
   
   /**
-   * Type guard (не бросает)
+   * Type guard для быстрой проверки формата
    */
-  static isValidUuid(value: string): boolean {
-    return UUID_FORMAT_SPEC.isSatisfiedBy(value).isRight()
+  isValidUuid(value: string): boolean {
+    return UuidInvariant.UUID_V4_REGEX.test(value);
   }
 }
 ```
 
-**Почему спецификации?**
-- ✅ Единообразие - тот же паттерн что и у Value Objects
-- ✅ Переиспользование - можно использовать UUID_FORMAT_SPEC отдельно
-- ✅ Накопление ошибок - пользователь видит все проблемы сразу
-- ✅ Один стиль везде - консистентность кода
+**Почему Singleton?**
+- ✅ Stateless - нет внутреннего состояния
+- ✅ `entityType` - параметр метода (динамический)
+- ✅ Один экземпляр для всего приложения
+- ✅ Реализует `IInvariant<string>` для полиморфизма
+
+**Почему Singleton Factory для спецификаций?**
+- ✅ Спецификации хранят `entityType` (stateful)
+- ✅ Flyweight паттерн - кэширование по ключу
+- ✅ `CommonNotEmptySpec.for('ResourceId')` кэшируется
+- ✅ Производительность - экземпляр создается один раз
+
+### StringInvariant
+
+**Паттерн:** Singleton (гибкая конфигурация)
+
+**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
+
+#### StringInvariant [#class:StringInvariant|#code|#structure:path]
+
+```typescript
+// src/domain/shared/invariants/StringInvariant.ts
+import { Validation, ValidationCombinators } from "@/shared/validation";
+import { ValidationError } from "@/shared/errors";
+import {
+  CommonNotEmptySpec,
+  CommonLengthSpec,
+  CommonPatternSpec,
+} from "../specification";
+
+export interface StringValidationConfig {
+  entityType: string;
+  minLength: number;
+  maxLength: number;
+  pattern?: RegExp;
+  patternMessage?: string;
+}
+
+/**
+ * Инвариант для валидации строк
+ * Singleton паттерн - гибкая конфигурация под разные типы строк
+ */
+export class StringInvariant {
+  private static readonly _instance = new StringInvariant();
+  private constructor() {}
+  
+  static get instance(): StringInvariant {
+    return StringInvariant._instance;
+  }
+
+  validate(
+    value: string,
+    config: StringValidationConfig,
+  ): Validation<ValidationError[], string> {
+    const specs = [
+      CommonNotEmptySpec.for(config.entityType).isSatisfiedBy(value),
+      CommonLengthSpec.for(
+        config.entityType,
+        config.minLength,
+        config.maxLength,
+      ).isSatisfiedBy(value),
+    ];
+
+    if (config.pattern && config.patternMessage) {
+      specs.push(
+        CommonPatternSpec.for(
+          config.entityType,
+          config.pattern,
+          config.patternMessage,
+        ).isSatisfiedBy(value),
+      );
+    }
+
+    return ValidationCombinators.sequence(specs, () => value);
+  }
+
+  validateLength(
+    value: string,
+    entityType: string,
+    minLength: number,
+    maxLength: number,
+  ): Validation<ValidationError[], string> {
+    return this.validate(value, {
+      entityType,
+      minLength,
+      maxLength,
+    });
+  }
+}
 ```
 
+**Почему не реализует IInvariant?**
+- Гибкая сигнатура `validate(value, config)` вместо `validate(value, entityType)`
+- Поддержка опциональных параметров (pattern)
+- Следует духу IInvariant, но адаптирован под строки
+
+**Использование:**
+- ✅ Namespace - длина + pattern
+- ✅ ResourceName - только длина (через `validateLength`)
+- ✅ Любые другие строковые Value Objects
+
 ### Public API для Shared Kernel
+
+**Файл: `src/domain/shared/invariants/index.ts`**
+
+```typescript
+// src/domain/shared/invariants/index.ts
+export type { IInvariant } from './IInvariant'
+export { UuidInvariant } from './UuidInvariant'
+export { StringInvariant } from './StringInvariant'
+export type { StringValidationConfig } from './StringInvariant'
+```
 
 **Файл: `src/domain/shared/index.ts`**
 
@@ -138,16 +248,16 @@ export class UuidInvariant {
 
 ```typescript
 // src/domain/shared/index.ts
-export { InvariantViolationError } from './errors/InvariantViolationError'
-export { UuidInvariant } from './invariants/UuidInvariant'
-export * from './specification/UuidSpecs'  // UUID спецификации
+export * from './invariants'  // IInvariant, UuidInvariant, StringInvariant
+export * from './specification'  // Common спецификации
 ```
 
 **Зачем Shared Kernel?**
-- ✅ DRY — регулярное выражение в одном месте
-- ✅ Переиспользование — можно использовать для `FieldId`, `EntryId`, etc.
-- ✅ Тестируемость — один тест для всех UUID
-- ✅ Изменяемость — изменить regex в одном месте
+- ✅ DRY — валидация в одном месте
+- ✅ Переиспользование — `UuidInvariant` для всех UUID, `StringInvariant` для строк
+- ✅ Тестируемость — тест инварианта = тест всех Value Objects
+- ✅ Изменяемость — изменить правила в одном месте
+- ✅ Типизация — `IInvariant<T>` для создания новых инвариантов
 
 ---
 
@@ -178,9 +288,9 @@ export class ResourceId {
   }
   
   static create(value: string): Validation<ValidationError[], ResourceId> {
-    // ✅ Используем переиспользуемый инвариант
+    // ✅ Используем переиспользуемый инвариант (Singleton)
     // Возвращает массив ошибок (пустота + формат) или валидный ResourceId
-    return UuidInvariant.validate(value, ResourceId.ENTITY_TYPE)
+    return UuidInvariant.instance.validate(value, ResourceId.ENTITY_TYPE)
       .map(validValue => new ResourceId(validValue))
   }
   
@@ -202,37 +312,10 @@ export class ResourceId {
 
 ---
 
-## 1.3. Создать спецификации для Namespace
+## 1.3. Создать бизнес-специфичные спецификации
 
-Сначала создаем синглтоны-спецификации с фиксированной конфигурацией (бизнес-правила).
-
-### NamespaceSpecs
-
-**Файл: `src/domain/resource/specifications/NamespaceSpecs.ts`**
-
-```typescript
-// src/domain/resource/specifications/NamespaceSpecs.ts
-import { 
-  CommonLengthSpec,
-  CommonPatternSpec,
-  CommonNotEmptySpec
-} from '@/domain/shared/specification'  // Бизнес-спецификации из Shared Kernel
-
-/**
- * Спецификации для Namespace
- * Синглтоны с фиксированной конфигурацией (бизнес-правила)
- */
-
-export const NAMESPACE_NOT_EMPTY_SPEC = new CommonNotEmptySpec('Namespace')
-
-export const NAMESPACE_LENGTH_SPEC = new CommonLengthSpec('Namespace', 2, 50)
-
-export const NAMESPACE_PATTERN_SPEC = new CommonPatternSpec(
-  'Namespace',
-  /^[a-z0-9-_]+$/,
-  'must contain only lowercase letters, numbers, - and _'
-)
-```
+> **📚 Примечание:** Общие правила (длина, формат) теперь валидируются через `StringInvariant`.  
+> Здесь создаются только **бизнес-специфичные** правила.
 
 ### NotReservedNamespaceSpec (бизнес-правило)
 
@@ -279,14 +362,6 @@ export const NOT_RESERVED_NAMESPACE_SPEC = new NotReservedNamespaceSpec()
 
 ```typescript
 // src/domain/resource/specifications/index.ts
-
-// Namespace спецификации
-export {
-  NAMESPACE_NOT_EMPTY_SPEC,
-  NAMESPACE_LENGTH_SPEC,
-  NAMESPACE_PATTERN_SPEC
-} from './NamespaceSpecs'
-
 export { 
   NotReservedNamespaceSpec,
   NOT_RESERVED_NAMESPACE_SPEC 
@@ -304,42 +379,39 @@ export {
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
-import {
-  NAMESPACE_NOT_EMPTY_SPEC,
-  NAMESPACE_LENGTH_SPEC,
-  NAMESPACE_PATTERN_SPEC,
-  NOT_RESERVED_NAMESPACE_SPEC
-} from '../specifications'
+import { ValidationError } from '@/shared/errors'
+import { StringInvariant } from '@/domain/shared'
+import { NOT_RESERVED_NAMESPACE_SPEC } from '../specifications'
 
 /**
  * Value Object для namespace ресурса
- * 
- * Использует Specification Pattern для композиции правил валидации
+ * Инвариант: 2-50 символов, lowercase, буквы/цифры/-/_
  */
 export class Namespace {
+  private static readonly ENTITY_TYPE = 'Namespace'
+  private static readonly MIN_LENGTH = 2
+  private static readonly MAX_LENGTH = 50
+  private static readonly PATTERN = /^[a-z0-9-_]+$/
+  
   private constructor(private readonly _value: string) {}
   
-  /**
-   * Создать Namespace с накоплением ВСЕХ ошибок валидации
-   * Композиция общих и бизнес-специфичных спецификаций
-   * 
-   * @returns Validation<ValidationError[], Namespace>
-   *          - Left: массив ВСЕХ ошибок (лучший UX)
-   *          - Right: валидный Namespace
-   */
   static create(value: string): Validation<ValidationError[], Namespace> {
-    const specs = [
-      NAMESPACE_NOT_EMPTY_SPEC,        // Общая спецификация
-      NAMESPACE_LENGTH_SPEC,           // Общая спецификация
-      NAMESPACE_PATTERN_SPEC,          // Общая спецификация
-      NOT_RESERVED_NAMESPACE_SPEC      // Бизнес-специфичная
-    ]
-
-    return ValidationCombinators.sequence(
-      specs.map(spec => spec.isSatisfiedBy(value)),
-      () => new Namespace(value)
-    )
+    // Сначала валидируем общие правила через StringInvariant
+    return StringInvariant.instance
+      .validate(value, {
+        entityType: Namespace.ENTITY_TYPE,
+        minLength: Namespace.MIN_LENGTH,
+        maxLength: Namespace.MAX_LENGTH,
+        pattern: Namespace.PATTERN,
+        patternMessage: 'must contain only lowercase letters, numbers, - and _'
+      })
+      .chain(validValue => {
+        // Затем проверяем бизнес-правило (не зарезервировано)
+        return NOT_RESERVED_NAMESPACE_SPEC
+          .isSatisfiedBy(validValue)
+          .map(() => new Namespace(validValue))
+          .mapLeft(error => [error])  // Преобразуем в массив для консистентности
+      })
   }
   
   getValue(): string {
@@ -363,62 +435,7 @@ export class Namespace {
 
 ---
 
-## 1.5. Создать спецификации для ResourceName
-
-**Файл: `src/domain/resource/specifications/ResourceNameSpecs.ts`**
-
-```typescript
-// src/domain/resource/specifications/ResourceNameSpecs.ts
-import { 
-  CommonLengthSpec,
-  CommonPatternSpec,
-  CommonNotEmptySpec
-} from '@/domain/shared/specification'  // Бизнес-спецификации из Shared Kernel
-
-/**
- * Спецификации для ResourceName
- * Синглтоны с фиксированной конфигурацией (бизнес-правила)
- */
-
-export const RESOURCE_NAME_NOT_EMPTY_SPEC = new CommonNotEmptySpec('ResourceName')
-
-export const RESOURCE_NAME_LENGTH_SPEC = new CommonLengthSpec('ResourceName', 2, 100)
-
-export const RESOURCE_NAME_PATTERN_SPEC = new CommonPatternSpec(
-  'ResourceName',
-  /^[a-zA-Z0-9-_]+$/,
-  'must contain only letters, numbers, - and _'
-)
-```
-
-**Обновить `src/domain/resource/specifications/index.ts`:**
-
-```typescript
-// src/domain/resource/specifications/index.ts
-
-// Namespace спецификации
-export {
-  NAMESPACE_NOT_EMPTY_SPEC,
-  NAMESPACE_LENGTH_SPEC,
-  NAMESPACE_PATTERN_SPEC
-} from './NamespaceSpecs'
-
-export { 
-  NotReservedNamespaceSpec,
-  NOT_RESERVED_NAMESPACE_SPEC 
-} from './NotReservedNamespaceSpec'
-
-// ResourceName спецификации
-export {
-  RESOURCE_NAME_NOT_EMPTY_SPEC,
-  RESOURCE_NAME_LENGTH_SPEC,
-  RESOURCE_NAME_PATTERN_SPEC
-} from './ResourceNameSpecs'
-```
-
----
-
-## 1.6. Создать Value Object: ResourceName
+## 1.5. Создать Value Object: ResourceName
 
 **Файл: `src/domain/resource/value-objects/ResourceName.ts`**
 
@@ -426,37 +443,31 @@ export {
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт технического типа
-import {
-  RESOURCE_NAME_NOT_EMPTY_SPEC,
-  RESOURCE_NAME_LENGTH_SPEC,
-  RESOURCE_NAME_PATTERN_SPEC
-} from '../specifications'
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
+import { StringInvariant } from '@/domain/shared'
 
 /**
  * Value Object для имени ресурса
- * 
- * Использует Specification Pattern для композиции правил валидации
+ * Инвариант: 1-100 символов
  */
 export class ResourceName {
+  private static readonly ENTITY_TYPE = 'ResourceName'
+  private static readonly MIN_LENGTH = 1
+  private static readonly MAX_LENGTH = 100
+  
   private constructor(private readonly _value: string) {}
   
-  /**
-   * Создать ResourceName с накоплением ВСЕХ ошибок валидации
-   * Композиция общих спецификаций
-   */
   static create(value: string): Validation<ValidationError[], ResourceName> {
-    const specs = [
-      RESOURCE_NAME_NOT_EMPTY_SPEC,
-      RESOURCE_NAME_LENGTH_SPEC,
-      RESOURCE_NAME_PATTERN_SPEC
-    ]
-
-    return ValidationCombinators.sequence(
-      specs.map(spec => spec.isSatisfiedBy(value)),
-      () => new ResourceName(value)
-    )
+    // Используем StringInvariant.validateLength (без pattern)
+    return StringInvariant.instance
+      .validateLength(
+        value,
+        ResourceName.ENTITY_TYPE,
+        ResourceName.MIN_LENGTH,
+        ResourceName.MAX_LENGTH
+      )
+      .map(() => new ResourceName(value))
   }
   
   getValue(): string {
@@ -637,33 +648,28 @@ export { Resource } from './Resource'
 ```
 src/domain/
 ├── shared/                       # Shared Kernel
-│   ├── errors/
-│   │   ├── InvariantViolationError.ts  # Для простых инвариантов
-│   │   └── ValidationError.ts          # Для спецификаций
 │   ├── invariants/
-│   │   ├── UuidInvariant.ts            # Использует спецификации
+│   │   ├── IInvariant.ts               # Интерфейс для инвариантов
+│   │   ├── UuidInvariant.ts            # Singleton инвариант (UUID)
+│   │   ├── StringInvariant.ts          # Singleton инвариант (String)
 │   │   └── index.ts
 │   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
-│   │   ├── UuidSpecs.ts                # UUID синглтоны-спецификации
-│   │   ├── ISpecification.ts
 │   │   ├── common/
-│   │   │   ├── CommonLengthSpec.ts
-│   │   │   ├── CommonPatternSpec.ts    # ← Используется для UUID!
-│   │   │   └── CommonNotEmptySpec.ts
+│   │   │   ├── CommonLengthSpec.ts     # Singleton Factory
+│   │   │   ├── CommonPatternSpec.ts    # Singleton Factory ← Используется для UUID!
+│   │   │   └── CommonNotEmptySpec.ts   # Singleton Factory
 │   │   └── index.ts
 │   └── index.ts
 │
 └── resource/                     # Resource Bounded Context
-    ├── specifications/           # Бизнес-правила (синглтоны)
-    │   ├── NamespaceSpecs.ts
-    │   ├── NotReservedNamespaceSpec.ts
-    │   ├── ResourceNameSpecs.ts
+    ├── specifications/           # Бизнес-специфичные спецификации
+    │   ├── NotReservedNamespaceSpec.ts  # Бизнес-правило
     │   └── index.ts
     │
     ├── value-objects/            # Value Objects
-    │   ├── ResourceId.ts
-    │   ├── Namespace.ts
-    │   ├── ResourceName.ts
+    │   ├── ResourceId.ts                # Использует UuidInvariant
+    │   ├── Namespace.ts                 # Использует StringInvariant
+    │   ├── ResourceName.ts              # Использует StringInvariant
     │   └── index.ts
     │
     └── aggregates/               # Aggregate Roots

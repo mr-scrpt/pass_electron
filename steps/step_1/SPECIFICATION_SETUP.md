@@ -75,9 +75,10 @@ export class ValidationError extends Error {
 }
 ```
 
-**Отличие от `InvariantViolationError`:**
-- `ValidationError` - для спецификаций (сложные композиции)
-- `InvariantViolationError` - для простых инвариантов (UUID, Email)
+**Современный подход:**
+- ✅ `ValidationError` - для ВСЕХ валидаций через Specification Pattern
+- ✅ Накопление всех ошибок через `ValidationCombinators.sequence()`
+- ✅ Единообразие - один тип ошибки везде
 
 ---
 

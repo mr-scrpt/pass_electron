@@ -22,7 +22,9 @@
       "@/infrastructure": ["./src/infrastructure/index.ts"],
       "@/infrastructure/*": ["./src/infrastructure/*"],
       "@/composition": ["./src/composition/index.ts"],
-      "@/composition/*": ["./src/composition/*"]
+      "@/composition/*": ["./src/composition/*"],
+      "@/shared": ["./src/shared/index.ts"],
+      "@/shared/*": ["./src/shared/*"]
     }
   },
   

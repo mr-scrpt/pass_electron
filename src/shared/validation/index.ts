@@ -1,3 +1,5 @@
 // src/shared/validation/index.ts
-export * from "./Validation";
-export * from "./ValidationCombinators";
+export type { Validation } from "./Validation";
+export { valid, invalid, fromCondition } from "./Validation";
+export { isTrue } from "./helpers";
+export { ValidationCombinators } from "./ValidationCombinators";

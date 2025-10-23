@@ -3,21 +3,8 @@
  */
 
 import { Validation, valid, invalid } from '@/shared/validation'
-import { ISpecification } from './ISpecification'
-
-/**
- * Базовая ошибка валидации
- * Используется когда нет специфичной Domain ошибки
- */
-export class ValidationError extends Error {
-  constructor(
-    public readonly entityType: string,
-    message: string
-  ) {
-    super(message)
-    this.name = 'ValidationError'
-  }
-}
+import { ISpecification } from '@/shared/specification';
+import { ValidationError } from '@/shared/errors';
 
 /**
  * Проверка на пустую строку

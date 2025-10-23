@@ -30,12 +30,12 @@
 
 ## 0.5.1. Создать ISpecification интерфейс [#interface:ISpecification|#code|#structure:path]
 
-**Файл: `src/domain/shared/specification/ISpecification.ts`**
+**Файл: `src/shared/specification/ISpecification.ts`**
 
 ```typescript
-// src/domain/shared/specification/ISpecification.ts
+// src/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
-import { ValidationError } from '../errors/ValidationError'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Спецификация для валидации
@@ -55,10 +55,10 @@ export interface ISpecification<T> {
 
 ## 0.5.2. Создать ValidationError [#class:ValidationError|#code|#structure:path]
 
-**Файл: `src/domain/shared/errors/ValidationError.ts`**
+**Файл: `src/shared/errors/ValidationError.ts`**
 
 ```typescript
-// src/domain/shared/errors/ValidationError.ts
+// src/shared/errors/ValidationError.ts
 
 /**
  * Ошибка валидации
@@ -288,22 +288,6 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 
 ---
 
-## 0.5.5. Создать Public API для спецификаций [#code|#structure:path]
-
-**Файл: `src/domain/shared/specification/index.ts`**
-
-```typescript
-// src/domain/shared/specification/index.ts
-
-export type { ISpecification } from './ISpecification'
-export { ValidationError } from '../errors/ValidationError'
-
-// ⚠️ Общие спецификации - НЕ использовать напрямую в Domain!
-// Создавайте синглтоны в domain/specifications/
-export { CommonLengthSpec } from './common/CommonLengthSpec'
-export { CommonPatternSpec } from './common/CommonPatternSpec'
-export { CommonNotEmptySpec } from './common/CommonNotEmptySpec'
-```
 
 ---
 

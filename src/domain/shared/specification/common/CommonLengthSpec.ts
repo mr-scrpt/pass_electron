@@ -1,6 +1,6 @@
 import { Validation, isTrue } from "@/shared/validation";
-import { ISpecification } from "../ISpecification";
-import { ValidationError } from "../ValidationError";
+import { ISpecification } from "@/shared/specification";
+import { ValidationError } from "@/shared/errors";
 
 export class CommonLengthSpec implements ISpecification<string> {
   constructor(

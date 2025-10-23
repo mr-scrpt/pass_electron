@@ -90,8 +90,8 @@ mkdir -p src/shared/validation
 Создать переиспользуемые спецификации для валидации.
 
 **Что создаем:**
-- `src/domain/shared/specification/ISpecification.ts` - интерфейс
-- `src/domain/shared/errors/ValidationError.ts` - ошибка валидации
+- `src/shared/specification/ISpecification.ts` - интерфейс
+- `src/shared/errors/ValidationError.ts` - ошибка валидации
 - `src/domain/shared/specification/common/` - Common* спецификации
 
 ### Шаг 3: Domain Layer → [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)

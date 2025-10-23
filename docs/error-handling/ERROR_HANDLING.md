@@ -160,12 +160,12 @@ export abstract class DomainError extends Error {
 
 ### ValidationError (для спецификаций)
 
-**Файл: `src/domain/shared/errors/ValidationError.ts`**
+**Файл: `src/shared/errors/ValidationError.ts`**
 
 Это **доменная** ошибка, которая используется внутри **спецификаций** для описания нарушения сложных, композитных бизнес-правил.
 
 ```typescript
-// src/domain/shared/errors/ValidationError.ts
+// src/shared/errors/ValidationError.ts
 
 /**
  * Ошибка валидации, используемая в спецификациях

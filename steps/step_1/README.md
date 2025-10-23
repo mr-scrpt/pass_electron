@@ -10,13 +10,13 @@
 
 ## 📊 Визуализация архитектуры
 
-### Поток данных (CQRS)
+### Поток данных (CQRS) [#diagram:sequence]
 
 ```
 MockRepository → Query Handler → Query Bus → Facade → React Router Loader → React Component → UI
 ```
 
-### Architecture Diagram
+### Architecture Diagram [#diagram:flow]
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 
 ### Шаг 0: Подготовка
 
-**Создать структуру папок:**
+#### Создание структуры папок [#command]
 
 ```bash
 # Создать структуру Domain Layer
@@ -145,7 +145,7 @@ mkdir -p src/shared/validation
 
 ---
 
-## 📁 Итоговая структура файлов
+## 📁 Итоговая структура файлов [#structure:tree]
 
 После выполнения всех шагов у вас будет:
 

@@ -87,7 +87,7 @@ export const UUID_FORMAT_SPEC = new CommonPatternSpec(
 ```typescript
 // src/domain/shared/invariants/UuidInvariant.ts
 import { Validation, ValidationCombinators } from '@/shared/validation'
-import { ValidationError } from '@/domain/shared/specification'
+import { ValidationError } from '@/shared/errors'  // ✅ Явный импорт из технического слоя
 import { UUID_NOT_EMPTY_SPEC, UUID_FORMAT_SPEC } from '../specification/UuidSpecs'
 
 /**
@@ -240,7 +240,8 @@ export const NAMESPACE_PATTERN_SPEC = new CommonPatternSpec(
 ```typescript
 // src/domain/resource/specifications/NotReservedNamespaceSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification, ValidationError } from '@/domain/shared/specification'
+import { ISpecification } from '@/shared/specification'  // ✅ Явный импорт технического типа
+import { ValidationError } from '@/shared/errors'        // ✅ Явный импорт технического типа
 
 /**
  * Бизнес-правило: некоторые namespace зарезервированы системой

@@ -28,7 +28,7 @@
 
 ---
 
-## 0.5.1. Создать ISpecification интерфейс
+## 0.5.1. Создать ISpecification интерфейс [#interface:ISpecification|#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/ISpecification.ts`**
 
@@ -53,7 +53,7 @@ export interface ISpecification<T> {
 
 ---
 
-## 0.5.2. Создать ValidationError
+## 0.5.2. Создать ValidationError [#class:ValidationError|#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/ValidationError.ts`**
 
@@ -82,6 +82,8 @@ export class ValidationError extends Error {
 ---
 
 ## 0.5.3. Создать Fluent API для условной валидации
+
+#### Fluent API Helper (helpers.ts) [#class:ValidationBuilder|#class:ValidBranch|#code|#structure:path]
 
 **Файл: `src/shared/validation/helpers.ts`**
 
@@ -126,6 +128,8 @@ export function isTrue<T>(condition: boolean, value: T): ValidationBuilder<T> {
 }
 ```
 
+#### Validation Type (Validation.ts) [#code|#structure:path]
+
 **Обновить `src/shared/validation/Validation.ts`:**
 
 ```typescript
@@ -154,6 +158,8 @@ export const fromCondition = <E, T>(
 }
 ```
 
+#### Public API (index.ts) [#code|#structure:path]
+
 **Обновить `src/shared/validation/index.ts`:**
 
 ```typescript
@@ -175,7 +181,7 @@ export { ValidationCombinators } from './ValidationCombinators'
 
 ⚠️ **ВАЖНО:** Префикс `Common` показывает что это базовые классы для создания синглтонов в Domain Layer. НЕ использовать напрямую!
 
-### CommonLengthSpec
+### CommonLengthSpec [#class:CommonLengthSpec|#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/common/CommonLengthSpec.ts`**
 
@@ -219,7 +225,7 @@ export class CommonLengthSpec implements ISpecification<string> {
 }
 ```
 
-### CommonPatternSpec
+### CommonPatternSpec [#class:CommonPatternSpec|#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/common/CommonPatternSpec.ts`**
 
@@ -249,7 +255,7 @@ export class CommonPatternSpec implements ISpecification<string> {
 }
 ```
 
-### CommonNotEmptySpec
+### CommonNotEmptySpec [#class:CommonNotEmptySpec|#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/common/CommonNotEmptySpec.ts`**
 
@@ -282,7 +288,7 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 
 ---
 
-## 0.5.5. Создать Public API для спецификаций
+## 0.5.5. Создать Public API для спецификаций [#code|#structure:path]
 
 **Файл: `src/domain/shared/specification/index.ts`**
 
@@ -301,7 +307,7 @@ export { CommonNotEmptySpec } from './common/CommonNotEmptySpec'
 
 ---
 
-## ✅ Результат
+## ✅ Результат [#structure:tree]
 
 После выполнения этого шага у вас будет:
 

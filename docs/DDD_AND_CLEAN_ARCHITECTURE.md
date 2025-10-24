@@ -173,22 +173,19 @@ export class Resource {
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation } from '@/shared/validation'
-import { InvariantViolationError, StringInvariant } from '@/domain/shared'
+import { ValidationError } from '@/shared/errors'
+import { ResourceNameInvariant } from '../invariants'
 
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName'
-  private constructor(private readonly value: string) {}
+  private constructor(private readonly _value: string) {}
 
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    // ✅ Используем именованные переиспользуемые инварианты
-    return StringInvariant.validateLength(value, 1, 100, ResourceName.ENTITY_TYPE)
-      .chain(validValue =>
-        StringInvariant.validateAlphanumericWithDashUnderscore(
-          validValue,
-          ResourceName.ENTITY_TYPE
-        )
-      )
-      .map(validValue => new ResourceName(validValue))
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    // ✅ Используем domain-специфичный инвариант (Resource Bounded Context)
+    // Правила валидации инкапсулированы внутри инварианта
+    return ResourceNameInvariant.instance
+      .validate(value, ResourceName.ENTITY_TYPE)
+      .map((validValue: string) => new ResourceName(validValue))
   }
 
   getValue(): string {
@@ -202,8 +199,11 @@ export class ResourceName {
 }
 ```
 
-> **💡 Важно**: Инварианты (правила валидации) вынесены в переиспользуемые классы в `domain/shared/invariants/`.  
-> См. [INVARIANTS.md](./error-handling/INVARIANTS.md) для деталей.
+> **💡 Важно**: Инварианты (правила валидации):
+> - **Shared инварианты** (`domain/shared/invariants/`) - используются везде (например, `UuidInvariant`)
+> - **Domain-специфичные** (`domain/{bounded-context}/invariants/`) - используются только в своем домене
+> 
+> См. [INVARIANTS.md](./error-handling/INVARIANTS.md) и [steps/step_1/DOMAIN_LAYER_SETUP.md](../steps/step_1/DOMAIN_LAYER_SETUP.md) для деталей.
 
 ### Aggregate (DDD)
 

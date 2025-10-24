@@ -141,94 +141,128 @@ export class UuidInvariant implements IInvariant<string> {
 - ✅ `CommonNotEmptySpec.for('ResourceId')` кэшируется
 - ✅ Производительность - экземпляр создается один раз
 
-### StringInvariant
+### NamespaceInvariant
 
-**Паттерн:** Singleton (гибкая конфигурация)
+**Паттерн:** Singleton (реализует `IInvariant<string>`)
 
-**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
+**Файл: `src/domain/resource/invariants/NamespaceInvariant.ts`**
 
-#### StringInvariant [#class:StringInvariant|#code|#structure:path]
+#### NamespaceInvariant [#class:NamespaceInvariant|#code|#structure:path]
 
 ```typescript
-// src/domain/shared/invariants/StringInvariant.ts
+// src/domain/resource/invariants/NamespaceInvariant.ts
 import { Validation, ValidationCombinators } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
 import {
   CommonNotEmptySpec,
   CommonLengthSpec,
   CommonPatternSpec,
-} from "../specification";
-
-export interface StringValidationConfig {
-  entityType: string;
-  minLength: number;
-  maxLength: number;
-  pattern?: RegExp;
-  patternMessage?: string;
-}
+} from "@/domain/shared/specification";
+import { IInvariant } from "@/domain/shared/invariants";
 
 /**
- * Инвариант для валидации строк
- * Singleton паттерн - гибкая конфигурация под разные типы строк
+ * Инвариант для валидации Namespace
+ * Правила: 2-50 символов, lowercase, буквы/цифры/-/_
  */
-export class StringInvariant {
-  private static readonly _instance = new StringInvariant();
+export class NamespaceInvariant implements IInvariant<string> {
+  // Правила ВНУТРИ инварианта
+  private static readonly MIN_LENGTH = 2;
+  private static readonly MAX_LENGTH = 50;
+  private static readonly PATTERN = /^[a-z0-9-_]+$/;
+  private static readonly PATTERN_MESSAGE =
+    "must contain only lowercase letters, numbers, - and _";
+
+  private static readonly _instance = new NamespaceInvariant();
   private constructor() {}
   
-  static get instance(): StringInvariant {
-    return StringInvariant._instance;
+  static get instance(): NamespaceInvariant {
+    return NamespaceInvariant._instance;
   }
 
   validate(
     value: string,
-    config: StringValidationConfig,
-  ): Validation<ValidationError[], string> {
-    const specs = [
-      CommonNotEmptySpec.for(config.entityType).isSatisfiedBy(value),
-      CommonLengthSpec.for(
-        config.entityType,
-        config.minLength,
-        config.maxLength,
-      ).isSatisfiedBy(value),
-    ];
-
-    if (config.pattern && config.patternMessage) {
-      specs.push(
-        CommonPatternSpec.for(
-          config.entityType,
-          config.pattern,
-          config.patternMessage,
-        ).isSatisfiedBy(value),
-      );
-    }
-
-    return ValidationCombinators.sequence(specs, () => value);
-  }
-
-  validateLength(
-    value: string,
     entityType: string,
-    minLength: number,
-    maxLength: number,
   ): Validation<ValidationError[], string> {
-    return this.validate(value, {
-      entityType,
-      minLength,
-      maxLength,
-    });
+    return ValidationCombinators.sequence(
+      [
+        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
+        CommonLengthSpec.for(
+          entityType,
+          NamespaceInvariant.MIN_LENGTH,
+          NamespaceInvariant.MAX_LENGTH,
+        ).isSatisfiedBy(value),
+        CommonPatternSpec.for(
+          entityType,
+          NamespaceInvariant.PATTERN,
+          NamespaceInvariant.PATTERN_MESSAGE,
+        ).isSatisfiedBy(value),
+      ],
+      () => value,
+    );
   }
 }
 ```
 
-**Почему не реализует IInvariant?**
-- Гибкая сигнатура `validate(value, config)` вместо `validate(value, entityType)`
-- Поддержка опциональных параметров (pattern)
-- Следует духу IInvariant, но адаптирован под строки
+### ResourceNameInvariant
 
-**Использование:**
-- ✅ Namespace - длина + pattern
-- ✅ ResourceName - только длина (через `validateLength`)
-- ✅ Любые другие строковые Value Objects
+**Паттерн:** Singleton (реализует `IInvariant<string>`)
+
+**Файл: `src/domain/resource/invariants/ResourceNameInvariant.ts`**
+
+#### ResourceNameInvariant [#class:ResourceNameInvariant|#code|#structure:path]
+
+```typescript
+// src/domain/resource/invariants/ResourceNameInvariant.ts
+import { Validation, ValidationCombinators } from "@/shared/validation";
+import { ValidationError } from "@/shared/errors";
+import { CommonNotEmptySpec, CommonLengthSpec } from "@/domain/shared/specification";
+import { IInvariant } from "@/domain/shared/invariants";
+
+/**
+ * Инвариант для валидации ResourceName
+ * Правила: 1-100 символов
+ */
+export class ResourceNameInvariant implements IInvariant<string> {
+  // Правила ВНУТРИ инварианта
+  private static readonly MIN_LENGTH = 1;
+  private static readonly MAX_LENGTH = 100;
+
+  private static readonly _instance = new ResourceNameInvariant();
+  private constructor() {}
+  
+  static get instance(): ResourceNameInvariant {
+    return ResourceNameInvariant._instance;
+  }
+
+  validate(
+    value: string,
+    entityType: string,
+  ): Validation<ValidationError[], string> {
+    return ValidationCombinators.sequence(
+      [
+        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
+        CommonLengthSpec.for(
+          entityType,
+          ResourceNameInvariant.MIN_LENGTH,
+          ResourceNameInvariant.MAX_LENGTH,
+        ).isSatisfiedBy(value),
+      ],
+      () => value,
+    );
+  }
+}
+```
+
+**Почему отдельные инварианты?**
+- ✅ Согласованность с `UuidInvariant` - правила внутри
+- ✅ DDD - Domain Service инкапсулирует бизнес-логику
+- ✅ Реализуют `IInvariant<string>` для полиморфизма
+- ✅ Value Object просто делегирует валидацию
+
+**Почему в resource/invariants, а не в shared?**
+- ✅ `NamespaceInvariant` и `ResourceNameInvariant` специфичны для Resource домена
+- ✅ `UuidInvariant` действительно shared - используется везде (ResourceId, FieldId, EntryId...)
+- ✅ Правильная организация по Bounded Context
 
 ### Public API для Shared Kernel
 
@@ -238,8 +272,6 @@ export class StringInvariant {
 // src/domain/shared/invariants/index.ts
 export type { IInvariant } from './IInvariant'
 export { UuidInvariant } from './UuidInvariant'
-export { StringInvariant } from './StringInvariant'
-export type { StringValidationConfig } from './StringInvariant'
 ```
 
 **Файл: `src/domain/shared/index.ts`**
@@ -248,16 +280,27 @@ export type { StringValidationConfig } from './StringInvariant'
 
 ```typescript
 // src/domain/shared/index.ts
-export * from './invariants'  // IInvariant, UuidInvariant, StringInvariant
+export * from './invariants'  // IInvariant, UuidInvariant
 export * from './specification'  // Common спецификации
 ```
 
-**Зачем Shared Kernel?**
+### Public API для Resource Bounded Context
+
+**Файл: `src/domain/resource/invariants/index.ts`**
+
+```typescript
+// src/domain/resource/invariants/index.ts
+export { NamespaceInvariant } from './NamespaceInvariant'
+export { ResourceNameInvariant } from './ResourceNameInvariant'
+```
+
+**Зачем разделение?**
 - ✅ DRY — валидация в одном месте
-- ✅ Переиспользование — `UuidInvariant` для всех UUID, `StringInvariant` для строк
-- ✅ Тестируемость — тест инварианта = тест всех Value Objects
+- ✅ Bounded Context — каждый домен управляет своими инвариантами
+- ✅ Shared Kernel — только действительно общие вещи (UUID, IInvariant)
+- ✅ Тестируемость — тест инварианта = тест всех Value Objects этого типа
 - ✅ Изменяемость — изменить правила в одном месте
-- ✅ Типизация — `IInvariant<T>` для создания новых инвариантов
+- ✅ Согласованность — все инварианты следуют одному паттерну
 
 ---
 
@@ -378,10 +421,9 @@ export {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Validation, ValidationCombinators } from '@/shared/validation'
+import { Validation } from '@/shared/validation'
 import { ValidationError } from '@/shared/errors'
-import { StringInvariant } from '@/domain/shared'
-import { NOT_RESERVED_NAMESPACE_SPEC } from '../specifications'
+import { NamespaceInvariant } from '../invariants'
 
 /**
  * Value Object для namespace ресурса
@@ -389,29 +431,15 @@ import { NOT_RESERVED_NAMESPACE_SPEC } from '../specifications'
  */
 export class Namespace {
   private static readonly ENTITY_TYPE = 'Namespace'
-  private static readonly MIN_LENGTH = 2
-  private static readonly MAX_LENGTH = 50
-  private static readonly PATTERN = /^[a-z0-9-_]+$/
   
   private constructor(private readonly _value: string) {}
   
   static create(value: string): Validation<ValidationError[], Namespace> {
-    // Сначала валидируем общие правила через StringInvariant
-    return StringInvariant.instance
-      .validate(value, {
-        entityType: Namespace.ENTITY_TYPE,
-        minLength: Namespace.MIN_LENGTH,
-        maxLength: Namespace.MAX_LENGTH,
-        pattern: Namespace.PATTERN,
-        patternMessage: 'must contain only lowercase letters, numbers, - and _'
-      })
-      .chain(validValue => {
-        // Затем проверяем бизнес-правило (не зарезервировано)
-        return NOT_RESERVED_NAMESPACE_SPEC
-          .isSatisfiedBy(validValue)
-          .map(() => new Namespace(validValue))
-          .mapLeft(error => [error])  // Преобразуем в массив для консистентности
-      })
+    // ✅ Используем NamespaceInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return NamespaceInvariant.instance
+      .validate(value, Namespace.ENTITY_TYPE)
+      .map((validValue: string) => new Namespace(validValue))
   }
   
   getValue(): string {
@@ -445,7 +473,7 @@ export class Namespace {
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation } from '@/shared/validation'
 import { ValidationError } from '@/shared/errors'
-import { StringInvariant } from '@/domain/shared'
+import { ResourceNameInvariant } from '../invariants'
 
 /**
  * Value Object для имени ресурса
@@ -453,21 +481,15 @@ import { StringInvariant } from '@/domain/shared'
  */
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName'
-  private static readonly MIN_LENGTH = 1
-  private static readonly MAX_LENGTH = 100
   
   private constructor(private readonly _value: string) {}
   
   static create(value: string): Validation<ValidationError[], ResourceName> {
-    // Используем StringInvariant.validateLength (без pattern)
-    return StringInvariant.instance
-      .validateLength(
-        value,
-        ResourceName.ENTITY_TYPE,
-        ResourceName.MIN_LENGTH,
-        ResourceName.MAX_LENGTH
-      )
-      .map(() => new ResourceName(value))
+    // ✅ Используем ResourceNameInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return ResourceNameInvariant.instance
+      .validate(value, ResourceName.ENTITY_TYPE)
+      .map((validValue: string) => new ResourceName(validValue))
   }
   
   getValue(): string {
@@ -649,9 +671,8 @@ export { Resource } from './Resource'
 src/domain/
 ├── shared/                       # Shared Kernel
 │   ├── invariants/
-│   │   ├── IInvariant.ts               # Интерфейс для инвариантов
-│   │   ├── UuidInvariant.ts            # Singleton инвариант (UUID)
-│   │   ├── StringInvariant.ts          # Singleton инвариант (String)
+│   │   ├── IInvariant.ts                # Интерфейс для инвариантов
+│   │   ├── UuidInvariant.ts             # Singleton (UUID) - используется везде
 │   │   └── index.ts
 │   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
 │   │   ├── common/
@@ -662,14 +683,19 @@ src/domain/
 │   └── index.ts
 │
 └── resource/                     # Resource Bounded Context
+    ├── invariants/               # Инварианты специфичные для Resource
+    │   ├── NamespaceInvariant.ts        # Singleton (Namespace)
+    │   ├── ResourceNameInvariant.ts     # Singleton (ResourceName)
+    │   └── index.ts
+    │
     ├── specifications/           # Бизнес-специфичные спецификации
     │   ├── NotReservedNamespaceSpec.ts  # Бизнес-правило
     │   └── index.ts
     │
     ├── value-objects/            # Value Objects
-    │   ├── ResourceId.ts                # Использует UuidInvariant
-    │   ├── Namespace.ts                 # Использует StringInvariant
-    │   ├── ResourceName.ts              # Использует StringInvariant
+    │   ├── ResourceId.ts                # → UuidInvariant (shared)
+    │   ├── Namespace.ts                 # → NamespaceInvariant (local)
+    │   ├── ResourceName.ts              # → ResourceNameInvariant (local)
     │   └── index.ts
     │
     └── aggregates/               # Aggregate Roots

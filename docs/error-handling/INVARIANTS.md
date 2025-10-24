@@ -66,22 +66,30 @@ class Resource {
 #### Структура Shared Kernel [#structure:tree]
 
 ```
-src/domain/                      #structure:
-├── shared/                      # Shared Kernel #structure:
-│   ├── invariants/              # Переиспользуемые инварианты #structure:
-│   │   ├── UuidInvariant.ts     # Валидация UUID #class:UuidInvariant
-│   │   ├── StringInvariant.ts   # Валидация строк #class:StringInvariant
-│   │   ├── EmailInvariant.ts    # Валидация email #class:EmailInvariant
+src/domain/                          #structure:
+├── shared/                          # Shared Kernel (минимум!) #structure:
+│   ├── invariants/                  # Shared инварианты #structure:
+│   │   ├── IInvariant.ts            # Интерфейс #interface:IInvariant
+│   │   ├── UuidInvariant.ts         # UUID (везде) #class:UuidInvariant
 │   │   └── index.ts
-│   ├── errors/                  # Domain ошибки #structure:
+│   ├── errors/                      # Domain ошибки #structure:
 │   │   ├── InvariantViolationError.ts  #class:InvariantViolationError
-│   │   ├── DomainError.ts         #class:DomainError
+│   │   ├── ValidationError.ts       #class:ValidationError
+│   │   ├── DomainError.ts           #class:DomainError
 │   │   └── index.ts
 │   └── index.ts
-├── value-objects/               #structure:
-│   ├── ResourceId.ts            # Использует UuidInvariant #class:ResourceId
-│   ├── Namespace.ts             #class:Namespace
-│   └── index.ts
+│
+└── resource/                        # Resource Bounded Context #structure:
+    ├── invariants/                  # Resource-специфичные #structure:
+    │   ├── NamespaceInvariant.ts    # Namespace #class:NamespaceInvariant
+    │   ├── ResourceNameInvariant.ts # ResourceName #class:ResourceNameInvariant
+    │   └── index.ts
+    ├── value-objects/               #structure:
+    │   ├── ResourceId.ts            # → UuidInvariant #class:ResourceId
+    │   ├── Namespace.ts             # → NamespaceInvariant #class:Namespace
+    │   ├── ResourceName.ts          # → ResourceNameInvariant #class:ResourceName
+    │   └── index.ts
+    └── ...
 ```
 
 ---
@@ -197,143 +205,102 @@ export class UuidInvariant {
 }
 ```
 
-**Файл: `src/domain/shared/invariants/StringInvariant.ts`**
+**Файл: `src/domain/shared/invariants/IInvariant.ts`**
 
-#### StringInvariant [#class:StringInvariant|#code|#structure:path]
+#### IInvariant интерфейс [#interface:IInvariant|#code|#structure:path]
 
 ```typescript
-// src/domain/shared/invariants/StringInvariant.ts
-import { Either, right, left } from '@sweet-monads/either'
-import { InvariantViolationError } from '../errors'
+// src/domain/shared/invariants/IInvariant.ts
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
 
 /**
- * Инварианты для строк
- * Переиспользуемые правила валидации строк
- */ // #class:StringInvariant
-export class StringInvariant {
-  /**
-   * Проверка длины строки
-   * Возвращает Either для type-safe обработки
-   */
-  static validateLength(
-    value: string,
-    minLength: number,
-    maxLength: number,
-    entityType: string
-  ): Either<InvariantViolationError, string> {
-    if (!value) {
-      return left(new InvariantViolationError(
-        entityType,
-        'cannot be empty'
-      ))
-    }
-    
-    if (value.length < minLength || value.length > maxLength) {
-      return left(new InvariantViolationError(
-        entityType,
-        `must be ${minLength}-${maxLength} characters`
-      ))
-    }
-    
-    return right(value)
-  }
-  
-  /**
-   * Проверка: буквы, цифры, дефис, подчеркивание
-   * Используется для: ResourceName, Namespace, CustomField labels
-   */
-  static validateAlphanumericWithDashUnderscore(
-    value: string,
-    entityType: string
-  ): Either<InvariantViolationError, string> {
-    const PATTERN = /^[a-zA-Z0-9-_]+$/
-    
-    if (!PATTERN.test(value)) {
-      return left(new InvariantViolationError(
-        entityType,
-        'must contain only letters, numbers, - and _'
-      ))
-    }
-    
-    return right(value)
-  }
-  
-  /**
-   * Проверка: slug формат (lowercase, дефисы)
-   * Используется для URL-friendly идентификаторов
-   */
-  static validateSlug(
-    value: string,
-    entityType: string
-  ): Either<InvariantViolationError, string> {
-    const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
-    
-    if (!PATTERN.test(value)) {
-      return left(new InvariantViolationError(
-        entityType,
-        'must be a valid slug (lowercase, numbers, hyphens)'
-      ))
-    }
-    
-    return right(value)
-  }
+ * Общий интерфейс для всех инвариантов
+ * Generic <T> для разных типов данных
+ */
+export interface IInvariant<T> {
+  validate(value: T, entityType: string): Validation<ValidationError[], T>
 }
 ```
 
-**Файл: `src/domain/shared/invariants/IdentifierInvariant.ts`**
+**Файл: `src/domain/resource/invariants/NamespaceInvariant.ts`**
 
-#### IdentifierInvariant [#class:IdentifierInvariant|#code|#structure:path]
+#### NamespaceInvariant [#class:NamespaceInvariant|#code|#structure:path]
 
 ```typescript
-// src/domain/shared/invariants/IdentifierInvariant.ts
-import { Either } from '@sweet-monads/either'
-import { InvariantViolationError } from '../errors'
-import { StringInvariant } from './StringInvariant'
+// src/domain/resource/invariants/NamespaceInvariant.ts
+import { Validation, ValidationCombinators } from "@/shared/validation"
+import { ValidationError } from "@/shared/errors"
+import {
+  CommonNotEmptySpec,
+  CommonLengthSpec,
+  CommonPatternSpec,
+} from "@/domain/shared/specification"
+import { IInvariant } from "@/domain/shared/invariants"
 
 /**
- * Композитные инварианты для идентификаторов
- * Комбинируют несколько проверок
+ * Инвариант для валидации Namespace (Resource Bounded Context)
+ * Правила: 2-50 символов, lowercase, буквы/цифры/-/_
+ * 
+ * Singleton паттерн - один экземпляр на всё приложение
  */
-export class IdentifierInvariant {
-  /**
-   * Валидация идентификатора ресурса
-   * 1-100 символов, буквы/цифры/-/_
-   */
-  static validateResourceIdentifier(
-    value: string,
-    entityType: string
-  ): Either<InvariantViolationError, string> {
-    return StringInvariant.validateLength(value, 1, 100, entityType)
-      .chain(v => 
-        StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
-      )
-  }
+export class NamespaceInvariant implements IInvariant<string> {
+  // ✅ Правила ВНУТРИ инварианта
+  private static readonly MIN_LENGTH = 2
+  private static readonly MAX_LENGTH = 50
+  private static readonly PATTERN = /^[a-z0-9-_]+$/
+  private static readonly PATTERN_MESSAGE =
+    "must contain only lowercase letters, numbers, - and _"
+
+  private static readonly _instance = new NamespaceInvariant()
+  private constructor() {}
   
-  /**
-   * Валидация короткого идентификатора (namespace)
-   * 1-50 символов, буквы/цифры/-/_
-   */
-  static validateShortIdentifier(
+  static get instance(): NamespaceInvariant {
+    return NamespaceInvariant._instance
+  }
+
+  validate(
     value: string,
-    entityType: string
-  ): Either<InvariantViolationError, string> {
-    return StringInvariant.validateLength(value, 1, 50, entityType)
-      .chain(v => 
-        StringInvariant.validateAlphanumericWithDashUnderscore(v, entityType)
-      )
+    entityType: string,
+  ): Validation<ValidationError[], string> {
+    return ValidationCombinators.sequence(
+      [
+        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
+        CommonLengthSpec.for(
+          entityType,
+          NamespaceInvariant.MIN_LENGTH,
+          NamespaceInvariant.MAX_LENGTH,
+        ).isSatisfiedBy(value),
+        CommonPatternSpec.for(
+          entityType,
+          NamespaceInvariant.PATTERN,
+          NamespaceInvariant.PATTERN_MESSAGE,
+        ).isSatisfiedBy(value),
+      ],
+      () => value,
+    )
   }
 }
 ```
 
 **Файл: `src/domain/shared/invariants/index.ts`**
 
-#### Invariants index.ts [#code|#structure:path]
+#### Shared Invariants Public API [#code|#structure:path]
 
 ```typescript
 // src/domain/shared/invariants/index.ts
+export type { IInvariant } from './IInvariant'
 export { UuidInvariant } from './UuidInvariant'
-export { StringInvariant } from './StringInvariant'
-export { IdentifierInvariant } from './IdentifierInvariant'
+```
+
+**Файл: `src/domain/resource/invariants/index.ts`**
+
+#### Resource Invariants Public API [#code|#structure:path]
+
+```typescript
+// src/domain/resource/invariants/index.ts
+export { NamespaceInvariant } from './NamespaceInvariant'
+export { ResourceNameInvariant } from './ResourceNameInvariant'
 ```
 
 **Файл: `src/domain/shared/index.ts`**
@@ -359,8 +326,9 @@ export * from './invariants'
 
 ```typescript
 // src/domain/resource/value-objects/ResourceName.ts
-import { Either } from '@sweet-monads/either'
-import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
+import { ResourceNameInvariant } from '../invariants'
 
 /**
  * Value Object для имени ресурса
@@ -368,28 +336,28 @@ import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
  * 
  * Инварианты:
  * - Длина: 1-100 символов
- * - Формат: буквы, цифры, дефис, подчеркивание
  */
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName'
-  private constructor(private readonly value: string) {}
+  private constructor(private readonly _value: string) {}
   
   /**
    * Фабричный метод с валидацией (self-validation)
    * 
    * ВАЖНО: Валидация происходит ВНУТРИ Value Object.
-   * IdentifierInvariant - это утилита для переиспользования логики,
-   * не внешний валидатор.
+   * ResourceNameInvariant - это domain-специфичный инвариант,
+   * который инкапсулирует правила валидации.
    */
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    // ✅ Value Object использует утилиту ВНУТРИ себя
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    // ✅ Value Object делегирует валидацию инварианту
     // ✅ Конструктор private → невозможно обойти валидацию
-    return IdentifierInvariant.validateResourceIdentifier(value, ResourceName.ENTITY_TYPE)
-      .map(validValue => new ResourceName(validValue))
+    return ResourceNameInvariant.instance
+      .validate(value, ResourceName.ENTITY_TYPE)
+      .map((validValue: string) => new ResourceName(validValue))
   }
   
   getValue(): string {
-    return this.value
+    return this._value
   }
 }
 ```
@@ -400,21 +368,24 @@ export class ResourceName {
 
 ```typescript
 // src/domain/resource/value-objects/Namespace.ts
-import { Either } from '@sweet-monads/either'
-import { InvariantViolationError, IdentifierInvariant } from '@/domain/shared'
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
+import { NamespaceInvariant } from '../invariants'
 
 export class Namespace {
   private static readonly ENTITY_TYPE = 'Namespace'
-  private constructor(private readonly value: string) {}
+  private constructor(private readonly _value: string) {}
   
-  static create(value: string): Either<InvariantViolationError, Namespace> {
-    // ✅ Переиспользуем композитный инвариант!
-    return IdentifierInvariant.validateShortIdentifier(value, Namespace.ENTITY_TYPE)
-      .map(validValue => new Namespace(validValue))
+  static create(value: string): Validation<ValidationError[], Namespace> {
+    // ✅ Используем domain-специфичный инвариант
+    // Правила (2-50 символов, lowercase, pattern) внутри инварианта
+    return NamespaceInvariant.instance
+      .validate(value, Namespace.ENTITY_TYPE)
+      .map((validValue: string) => new Namespace(validValue))
   }
   
   getValue(): string {
-    return this.value
+    return this._value
   }
 }
 ```
@@ -434,20 +405,21 @@ export class Namespace {
 ```typescript
 class ResourceName {
   // ✅ Private конструктор - критически важно!
-  private constructor(private readonly value: string) {}
+  private constructor(private readonly _value: string) {}
   
   // ✅ Валидация происходит ВНУТРИ Value Object
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    // Value Object использует инварианты как УТИЛИТЫ
-    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
-      .map(validValue => new ResourceName(validValue))
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    // Value Object делегирует валидацию инварианту
+    return ResourceNameInvariant.instance
+      .validate(value, 'ResourceName')
+      .map((validValue: string) => new ResourceName(validValue))
       // ✅ Конструктор вызывается ПОСЛЕ успешной валидации
   }
 }
 
 // Использование
 const result = ResourceName.create(input)
-// Если result.isRight() → объект гарантированно валиден
+// Если result.isSuccess() → объект гарантированно валиден
 ```
 
 ### ❌ НЕПРАВИЛЬНО: Валидация СНАРУЖИ Value Object
@@ -461,9 +433,9 @@ class ResourceName {
 }
 
 // ❌ Валидация снаружи - нарушение инкапсуляции
-function createResourceName(value: string): Either<InvariantViolationError, ResourceName> {
-  return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
-    .map(v => new ResourceName(v))
+function createResourceName(value: string): Validation<ValidationError[], ResourceName> {
+  return ResourceNameInvariant.instance.validate(value, 'ResourceName')
+    .map((v: string) => new ResourceName(v))
 }
 
 // Проблема: можно создать невалидный объект
@@ -474,27 +446,32 @@ const invalid = new ResourceName('') // ❌ Никакой валидации!
 
 **Инварианты - это переиспользуемые утилиты**, а не внешние валидаторы:
 
-#### Инварианты как утилиты [#class:StringInvariant|#code]
+#### Инварианты как Domain Services [#code]
 
 ```typescript
-// ✅ StringInvariant - это утилита (как Math.max)
-class StringInvariant {
-  static validateLength(value: string, min: number, max: number, entityType: string) {
-    // Переиспользуемая логика проверки
+// ✅ Инвариант - это Domain Service (DDD паттерн)
+class ResourceNameInvariant implements IInvariant<string> {
+  private static readonly MIN_LENGTH = 1
+  private static readonly MAX_LENGTH = 100
+  
+  validate(value: string, entityType: string): Validation<ValidationError[], string> {
+    // Переиспользуемая логика проверки инкапсулирована
+    return ValidationCombinators.sequence([...])
   }
 }
 
-// ✅ Value Object использует утилиту ВНУТРИ себя
+// ✅ Value Object делегирует валидацию Domain Service
 class ResourceName {
   static create(value: string) {
-    // Это НЕ внешняя валидация, это использование утилиты
-    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
-      .map(v => new ResourceName(v))
+    // Value Object делегирует, НО валидация происходит ВНУТРИ create()
+    return ResourceNameInvariant.instance
+      .validate(value, 'ResourceName')
+      .map((v: string) => new ResourceName(v))
   }
 }
 ```
 
-**Аналогия**: Использование `StringInvariant` - это как использование `Math.max()` внутри класса. Это не нарушает инкапсуляцию, это переиспользование логики.
+**Аналогия**: Использование инварианта - это делегирование Domain Service. Value Object остается self-validating, но переиспользует логику.
 
 ### Гарантии self-validation
 
@@ -522,50 +499,76 @@ result.fold(
 
 ---
 
-## 🎯 Композитные инварианты
+## 🎯 Domain-специфичные инварианты
 
 ### Зачем нужны?
 
-**Проблема**: Одна и та же композиция валидаций повторяется в разных Value Objects.
+**Правило**: Каждый Value Object должен иметь свой инвариант с правилами внутри (согласованность с UuidInvariant).
 
-#### Антипаттерн - дублирование [#code]
+#### ❌ БЫЛО: Правила в Value Object
 
 ```typescript
-// ❌ ПРОБЛЕМА: Дублирование
+// ❌ ПРОБЛЕМА: Правила в самом Value Object
 class ResourceName {
+  private static readonly MIN_LENGTH = 1  // ❌ Правила ТУТ
+  private static readonly MAX_LENGTH = 100
+  
   static create(value: string) {
-    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
-      .chain(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName'))
-      .map(v => new ResourceName(v))
+    return CommonNotEmptySpec.for('ResourceName').isSatisfiedBy(value)
+      .chain(() => CommonLengthSpec.for('ResourceName', 1, 100).isSatisfiedBy(value))
+      .map(() => new ResourceName(value))
   }
 }
 
 class Namespace {
+  private static readonly MIN_LENGTH = 2  // ❌ Правила ТУТ (дублирование подхода)
+  private static readonly MAX_LENGTH = 50
+  private static readonly PATTERN = /^[a-z0-9-_]+$/
+  
   static create(value: string) {
-    return StringInvariant.validateLength(value, 1, 50, 'Namespace')  // Та же композиция!
-      .chain(v => StringInvariant.validateAlphanumericWithDashUnderscore(v, 'Namespace'))
-      .map(v => new Namespace(v))
+    // ❌ Композиция спецификаций в каждом VO
+    return ValidationCombinators.sequence([...])
   }
 }
 ```
 
-**Решение**: Композитный инвариант инкапсулирует повторяющуюся композицию:
-
-#### Композитный инвариант [#class:IdentifierInvariant|#code]
+#### ✅ СТАЛО: Правила в инварианте (согласованность)
 
 ```typescript
-// ✅ РЕШЕНИЕ: Композитный инвариант
+// ✅ РЕШЕНИЕ: Правила ВНУТРИ инварианта
+class ResourceNameInvariant implements IInvariant<string> {
+  // ✅ Правила ЗДЕСЬ
+  private static readonly MIN_LENGTH = 1
+  private static readonly MAX_LENGTH = 100
+  
+  validate(value: string, entityType: string): Validation<ValidationError[], string> {
+    return ValidationCombinators.sequence([...])
+  }
+}
+
+class NamespaceInvariant implements IInvariant<string> {
+  // ✅ Правила ЗДЕСЬ
+  private static readonly MIN_LENGTH = 2
+  private static readonly MAX_LENGTH = 50
+  private static readonly PATTERN = /^[a-z0-9-_]+$/
+  
+  validate(value: string, entityType: string): Validation<ValidationError[], string> {
+    return ValidationCombinators.sequence([...])
+  }
+}
+
+// Value Objects просто делегируют
 class ResourceName {
   static create(value: string) {
-    return IdentifierInvariant.validateResourceIdentifier(value, 'ResourceName')
-      .map(v => new ResourceName(v))
+    return ResourceNameInvariant.instance.validate(value, 'ResourceName')
+      .map((v: string) => new ResourceName(v))
   }
 }
 
 class Namespace {
   static create(value: string) {
-    return IdentifierInvariant.validateShortIdentifier(value, 'Namespace')
-      .map(v => new Namespace(v))
+    return NamespaceInvariant.instance.validate(value, 'Namespace')
+      .map((v: string) => new Namespace(v))
   }
 }
 ```
@@ -608,10 +611,12 @@ class Namespace {
 ### 4. **Читаемость**
 ```typescript
 // Понятно что проверяется
-StringInvariant.validateAlphanumericWithDashUnderscore(value, 'ResourceName')
+NamespaceInvariant.instance.validate(value, 'Namespace')
 
-// vs magic regex
-if (!/^[a-zA-Z0-9-_]+$/.test(value)) { ... }  // ⛔ что это?
+// vs инлайн валидация с magic regex
+if (!/^[a-z0-9-_]+$/.test(value) || value.length < 2 || value.length > 50) {
+  // ⛔ что это? какие правила?
+}
 ```
 
 ---

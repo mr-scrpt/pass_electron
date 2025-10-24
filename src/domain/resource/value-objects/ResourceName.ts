@@ -1,7 +1,7 @@
 // src/domain/resource/value-objects/ResourceName.ts
 import { Validation } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
-import { StringInvariant } from "@/domain/shared";
+import { ResourceNameInvariant } from "../invariants";
 
 /**
  * Value Object для имени ресурса
@@ -9,21 +9,15 @@ import { StringInvariant } from "@/domain/shared";
  */
 export class ResourceName {
   private static readonly ENTITY_TYPE = "ResourceName";
-  private static readonly MIN_LENGTH = 1;
-  private static readonly MAX_LENGTH = 100;
 
   private constructor(private readonly _value: string) {}
 
   static create(value: string): Validation<ValidationError[], ResourceName> {
-    // Используем StringInvariant (Singleton)
-    return StringInvariant.instance
-      .validateLength(
-        value,
-        ResourceName.ENTITY_TYPE,
-        ResourceName.MIN_LENGTH,
-        ResourceName.MAX_LENGTH,
-      )
-      .map(() => new ResourceName(value));
+    // ✅ Используем ResourceNameInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return ResourceNameInvariant.instance
+      .validate(value, ResourceName.ENTITY_TYPE)
+      .map((validValue: string) => new ResourceName(validValue));
   }
 
   getValue(): string {

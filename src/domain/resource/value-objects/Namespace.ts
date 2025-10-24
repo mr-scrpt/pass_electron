@@ -1,7 +1,7 @@
 // src/domain/resource/value-objects/Namespace.ts
 import { Validation } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
-import { StringInvariant } from "@/domain/shared";
+import { NamespaceInvariant } from "../invariants";
 
 /**
  * Value Object для namespace ресурса
@@ -9,23 +9,15 @@ import { StringInvariant } from "@/domain/shared";
  */
 export class Namespace {
   private static readonly ENTITY_TYPE = "Namespace";
-  private static readonly MIN_LENGTH = 2;
-  private static readonly MAX_LENGTH = 50;
-  private static readonly PATTERN = /^[a-z0-9-_]+$/;
 
   private constructor(private readonly _value: string) {}
 
   static create(value: string): Validation<ValidationError[], Namespace> {
-    // Используем StringInvariant (Singleton)
-    return StringInvariant.instance
-      .validate(value, {
-        entityType: Namespace.ENTITY_TYPE,
-        minLength: Namespace.MIN_LENGTH,
-        maxLength: Namespace.MAX_LENGTH,
-        pattern: Namespace.PATTERN,
-        patternMessage: "must contain only lowercase letters, numbers, - and _",
-      })
-      .map(() => new Namespace(value));
+    // ✅ Используем NamespaceInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return NamespaceInvariant.instance
+      .validate(value, Namespace.ENTITY_TYPE)
+      .map((validValue: string) => new Namespace(validValue));
   }
 
   getValue(): string {

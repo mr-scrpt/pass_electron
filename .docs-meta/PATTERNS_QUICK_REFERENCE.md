@@ -30,27 +30,31 @@ UuidInvariant.instance.isValidUuid(value)
 - ✅ Stateless - нет состояния
 - ✅ Реализует `IInvariant<string>`
 
-### StringInvariant
+### NamespaceInvariant
 
 ```typescript
-// С pattern (например Namespace)
-StringInvariant.instance.validate(value, {
-  entityType: 'Namespace',
-  minLength: 2,
-  maxLength: 50,
-  pattern: /^[a-z0-9-_]+$/,
-  patternMessage: 'must contain only lowercase letters, numbers, - and _'
-})
-
-// Только длина (например ResourceName)
-StringInvariant.instance.validateLength(value, 'ResourceName', 1, 100)
+// Использование
+NamespaceInvariant.instance.validate(value, 'Namespace')
 ```
 
 **Ключевое:**
 - ✅ Один экземпляр на всё приложение
-- ✅ Гибкая конфигурация через `StringValidationConfig`
-- ✅ Два метода: `validate()` и `validateLength()`
-- ✅ Опциональный pattern для сложных правил
+- ✅ Правила ВНУТРИ инварианта (2-50 символов, lowercase, pattern)
+- ✅ Реализует `IInvariant<string>`
+- ✅ Согласованно с `UuidInvariant`
+
+### ResourceNameInvariant
+
+```typescript
+// Использование
+ResourceNameInvariant.instance.validate(value, 'ResourceName')
+```
+
+**Ключевое:**
+- ✅ Один экземпляр на всё приложение
+- ✅ Правила ВНУТРИ инварианта (1-100 символов)
+- ✅ Реализует `IInvariant<string>`
+- ✅ Согласованно с другими инвариантами
 
 ### Создание нового инварианта
 
@@ -169,28 +173,20 @@ ValidationCombinators.sequence([
 
 ## 💡 Полные примеры Value Objects
 
-### Namespace (с pattern через StringInvariant)
+### Namespace
 
 ```typescript
 export class Namespace {
   private static readonly ENTITY_TYPE = 'Namespace';
-  private static readonly MIN_LENGTH = 2;
-  private static readonly MAX_LENGTH = 50;
-  private static readonly PATTERN = /^[a-z0-9-_]+$/;
   
   private constructor(private readonly _value: string) {}
   
   static create(value: string): Validation<ValidationError[], Namespace> {
-    // Используем StringInvariant (Singleton)
-    return StringInvariant.instance
-      .validate(value, {
-        entityType: Namespace.ENTITY_TYPE,
-        minLength: Namespace.MIN_LENGTH,
-        maxLength: Namespace.MAX_LENGTH,
-        pattern: Namespace.PATTERN,
-        patternMessage: 'must contain only lowercase letters, numbers, - and _'
-      })
-      .map(() => new Namespace(value));
+    // ✅ Используем NamespaceInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return NamespaceInvariant.instance
+      .validate(value, Namespace.ENTITY_TYPE)
+      .map((validValue: string) => new Namespace(validValue));
   }
   
   getValue(): string {
@@ -199,26 +195,20 @@ export class Namespace {
 }
 ```
 
-### ResourceName (только длина через StringInvariant)
+### ResourceName
 
 ```typescript
 export class ResourceName {
   private static readonly ENTITY_TYPE = 'ResourceName';
-  private static readonly MIN_LENGTH = 1;
-  private static readonly MAX_LENGTH = 100;
   
   private constructor(private readonly _value: string) {}
   
   static create(value: string): Validation<ValidationError[], ResourceName> {
-    // Используем StringInvariant.validateLength
-    return StringInvariant.instance
-      .validateLength(
-        value,
-        ResourceName.ENTITY_TYPE,
-        ResourceName.MIN_LENGTH,
-        ResourceName.MAX_LENGTH
-      )
-      .map(() => new ResourceName(value));
+    // ✅ Используем ResourceNameInvariant (Singleton)
+    // Правила валидации ВНУТРИ инварианта
+    return ResourceNameInvariant.instance
+      .validate(value, ResourceName.ENTITY_TYPE)
+      .map((validValue: string) => new ResourceName(validValue));
   }
   
   getValue(): string {
@@ -310,9 +300,13 @@ UuidInvariant.instance  // Singleton ⚡
 - `src/domain/shared/invariants/IInvariant.ts`
 - `src/shared/specification/ISpecification.ts`
 
-**Инварианты:**
+**Инварианты (Shared):**
+- `src/domain/shared/invariants/IInvariant.ts`
 - `src/domain/shared/invariants/UuidInvariant.ts`
-- `src/domain/shared/invariants/StringInvariant.ts`
+
+**Инварианты (Resource Bounded Context):**
+- `src/domain/resource/invariants/NamespaceInvariant.ts`
+- `src/domain/resource/invariants/ResourceNameInvariant.ts`
 
 **Спецификации (Domain):**
 - `src/domain/shared/specification/common/CommonNotEmptySpec.ts`

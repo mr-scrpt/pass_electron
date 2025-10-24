@@ -187,6 +187,11 @@ src/domain/
 │   │   ├── FieldValue.ts                      
 │   │   └── index.ts
 │   │
+│   ├── invariants/                            # Инварианты специфичные для Resource
+│   │   ├── NamespaceInvariant.ts              # Валидация Namespace
+│   │   ├── ResourceNameInvariant.ts           # Валидация ResourceName
+│   │   └── index.ts
+│   │
 │   ├── repositories/                          
 │   │   ├── IResourceRepository.ts             
 │   │   ├── INamespaceRepository.ts            
@@ -233,10 +238,8 @@ src/domain/
     │   └── index.ts
     │
     ├── invariants/                            
-    │   ├── UuidInvariant.ts                   
-    │   ├── StringInvariant.ts                 
-    │   ├── EmailInvariant.ts                  
-    │   ├── IdentifierInvariant.ts             
+    │   ├── IInvariant.ts                      # Интерфейс для инвариантов
+    │   ├── UuidInvariant.ts                   # Shared - используется везде
     │   └── index.ts
     │
     ├── base/                                  
@@ -812,16 +815,6 @@ export { DuplicateError } from './DuplicateError'
 export { InvalidOperationError } from './InvalidOperationError'
 ```
 
-#### Domain invariants index.ts [#code|#structure:path]
-
-```typescript
-// src/domain/shared/invariants/index.ts
-export { UuidInvariant } from './UuidInvariant'
-export { StringInvariant } from './StringInvariant'        // Атомарные операции
-export { EmailInvariant } from './EmailInvariant'
-export { IdentifierInvariant } from './IdentifierInvariant'  // Композитные правила
-```
-
 #### Domain base index.ts [#code|#structure:path]
 
 ```typescript
@@ -866,6 +859,14 @@ export { ResourceId } from './ResourceId'
 export { ResourceName } from './ResourceName'
 export { Namespace } from './Namespace'
 export { FieldValue } from './FieldValue'
+```
+
+#### Resource invariants index.ts [#code|#structure:path]
+
+```typescript
+// src/domain/resource/invariants/index.ts
+export { NamespaceInvariant } from './NamespaceInvariant'
+export { ResourceNameInvariant } from './ResourceNameInvariant'
 ```
 
 #### Resource repositories index.ts [#code|#structure:path]

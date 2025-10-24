@@ -622,23 +622,20 @@ class CustomField {
 ### Value Objects
 
 ```typescript
-import { StringInvariant } from '~/domain/shared'
+import { Validation } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
+import { NamespaceInvariant } from '../invariants'
 
 class Namespace {
-  private static readonly PATTERN = /^[a-z0-9_-]+$/
-  private constructor(private value: string) {}
+  private static readonly ENTITY_TYPE = 'Namespace'
+  private constructor(private readonly _value: string) {}
   
-  static create(value: string): Namespace {
-    // ✅ Используем инварианты из Shared Kernel
-    StringInvariant.ensureLength(value, 2, 50, 'Namespace')
-    StringInvariant.ensurePattern(
-      value,
-      this.PATTERN,
-      'Namespace',
-      'value',
-      'lowercase letters, numbers, dash and underscore'
-    )
-    return new Namespace(value)
+  static create(value: string): Validation<ValidationError[], Namespace> {
+    // ✅ Используем domain-специфичный инвариант (Resource Bounded Context)
+    // Правила (2-50 символов, lowercase, pattern) внутри инварианта
+    return NamespaceInvariant.instance
+      .validate(value, Namespace.ENTITY_TYPE)
+      .map((validValue: string) => new Namespace(validValue))
   }
   
   equals(other: Namespace): boolean

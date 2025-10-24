@@ -12,7 +12,7 @@
 - Что такое инварианты в DDD
 - Где они живут (Value Objects, Aggregates)
 - Паттерн Shared Kernel для переиспользуемых правил валидации
-- Примеры: `UuidInvariant`, `StringInvariant`, `EmailInvariant`
+- Примеры: `UuidInvariant` (shared), `NamespaceInvariant` (resource), `ResourceNameInvariant` (resource)
 - Интеграция с `InvariantViolationError`
 
 **Ключевые концепции:**
@@ -172,14 +172,12 @@ class Namespace {
 ```typescript
 // ✅ ХОРОШО: Self-validating Value Object через инварианты
 class ResourceName {
-  private constructor(private readonly value: string) {}
+  private constructor(private readonly _value: string) {}
   
-  static create(value: string): Either<InvariantViolationError, ResourceName> {
-    return StringInvariant.validateLength(value, 1, 100, 'ResourceName')
-      .chain(v => 
-        StringInvariant.validateAlphanumericWithDashUnderscore(v, 'ResourceName')
-      )
-      .map(validValue => new ResourceName(validValue))
+  static create(value: string): Validation<ValidationError[], ResourceName> {
+    return ResourceNameInvariant.instance
+      .validate(value, 'ResourceName')
+      .map((validValue: string) => new ResourceName(validValue))
   }
   
   getValue(): string {

@@ -15,6 +15,25 @@
 
 ---
 
+## 📁 Структура Domain Layer [#structure:tree]
+
+### resource/ - Bounded Context для управления ресурсами
+- **aggregates/** - Aggregate Roots (главные сущности)
+- **entities/** - Entities (сущности внутри Aggregate)
+- **value-objects/** - Value Objects (неизменяемые значения)
+- **invariants/** - Domain-специфичные инварианты (например, NamespaceInvariant)
+- **specifications/** - Бизнес-правила (например, NotReservedNamespaceSpec)
+- **repositories/** - Repository Interfaces
+- **events/** - Domain Events
+
+### shared/ - Shared Kernel (переиспользуемое между доменами)
+- **errors/** - Базовые ошибки (InvariantViolationError, ValidationError)
+- **invariants/** - Shared инварианты (используются везде, например UuidInvariant)
+- **specification/** - Common спецификации
+- **base/** - Базовые классы/интерфейсы
+
+---
+
 ## 1.1. Создать переиспользуемые инварианты (Shared Kernel)
 
 > **📚 Детали**: [INVARIANTS.md](../../docs/error-handling/INVARIANTS.md) — Полное описание паттерна Invariants
@@ -357,8 +376,8 @@ export class ResourceId {
 
 ## 1.3. Создать бизнес-специфичные спецификации
 
-> **📚 Примечание:** Общие правила (длина, формат) теперь валидируются через `StringInvariant`.  
-> Здесь создаются только **бизнес-специфичные** правила.
+> **📚 Примечание:** Общие правила (длина, формат) валидируются через domain-специфичные инварианты (`NamespaceInvariant`, `ResourceNameInvariant`).  
+> Здесь создаются только **бизнес-специфичные** правила (например, список зарезервированных namespace).
 
 ### NotReservedNamespaceSpec (бизнес-правило)
 

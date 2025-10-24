@@ -154,11 +154,19 @@ export class UuidInvariant implements IInvariant<string> {
 - ✅ Один экземпляр для всего приложения
 - ✅ Реализует `IInvariant<string>` для полиморфизма
 
-**Почему именованные параметры?**
+**Почему именованные параметры + Flyweight?**
+
+**Именованные параметры:**
 - ✅ Невозможно перепутать `pattern` и `message`
+- ✅ Невозможно перепутать `minLength` и `maxLength`
 - ✅ Самодокументируемый код
 - ✅ IDE автодополнение
 - ✅ Martin Fowler's Parameter Object Pattern
+
+**Flyweight Pattern:**
+- ✅ Спецификации кэшируются по ключу (entityType + параметры)
+- ✅ Производительность - экземпляр создается один раз
+- ✅ Экономия памяти при многократном использовании
 
 ### NamespaceInvariant
 

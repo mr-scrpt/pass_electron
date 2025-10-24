@@ -204,6 +204,7 @@ export interface LengthConfig {
 /**
  * Общая спецификация для проверки длины строки
  * 
+ * Singleton Factory Pattern - экземпляры кэшируются по комбинации параметров
  * Использует именованные параметры для предотвращения ошибок
  * 
  * @example
@@ -214,10 +215,23 @@ export interface LengthConfig {
  * })
  */
 export class CommonLengthSpec implements ISpecification<string> {
+  // Flyweight: кэш экземпляров по ключу "entityType:min:max"
+  private static readonly _instances = new Map<string, CommonLengthSpec>()
+
   private constructor(private readonly config: LengthConfig) {}
 
+  /**
+   * Получить или создать экземпляр
+   * @param config - конфигурация с именованными параметрами
+   */
   static for(config: LengthConfig): CommonLengthSpec {
-    return new CommonLengthSpec(config)
+    const key = `${config.entityType}:${config.minLength}:${config.maxLength}`
+    
+    if (!CommonLengthSpec._instances.has(key)) {
+      CommonLengthSpec._instances.set(key, new CommonLengthSpec(config))
+    }
+    
+    return CommonLengthSpec._instances.get(key)!
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
@@ -256,6 +270,7 @@ export interface PatternConfig {
 /**
  * Общая спецификация для проверки по регулярному выражению
  * 
+ * Singleton Factory Pattern - экземпляры кэшируются по комбинации параметров
  * Использует именованные параметры для предотвращения ошибок
  * 
  * @example
@@ -266,10 +281,23 @@ export interface PatternConfig {
  * })
  */
 export class CommonPatternSpec implements ISpecification<string> {
+  // Flyweight: кэш экземпляров по ключу "entityType:pattern:message"
+  private static readonly _instances = new Map<string, CommonPatternSpec>()
+
   private constructor(private readonly config: PatternConfig) {}
 
+  /**
+   * Получить или создать экземпляр
+   * @param config - конфигурация с именованными параметрами
+   */
   static for(config: PatternConfig): CommonPatternSpec {
-    return new CommonPatternSpec(config)
+    const key = `${config.entityType}:${config.pattern.source}:${config.message}`
+    
+    if (!CommonPatternSpec._instances.has(key)) {
+      CommonPatternSpec._instances.set(key, new CommonPatternSpec(config))
+    }
+    
+    return CommonPatternSpec._instances.get(key)!
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
@@ -300,16 +328,30 @@ export interface NotEmptyConfig {
 /**
  * Общая спецификация для проверки на пустоту
  * 
+ * Singleton Factory Pattern - экземпляры кэшируются по entityType
  * Использует именованные параметры для консистентности с другими спецификациями
  * 
  * @example
  * CommonNotEmptySpec.for({ entityType: 'Namespace' })
  */
 export class CommonNotEmptySpec implements ISpecification<string> {
+  // Flyweight: кэш экземпляров по entityType
+  private static readonly _instances = new Map<string, CommonNotEmptySpec>()
+
   private constructor(private readonly config: NotEmptyConfig) {}
 
+  /**
+   * Получить или создать экземпляр
+   * @param config - конфигурация с именованными параметрами
+   */
   static for(config: NotEmptyConfig): CommonNotEmptySpec {
-    return new CommonNotEmptySpec(config)
+    const key = config.entityType
+    
+    if (!CommonNotEmptySpec._instances.has(key)) {
+      CommonNotEmptySpec._instances.set(key, new CommonNotEmptySpec(config))
+    }
+    
+    return CommonNotEmptySpec._instances.get(key)!
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
@@ -320,12 +362,21 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 }
 ```
 
-**Почему именованные параметры?**
-- ✅ Невозможно перепутать порядок параметров
+**Почему именованные параметры + Flyweight?**
+
+**Именованные параметры (Parameter Object Pattern):**
+- ✅ Невозможно перепутать `minLength` и `maxLength`
+- ✅ Невозможно перепутать `pattern` и `message`
 - ✅ Самодокументируемый код
+- ✅ IDE автодополнение с подсказками
 - ✅ Легко добавлять новые параметры
-- ✅ IDE автодополнение
-- ✅ Согласовано с Martin Fowler's Parameter Object Pattern
+- ✅ Martin Fowler's Parameter Object Pattern
+
+**Flyweight Pattern (кэширование):**
+- ✅ Экземпляры создаются один раз и переиспользуются
+- ✅ Производительность - нет лишних аллокаций
+- ✅ Экономия памяти
+- ✅ Спецификации stateful (хранят конфигурацию)
 
 ---
 

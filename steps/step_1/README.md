@@ -71,7 +71,7 @@ MockRepository → Query Handler → Query Bus → Facade → React Router Loade
 
 ```bash
 # Создать структуру Domain Layer
-mkdir -p src/domain/resource/{aggregates,entities,value-objects,repositories,events,specifications}
+mkdir -p src/domain/resource/{aggregates,entities,value-objects,invariants,repositories,events,specifications}
 mkdir -p src/domain/shared/{errors,invariants,specification/common}
 mkdir -p src/shared/validation
 ```
@@ -99,9 +99,10 @@ mkdir -p src/shared/validation
 Создать ядро приложения - Domain Layer.
 
 **Что создаем:**
-- Инварианты (UuidInvariant, InvariantViolationError)
+- Shared инварианты (UuidInvariant, IInvariant, InvariantViolationError)
+- Resource инварианты (NamespaceInvariant, ResourceNameInvariant)
 - Value Objects (ResourceId, Namespace, ResourceName)
-- Спецификации (NamespaceSpecs, ResourceNameSpecs)
+- Спецификации (NotReservedNamespaceSpec)
 - Aggregate Root (Resource)
 - Repository Interface (IResourceRepository)
 
@@ -150,47 +151,51 @@ mkdir -p src/shared/validation
 После выполнения всех шагов у вас будет:
 
 ```
-src/
-├── shared/                     # Технические утилиты
-│   └── validation/
-│       ├── Validation.ts
-│       ├── helpers.ts
-│       ├── ValidationCombinators.ts
-│       └── index.ts
+src/                                          #structure:
+├── shared/                                   # Технические утилиты #structure:
+│   └── validation/                           #structure:
+│       ├── Validation.ts                     #structure:
+│       ├── helpers.ts                        #structure:
+│       ├── ValidationCombinators.ts          #structure:
+│       └── index.ts                          #structure:
 │
-└── domain/
-    ├── shared/                 # Shared Kernel
-    │   ├── errors/
-    │   │   ├── InvariantViolationError.ts
-    │   │   └── ValidationError.ts
-    │   ├── invariants/
-    │   │   └── UuidInvariant.ts
-    │   ├── specification/
-    │   │   ├── ISpecification.ts
-    │   │   ├── common/
-    │   │   │   ├── CommonLengthSpec.ts
-    │   │   │   ├── CommonPatternSpec.ts
-    │   │   │   └── CommonNotEmptySpec.ts
-    │   │   └── index.ts
-    │   └── index.ts
+└── domain/                                   #structure:
+    ├── shared/                               # Shared Kernel #structure:
+    │   ├── errors/                           #structure:
+    │   │   ├── InvariantViolationError.ts    #structure:
+    │   │   └── ValidationError.ts            #structure:
+    │   ├── invariants/                       #structure:
+    │   │   ├── IInvariant.ts                 #structure:
+    │   │   ├── UuidInvariant.ts              #structure:
+    │   │   └── index.ts                      #structure:
+    │   ├── specification/                    #structure:
+    │   │   ├── ISpecification.ts             #structure:
+    │   │   ├── common/                       #structure:
+    │   │   │   ├── CommonLengthSpec.ts       #structure:
+    │   │   │   ├── CommonPatternSpec.ts      #structure:
+    │   │   │   └── CommonNotEmptySpec.ts     #structure:
+    │   │   └── index.ts                      #structure:
+    │   └── index.ts                          #structure:
     │
-    └── resource/               # Resource Bounded Context
-        ├── specifications/
-        │   ├── NamespaceSpecs.ts
-        │   ├── NotReservedNamespaceSpec.ts
-        │   ├── ResourceNameSpecs.ts
-        │   └── index.ts
-        ├── value-objects/
-        │   ├── ResourceId.ts
-        │   ├── Namespace.ts
-        │   ├── ResourceName.ts
-        │   └── index.ts
-        ├── aggregates/
-        │   ├── Resource.ts
-        │   └── index.ts
-        └── repositories/
-            ├── IResourceRepository.ts
-            └── index.ts
+    └── resource/                             # Resource Bounded Context #structure:
+        ├── invariants/                       # Domain-специфичные инварианты #structure:
+        │   ├── NamespaceInvariant.ts         #structure:
+        │   ├── ResourceNameInvariant.ts      #structure:
+        │   └── index.ts                      #structure:
+        ├── specifications/                   #structure:
+        │   ├── NotReservedNamespaceSpec.ts   #structure:
+        │   └── index.ts                      #structure:
+        ├── value-objects/                    #structure:
+        │   ├── ResourceId.ts                 #structure:
+        │   ├── Namespace.ts                  #structure:
+        │   ├── ResourceName.ts               #structure:
+        │   └── index.ts                      #structure:
+        ├── aggregates/                       #structure:
+        │   ├── Resource.ts                   #structure:
+        │   └── index.ts                      #structure:
+        └── repositories/                     #structure:
+            ├── IResourceRepository.ts        #structure:
+            └── index.ts                      #structure:
 ```
 
 ---

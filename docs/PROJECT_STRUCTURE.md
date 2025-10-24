@@ -169,87 +169,87 @@ src/composition/
 ### Структура Domain Layer [#structure:tree]
 
 ```
-src/domain/                                    
-├── resource/                                  
-│   ├── aggregates/                            
-│   │   ├── Resource.ts                        
-│   │   └── index.ts
+src/domain/                                    #structure:
+├── resource/                                  #structure:
+│   ├── aggregates/                            #structure:
+│   │   ├── Resource.ts                        #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── entities/                              
-│   │   ├── SecretField.ts                     
-│   │   ├── CustomField.ts                     
-│   │   └── index.ts
+│   ├── entities/                              #structure:
+│   │   ├── SecretField.ts                     #structure:
+│   │   ├── CustomField.ts                     #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── value-objects/                         
-│   │   ├── ResourceId.ts                      
-│   │   ├── ResourceName.ts                    
-│   │   ├── Namespace.ts                       
-│   │   ├── FieldValue.ts                      
-│   │   └── index.ts
+│   ├── value-objects/                         #structure:
+│   │   ├── ResourceId.ts                      #structure:
+│   │   ├── ResourceName.ts                    #structure:
+│   │   ├── Namespace.ts                       #structure:
+│   │   ├── FieldValue.ts                      #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── invariants/                            # Инварианты специфичные для Resource
-│   │   ├── NamespaceInvariant.ts              # Валидация Namespace
-│   │   ├── ResourceNameInvariant.ts           # Валидация ResourceName
-│   │   └── index.ts
+│   ├── invariants/                            # Инварианты специфичные для Resource #structure:
+│   │   ├── NamespaceInvariant.ts              # Валидация Namespace #structure:
+│   │   ├── ResourceNameInvariant.ts           # Валидация ResourceName #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── repositories/                          
-│   │   ├── IResourceRepository.ts             
-│   │   ├── INamespaceRepository.ts            
-│   │   └── index.ts
+│   ├── repositories/                          #structure:
+│   │   ├── IResourceRepository.ts             #structure:
+│   │   ├── INamespaceRepository.ts            #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── events/                                
-│   │   ├── ResourceCreated.ts                 
-│   │   ├── ResourceUpdated.ts                 
-│   │   ├── ResourceDeleted.ts                 
-│   │   └── index.ts
+│   ├── events/                                #structure:
+│   │   ├── ResourceCreated.ts                 #structure:
+│   │   ├── ResourceUpdated.ts                 #structure:
+│   │   ├── ResourceDeleted.ts                 #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   ├── errors/                                
-│   │   ├── DuplicateFieldLabelError.ts        
-│   │   ├── ResourceLockedError.ts             
-│   │   └── index.ts
+│   ├── errors/                                #structure:
+│   │   ├── DuplicateFieldLabelError.ts        #structure:
+│   │   ├── ResourceLockedError.ts             #structure:
+│   │   └── index.ts                           #structure:
 │   │
-│   └── index.ts
+│   └── index.ts                               #structure:
 │
-├── user/                                      
-│   ├── aggregates/                            
-│   │   ├── User.ts                            
-│   │   └── index.ts
-│   ├── value-objects/                         
-│   │   ├── UserId.ts                          
-│   │   ├── Email.ts                           
-│   │   ├── Password.ts                        
-│   │   └── index.ts
-│   ├── repositories/                          
-│   │   ├── IUserRepository.ts                 
-│   │   └── index.ts
-│   ├── events/                                
-│   │   ├── UserRegistered.ts                  
-│   │   ├── UserLoggedIn.ts                    
-│   │   └── index.ts
-│   └── index.ts
+├── user/                                      #structure:
+│   ├── aggregates/                            #structure:
+│   │   ├── User.ts                            #structure:
+│   │   └── index.ts                           #structure:
+│   ├── value-objects/                         #structure:
+│   │   ├── UserId.ts                          #structure:
+│   │   ├── Email.ts                           #structure:
+│   │   ├── Password.ts                        #structure:
+│   │   └── index.ts                           #structure:
+│   ├── repositories/                          #structure:
+│   │   ├── IUserRepository.ts                 #structure:
+│   │   └── index.ts                           #structure:
+│   ├── events/                                #structure:
+│   │   ├── UserRegistered.ts                  #structure:
+│   │   ├── UserLoggedIn.ts                    #structure:
+│   │   └── index.ts                           #structure:
+│   └── index.ts                               #structure:
 │
-└── shared/                                    
-    ├── errors/                                
-    │   ├── DomainError.ts                     
-    │   ├── InvariantViolationError.ts         
-    │   ├── NotFoundError.ts                   
-    │   ├── DuplicateError.ts                  
-    │   ├── InvalidOperationError.ts           
-    │   └── index.ts
+└── shared/                                    #structure:
+    ├── errors/                                #structure:
+    │   ├── DomainError.ts                     #structure:
+    │   ├── InvariantViolationError.ts         #structure:
+    │   ├── NotFoundError.ts                   #structure:
+    │   ├── DuplicateError.ts                  #structure:
+    │   ├── InvalidOperationError.ts           #structure:
+    │   └── index.ts                           #structure:
     │
-    ├── invariants/                            
-    │   ├── IInvariant.ts                      # Интерфейс для инвариантов
-    │   ├── UuidInvariant.ts                   # Shared - используется везде
-    │   └── index.ts
+    ├── invariants/                            #structure:
+    │   ├── IInvariant.ts                      # Интерфейс для инвариантов #structure:
+    │   ├── UuidInvariant.ts                   # Shared - используется везде #structure:
+    │   └── index.ts                           #structure:
     │
-    ├── base/                                  
-    │   ├── IRepository.ts                     
-    │   ├── DomainEvent.ts                     
-    │   ├── Entity.ts                          
-    │   ├── ValueObject.ts                     
-    │   └── index.ts
+    ├── base/                                  #structure:
+    │   ├── IRepository.ts                     #structure:
+    │   ├── DomainEvent.ts                     #structure:
+    │   ├── Entity.ts                          #structure:
+    │   ├── ValueObject.ts                     #structure:
+    │   └── index.ts                           #structure:
     │
-    └── index.ts
+    └── index.ts                               #structure:
 ```
 
 **📌 Что говорит DDD о структуре Domain Layer:**
@@ -259,13 +259,16 @@ src/domain/
    - `aggregates/` - Aggregate Roots (главные сущности)
    - `entities/` - Entities (сущности внутри Aggregate)
    - `value-objects/` - Value Objects (неизменяемые значения)
+   - `invariants/` - Domain-специфичные инварианты (например, NamespaceInvariant)
+   - `specifications/` - Бизнес-правила (например, NotReservedNamespaceSpec)
    - `repositories/` - Repository Interfaces (специфичные для контекста)
    - `events/` - Domain Events (специфичные для контекста)
    - `index.ts` - Public API модуля
 
 2. **Shared Kernel** (`shared/`) - минимальный общий код
    - `errors/` - Базовые Domain Errors
-   - `invariants/` - Переиспользуемые правила валидации
+   - `invariants/` - Shared инварианты (используются везде, например UuidInvariant)
+   - `specification/` - Common спецификации
    - `base/` - Базовые классы/интерфейсы (IRepository, DomainEvent)
    - ⚠️ **Только действительно общее!** Не раздувать Shared Kernel
 

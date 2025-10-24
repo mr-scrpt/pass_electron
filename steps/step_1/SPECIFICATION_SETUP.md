@@ -193,34 +193,42 @@ import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
 
 /**
+ * Конфигурация для проверки длины
+ */
+export interface LengthConfig {
+  readonly entityType: string
+  readonly minLength: number
+  readonly maxLength: number
+}
+
+/**
  * Общая спецификация для проверки длины строки
  * 
- * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
- * Создавайте синглтоны в domain/specifications/ с фиксированной конфигурацией
+ * Использует именованные параметры для предотвращения ошибок
  * 
  * @example
- * // ❌ НЕПРАВИЛЬНО - использование напрямую
- * new CommonLengthSpec('Namespace', 2, 50)
- * 
- * // ✅ ПРАВИЛЬНО - создать синглтон в domain/specifications/
- * export const NAMESPACE_LENGTH_SPEC = new CommonLengthSpec('Namespace', 2, 50)
+ * CommonLengthSpec.for({
+ *   entityType: 'Namespace',
+ *   minLength: 2,
+ *   maxLength: 50,
+ * })
  */
 export class CommonLengthSpec implements ISpecification<string> {
-  constructor(
-    private readonly entityType: string,
-    private readonly minLength: number,
-    private readonly maxLength: number
-  ) {}
+  private constructor(private readonly config: LengthConfig) {}
+
+  static for(config: LengthConfig): CommonLengthSpec {
+    return new CommonLengthSpec(config)
+  }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return isTrue(
-      value.length >= this.minLength && value.length <= this.maxLength,
+      value.length >= this.config.minLength && value.length <= this.config.maxLength,
       value
     )
       .valid()
       .invalid(new ValidationError(
-        this.entityType,
-        `must be ${this.minLength}-${this.maxLength} characters`
+        this.config.entityType,
+        `must be ${this.config.minLength}-${this.config.maxLength} characters`
       ))
   }
 }
@@ -237,21 +245,37 @@ import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
 
 /**
+ * Конфигурация для проверки паттерна
+ */
+export interface PatternConfig {
+  readonly entityType: string
+  readonly pattern: RegExp
+  readonly message: string
+}
+
+/**
  * Общая спецификация для проверки по регулярному выражению
  * 
- * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
+ * Использует именованные параметры для предотвращения ошибок
+ * 
+ * @example
+ * CommonPatternSpec.for({
+ *   entityType: 'Namespace',
+ *   pattern: /^[a-z0-9-]+$/,
+ *   message: 'must contain only lowercase letters, numbers, and hyphens',
+ * })
  */
 export class CommonPatternSpec implements ISpecification<string> {
-  constructor(
-    private readonly entityType: string,
-    private readonly pattern: RegExp,
-    private readonly message: string
-  ) {}
+  private constructor(private readonly config: PatternConfig) {}
+
+  static for(config: PatternConfig): CommonPatternSpec {
+    return new CommonPatternSpec(config)
+  }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return isTrue(this.pattern.test(value), value)
+    return isTrue(this.config.pattern.test(value), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, this.message))
+      .invalid(new ValidationError(this.config.entityType, this.config.message))
   }
 }
 ```
@@ -267,25 +291,41 @@ import { ISpecification } from '../ISpecification'
 import { ValidationError } from '../ValidationError'
 
 /**
+ * Конфигурация для проверки на пустоту
+ */
+export interface NotEmptyConfig {
+  readonly entityType: string
+}
+
+/**
  * Общая спецификация для проверки на пустоту
  * 
- * ⚠️ НЕ ИСПОЛЬЗОВАТЬ НАПРЯМУЮ В DOMAIN LAYER!
+ * Использует именованные параметры для консистентности с другими спецификациями
+ * 
+ * @example
+ * CommonNotEmptySpec.for({ entityType: 'Namespace' })
  */
 export class CommonNotEmptySpec implements ISpecification<string> {
-  constructor(private readonly entityType: string) {}
+  private constructor(private readonly config: NotEmptyConfig) {}
+
+  static for(config: NotEmptyConfig): CommonNotEmptySpec {
+    return new CommonNotEmptySpec(config)
+  }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return isTrue(value && value.trim().length > 0, value)
       .valid()
-      .invalid(new ValidationError(this.entityType, 'cannot be empty'))
+      .invalid(new ValidationError(this.config.entityType, 'cannot be empty'))
   }
 }
 ```
 
-**Почему `Common*`?**
-- Явно показывает что это базовые классы
-- Предотвращает прямое использование в Domain
-- Направляет на создание синглтонов с бизнес-правилами
+**Почему именованные параметры?**
+- ✅ Невозможно перепутать порядок параметров
+- ✅ Самодокументируемый код
+- ✅ Легко добавлять новые параметры
+- ✅ IDE автодополнение
+- ✅ Согласовано с Martin Fowler's Parameter Object Pattern
 
 ---
 

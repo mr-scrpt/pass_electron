@@ -125,15 +125,15 @@ export class UuidInvariant implements IInvariant<string> {
     value: string,
     entityType: string
   ): Validation<ValidationError[], string> {
-    // Используем Singleton Factory для спецификаций
+    // Используем именованные параметры для спецификаций
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonPatternSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonPatternSpec.for({
           entityType,
-          UuidInvariant.UUID_V4_REGEX,
-          "must be a valid UUID v4"
-        ).isSatisfiedBy(value),
+          pattern: UuidInvariant.UUID_V4_REGEX,
+          message: "must be a valid UUID v4",
+        }).isSatisfiedBy(value),
       ],
       () => value
     );
@@ -154,11 +154,11 @@ export class UuidInvariant implements IInvariant<string> {
 - ✅ Один экземпляр для всего приложения
 - ✅ Реализует `IInvariant<string>` для полиморфизма
 
-**Почему Singleton Factory для спецификаций?**
-- ✅ Спецификации хранят `entityType` (stateful)
-- ✅ Flyweight паттерн - кэширование по ключу
-- ✅ `CommonNotEmptySpec.for('ResourceId')` кэшируется
-- ✅ Производительность - экземпляр создается один раз
+**Почему именованные параметры?**
+- ✅ Невозможно перепутать `pattern` и `message`
+- ✅ Самодокументируемый код
+- ✅ IDE автодополнение
+- ✅ Martin Fowler's Parameter Object Pattern
 
 ### NamespaceInvariant
 
@@ -204,17 +204,17 @@ export class NamespaceInvariant implements IInvariant<string> {
   ): Validation<ValidationError[], string> {
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonLengthSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonLengthSpec.for({
           entityType,
-          NamespaceInvariant.MIN_LENGTH,
-          NamespaceInvariant.MAX_LENGTH,
-        ).isSatisfiedBy(value),
-        CommonPatternSpec.for(
+          minLength: NamespaceInvariant.MIN_LENGTH,
+          maxLength: NamespaceInvariant.MAX_LENGTH,
+        }).isSatisfiedBy(value),
+        CommonPatternSpec.for({
           entityType,
-          NamespaceInvariant.PATTERN,
-          NamespaceInvariant.PATTERN_MESSAGE,
-        ).isSatisfiedBy(value),
+          pattern: NamespaceInvariant.PATTERN,
+          message: NamespaceInvariant.PATTERN_MESSAGE,
+        }).isSatisfiedBy(value),
       ],
       () => value,
     );
@@ -259,12 +259,12 @@ export class ResourceNameInvariant implements IInvariant<string> {
   ): Validation<ValidationError[], string> {
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonLengthSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonLengthSpec.for({
           entityType,
-          ResourceNameInvariant.MIN_LENGTH,
-          ResourceNameInvariant.MAX_LENGTH,
-        ).isSatisfiedBy(value),
+          minLength: ResourceNameInvariant.MIN_LENGTH,
+          maxLength: ResourceNameInvariant.MAX_LENGTH,
+        }).isSatisfiedBy(value),
       ],
       () => value,
     );

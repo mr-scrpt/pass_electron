@@ -131,7 +131,11 @@ export class ListResourcesQuery implements IQuery {
 
 ---
 
-### 2.3. Создать ListResourcesQueryHandler
+### 2.3. Создать ListResourcesQueryHandler с монадами
+
+> 📚 **Обработка ошибок:** См. [APPLICATION_ERROR_HANDLING.md](../../docs/error-handling/APPLICATION_ERROR_HANDLING.md)
+
+> 💡 **BaseQueryHandler:** Используем базовый класс для переиспользования логики обработки ошибок
 
 **Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**
 
@@ -139,81 +143,129 @@ export class ListResourcesQuery implements IQuery {
 
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
-import { valid, invalid, type Validation } from '@/shared/validation'
+import { BaseQueryHandler } from '@/application/shared/BaseQueryHandler'
+import type { Validation } from '@/shared/validation'
 import type { IQueryHandler } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
 import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
 import type { IResourceRepository } from '@/domain'
+import type { ILogger } from '@/application/ports'
+import type { Resource } from '@/domain'
 
 /**
  * Query Handler: Получить список ресурсов
  * 
  * Ответственность:
- * 1. Получить Domain объекты из Repository
- * 2. Преобразовать Domain → DTO
- * 3. Вернуть DTO для Presentation Layer
+ * 1. Получить Domain объекты из Repository (Validation монады)
+ * 2. Проверить infrastructure ошибки через BaseQueryHandler
+ * 3. Преобразовать Domain → DTO
+ * 4. Вернуть DTO для Presentation Layer
+ * 
+ * Наследование:
+ * - extends BaseQueryHandler - получаем protected методы:
+ *   - handleRepositoryResult() - проверка ошибок
+ *   - logQueryExecution() - логирование начала
+ *   - logQuerySuccess() - логирование успеха
+ * 
+ * DI зависимости (инжектятся в Composition Layer):
+ * - repository: IResourceRepository - доступ к данным
+ * - logger: ILogger - логирование (передается в super())
  */
 export class ListResourcesQueryHandler 
+  extends BaseQueryHandler  // ✅ НАСЛЕДОВАНИЕ - получаем protected методы
   implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   
-  constructor(private readonly repository: IResourceRepository) {}
+  constructor(
+    private readonly repository: IResourceRepository,  // ✅ DI
+    logger: ILogger  // ✅ DI
+  ) {
+    super(logger)  // Передаем logger в BaseQueryHandler
+  }
   
   async handle(
     query: ListResourcesQuery
   ): Promise<Validation<Error[], ResourceListItemDTO[]>> {
-    try {
-      // 1. Получаем Domain объекты
-      const resources = await this.repository.findAll()
-      
-      // 2. Преобразуем Domain → DTO
-      const dtos: ResourceListItemDTO[] = resources.map(resource => ({
-        id: resource.getId().getValue(),
-        namespace: resource.getNamespace().getValue(),
-        name: resource.getName().getValue(),
-        secretPreview: '****',  // Фиксированная маска
-        fieldsCount: 0,         // Step 1: нет CustomField
-        updatedAt: resource.getUpdatedAt().toISOString()
-      }))
-      
-      // 3. Возвращаем DTO
-      return valid(dtos)
-      
-    } catch (error) {
-      // Непредвиденные ошибки (например, сеть, DB)
-      return invalid([
-        new Error(
-          `Failed to list resources: ${error instanceof Error ? error.message : String(error)}`
-        )
-      ])
+    // 1. Логирование начала (protected метод из BaseQueryHandler)
+    this.logQueryExecution('ListResourcesQuery')
+    
+    // 2. Получаем Domain объекты
+    //    Repository возвращает Validation<Error[], Resource[]>
+    const result = await this.repository.findAll()
+    
+    // 3. Проверка infrastructure/unknown ошибок (protected метод)
+    //    Возвращает:
+    //    - null если OK (можно продолжать)
+    //    - Validation с ошибкой если infrastructure/unknown найдены
+    const error = this.handleRepositoryResult(result, 'find all resources')
+    if (error !== null) return error  // Критичные ошибки - выходим
+    
+    // 4. Здесь result.isRight() гарантировано
+    //    Преобразуем Domain → DTO через монадический .map()
+    const dtos = result.map(resources =>
+      resources.map(resource => this.toDTO(resource))
+    )
+    
+    // 5. Логирование успеха (protected метод из BaseQueryHandler)
+    this.logQuerySuccess('ListResourcesQuery', { count: dtos.value.length })
+    
+    return dtos
+  }
+  
+  /**
+   * Маппинг Domain → DTO
+   * Изолирован в отдельный метод для:
+   * - Читаемости (не засоряем handle())
+   * - Тестирования (можно тестировать отдельно)
+   */
+  private toDTO(resource: Resource): ResourceListItemDTO {
+    return {
+      id: resource.getId().getValue(),
+      namespace: resource.getNamespace().getValue(),
+      name: resource.getName().getValue(),
+      secretPreview: '****',  // Фиксированная маска
+      fieldsCount: 0,         // Step 1: нет CustomField
+      updatedAt: resource.getUpdatedAt().toISOString()
     }
   }
 }
 ```
 
 **Ключевые моменты:**
-- ✅ **Маппинг Domain → DTO** выполняется ЗДЕСЬ (в QueryHandler)
-- ✅ **Repository возвращает Domain** типы (Resource[])
-- ✅ **QueryHandler возвращает DTO** для Presentation
-- ✅ **Validation** для type-safe обработки ошибок
 
----
+**Архитектура:**
+- ✅ **Validation монады** вместо try-catch (type-safe)
+- ✅ **BaseQueryHandler** для переиспользования (DRY)
+- ✅ **handleRepositoryResult()** - проверяет все типы ошибок
+- ✅ **Логирование** встроено в базовый класс
 
-### 2.4. Создать Public API для queries
+**Наследование vs DI:**
+- **BaseQueryHandler** - наследование (extends) - получаем protected методы
+- **ILogger** - DI (через конструктор) - передается в super()
+- **IResourceRepository** - DI (через конструктор) - используется в handle()
 
-**Файл: `src/application/queries/index.ts`**
+**Обработка ошибок:**
+- `handleRepositoryResult()` проверяет infrastructure/unknown
+- Если найдены - логирует ERROR, возвращает generic сообщение
+- Если только operational - пробрасывает (но для findAll их нет)
 
-```typescript
-// src/application/queries/index.ts
-export type { IQuery } from './IQuery'
-export type { IQueryHandler } from './IQueryHandler'
-export { ListResourcesQuery } from './ListResourcesQuery'
-export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
-export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
+**Потоки данных:**
+```
+Repository → Validation<Error[], Resource[]>
+     ↓
+handleRepositoryResult() → проверка ошибок
+     ↓
+.map() → Domain → DTO
+     ↓
+Return → Validation<Error[], ResourceListItemDTO[]>
 ```
 
 ---
 
-## 3. Создать Repository Interface
+---
+
+## 3. Создать Repository Interface с Validation
+
+> ⚠️ **Важно:** Repository должен возвращать `Validation<Error[], T>` для type-safe обработки ошибок
 
 **Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
 
@@ -221,6 +273,7 @@ export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
 
 ```typescript
 // src/domain/resource/repositories/IResourceRepository.ts
+import type { Validation } from '@/shared/validation'
 import type { ResourceId } from '../value-objects/ResourceId'
 import type { Namespace } from '../value-objects/Namespace'
 import type { Resource } from '../aggregates/Resource'
@@ -229,15 +282,22 @@ import type { Resource } from '../aggregates/Resource'
  * Интерфейс репозитория ресурсов
  * Определен в Domain Layer, реализован в Infrastructure Layer
  * 
+ * ⚠️ Возвращает Validation<Error[], T> для type-safe обработки
  * ⚠️ Возвращает Domain типы (Resource), НЕ DTO!
  */
 export interface IResourceRepository {
-  findAll(): Promise<Resource[]>
-  findById(id: ResourceId): Promise<Resource | null>
-  findByNamespace(namespace: Namespace): Promise<Resource[]>
-  search(query: string): Promise<Resource[]>
+  findAll(): Promise<Validation<Error[], Resource[]>>
+  findById(id: ResourceId): Promise<Validation<Error[], Resource | null>>
+  findByNamespace(namespace: Namespace): Promise<Validation<Error[], Resource[]>>
+  search(query: string): Promise<Validation<Error[], Resource[]>>
 }
 ```
+
+**Почему Validation:**
+- ✅ Type-safe обработка ошибок (ошибки в типе!)
+- ✅ Накопление всех ошибок (через mergeInMany)
+- ✅ Нет try-catch Hell
+- ✅ Railway-oriented programming
 
 **Почему интерфейс в Domain?**
 - Domain определяет контракт

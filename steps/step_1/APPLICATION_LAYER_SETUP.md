@@ -33,8 +33,8 @@ export interface ResourceListItemDTO {
   id: string              // ResourceId → string
   namespace: string       // Namespace → string
   name: string           // ResourceName → string
-  secretPreview?: string  // Первые символы + ***
-  fieldsCount: number
+  secretPreview: string   // Secret → замаскированная строка ('****')
+  fieldsCount: number     // Количество CustomField (0 в Step 1, будет в Step 2)
   updatedAt: string      // Date → ISO string
 }
 ```
@@ -44,6 +44,19 @@ export interface ResourceListItemDTO {
 - Не содержит бизнес-логики
 - Удобно для JSON сериализации
 - Query Handler преобразует Domain → DTO
+
+**Пример создания DTO:**
+```typescript
+// В Query Handler:
+const dto: ResourceListItemDTO = {
+  id: resource.getId().getValue(),
+  namespace: resource.getNamespace().getValue(),
+  name: resource.getName().getValue(),
+  secretPreview: '****',  // Фиксированная маска для списка
+  fieldsCount: 0,        // Step 1: нет CustomField
+  updatedAt: resource.getUpdatedAt().toISOString()
+}
+```
 
 ---
 
@@ -96,6 +109,7 @@ export { IResourceRepository } from './IResourceRepository'
 export { ResourceId } from './ResourceId'
 export { Namespace } from './Namespace'
 export { ResourceName } from './ResourceName'
+export { Secret } from './Secret'
 ```
 
 **Файл: `src/domain/resource/index.ts`**

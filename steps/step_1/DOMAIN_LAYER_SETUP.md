@@ -531,7 +531,145 @@ export class ResourceName {
 
 ---
 
-## 1.6. Создать Value Object: Secret
+## 1.6. Создать Domain Errors
+
+> **📚 Детали**: [ERROR_HANDLING.md](../../docs/ERROR_HANDLING.md) - Иерархия ошибок
+
+Domain Errors - базовые классы ошибок для Domain Layer. Используются для выражения проблем бизнес-логики.
+
+**Создаем файлы в:** `src/domain/shared/errors/`
+
+### DomainError - базовая ошибка
+
+**Файл: `src/domain/shared/errors/DomainError.ts`**
+
+```typescript
+// src/domain/shared/errors/DomainError.ts
+/**
+ * Базовый класс для всех Domain ошибок
+ * Все Domain ошибки наследуются от этого класса
+ */
+export class DomainError extends Error {
+  constructor(
+    public readonly entityType: string,
+    message: string
+  ) {
+    super(message)
+    this.name = 'DomainError'
+    // Сохраняем stack trace
+    Error.captureStackTrace(this, this.constructor)
+  }
+}
+```
+
+### InvariantViolationError
+
+**Файл: `src/domain/shared/errors/InvariantViolationError.ts`**
+
+```typescript
+// src/domain/shared/errors/InvariantViolationError.ts
+import { DomainError } from './DomainError'
+
+/**
+ * Нарушение инварианта (правила валидации)
+ * Используется когда Value Object не может быть создан
+ */
+export class InvariantViolationError extends DomainError {
+  constructor(entityType: string, message: string) {
+    super(entityType, message)
+    this.name = 'InvariantViolationError'
+  }
+}
+```
+
+### NotFoundError
+
+**Файл: `src/domain/shared/errors/NotFoundError.ts`**
+
+```typescript
+// src/domain/shared/errors/NotFoundError.ts
+import { DomainError } from './DomainError'
+
+/**
+ * Сущность не найдена
+ */
+export class NotFoundError extends DomainError {
+  constructor(entityType: string, message: string) {
+    super(entityType, message)
+    this.name = 'NotFoundError'
+  }
+}
+```
+
+### DuplicateError
+
+**Файл: `src/domain/shared/errors/DuplicateError.ts`**
+
+```typescript
+// src/domain/shared/errors/DuplicateError.ts
+import { DomainError } from './DomainError'
+
+/**
+ * Дубликат сущности (нарушение уникальности)
+ */
+export class DuplicateError extends DomainError {
+  constructor(entityType: string, message: string) {
+    super(entityType, message)
+    this.name = 'DuplicateError'
+  }
+}
+```
+
+### InvalidOperationError
+
+**Файл: `src/domain/shared/errors/InvalidOperationError.ts`**
+
+```typescript
+// src/domain/shared/errors/InvalidOperationError.ts
+import { DomainError } from './DomainError'
+
+/**
+ * Недопустимая операция (бизнес-правило нарушено)
+ */
+export class InvalidOperationError extends DomainError {
+  constructor(entityType: string, message: string) {
+    super(entityType, message)
+    this.name = 'InvalidOperationError'
+  }
+}
+```
+
+### Public API для Domain Errors
+
+**Файл: `src/domain/shared/errors/index.ts`**
+
+```typescript
+// src/domain/shared/errors/index.ts
+export { DomainError } from './DomainError'
+export { InvariantViolationError } from './InvariantViolationError'
+export { NotFoundError } from './NotFoundError'
+export { DuplicateError } from './DuplicateError'
+export { InvalidOperationError } from './InvalidOperationError'
+```
+
+**Обновить: `src/domain/shared/index.ts`**
+
+```typescript
+// src/domain/shared/index.ts
+export * from './errors'          // Domain Errors
+export * from './invariants'      // IInvariant, UuidInvariant
+export * from './specification'   // Common спецификации
+```
+
+**Зачем Domain Errors в Step 1?**
+- ✅ Application Layer их использует (валидация, обработка ошибок)
+- ✅ Единая иерархия ошибок
+- ✅ Type-safe обработка ошибок
+- ✅ Часть Ubiquitous Language
+
+---
+
+## 1.7. Создать Value Object: Secret
 
 **Файл: `src/domain/resource/value-objects/Secret.ts`**
 
@@ -600,7 +738,7 @@ export class Secret {
 
 ---
 
-## 1.7. Создать Aggregate Root: Resource
+## 1.8. Создать Aggregate Root: Resource
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#aggregates](../../docs/TYPES_AND_ENTITIES.md#aggregates) — Что такое Aggregate Root
 
@@ -768,17 +906,27 @@ export { Resource } from './Resource'
 ```
 src/domain/
 ├── shared/                       # Shared Kernel
+│   ├── errors/                   # Domain Errors
+│   │   ├── DomainError.ts               # Базовая ошибка
+│   │   ├── InvariantViolationError.ts   # Нарушение инварианта
+│   │   ├── NotFoundError.ts             # Сущность не найдена
+│   │   ├── DuplicateError.ts            # Дубликат
+│   │   ├── InvalidOperationError.ts     # Недопустимая операция
+│   │   └── index.ts
+│   │
 │   ├── invariants/
 │   │   ├── IInvariant.ts                # Интерфейс для инвариантов
 │   │   ├── UuidInvariant.ts             # Singleton (UUID) - используется везде
 │   │   └── index.ts
+│   │
 │   ├── specification/            # Specification Pattern (создан в SPECIFICATION_SETUP)
 │   │   ├── common/
 │   │   │   ├── CommonLengthSpec.ts     # Singleton Factory
 │   │   │   ├── CommonPatternSpec.ts    # Singleton Factory ← Используется для UUID!
 │   │   │   └── CommonNotEmptySpec.ts   # Singleton Factory
 │   │   └── index.ts
-│   └── index.ts
+│   │
+│   └── index.ts                  # Экспортирует errors, invariants, specification
 │
 └── resource/                     # Resource Bounded Context
     ├── invariants/               # Инварианты специфичные для Resource

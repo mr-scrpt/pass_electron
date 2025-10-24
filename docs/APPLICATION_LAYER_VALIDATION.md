@@ -100,6 +100,10 @@ class CreateResourceCommandHandler {
     }
     
     // ✅ Domain Layer: валидация Value Objects
+    // Resource.create принимает примитивы и создает VO внутри:
+    // - namespace: string → Namespace VO
+    // - name: string → ResourceName VO
+    // - secret: string → Secret VO
     const resourceResult = Resource.create(
       command.namespace,
       command.name,
@@ -158,13 +162,7 @@ export class CreateResourceCommand {
 import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
 import { ICommandHandler } from '../ICommandHandler'
 import { CreateResourceCommand } from '../CreateResourceCommand'
-import { Resource } from '@/domain/resource/aggregates/Resource'
-import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
-import { 
-  InvariantViolationError,
-  DuplicateError,
-  ApplicationError 
-} from '@/domain/shared/errors'
+import { Resource, IResourceRepository, DuplicateError } from '@/domain'
 
 export class CreateResourceCommandHandler implements ICommandHandler<CreateResourceCommand> {
   constructor(
@@ -173,7 +171,7 @@ export class CreateResourceCommandHandler implements ICommandHandler<CreateResou
   
   async handle(
     command: CreateResourceCommand
-  ): Promise<Validation<ApplicationError[], string>> {
+  ): Promise<Validation<Error[], string>> {
     // ==================== Шаг 1: Application Layer Validation ====================
     
     // Проверка уникальности namespace + name
@@ -194,6 +192,10 @@ export class CreateResourceCommandHandler implements ICommandHandler<CreateResou
     // ==================== Шаг 2: Domain Layer Validation ====================
     
     // Создаем Aggregate (валидация Value Objects)
+    // Resource.create принимает примитивы и создает VO внутри:
+    // - namespace: string → Namespace VO
+    // - name: string → ResourceName VO
+    // - secret: string → Secret VO
     const resourceResult = Resource.create(
       command.namespace,
       command.name,
@@ -202,8 +204,8 @@ export class CreateResourceCommandHandler implements ICommandHandler<CreateResou
     
     // Если есть ошибки валидации - возвращаем их
     if (resourceResult.isLeft()) {
-      // Преобразуем Domain ошибки в Application ошибки
-      return resourceResult as Validation<ApplicationError[], string>
+      // Возвращаем Domain ошибки (уже ValidationError[])
+      return resourceResult as Validation<Error[], string>
     }
     
     // ==================== Шаг 3: Persistence ====================
@@ -216,11 +218,9 @@ export class CreateResourceCommandHandler implements ICommandHandler<CreateResou
       // Возвращаем ID созданного ресурса
       return valid(resource.getId().getValue())
     } catch (error) {
+      // Инфраструктурные ошибки - пробрасываем дальше
       return invalid([
-        new ApplicationError(
-          'CreateResourceCommand',
-          `Failed to save resource: ${error.message}`
-        )
+        new Error(`Failed to save resource: ${error instanceof Error ? error.message : String(error)}`)
       ])
     }
   }
@@ -257,14 +257,7 @@ export class UpdateResourceNameCommand {
 import { Validation, valid, invalid } from '@/shared/validation'
 import { ICommandHandler } from '../ICommandHandler'
 import { UpdateResourceNameCommand } from '../UpdateResourceNameCommand'
-import { Resource } from '@/domain/resource/aggregates/Resource'
-import { ResourceId } from '@/domain/resource/value-objects/ResourceId'
-import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
-import { 
-  InvariantViolationError,
-  NotFoundError,
-  ApplicationError 
-} from '@/domain/shared/errors'
+import { Resource, ResourceId, IResourceRepository, NotFoundError } from '@/domain'
 
 export class UpdateResourceNameCommandHandler 
   implements ICommandHandler<UpdateResourceNameCommand> {
@@ -275,7 +268,7 @@ export class UpdateResourceNameCommandHandler
   
   async handle(
     command: UpdateResourceNameCommand
-  ): Promise<Validation<ApplicationError[], void>> {
+  ): Promise<Validation<Error[], void>> {
     // ==================== Шаг 1: Валидация ID ====================
     
     const resourceIdResult = ResourceId.create(command.resourceId)
@@ -305,7 +298,7 @@ export class UpdateResourceNameCommandHandler
     const updateResult = resource.updateName(command.newName)
     
     if (updateResult.isLeft()) {
-      return updateResult as Validation<ApplicationError[], void>
+      return updateResult as Validation<Error[], void>
     }
     
     // ==================== Шаг 4: Persistence ====================
@@ -315,10 +308,7 @@ export class UpdateResourceNameCommandHandler
       return valid(undefined)
     } catch (error) {
       return invalid([
-        new ApplicationError(
-          'UpdateResourceNameCommand',
-          `Failed to update resource: ${error.message}`
-        )
+        new Error(`Failed to update resource: ${error instanceof Error ? error.message : String(error)}`)
       ])
     }
   }
@@ -351,6 +341,26 @@ class QueryHandler {
 
 ---
 
+### DTO для Query Handlers
+
+```typescript
+// src/application/queries/dtos/ResourceDetailDTO.ts
+/**
+ * DTO для детальной информации о ресурсе
+ * Используется в Query Handlers для возврата данных в Presentation Layer
+ */
+export interface ResourceDetailDTO {
+  id: string              // ResourceId → string
+  namespace: string       // Namespace → string
+  name: string           // ResourceName → string
+  secret: string         // Secret → замаскированная строка (getMasked())
+  createdAt: string      // Date → ISO string
+  updatedAt: string      // Date → ISO string
+}
+```
+
+---
+
 ### Пример 1: GetResourceByIdQuery
 
 #### Query [#class:GetResourceByIdQuery|#code|#structure:path]
@@ -371,14 +381,8 @@ export class GetResourceByIdQuery {
 import { Validation, valid, invalid } from '@/shared/validation'
 import { IQueryHandler } from '../IQueryHandler'
 import { GetResourceByIdQuery } from '../GetResourceByIdQuery'
-import { ResourceId } from '@/domain/resource/value-objects/ResourceId'
-import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
+import { ResourceId, IResourceRepository, NotFoundError } from '@/domain'
 import { ResourceDetailDTO } from '../dtos/ResourceDetailDTO'
-import { 
-  InvariantViolationError,
-  NotFoundError,
-  QueryError 
-} from '@/domain/shared/errors'
 
 export class GetResourceByIdQueryHandler 
   implements IQueryHandler<GetResourceByIdQuery, ResourceDetailDTO> {
@@ -389,7 +393,7 @@ export class GetResourceByIdQueryHandler
   
   async handle(
     query: GetResourceByIdQuery
-  ): Promise<Validation<QueryError[], ResourceDetailDTO>> {
+  ): Promise<Validation<Error[], ResourceDetailDTO>> {
     // ==================== Шаг 1: Валидация параметров ====================
     
     const resourceIdResult = ResourceId.create(query.resourceId)
@@ -420,6 +424,7 @@ export class GetResourceByIdQueryHandler
         id: resource.getId().getValue(),
         namespace: resource.getNamespace().getValue(),
         name: resource.getName().getValue(),
+        secret: resource.getSecret().getMasked(),  // Secret VO → замаскированная строка
         createdAt: resource.getCreatedAt().toISOString(),
         updatedAt: resource.getUpdatedAt().toISOString()
       }
@@ -427,10 +432,7 @@ export class GetResourceByIdQueryHandler
       return valid(dto)
     } catch (error) {
       return invalid([
-        new QueryError(
-          'GetResourceByIdQuery',
-          `Failed to fetch resource: ${error.message}`
-        )
+        new Error(`Failed to fetch resource: ${error instanceof Error ? error.message : String(error)}`)
       ])
     }
   }
@@ -460,15 +462,8 @@ export class GetResourceByNamespaceAndNameQuery {
 import { Validation, ValidationCombinators, valid, invalid } from '@/shared/validation'
 import { IQueryHandler } from '../IQueryHandler'
 import { GetResourceByNamespaceAndNameQuery } from '../GetResourceByNamespaceAndNameQuery'
-import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
+import { IResourceRepository, Namespace, ResourceName, NotFoundError } from '@/domain'
 import { ResourceDetailDTO } from '../dtos/ResourceDetailDTO'
-import { Namespace } from '@/domain/resource/value-objects/Namespace'
-import { ResourceName } from '@/domain/resource/value-objects/ResourceName'
-import { 
-  InvariantViolationError,
-  NotFoundError,
-  QueryError 
-} from '@/domain/shared/errors'
 
 export class GetResourceByNamespaceAndNameQueryHandler 
   implements IQueryHandler<GetResourceByNamespaceAndNameQuery, ResourceDetailDTO> {
@@ -479,7 +474,7 @@ export class GetResourceByNamespaceAndNameQueryHandler
   
   async handle(
     query: GetResourceByNamespaceAndNameQuery
-  ): Promise<Validation<QueryError[], ResourceDetailDTO>> {
+  ): Promise<Validation<Error[], ResourceDetailDTO>> {
     // ==================== Шаг 1: Валидация параметров ====================
     
     const namespaceVO = Namespace.create(query.namespace)
@@ -492,7 +487,7 @@ export class GetResourceByNamespaceAndNameQueryHandler
     )
     
     if (validationResult.isLeft()) {
-      return validationResult as Validation<QueryError[], ResourceDetailDTO>
+      return validationResult as Validation<Error[], ResourceDetailDTO>
     }
     
     const { namespace, name } = validationResult.value
@@ -520,6 +515,7 @@ export class GetResourceByNamespaceAndNameQueryHandler
         id: resource.getId().getValue(),
         namespace: resource.getNamespace().getValue(),
         name: resource.getName().getValue(),
+        secret: resource.getSecret().getMasked(),  // Secret VO → замаскированная строка
         createdAt: resource.getCreatedAt().toISOString(),
         updatedAt: resource.getUpdatedAt().toISOString()
       }
@@ -527,10 +523,7 @@ export class GetResourceByNamespaceAndNameQueryHandler
       return valid(dto)
     } catch (error) {
       return invalid([
-        new QueryError(
-          'GetResourceByNamespaceAndNameQuery',
-          `Failed to fetch resource: ${error.message}`
-        )
+        new Error(`Failed to fetch resource: ${error instanceof Error ? error.message : String(error)}`)
       ])
     }
   }
@@ -554,6 +547,8 @@ export class GetResourceByNamespaceAndNameQueryHandler
 | **Когда** | При создании/изменении объектов | Перед вызовом Domain методов |
 | **Доступ к данным** | ❌ Нет | ✅ Да (через Repository) |
 | **Зависимости** | Только Domain | Domain + Infrastructure |
+| **Импорты** | Через Public API внутри Domain | `@/domain` (Public API) |
+| **Типы ошибок** | `ValidationError[]` из спецификаций | `Error[]` (Domain + инфраструктурные) |
 | **Примеры** | UUID формат, длина строки, максимум полей | Namespace уже существует, Resource не найден |
 
 ---
@@ -613,9 +608,23 @@ try {
   await this.repository.save(resource)
   return valid(resource.getId().getValue())
 } catch (error) {
-  // Обрабатываем только неожиданные ошибки
-  return invalid([new ApplicationError(...)])
+  // Обрабатываем только неожиданные инфраструктурные ошибки
+  return invalid([
+    new Error(`Failed to save: ${error instanceof Error ? error.message : String(error)}`)
+  ])
 }
+```
+
+### 5. Используйте Public API для импортов
+
+```typescript
+// ✅ ПРАВИЛЬНО - Public API
+import { Resource, ResourceId, IResourceRepository, NotFoundError } from '@/domain'
+
+// ❌ НЕПРАВИЛЬНО - Прямые импорты (нарушение инкапсуляции)
+import { Resource } from '@/domain/resource/aggregates/Resource'
+import { ResourceId } from '@/domain/resource/value-objects/ResourceId'
+import { IResourceRepository } from '@/domain/resource/repositories/IResourceRepository'
 ```
 
 ---

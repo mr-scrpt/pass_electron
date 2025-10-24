@@ -79,7 +79,7 @@ password-manager/
     ├── shared/                    # Shared Utilities (framework-agnostic)
     │   ├── validation/            # Validation API (фасад над @sweet-monads/either)
     │   ├── specification/         # ISpecification interface
-    │   ├── errors/                # ValidationError (используется в спецификациях)
+    │   ├── errors/                # BaseError (базовый класс для ВСЕХ ошибок)
     │   └── types/                 # Type re-exports
     │
     └── presentation/              # Presentation Layer (DDD)
@@ -522,8 +522,8 @@ src/shared/
 │   ├── ISpecification.ts      # interface ISpecification<T>
 │   └── index.ts
 │
-├── errors/                    # Технические ошибки валидации
-│   ├── ValidationError.ts     # Используется в спецификациях
+├── errors/                    # Базовые ошибки
+│   ├── BaseError.ts           # Базовый класс для ВСЕХ ошибок
 │   └── index.ts
 │
 └── types/                     # Type re-exports
@@ -544,9 +544,10 @@ src/shared/
    - ✅ `ISpecification<T>` - используется Domain спецификациями
    - ✅ Реальные спецификации живут в `src/domain/shared/specification/common/`
 
-3. **errors/** - ValidationError для спецификаций
-   - ✅ Технический тип ошибки (не Domain Error)
+3. **errors/** - BaseError для всех ошибок
+   - ✅ Базовый класс для Domain, Application, Infrastructure errors
    - ✅ Используется в ISpecification.isSatisfiedBy()
+   - ✅ Поддержка code, context, cause (error chaining)
 
 4. **types/** - Переэкспорт типов для удобства
    - ✅ Удобство импорта типов из разных слоев

@@ -50,16 +50,16 @@ export default tseslint.config(
               allow: ["domain"], // Только внутри себя
             },
 
-            // Application - только Domain
+            // Application - Domain + сам себя
             {
               from: "application",
-              allow: ["domain"],
+              allow: ["domain", "application"],
             },
 
-            // Infrastructure - только Domain
+            // Infrastructure - Domain + сам себя
             {
               from: "infrastructure",
-              allow: ["domain"],
+              allow: ["domain", "infrastructure"],
             },
 
             // Composition - доступ ко всем (единственное исключение)
@@ -72,20 +72,6 @@ export default tseslint.config(
             {
               from: "presentation",
               allow: ["domain", "composition", "presentation"],
-            },
-          ],
-        },
-      ],
-
-      // ✏️ ДОБАВИТЬ запрет прямых импортов из Application/Infrastructure
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/application/*", "@/infrastructure/*"],
-              message:
-                "Presentation cannot import directly from Application or Infrastructure. Use @/domain or @/composition instead.",
             },
           ],
         },

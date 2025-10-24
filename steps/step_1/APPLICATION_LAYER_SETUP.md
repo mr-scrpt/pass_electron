@@ -15,7 +15,7 @@
 
 ---
 
-## Создать DTO для списка ресурсов
+## 1. Создать DTO для списка ресурсов
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#dto-для-presentation-layer](../../docs/TYPES_AND_ENTITIES.md#dto-для-presentation-layer)
 
@@ -45,9 +45,10 @@ export interface ResourceListItemDTO {
 - Удобно для JSON сериализации
 - Query Handler преобразует Domain → DTO
 
-**Пример создания DTO:**
+**Пример создания DTO:** [#code]
+
 ```typescript
-// В Query Handler:
+// Маппинг Domain → DTO (выполняется в QueryHandler)
 const dto: ResourceListItemDTO = {
   id: resource.getId().getValue(),
   namespace: resource.getNamespace().getValue(),
@@ -60,7 +61,154 @@ const dto: ResourceListItemDTO = {
 
 ---
 
-## Создать Repository Interface
+## 2. Создать Query и QueryHandler (CQRS)
+
+> **📚 Детали**: [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - CQRS паттерн
+
+### 2.1. Создать базовые интерфейсы CQRS
+
+**Файл: `src/application/queries/IQuery.ts`**
+
+#### IQuery [#interface:IQuery|#code|#structure:path]
+
+```typescript
+// src/application/queries/IQuery.ts
+/**
+ * Базовый интерфейс для всех Query
+ * Query - это запрос на чтение данных (без изменений)
+ */
+export interface IQuery {
+  readonly type: string
+}
+```
+
+**Файл: `src/application/queries/IQueryHandler.ts`**
+
+#### IQueryHandler [#interface:IQueryHandler|#code|#structure:path]
+
+```typescript
+// src/application/queries/IQueryHandler.ts
+import { Validation } from '@/shared/validation'
+import type { IQuery } from './IQuery'
+
+/**
+ * Базовый интерфейс для Query Handler
+ * 
+ * @template Q - тип Query
+ * @template R - тип результата (обычно DTO)
+ */
+export interface IQueryHandler<Q extends IQuery = IQuery, R = unknown> {
+  handle(query: Q): Promise<Validation<Error[], R>>
+}
+```
+
+---
+
+### 2.2. Создать ListResourcesQuery
+
+**Файл: `src/application/queries/ListResourcesQuery.ts`**
+
+#### ListResourcesQuery [#class:ListResourcesQuery|#code|#structure:path]
+
+```typescript
+// src/application/queries/ListResourcesQuery.ts
+import type { IQuery } from './IQuery'
+
+/**
+ * Query: Получить список всех ресурсов
+ * 
+ * Пустой Query (без параметров) - возвращает все ресурсы
+ */
+export class ListResourcesQuery implements IQuery {
+  readonly type = 'ListResourcesQuery'
+}
+```
+
+---
+
+### 2.3. Создать ListResourcesQueryHandler
+
+**Файл: `src/application/queries/handlers/ListResourcesQueryHandler.ts`**
+
+#### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
+
+```typescript
+// src/application/queries/handlers/ListResourcesQueryHandler.ts
+import { valid, invalid, type Validation } from '@/shared/validation'
+import type { IQueryHandler } from '../IQueryHandler'
+import type { ListResourcesQuery } from '../ListResourcesQuery'
+import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
+import type { IResourceRepository } from '@/domain'
+
+/**
+ * Query Handler: Получить список ресурсов
+ * 
+ * Ответственность:
+ * 1. Получить Domain объекты из Repository
+ * 2. Преобразовать Domain → DTO
+ * 3. Вернуть DTO для Presentation Layer
+ */
+export class ListResourcesQueryHandler 
+  implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
+  
+  constructor(private readonly repository: IResourceRepository) {}
+  
+  async handle(
+    query: ListResourcesQuery
+  ): Promise<Validation<Error[], ResourceListItemDTO[]>> {
+    try {
+      // 1. Получаем Domain объекты
+      const resources = await this.repository.findAll()
+      
+      // 2. Преобразуем Domain → DTO
+      const dtos: ResourceListItemDTO[] = resources.map(resource => ({
+        id: resource.getId().getValue(),
+        namespace: resource.getNamespace().getValue(),
+        name: resource.getName().getValue(),
+        secretPreview: '****',  // Фиксированная маска
+        fieldsCount: 0,         // Step 1: нет CustomField
+        updatedAt: resource.getUpdatedAt().toISOString()
+      }))
+      
+      // 3. Возвращаем DTO
+      return valid(dtos)
+      
+    } catch (error) {
+      // Непредвиденные ошибки (например, сеть, DB)
+      return invalid([
+        new Error(
+          `Failed to list resources: ${error instanceof Error ? error.message : String(error)}`
+        )
+      ])
+    }
+  }
+}
+```
+
+**Ключевые моменты:**
+- ✅ **Маппинг Domain → DTO** выполняется ЗДЕСЬ (в QueryHandler)
+- ✅ **Repository возвращает Domain** типы (Resource[])
+- ✅ **QueryHandler возвращает DTO** для Presentation
+- ✅ **Validation** для type-safe обработки ошибок
+
+---
+
+### 2.4. Создать Public API для queries
+
+**Файл: `src/application/queries/index.ts`**
+
+```typescript
+// src/application/queries/index.ts
+export type { IQuery } from './IQuery'
+export type { IQueryHandler } from './IQueryHandler'
+export { ListResourcesQuery } from './ListResourcesQuery'
+export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
+export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
+```
+
+---
+
+## 3. Создать Repository Interface
 
 **Файл: `src/domain/resource/repositories/IResourceRepository.ts`**
 
@@ -135,8 +283,14 @@ src/
 │   └── index.ts (Public API)
 │
 └── application/queries/
-    └── dtos/
-        └── ResourceListItemDTO.ts
+    ├── IQuery.ts                    # Базовый интерфейс Query
+    ├── IQueryHandler.ts             # Базовый интерфейс QueryHandler
+    ├── ListResourcesQuery.ts        # Query: список ресурсов
+    ├── handlers/
+    │   └── ListResourcesQueryHandler.ts  # Handler с маппингом Domain → DTO
+    ├── dtos/
+    │   └── ResourceListItemDTO.ts       # DTO для Presentation
+    └── index.ts                     # Public API
 ```
 
 **Что дальше?**

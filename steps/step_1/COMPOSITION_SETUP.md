@@ -13,37 +13,67 @@
 
 ---
 
-## Упрощенная версия для Step 1
+## Создать Composition Root
 
-Для Step 1 создаем минимальный DI без ServiceContainer. Просто экспортируем готовые инстансы.
+Создаем Dependency Injection для Application Layer.
 
 **Файл: `src/composition/index.ts`**
+
+#### Composition Root [#code|#structure:path]
 
 ```typescript
 // src/composition/index.ts
 import { MockResourceRepository } from '@/infrastructure/repositories'
+import { 
+  ListResourcesQuery,
+  ListResourcesQueryHandler 
+} from '@/application/queries'
 
 /**
- * Composition Root (упрощенная версия для Step 1)
+ * Composition Root - место сборки зависимостей
  * 
- * В следующих шагах добавим:
- * - ServiceContainer
- * - ResourceModule
- * - Query/Command Facades
+ * 🔑 Единственное место где:
+ * - Создаются экземпляры классов
+ * - Внедряются зависимости
+ * - Экспортируются facades для Presentation
  */
 
-// Создаем репозиторий
-export const resourceRepository = new MockResourceRepository()
+// ==================== Infrastructure ====================
+const resourceRepository = new MockResourceRepository()
 
-// В будущем здесь будут:
-// export const queries = { ... }
+// ==================== Application (Query Handlers) ====================
+const listResourcesHandler = new ListResourcesQueryHandler(resourceRepository)
+
+// ==================== Facades для Presentation ====================
+
+/**
+ * Query Facade - упрощенный API для Presentation Layer
+ * 
+ * Преимущества:
+ * - Presentation не знает про Query объекты
+ * - Presentation не знает про QueryHandler
+ * - Presentation получает только DTO
+ * - Одна строка вместо 3-5 строк DI кода
+ */
+export const queries = {
+  resources: {
+    /**
+     * Получить список всех ресурсов
+     * @returns Validation<Error[], ResourceListItemDTO[]>
+     */
+    list: () => listResourcesHandler.handle(new ListResourcesQuery())
+  }
+}
+
+// В следующих шагах добавим:
 // export const commands = { ... }
 ```
 
-**Почему так просто?**
-- Step 1 фокусируется на Domain Layer
-- Полноценный DI добавим в следующих шагах
-- Пока достаточно одного репозитория
+**Ключевые моменты:**
+- ✅ **Репозиторий** создается здесь (Infrastructure)
+- ✅ **QueryHandler** получает репозиторий через constructor
+- ✅ **Facade** `queries.*` упрощает использование в Presentation
+- ✅ **Presentation** видит только `queries.resources.list()`
 
 ---
 
@@ -51,8 +81,11 @@ export const resourceRepository = new MockResourceRepository()
 
 ```
 src/composition/
-└── index.ts
+└── index.ts       # Composition Root + Query Facade
 ```
+
+**Что экспортируем:**
+- `queries.resources.list()` - facade для Presentation Layer
 
 **Что дальше?**
 

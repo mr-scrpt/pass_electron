@@ -52,31 +52,29 @@ export function ResourceList({ resources }: Props) {
 
 **Файл: `src/presentation/web/react/src/routes/_index.tsx`**
 
+#### Route с Loader [#code|#structure:path]
+
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
 import type { Route } from './+types/_index'
 import { ResourceList } from '@/components/ResourceList'
-import { resourceRepository } from '@/composition'
+import { queries } from '@/composition'
 
 /**
  * Loader - выполняется на сервере (SSR)
- * Получает данные для страницы
+ * Получает данные через Composition Layer (Facade)
  */
 export async function loader() {
-  // 1. Получаем Domain типы из Repository
-  const resources = await resourceRepository.findAll()
+  // ✅ ПРАВИЛЬНО: используем Facade из Composition Layer
+  const result = await queries.resources.list()
   
-  // 2. Преобразуем Domain → DTO для UI
-  const dtos = resources.map(resource => ({
-    id: resource.getId().getValue(),
-    namespace: resource.getNamespace().getValue(),
-    name: resource.getName().getValue(),
-    secretPreview: resource.getSecret().substring(0, 3) + '***',
-    fieldsCount: 0,
-    updatedAt: resource.getUpdatedAt().toISOString()
-  }))
+  // Обработка ошибок
+  if (result.isLeft()) {
+    throw new Error('Failed to load resources')
+  }
   
-  return { resources: dtos }
+  // Возвращаем DTO для компонента
+  return { resources: result.value }
 }
 
 /**
@@ -93,10 +91,22 @@ export default function Index({ loaderData }: Route.ComponentProps) {
 ```
 
 **Ключевые моменты:**
-- Loader получает Domain типы
-- Преобразование Domain → DTO в loader
-- Component работает только с DTO
-- SSR из коробки (React Router v7)
+- ✅ **Facade** `queries.resources.list()` - простой API для Presentation
+- ✅ **Validation** - type-safe обработка ошибок (`result.isLeft()`)
+- ✅ **DTO** - QueryHandler уже преобразовал Domain → DTO
+- ✅ **Нет зависимости** от Repository/Infrastructure
+- ✅ **SSR** из коробки (React Router v7)
+
+**Архитектурные границы:**
+```
+Presentation (Route)
+    ↓ queries.resources.list()
+Composition (Facade)
+    ↓ listResourcesHandler.handle()
+Application (QueryHandler)
+    ↓ repository.findAll()
+Infrastructure (MockRepository)
+```
 
 ---
 

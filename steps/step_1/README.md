@@ -116,10 +116,13 @@ mkdir -p src/shared/validation
 
 ### Шаг 5: Application Layer → [APPLICATION_LAYER_SETUP.md](./APPLICATION_LAYER_SETUP.md)
 
-Создать Application Layer с DTO.
+Создать Application Layer с CQRS (Query Handlers) и DTO.
 
 **Что создаем:**
 - DTO (ResourceListItemDTO)
+- CQRS интерфейсы (IQuery, IQueryHandler)
+- Query объект (ListResourcesQuery)
+- QueryHandler (ListResourcesQueryHandler) - маппинг Domain → DTO
 - Repository Interface (IResourceRepository)
 - Public API
 
@@ -136,8 +139,9 @@ mkdir -p src/shared/validation
 Создать Composition Root для DI.
 
 **Что создаем:**
-- Упрощенный DI для Step 1
-- Экспорт репозитория
+- Сборка зависимостей (Repository → QueryHandler)
+- Query Facade для Presentation Layer
+- Экспорт `queries.resources.list()`
 
 ### Шаг 8: Presentation Layer → [PRESENTATION_SETUP.md](./PRESENTATION_SETUP.md)
 
@@ -145,8 +149,8 @@ mkdir -p src/shared/validation
 
 **Что создаем:**
 - ResourceList компонент
-- Route с loader
-- Преобразование Domain → DTO
+- Route с loader (использует queries facade)
+- Обработка Validation результатов
 
 ---
 

@@ -5,7 +5,7 @@
 
 import { Validation, isTrue } from "@/shared/validation";
 import { ISpecification } from "@/shared/specification";
-import { ValidationError } from "@/shared/errors";
+import { BaseError } from "@/shared/errors";
 
 /**
  * Проверка UUID v4
@@ -25,11 +25,11 @@ export class UuidV4Spec implements ISpecification<string> {
     return UuidV4Spec._instances.get(entityType)!;
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(UuidV4Spec.UUID_V4_REGEX.test(value), value)
       .valid()
       .invalid(
-          new ValidationError(this.entityType, `Invalid UUID format: ${value}`),
+          new BaseError(this.entityType, `Invalid UUID format: ${value}`),
         );
   }
 }

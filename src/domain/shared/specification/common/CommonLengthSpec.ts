@@ -1,6 +1,6 @@
 import { Validation, isTrue } from "@/shared/validation";
 import { ISpecification } from "@/shared/specification";
-import { ValidationError } from "@/shared/errors";
+import { BaseError } from "@/shared/errors";
 
 export interface LengthConfig {
   readonly entityType: string;
@@ -23,7 +23,7 @@ export class CommonLengthSpec implements ISpecification<string> {
     return CommonLengthSpec._instances.get(key)!;
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(
       value.length >= this.config.minLength &&
         value.length <= this.config.maxLength,
@@ -31,7 +31,7 @@ export class CommonLengthSpec implements ISpecification<string> {
     )
       .valid()
       .invalid(
-        new ValidationError(
+        new BaseError(
           this.config.entityType,
           `must be ${this.config.minLength}-${this.config.maxLength} characters`,
         ),

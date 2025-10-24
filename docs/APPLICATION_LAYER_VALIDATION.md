@@ -204,7 +204,7 @@ export class CreateResourceCommandHandler implements ICommandHandler<CreateResou
     
     // Если есть ошибки валидации - возвращаем их
     if (resourceResult.isLeft()) {
-      // Возвращаем Domain ошибки (уже ValidationError[])
+      // Возвращаем Domain ошибки (уже BaseError[] из спецификаций)
       return resourceResult as Validation<Error[], string>
     }
     
@@ -548,7 +548,7 @@ export class GetResourceByNamespaceAndNameQueryHandler
 | **Доступ к данным** | ❌ Нет | ✅ Да (через Repository) |
 | **Зависимости** | Только Domain | Domain + Infrastructure |
 | **Импорты** | Через Public API внутри Domain | `@/domain` (Public API) |
-| **Типы ошибок** | `ValidationError[]` из спецификаций | `Error[]` (Domain + инфраструктурные) |
+| **Типы ошибок** | `BaseError[]` из спецификаций | `Error[]` (Domain + инфраструктурные) |
 | **Примеры** | UUID формат, длина строки, максимум полей | Namespace уже существует, Resource не найден |
 
 ---

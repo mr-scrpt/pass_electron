@@ -1,5 +1,5 @@
 import { Validation, ValidationCombinators } from "@/shared/validation";
-import { ValidationError } from "@/shared/errors";
+import { BaseError } from "@/shared/errors";
 import { CommonNotEmptySpec, CommonPatternSpec } from "../specification";
 import { IInvariant } from "./IInvariant";
 
@@ -18,7 +18,7 @@ export class UuidInvariant implements IInvariant<string> {
   validate(
     value: string,
     entityType: string,
-  ): Validation<ValidationError[], string> {
+  ): Validation<BaseError[], string> {
     return ValidationCombinators.sequence(
       [
         CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),

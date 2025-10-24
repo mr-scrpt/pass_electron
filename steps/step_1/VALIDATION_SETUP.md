@@ -1,7 +1,7 @@
 # Validation API Setup (Shared Layer)
 
 > **Назад:** [README.md](./README.md)  
-> **Далее:** [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
+> **Далее:** [ERROR_SETUP.md](./ERROR_SETUP.md)
 
 ---
 
@@ -175,9 +175,9 @@ src/shared/
 
 **Что дальше?**
 
-Теперь можно создавать спецификации! → [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
+Теперь создаем базовый класс ошибок! → [ERROR_SETUP.md](./ERROR_SETUP.md)
 
 ---
 
 > **Назад:** [README.md](./README.md)  
-> **Далее:** [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
+> **Далее:** [ERROR_SETUP.md](./ERROR_SETUP.md)

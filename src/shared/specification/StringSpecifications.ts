@@ -5,7 +5,7 @@
 
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '@/shared/specification'
-import { ValidationError } from '@/shared/errors'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Проверка на пустую строку
@@ -22,10 +22,10 @@ export class NotEmptySpec implements ISpecification<string> {
     return NotEmptySpec._instances.get(entityType)!;
   }
   
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(!!(value && value.trim()), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, "cannot be empty"))
+      .invalid(new BaseError(this.entityType, "cannot be empty"))
   }
 }
 
@@ -49,10 +49,10 @@ export class LengthRangeSpec implements ISpecification<string> {
     return LengthRangeSpec._instances.get(key)!;
   }
   
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(value.length >= this.min && value.length <= this.max, value)
       .valid()
-      .invalid(new ValidationError(
+      .invalid(new BaseError(
           this.entityType,
           `must be ${this.min}-${this.max} characters`
         ))
@@ -79,10 +79,10 @@ export class PatternSpec implements ISpecification<string> {
     return PatternSpec._instances.get(key)!;
   }
   
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(this.pattern.test(value), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, this.message))
+      .invalid(new BaseError(this.entityType, this.message))
   }
 }
 
@@ -101,9 +101,9 @@ export class LowercaseSpec implements ISpecification<string> {
     return LowercaseSpec._instances.get(entityType)!;
   }
   
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(value === value.toLowerCase(), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, "must be lowercase"))
+      .invalid(new BaseError(this.entityType, "must be lowercase"))
   }
 }

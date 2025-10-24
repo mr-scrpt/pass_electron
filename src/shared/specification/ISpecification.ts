@@ -1,6 +1,6 @@
 import { Validation } from "../validation";
-import { ValidationError } from "../errors/ValidationError";
+import { BaseError } from "../errors/BaseError";
 
 export interface ISpecification<T> {
-  isSatisfiedBy(value: T): Validation<ValidationError, T>;
+  isSatisfiedBy(value: T): Validation<BaseError, T>;
 }

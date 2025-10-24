@@ -7,5 +7,5 @@ export { valid, invalid, fromCondition, isTrue, ValidationCombinators } from './
 // Specification Pattern (технический интерфейс)
 export type { ISpecification } from './specification'
 
-// ValidationError (технический)
-export { ValidationError } from './errors'
+// BaseError (технический - базовый класс для всех ошибок)
+export { BaseError } from './errors'

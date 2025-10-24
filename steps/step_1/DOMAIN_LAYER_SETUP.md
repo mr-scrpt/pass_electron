@@ -535,32 +535,21 @@ export class ResourceName {
 
 > **📚 Детали**: [ERROR_HANDLING.md](../../docs/ERROR_HANDLING.md) - Иерархия ошибок
 
-Domain Errors - базовые классы ошибок для Domain Layer. Используются для выражения проблем бизнес-логики.
+Domain Errors - классы ошибок для выражения проблем бизнес-логики. Все наследуются от **BaseError** (shared/errors).
 
 **Создаем файлы в:** `src/domain/shared/errors/`
 
-### DomainError - базовая ошибка
+### BaseError - уже существует!
 
-**Файл: `src/domain/shared/errors/DomainError.ts`**
+> ✅ **BaseError** уже создан в `src/shared/errors/BaseError.ts`  
+> Это базовый класс для **ВСЕХ** ошибок приложения (Domain, Application, Infrastructure)
 
-```typescript
-// src/domain/shared/errors/DomainError.ts
-/**
- * Базовый класс для всех Domain ошибок
- * Все Domain ошибки наследуются от этого класса
- */
-export class DomainError extends Error {
-  constructor(
-    public readonly entityType: string,
-    message: string
-  ) {
-    super(message)
-    this.name = 'DomainError'
-    // Сохраняем stack trace
-    Error.captureStackTrace(this, this.constructor)
-  }
-}
-```
+**Особенности BaseError:**
+- ✅ Поддерживает `code` (для категоризации)
+- ✅ Поддерживает `context` (дополнительные данные)
+- ✅ Поддерживает `cause` (цепочки ошибок)
+- ✅ `toJSON()` и `toString()` для логирования
+- ✅ `timestamp` - время возникновения
 
 ### InvariantViolationError
 
@@ -568,15 +557,19 @@ export class DomainError extends Error {
 
 ```typescript
 // src/domain/shared/errors/InvariantViolationError.ts
-import { DomainError } from './DomainError'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Нарушение инварианта (правила валидации)
  * Используется когда Value Object не может быть создан
  */
-export class InvariantViolationError extends DomainError {
-  constructor(entityType: string, message: string) {
-    super(entityType, message)
+export class InvariantViolationError extends BaseError {
+  constructor(
+    entityType: string,
+    message: string,
+    context?: Record<string, unknown>
+  ) {
+    super(entityType, message, 'INVARIANT_VIOLATION', context)
     this.name = 'InvariantViolationError'
   }
 }
@@ -588,14 +581,18 @@ export class InvariantViolationError extends DomainError {
 
 ```typescript
 // src/domain/shared/errors/NotFoundError.ts
-import { DomainError } from './DomainError'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Сущность не найдена
  */
-export class NotFoundError extends DomainError {
-  constructor(entityType: string, message: string) {
-    super(entityType, message)
+export class NotFoundError extends BaseError {
+  constructor(
+    entityType: string,
+    message: string,
+    public readonly searchCriteria?: Record<string, unknown>
+  ) {
+    super(entityType, message, 'NOT_FOUND', searchCriteria)
     this.name = 'NotFoundError'
   }
 }
@@ -607,14 +604,18 @@ export class NotFoundError extends DomainError {
 
 ```typescript
 // src/domain/shared/errors/DuplicateError.ts
-import { DomainError } from './DomainError'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Дубликат сущности (нарушение уникальности)
  */
-export class DuplicateError extends DomainError {
-  constructor(entityType: string, message: string) {
-    super(entityType, message)
+export class DuplicateError extends BaseError {
+  constructor(
+    entityType: string,
+    message: string,
+    public readonly conflictingData?: Record<string, unknown>
+  ) {
+    super(entityType, message, 'DUPLICATE', conflictingData)
     this.name = 'DuplicateError'
   }
 }
@@ -626,14 +627,19 @@ export class DuplicateError extends DomainError {
 
 ```typescript
 // src/domain/shared/errors/InvalidOperationError.ts
-import { DomainError } from './DomainError'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Недопустимая операция (бизнес-правило нарушено)
  */
-export class InvalidOperationError extends DomainError {
-  constructor(entityType: string, message: string) {
-    super(entityType, message)
+export class InvalidOperationError extends BaseError {
+  constructor(
+    entityType: string,
+    message: string,
+    public readonly operation?: string,
+    context?: Record<string, unknown>
+  ) {
+    super(entityType, message, 'INVALID_OPERATION', context)
     this.name = 'InvalidOperationError'
   }
 }
@@ -645,7 +651,6 @@ export class InvalidOperationError extends DomainError {
 
 ```typescript
 // src/domain/shared/errors/index.ts
-export { DomainError } from './DomainError'
 export { InvariantViolationError } from './InvariantViolationError'
 export { NotFoundError } from './NotFoundError'
 export { DuplicateError } from './DuplicateError'
@@ -661,11 +666,25 @@ export * from './invariants'      // IInvariant, UuidInvariant
 export * from './specification'   // Common спецификации
 ```
 
+**Иерархия ошибок:**
+```
+BaseError (shared/errors) - базовый для ВСЕХ
+  │
+  ├── InvariantViolationError (domain/shared/errors)
+  ├── NotFoundError (domain/shared/errors)
+  ├── DuplicateError (domain/shared/errors)
+  ├── InvalidOperationError (domain/shared/errors)
+  │
+  ├── NetworkError (infrastructure/errors) - будущее
+  └── FileSystemError (infrastructure/errors) - будущее
+```
+
 **Зачем Domain Errors в Step 1?**
 - ✅ Application Layer их использует (валидация, обработка ошибок)
-- ✅ Единая иерархия ошибок
+- ✅ Единая иерархия: BaseError → Domain Errors
 - ✅ Type-safe обработка ошибок
 - ✅ Часть Ubiquitous Language
+- ✅ Расширяемость: можно добавить Infrastructure/Application errors
 
 ---
 

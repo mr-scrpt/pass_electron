@@ -1,6 +1,6 @@
 # Specification Pattern Setup (Shared Layer)
 
-> **Назад:** [VALIDATION_SETUP.md](./VALIDATION_SETUP.md)  
+> **Назад:** [ERROR_SETUP.md](./ERROR_SETUP.md)  
 > **Далее:** [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)
 
 ---
@@ -35,14 +35,14 @@
 ```typescript
 // src/shared/specification/ISpecification.ts
 import { Validation } from '@/shared/validation'
-import { ValidationError } from '@/shared/errors'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Спецификация для валидации
  * Возвращает Validation вместо boolean для накопления ошибок
  */
 export interface ISpecification<T> {
-  isSatisfiedBy(value: T): Validation<ValidationError, T>
+  isSatisfiedBy(value: T): Validation<BaseError, T>
 }
 ```
 
@@ -53,32 +53,29 @@ export interface ISpecification<T> {
 
 ---
 
-## 0.5.2. Создать ValidationError [#class:ValidationError|#code|#structure:path]
+## 0.5.2. BaseError уже создан!
 
-**Файл: `src/shared/errors/ValidationError.ts`**
+> ✅ **BaseError** уже создан в предыдущем шаге: [ERROR_SETUP.md](./ERROR_SETUP.md)
 
+**BaseError используется в спецификациях:**
+- ✅ Единый базовый класс для ВСЕХ ошибок приложения
+- ✅ Поддержка `code`, `context`, `cause`
+- ✅ Используется вместо старого ValidationError
+- ✅ Спецификации возвращают `Validation<BaseError, T>`
+
+**Импорт:**
 ```typescript
-// src/shared/errors/ValidationError.ts
-
-/**
- * Ошибка валидации
- * Используется в спецификациях для описания нарушений правил
- */
-export class ValidationError extends Error {
-  constructor(
-    public readonly entityType: string,
-    public readonly message: string
-  ) {
-    super(`${entityType}: ${message}`)
-    this.name = 'ValidationError'
-  }
-}
+import { BaseError } from '@/shared/errors'
 ```
 
-**Современный подход:**
-- ✅ `ValidationError` - для ВСЕХ валидаций через Specification Pattern
-- ✅ Накопление всех ошибок через `ValidationCombinators.sequence()`
-- ✅ Единообразие - один тип ошибки везде
+**Использование в спецификациях:**
+```typescript
+// Простая ошибка
+return invalid(new BaseError('ResourceId', 'Invalid UUID format'))
+
+// С кодом (опционально)
+return invalid(new BaseError('Namespace', 'must be lowercase', 'INVALID_FORMAT'))
+```
 
 ---
 
@@ -122,7 +119,7 @@ class ValidBranch<T> {
  * @example
  * isTrue(value && value.trim().length > 0, value)
  *   .valid()
- *   .invalid(new ValidationError('Entity', 'cannot be empty'))
+ *   .invalid(new BaseError('Entity', 'cannot be empty'))
  */
 export function isTrue<T>(condition: boolean, value: T): ValidationBuilder<T> {
   return new ValidationBuilder(condition, value)
@@ -190,7 +187,7 @@ export { ValidationCombinators } from './ValidationCombinators'
 // src/domain/shared/specification/common/CommonLengthSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '@/shared/specification'
-import { ValidationError } from '@/shared/errors'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки длины
@@ -234,13 +231,13 @@ export class CommonLengthSpec implements ISpecification<string> {
     return CommonLengthSpec._instances.get(key)!
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(
       value.length >= this.config.minLength && value.length <= this.config.maxLength,
       value
     )
       .valid()
-      .invalid(new ValidationError(
+      .invalid(new BaseError(
         this.config.entityType,
         `must be ${this.config.minLength}-${this.config.maxLength} characters`
       ))
@@ -256,7 +253,7 @@ export class CommonLengthSpec implements ISpecification<string> {
 // src/domain/shared/specification/common/CommonPatternSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '@/shared/specification'
-import { ValidationError } from '@/shared/errors'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки паттерна
@@ -300,10 +297,10 @@ export class CommonPatternSpec implements ISpecification<string> {
     return CommonPatternSpec._instances.get(key)!
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(this.config.pattern.test(value), value)
       .valid()
-      .invalid(new ValidationError(this.config.entityType, this.config.message))
+      .invalid(new BaseError(this.config.entityType, this.config.message))
   }
 }
 ```
@@ -316,7 +313,7 @@ export class CommonPatternSpec implements ISpecification<string> {
 // src/domain/shared/specification/common/CommonNotEmptySpec.ts
 import { Validation, isTrue } from '@/shared/validation'
 import { ISpecification } from '@/shared/specification'
-import { ValidationError } from '@/shared/errors'
+import { BaseError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки на пустоту
@@ -354,10 +351,10 @@ export class CommonNotEmptySpec implements ISpecification<string> {
     return CommonNotEmptySpec._instances.get(key)!
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(value && value.trim().length > 0, value)
       .valid()
-      .invalid(new ValidationError(this.config.entityType, 'cannot be empty'))
+      .invalid(new BaseError(this.config.entityType, 'cannot be empty'))
   }
 }
 ```
@@ -399,7 +396,7 @@ src/
 │   │   ├── ISpecification.ts      # Интерфейс спецификации
 │   │   └── index.ts
 │   └── errors/
-│       ├── ValidationError.ts     # Ошибка валидации
+│       ├── BaseError.ts        # Базовая ошибка (создана в ERROR_SETUP.md)
 │       └── index.ts
 │
 └── domain/shared/                 # Shared Kernel (Domain спецификации)
@@ -413,9 +410,9 @@ src/
 
 **Что дальше?**
 
-Теперь можно создавать Domain Layer с спецификациями! → [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)
+Теперь можно создавать Domain Layer! → [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)
 
 ---
 
-> **Назад:** [VALIDATION_SETUP.md](./VALIDATION_SETUP.md)  
+> **Назад:** [ERROR_SETUP.md](./ERROR_SETUP.md)  
 > **Далее:** [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)

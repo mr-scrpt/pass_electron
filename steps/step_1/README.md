@@ -85,16 +85,24 @@ mkdir -p src/shared/validation
 - `src/shared/validation/ValidationCombinators.ts` - accumulate, sequence
 - `src/shared/validation/helpers.ts` - isTrue fluent API
 
-### Шаг 2: Specification Pattern → [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
+### Шаг 2: Error Setup → [ERROR_SETUP.md](./ERROR_SETUP.md)
+
+Создать базовый класс **BaseError** для всех ошибок приложения.
+
+**Что создаем:**
+- `src/shared/errors/BaseError.ts` - базовый класс для ВСЕХ ошибок
+- Поддержка `code`, `context`, `cause` (error chaining)
+- `toJSON()` и `toString()` для логирования
+
+### Шаг 3: Specification Pattern → [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
 
 Создать переиспользуемые спецификации для валидации.
 
 **Что создаем:**
 - `src/shared/specification/ISpecification.ts` - интерфейс
-- `src/shared/errors/ValidationError.ts` - ошибка валидации
-- `src/domain/shared/specification/common/` - Common* спецификации
+- `src/domain/shared/specification/common/` - Common* спецификации (используют BaseError)
 
-### Шаг 3: Domain Layer → [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)
+### Шаг 4: Domain Layer → [DOMAIN_LAYER_SETUP.md](./DOMAIN_LAYER_SETUP.md)
 
 Создать ядро приложения - Domain Layer.
 
@@ -106,7 +114,7 @@ mkdir -p src/shared/validation
 - Aggregate Root (Resource)
 - Repository Interface (IResourceRepository)
 
-### Шаг 4: Application Layer → [APPLICATION_LAYER_SETUP.md](./APPLICATION_LAYER_SETUP.md)
+### Шаг 5: Application Layer → [APPLICATION_LAYER_SETUP.md](./APPLICATION_LAYER_SETUP.md)
 
 Создать Application Layer с DTO.
 
@@ -115,7 +123,7 @@ mkdir -p src/shared/validation
 - Repository Interface (IResourceRepository)
 - Public API
 
-### Шаг 5: Infrastructure Layer → [INFRASTRUCTURE_SETUP.md](./INFRASTRUCTURE_SETUP.md)
+### Шаг 6: Infrastructure Layer → [INFRASTRUCTURE_SETUP.md](./INFRASTRUCTURE_SETUP.md)
 
 Реализовать Infrastructure Layer с Mock данными.
 
@@ -123,7 +131,7 @@ mkdir -p src/shared/validation
 - Mock данные (resources.mock.ts)
 - MockResourceRepository
 
-### Шаг 6: Composition Layer → [COMPOSITION_SETUP.md](./COMPOSITION_SETUP.md)
+### Шаг 7: Composition Layer → [COMPOSITION_SETUP.md](./COMPOSITION_SETUP.md)
 
 Создать Composition Root для DI.
 
@@ -131,7 +139,7 @@ mkdir -p src/shared/validation
 - Упрощенный DI для Step 1
 - Экспорт репозитория
 
-### Шаг 7: Presentation Layer → [PRESENTATION_SETUP.md](./PRESENTATION_SETUP.md)
+### Шаг 8: Presentation Layer → [PRESENTATION_SETUP.md](./PRESENTATION_SETUP.md)
 
 Создать React компоненты и Routes.
 

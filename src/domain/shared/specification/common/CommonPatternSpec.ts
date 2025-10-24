@@ -1,6 +1,6 @@
 import { Validation, isTrue } from "@/shared/validation";
 import { ISpecification } from "@/shared/specification";
-import { ValidationError } from "@/shared/errors";
+import { BaseError } from "@/shared/errors";
 
 /**
  * Конфигурация для проверки паттерна
@@ -37,9 +37,9 @@ export class CommonPatternSpec implements ISpecification<string> {
     return CommonPatternSpec._instances.get(key)!;
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(this.config.pattern.test(value), value)
       .valid()
-      .invalid(new ValidationError(this.config.entityType, this.config.message));
+      .invalid(new BaseError(this.config.entityType, this.config.message));
   }
 }

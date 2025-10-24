@@ -29,7 +29,7 @@ class ValidBranch<T> {
  * @example
  * isTrue(value && value.trim().length > 0, value)
  *   .valid()
- *   .invalid(new ValidationError('Entity', 'cannot be empty'))
+ *   .invalid(new BaseError('Entity', 'cannot be empty'))
  */
 export function isTrue<T>(condition: boolean, value: T): ValidationBuilder<T> {
   return new ValidationBuilder(condition, value);

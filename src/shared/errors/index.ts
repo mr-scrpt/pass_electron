@@ -1,1 +1,1 @@
-export * from './ValidationError';
+export { BaseError } from './BaseError';

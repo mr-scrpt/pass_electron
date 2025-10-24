@@ -1,6 +1,6 @@
 import { Validation, isTrue } from "@/shared/validation";
 import { ISpecification } from "@/shared/specification";
-import { ValidationError } from "@/shared/errors";
+import { BaseError } from "@/shared/errors";
 
 /**
  * Конфигурация для проверки на пустоту
@@ -35,9 +35,9 @@ export class CommonNotEmptySpec implements ISpecification<string> {
     return CommonNotEmptySpec._instances.get(key)!;
   }
 
-  isSatisfiedBy(value: string): Validation<ValidationError, string> {
+  isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(Boolean(value && value.trim().length > 0), value)
       .valid()
-      .invalid(new ValidationError(this.config.entityType, "cannot be empty"));
+      .invalid(new BaseError(this.config.entityType, "cannot be empty"));
   }
 }

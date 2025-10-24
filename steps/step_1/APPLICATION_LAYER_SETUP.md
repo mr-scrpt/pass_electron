@@ -261,8 +261,6 @@ Return → Validation<Error[], ResourceListItemDTO[]>
 
 ---
 
----
-
 ## 3. Создать Repository Interface с Validation
 
 > ⚠️ **Важно:** Repository должен возвращать `Validation<Error[], T>` для type-safe обработки ошибок
@@ -306,7 +304,22 @@ export interface IResourceRepository {
 
 ---
 
-## Создать Public API
+## 4. Создать Public API
+
+### 4.1. Public API для Application Queries
+
+**Файл: `src/application/queries/index.ts`**
+
+```typescript
+// src/application/queries/index.ts
+export type { IQuery } from './IQuery'
+export type { IQueryHandler } from './IQueryHandler'
+export { ListResourcesQuery } from './ListResourcesQuery'
+export { ListResourcesQueryHandler } from './handlers/ListResourcesQueryHandler'
+export type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
+```
+
+### 4.2. Public API для Domain
 
 **Файл: `src/domain/resource/repositories/index.ts`**
 

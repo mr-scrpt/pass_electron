@@ -1002,6 +1002,7 @@ describe('ResourceName', () => {
 
 ## 🔗 См. также
 
+- **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** ⭐ — Практическая обработка ошибок в Application Layer
 - **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок: Result Pattern и монады
 - **[INVARIANTS.md](./INVARIANTS.md)** — Инварианты и валидация
 - **[DDD_AND_CLEAN_ARCHITECTURE.md](../DDD_AND_CLEAN_ARCHITECTURE.md)** — Архитектурные слои

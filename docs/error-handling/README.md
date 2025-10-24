@@ -65,6 +65,31 @@
 
 ---
 
+### 2.5 **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — Обработка ошибок в Application Layer ⭐
+
+Практическое руководство по обработке ошибок в Command/Query Handlers:
+- **Контекстно-зависимые ошибки** — дубликат в CREATE vs UPDATE
+- **Разделение operational vs infrastructure** БЕЗ instanceof
+- **ErrorClassifier** — утилита для классификации ошибок (один вызов вместо 10 строк)
+- **BaseCommandHandler** — переиспользуемые методы для handlers
+- **Логирование** infrastructure ошибок (operational идут пользователю)
+- Полные примеры Create/Update/Delete handlers
+- Интеграция с Presentation Layer
+
+**Ключевые паттерны:**
+- ✅ `isOperational` вместо instanceof — надежно, масштабируемо
+- ✅ `ErrorClassifier.check()` — инкапсулирует всю логику
+- ✅ `BaseCommandHandler` — DRY, переиспользуемо
+- ✅ Контекстная трансформация — разные ошибки в разных контекстах
+
+**Читай этот документ**, чтобы понять как правильно обрабатывать ошибки в Application Layer.
+
+> 📄 **Reference:** 
+> - [ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md) — полный код ErrorClassifier
+> - [BASE_HANDLERS_REFERENCE.md](./BASE_HANDLERS_REFERENCE.md) — полный код BaseCommandHandler
+
+---
+
 ### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Either Pattern
 
 Документ описывает:
@@ -132,13 +157,15 @@
 2. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — понять эволюцию подхода ⭐
 3. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — Specification Pattern
 4. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — иерархия ошибок
-5. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Either Pattern
+5. **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — практика в Application Layer ⭐
+6. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Either Pattern
 
 ### Для опытных:
 1. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — полный путь от try-catch к Specification ⭐
-2. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — детали Specification Pattern
-3. **[ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md)** — сравнение монад
-4. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — архитектурные правила
+2. **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — паттерны обработки ошибок ⭐
+3. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — детали Specification Pattern
+4. **[ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md)** — сравнение монад
+5. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — архитектурные правила
 
 ---
 

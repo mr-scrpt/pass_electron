@@ -65,6 +65,11 @@ const dto: ResourceListItemDTO = {
 
 > **📚 Детали**: [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) - CQRS паттерн
 
+> ⚠️ **Упрощенная версия для Step 1:**  
+> В этом шаге мы используем упрощенную версию CQRS с `Validation<Error[], T>` вместо `QueryResult<T>`.  
+> Полная версия с `IQueryBus` и `QueryResult` будет добавлена в следующих шагах.  
+> См. [QUERY_HANDLERS.md](../../docs/QUERY_HANDLERS.md) для production версии.
+
 ### 2.1. Создать базовые интерфейсы CQRS
 
 **Файл: `src/application/queries/IQuery.ts`**

@@ -554,6 +554,135 @@ function findTypeScriptFiles(dir: string): string[] {
 
 ---
 
+## 🎯 Монады в CORE, Адаптация в Presentation
+
+### Архитектурное правило: Railway-oriented Programming
+
+**CORE (Domain + Application + Infrastructure) использует ТОЛЬКО монады** `Validation<E, T>`:
+
+```
+┌─────────────────────────────────────────┐
+│  CORE (Application Layer)               │
+│  ✅ Validation<Error[], T> - монады     │
+│                                         │
+│  IQueryHandler<Q, R> {                  │
+│    handle(q: Q): Promise<Validation<E,R>>│
+│  }                                      │
+└─────────────────┬───────────────────────┘
+                  │
+                  │ Возвращает монаду
+                  ↓
+┌─────────────────┴───────────────────────┐
+│  Composition Layer                      │
+│  Возвращает монады как есть             │
+│                                         │
+│  queries.resources.list()               │
+│  → Promise<Validation<Error[], DTO[]>>  │
+└─────────────────┬───────────────────────┘
+                  │
+                  │ Монада передается дальше
+                  ↓
+┌─────────────────┴───────────────────────┐
+│  Presentation Layer                     │
+│  ⚙️ Адаптирует под свой framework       │
+│                                         │
+│  React Router: monada → throw Response  │
+│  GraphQL: monada → { data, errors }     │
+│  CLI: monada → console + exit           │
+└─────────────────────────────────────────┘
+```
+
+### Почему монады в CORE?
+
+1. ✅ **Type-safe** - TypeScript контролирует обработку ошибок
+2. ✅ **Railway-oriented** - композиция операций
+3. ✅ **Накопление ошибок** - можно собрать все ошибки валидации
+4. ✅ **Единообразие** - один подход во всем ядре
+5. ✅ **Тестируемость** - легко mock и проверить результат
+
+### Примеры адаптации в Presentation
+
+#### React Router - Адаптация монады
+
+```typescript
+// src/presentation/web/react/src/routes/_index.tsx
+import { queries } from '@/composition'
+
+export async function loader() {
+  // 1. Получаем монаду из CORE
+  const result = await queries.resources.list()
+  // result: Validation<Error[], ResourceListItemDTO[]>
+  
+  // 2. Адаптируем под React Router
+  if (result.isLeft()) {
+    // Railway Left → React Router Error Response
+    throw new Response('Failed to load', { status: 500 })
+  }
+  
+  // Railway Right → React Router Data
+  return { resources: result.value }
+}
+```
+
+#### GraphQL - Адаптация монады (пример)
+
+```typescript
+// src/presentation/graphql/resolvers.ts
+import { queries } from '@/composition'
+
+const resolvers = {
+  Query: {
+    resources: async () => {
+      const result = await queries.resources.list()
+      
+      // Адаптация монады под GraphQL
+      return {
+        data: result.isRight() ? result.value : null,
+        errors: result.isLeft() ? result.value.map(e => ({
+          message: e.message,
+          extensions: { code: 'INTERNAL_ERROR' }
+        })) : null
+      }
+    }
+  }
+}
+```
+
+#### CLI - Адаптация монады (пример)
+
+```typescript
+// src/presentation/cli/commands/list.ts
+import { queries } from '@/composition'
+
+program.command('list').action(async () => {
+  const result = await queries.resources.list()
+  
+  // Адаптация монады под CLI
+  if (result.isLeft()) {
+    console.error('❌ Error:', result.value.map(e => e.message).join('\n'))
+    process.exit(1)
+  }
+  
+  console.table(result.value)
+})
+```
+
+### Ключевые принципы
+
+1. ✅ **CORE всегда возвращает монады** - `Validation<E, T>`
+2. ✅ **Composition прозрачно передает монады** - без изменений
+3. ✅ **Presentation адаптирует под framework** - каждый по-своему
+4. ✅ **Нет try-catch в бизнес-логике** - только монады
+5. ✅ **Try-catch только для системных ошибок** - сеть, DB, файловая система
+
+### Связанные документы
+
+- [QUERY_HANDLERS.md](./QUERY_HANDLERS.md) - примеры адаптации монад
+- [error-handling/ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md) - монады vs try-catch
+- [error-handling/APPLICATION_ERROR_HANDLING.md](./error-handling/APPLICATION_ERROR_HANDLING.md) - обработка в Application Layer ⭐
+
+---
+
 ## ✅ Чеклист настройки
 
 - [ ] Создан `src/domain/index.ts` с Public API

@@ -359,7 +359,7 @@ export const resourceQueries = {
 export class ListResourcesQueryHandler {
   constructor(private repository: IResourceRepository) {}
   
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
+  async handle(query: ListResourcesQuery): Promise<Validation<Error[], ResourceListItemDTO[]>> {
     try {
       // Получаем данные из репозитория
       const resources = await this.repository.findAll()

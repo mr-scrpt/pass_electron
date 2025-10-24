@@ -48,24 +48,34 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ## Реализация
 
-### 1. Query Interfaces (Application Layer)
+### 1. Query Interfaces (Application Layer - CORE)
+
+> ⚠️ **Архитектурное правило:**  
+> Application Layer (CORE) использует **монады** `Validation<E, T>` для type-safe обработки ошибок.  
+> Это обеспечивает Railway-oriented programming и композицию операций.
 
 #### IQuery и IQueryHandler
 
 ##### Интерфейсы [#interface:IQuery|#interface:IQueryHandler|#code|#structure:path]
 
 ```typescript
+import { Validation } from '@/shared/validation'
+
 export interface IQuery {
   readonly type: string;
 }
 
-export interface QueryResult<T = any> {
-  data: T;
-  error?: string;
-}
-
+/**
+ * Query Handler - обработчик запросов на чтение
+ * 
+ * Возвращает Validation<Error[], T> для:
+ * - Type-safe обработки ошибок
+ * - Railway-oriented programming
+ * - Композиции операций
+ * - Накопления множественных ошибок
+ */
 export interface IQueryHandler<TQuery extends IQuery, TResult> {
-  handle(query: TQuery): Promise<QueryResult<TResult>>;
+  handle(query: TQuery): Promise<Validation<Error[], TResult>>;
 }
 ```
 
@@ -74,10 +84,12 @@ export interface IQueryHandler<TQuery extends IQuery, TResult> {
 ##### IQueryBus интерфейс [#interface:IQueryBus|#code|#structure:path]
 
 ```typescript
+import { Validation } from '@/shared/validation'
+
 export interface IQueryBus {
   execute<TQuery extends IQuery, TResult>(
     query: TQuery
-  ): Promise<QueryResult<TResult>>;
+  ): Promise<Validation<Error[], TResult>>;
   
   register<TQuery extends IQuery, TResult>(
     queryType: string,
@@ -111,26 +123,43 @@ export class GetResourceByIdQuery implements IQuery {
 ##### ListResourcesQueryHandler класс [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
+import { valid, invalid, type Validation } from '@/shared/validation'
+import type { IQueryHandler } from './IQueryHandler'
+import type { ListResourcesQuery } from './ListResourcesQuery'
+import type { ResourceListItemDTO } from './dtos/ResourceListItemDTO'
+
 export class ListResourcesQueryHandler
   implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   
-  constructor(private resourceService: ResourceService) {}
+  constructor(private repository: IResourceRepository) {}
   
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
+  async handle(
+    query: ListResourcesQuery
+  ): Promise<Validation<Error[], ResourceListItemDTO[]>> {
     try {
-      const resources = await this.resourceService.listResources(query.filters);
+      // 1. Получаем Domain объекты
+      const resources = await this.repository.findAll();
       
-      // Преобразуем Domain Model → DTO
-      const data = resources.map(r => ({
-        id: r.id.value,
-        namespace: r.namespace.value,
-        name: r.name.value,
-        createdAt: r.createdAt.toISOString()
+      // 2. Преобразуем Domain Model → DTO
+      const dtos = resources.map(r => ({
+        id: r.getId().getValue(),
+        namespace: r.getNamespace().getValue(),
+        name: r.getName().getValue(),
+        secretPreview: '****',
+        fieldsCount: r.getCustomFields().length,
+        updatedAt: r.getUpdatedAt().toISOString()
       }));
       
-      return { data };
+      // 3. Возвращаем монаду (успех)
+      return valid(dtos);
+      
     } catch (error) {
-      return { data: [], error: 'Failed to load resources' };
+      // Непредвиденные ошибки (сеть, DB)
+      return invalid([
+        new Error(
+          `Failed to list resources: ${error instanceof Error ? error.message : String(error)}`
+        )
+      ]);
     }
   }
 }
@@ -174,41 +203,52 @@ export class InMemoryQueryBus implements IQueryBus {
 
 ### 5. Facade (Composition Root)
 
+> 🔑 **Важно:** Composition Layer возвращает **монады** как есть.  
+> Адаптация под framework происходит в Presentation Layer.
+
 #### Query Facade
 
 ##### Query Facade [#code|#structure:path]
 
 ```typescript
-import { json } from 'react-router';
-import { getQueryBus } from '../ServiceContainer';
-import { ListResourcesQuery, GetResourceByIdQuery } from '@/application/queries';
+import { MockResourceRepository } from '@/infrastructure/repositories'
+import { 
+  ListResourcesQuery,
+  ListResourcesQueryHandler,
+  GetResourceByIdQuery,
+  GetResourceByIdQueryHandler
+} from '@/application/queries'
+
+// ==================== Infrastructure ====================
+const resourceRepository = new MockResourceRepository()
+
+// ==================== Application (Query Handlers) ====================
+const listResourcesHandler = new ListResourcesQueryHandler(resourceRepository)
+const getResourceByIdHandler = new GetResourceByIdQueryHandler(resourceRepository)
+
+// ==================== Facades для Presentation ====================
 
 /**
- * Facade: инкапсулирует QueryBus, парсинг Request, сериализацию
+ * Query Facade - возвращает Validation монады
+ * 
+ * Presentation Layer сам адаптирует под свой framework:
+ * - React Router → throw Response
+ * - GraphQL → { data, errors }
+ * - CLI → console + exit
  */
 export const queries = {
-  async listResources(filtersOrRequest?: { search?: string } | Request) {
-    let filters;
+  resources: {
+    /**
+     * Получить список ресурсов
+     * @returns Validation<Error[], ResourceListItemDTO[]>
+     */
+    list: () => listResourcesHandler.handle(new ListResourcesQuery()),
     
-    if (filtersOrRequest instanceof Request) {
-      const url = new URL(filtersOrRequest.url);
-      filters = {
-        search: url.searchParams.get('search') || undefined,
-        namespace: url.searchParams.get('namespace') || undefined
-      };
-    } else {
-      filters = filtersOrRequest;
-    }
-
-    const queryBus = getQueryBus();
-    const result = await queryBus.execute(new ListResourcesQuery(filters));
-    return json(result);
-  },
-
-  async getResourceById(resourceId: string) {
-    const queryBus = getQueryBus();
-    const result = await queryBus.execute(new GetResourceByIdQuery(resourceId));
-    return json(result);
+    /**
+     * Получить ресурс по ID
+     * @returns Validation<Error[], ResourceDetailDTO>
+     */
+    getById: (id: string) => getResourceByIdHandler.handle(new GetResourceByIdQuery(id))
   }
 };
 ```
@@ -234,32 +274,119 @@ static getQueryBus(): IQueryBus {
 
 ---
 
-## Использование в Loaders
+## Использование в Presentation Layer
 
-### Список ресурсов
+### Архитектурные границы
+
+```
+┌─────────────────────────────────┐
+│ CORE (Application Layer - монады)  │
+│                                 │
+│ Validation<Error[], DTO>       │
+└───────────────┬─────────────────┘
+                 ↓
+┌───────────────┴─────────────────┐
+│ Composition Layer (Facade)       │
+│ queries.resources.list()        │
+│ → возвращает Validation        │
+└───────────────┬─────────────────┘
+                 ↓
+┌───────────────┴─────────────────┐
+│ Presentation Layer (Адаптация)  │
+│                                 │
+│ Адаптирует монаду под framework: │
+│ - React Router → Response/throw  │
+│ - GraphQL → { data, errors }    │
+│ - CLI → console + exit          │
+└─────────────────────────────────┘
+```
+
+### React Router - Адаптация монад
 
 #### Loader для списка [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/_index.tsx
-import { queries } from '@/composition';
+import { queries } from '@/composition'
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  return queries.resources.list(request);  // ✅ Одна строка!
+/**
+ * Loader - адаптирует Validation монаду под React Router
+ */
+export async function loader() {
+  // 1. Получаем монаду из CORE
+  const result = await queries.resources.list()
+  
+  // 2. Адаптируем под React Router
+  if (result.isLeft()) {
+    // Railway Left → React Router Error Response
+    throw new Response('Failed to load resources', { status: 500 })
+  }
+  
+  // Railway Right → React Router Data
+  return { resources: result.value }
 }
 ```
-
-### Детальная страница
 
 #### Loader для деталей [#code|#structure:path]
 
 ```typescript
 // src/presentation/web/react/src/routes/resources.$id.tsx
-import { queries } from '@/composition';
+import { queries } from '@/composition'
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  return queries.resources.getById(params.id!);  // ✅ Одна строка!
+  const result = await queries.resources.getById(params.id!)
+  
+  if (result.isLeft()) {
+    throw new Response('Resource not found', { status: 404 })
+  }
+  
+  return { resource: result.value }
 }
+```
+
+### GraphQL - Адаптация монад (пример)
+
+```typescript
+// src/presentation/graphql/resolvers/resource.ts
+import { queries } from '@/composition'
+
+const resolvers = {
+  Query: {
+    resources: async () => {
+      const result = await queries.resources.list()
+      
+      // Адаптация монады под GraphQL response
+      return {
+        data: result.isRight() ? result.value : null,
+        errors: result.isLeft() ? result.value.map(e => ({
+          message: e.message,
+          extensions: { code: 'INTERNAL_SERVER_ERROR' }
+        })) : null
+      }
+    }
+  }
+}
+```
+
+### CLI - Адаптация монад (пример)
+
+```typescript
+// src/presentation/cli/commands/list.ts
+import { queries } from '@/composition'
+
+program
+  .command('list')
+  .action(async () => {
+    const result = await queries.resources.list()
+    
+    // Адаптация монады под CLI output
+    if (result.isLeft()) {
+      console.error('❌ Error:', result.value.map(e => e.message).join('\n'))
+      process.exit(1)
+    }
+    
+    console.table(result.value)
+  })
 ```
 
 ---

@@ -354,7 +354,7 @@ export class ResourceRenamedEvent extends DomainEvent {
 export class ListResourcesQueryHandler {
   constructor(private readonly repository: IResourceRepository) {}
 
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
+  async handle(query: ListResourcesQuery): Promise<Validation<Error[], ResourceListItemDTO[]>> {
     try {
       // Получаем данные из репозитория
       const resources = query.namespace
@@ -491,7 +491,7 @@ export class InMemoryQueryBus implements IQueryBus {
     this.handlers.set(type, handler)
   }
 
-  async execute<T>(query: IQuery): Promise<QueryResult<T>> {
+  async execute<T>(query: IQuery): Promise<Validation<Error[], T>> {
     const handler = this.handlers.get(query.type)
     if (!handler) throw new Error(`No handler for ${query.type}`)
     return handler.handle(query)

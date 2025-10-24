@@ -332,7 +332,7 @@ import { Resource } from '@/domain'
 import type { ResourceListItemDTO } from '../dtos'
 
 export class ListResourcesQueryHandler {
-  async handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>> {
+  async handle(query: ListResourcesQuery): Promise<Validation<Error[], ResourceListItemDTO[]>> {
     // 1. Получаем Domain объекты (с Value Objects)
     const resources: Resource[] = await this.repository.findAll()
     
@@ -531,7 +531,7 @@ import type { ResourceDetailDTO, CustomFieldDTO } from '../dtos'
 export class GetResourceByIdQueryHandler {
   constructor(private repository: IResourceRepository) {}
   
-  async handle(query: GetResourceByIdQuery): Promise<QueryResult<ResourceDetailDTO>> {
+  async handle(query: GetResourceByIdQuery): Promise<Validation<Error[], ResourceDetailDTO>> {
     try {
       // 1. Получаем Domain объект (с классами)
       const resource: Resource = await this.repository.findById(query.id)

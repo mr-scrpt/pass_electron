@@ -962,9 +962,11 @@ export * from './UICommands'
 
 ```typescript
 // src/application/queries/index.ts
-export type { IQuery, IQueryHandler, QueryResult } from './IQueryHandler'
+export type { IQuery, IQueryHandler } from './IQueryHandler'
 export type { IQueryBus } from './IQueryBus'
-export * from './ResourceQueries'
+export { ListResourcesQuery, GetResourceByIdQuery } from './ResourceQueries'
+export { ListResourcesQueryHandler, GetResourceByIdQueryHandler } from './handlers'
+export type { ResourceListItemDTO, ResourceDetailDTO } from './dtos'
 ```
 
 #### Commands Public API [#code|#structure:path]

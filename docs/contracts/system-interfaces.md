@@ -505,22 +505,18 @@ interface IQuery {
 /**
  * Обработчик Query
  * Реализуется в Application Layer
+ * 
+ * Возвращает Validation монаду для Railway-oriented programming
  */
 interface IQueryHandler<TQuery extends IQuery, TResult> {
-  handle(query: TQuery): Promise<QueryResult<TResult>>;
+  handle(query: TQuery): Promise<Validation<Error[], TResult>>;
 }
 
 /**
- * Результат выполнения Query
+ * Validation монада (из @sweet-monads/either)
+ * Используется во всем CORE (Domain + Application + Infrastructure)
  */
-interface QueryResult<T = any> {
-  data: T;
-  error?: string;
-  meta?: {
-    total?: number;
-    page?: number;
-    pageSize?: number;
-  };
+type Validation<E, T> = Either<E, T>
 }
 ```
 
@@ -540,10 +536,11 @@ interface QueryResult<T = any> {
 interface IQueryBus {
   /**
    * Выполнить Query
+   * @returns Validation монада
    */
   execute<TQuery extends IQuery, TResult>(
     query: TQuery
-  ): Promise<QueryResult<TResult>>;
+  ): Promise<Validation<Error[], TResult>>;
   
   /**
    * Зарегистрировать Query Handler
@@ -661,7 +658,7 @@ type EventHandler<T extends DomainEvent> = (event: T) => void | Promise<void>
  * Query Handler: Получить список ресурсов
  */
 interface IListResourcesQueryHandler {
-  handle(query: ListResourcesQuery): Promise<QueryResult<ResourceListItemDTO[]>>
+  handle(query: ListResourcesQuery): Promise<Validation<Error[], ResourceListItemDTO[]>>
 }
 
 interface ListResourcesQuery {
@@ -682,7 +679,7 @@ interface ResourceListItemDTO {
  * Query Handler: Получить детали ресурса
  */
 interface IGetResourceByIdQueryHandler {
-  handle(query: GetResourceByIdQuery): Promise<QueryResult<ResourceDetailDTO | null>>
+  handle(query: GetResourceByIdQuery): Promise<Validation<Error[], ResourceDetailDTO | null>>
 }
 
 interface GetResourceByIdQuery {
@@ -795,10 +792,7 @@ interface DeleteResourceCommand {
 /**
  * Общие типы результатов
  */
-interface QueryResult<T> {
-  data: T
-  error?: string
-}
+type Validation<E, T> = Either<E, T>  // Railway-oriented programming
 
 interface CommandResult<T = void> {
   data?: T

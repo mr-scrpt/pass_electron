@@ -120,33 +120,45 @@ export class BaseError extends Error {
 **Примеры использования:**
 
 ```typescript
-// Простая ошибка валидации (используется в спецификациях)
-throw new BaseError('ResourceId', 'Invalid UUID format')
+// 1. Простая ошибка валидации (в спецификациях)
+import { invalid } from '@/shared/validation'
+import { BaseError } from '@/shared/errors'
 
-// Ошибка с кодом
-throw new BaseError('Namespace', 'must be lowercase', 'INVALID_FORMAT')
+// В спецификации
+isSatisfiedBy(value: string): Validation<BaseError, string> {
+  return value.length > 0
+    ? valid(value)
+    : invalid(new BaseError('ResourceId', 'Invalid UUID format'))
+}
 
-// Ошибка с контекстом
-throw new BaseError(
-  'Resource',
-  'Cannot add more than 20 fields',
-  'LIMIT_EXCEEDED',
-  { currentCount: 20, attemptedToAdd: 1 }
+// 2. Ошибка с кодом (для категоризации)
+return invalid(
+  new BaseError('Namespace', 'must be lowercase', 'INVALID_FORMAT')
 )
 
-// Ошибка с причиной (error chaining)
-try {
-  await saveToDatabase(resource)
-} catch (err) {
-  throw new BaseError(
-    'ResourceRepository',
-    'Failed to save resource',
-    'PERSISTENCE_ERROR',
-    { resourceId: resource.id },
-    err as Error  // ← вложенная ошибка
+// 3. Ошибка с контекстом (для debugging)
+return invalid(
+  new BaseError(
+    'Resource',
+    'Cannot add more than 20 fields',
+    'LIMIT_EXCEEDED',
+    { currentCount: 20, attemptedToAdd: 1 }
   )
-}
+)
+
+// 4. Накопление нескольких ошибок (Railway-oriented programming)
+const namespaceResult = Namespace.create(data.namespace)  // Validation<BaseError[], Namespace>
+const nameResult = ResourceName.create(data.name)         // Validation<BaseError[], ResourceName>
+
+return ValidationCombinators.sequence(
+  [namespaceResult, nameResult],
+  ([ns, name]) => new Resource(id, ns, name)
+)
+// Если обе проверки провалились - вернутся ОБЕ ошибки BaseError[]
 ```
+
+> ⚠️ **Важно**: В нашем приложении используется **Railway-oriented programming** с монадами `Validation<E, T>`.  
+> Мы **НЕ используем** `try-catch` и `throw` для бизнес-логики!
 
 ---
 

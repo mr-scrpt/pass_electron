@@ -21,12 +21,12 @@ export class UuidInvariant implements IInvariant<string> {
   ): Validation<ValidationError[], string> {
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonPatternSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonPatternSpec.for({
           entityType,
-          UuidInvariant.UUID_V4_REGEX,
-          "must be a valid UUID v4",
-        ).isSatisfiedBy(value),
+          pattern: UuidInvariant.UUID_V4_REGEX,
+          message: "must be a valid UUID v4",
+        }).isSatisfiedBy(value),
       ],
       () => value,
     );

@@ -18,9 +18,9 @@
 ## 📁 Структура Domain Layer [#structure:tree]
 
 ### resource/ - Bounded Context для управления ресурсами
-- **aggregates/** - Aggregate Roots (главные сущности)
-- **entities/** - Entities (сущности внутри Aggregate)
-- **value-objects/** - Value Objects (неизменяемые значения)
+- **aggregates/** - Aggregate Roots (главные сущности: Resource)
+- **entities/** - Entities (сущности внутри Aggregate: CustomField в Step 2)
+- **value-objects/** - Value Objects (неизменяемые значения: ResourceId, Namespace, ResourceName, Secret)
 - **invariants/** - Domain-специфичные инварианты (например, NamespaceInvariant)
 - **specifications/** - Бизнес-правила (например, NotReservedNamespaceSpec)
 - **repositories/** - Repository Interfaces
@@ -531,6 +531,75 @@ export class ResourceName {
 
 ---
 
+## 1.6. Создать Value Object: Secret
+
+**Файл: `src/domain/resource/value-objects/Secret.ts`**
+
+#### Secret [#class:Secret|#code|#structure:path]
+
+```typescript
+// src/domain/resource/value-objects/Secret.ts
+import { Validation, ValidationCombinators } from '@/shared/validation'
+import { ValidationError } from '@/shared/errors'
+import { CommonNotEmptySpec, CommonLengthSpec } from '@/domain/shared/specification'
+
+/**
+ * Value Object для секретного значения (пароля)
+ * Инвариант: минимум 8 символов
+ */
+export class Secret {
+  private static readonly ENTITY_TYPE = 'Secret'
+  private static readonly MIN_LENGTH = 8
+  private static readonly MAX_LENGTH = 1000
+  
+  private constructor(private readonly _value: string) {}
+  
+  static create(value: string): Validation<ValidationError[], Secret> {
+    return ValidationCombinators.sequence(
+      [
+        CommonNotEmptySpec.for({ entityType: Secret.ENTITY_TYPE }).isSatisfiedBy(value),
+        CommonLengthSpec.for({
+          entityType: Secret.ENTITY_TYPE,
+          minLength: Secret.MIN_LENGTH,
+          maxLength: Secret.MAX_LENGTH,
+        }).isSatisfiedBy(value),
+      ],
+      () => new Secret(value)
+    )
+  }
+  
+  getValue(): string {
+    return this._value
+  }
+  
+  /**
+   * Получить замаскированное значение для отображения
+   */
+  getMasked(): string {
+    return '*'.repeat(this._value.length)
+  }
+  
+  equals(other: Secret): boolean {
+    return this._value === other._value
+  }
+}
+```
+
+**Почему Secret - это Value Object, а не примитив?**
+- ✅ Валидация - невозможно создать слишком короткий пароль
+- ✅ Инкапсуляция - можно добавить `getMasked()`, `getStrength()`
+- ✅ Type Safety - компилятор не даст передать `string` вместо `Secret`
+- ✅ Бизнес-логика - правила для паролей в одном месте
+- ✅ Консистентность - как и другие поля (ResourceId, Namespace, ResourceName)
+
+**Почему Secret не имеет ID (не Entity)?**
+- ✅ Secret **один** на Resource (не коллекция)
+- ✅ Не нужно сравнивать с другими Secret
+- ✅ Не нужно искать "какой из secrets"
+- ✅ Просто значение с валидацией и поведением
+
+---
+
 ## 1.7. Создать Aggregate Root: Resource
 
 > **📚 Детали**: [TYPES_AND_ENTITIES.md#aggregates](../../docs/TYPES_AND_ENTITIES.md#aggregates) — Что такое Aggregate Root
@@ -546,6 +615,7 @@ import { ValidationError } from '@/shared/errors'  // ✅ Явный импор�
 import { ResourceId } from '../value-objects/ResourceId'
 import { ResourceName } from '../value-objects/ResourceName'
 import { Namespace } from '../value-objects/Namespace'
+import { Secret } from '../value-objects/Secret'
 
 /**
  * Props для создания Resource
@@ -555,7 +625,7 @@ interface ResourceProps {
   id: ResourceId
   namespace: Namespace
   name: ResourceName
-  secret: string
+  secret: Secret  // ✅ Value Object вместо string
   createdAt: Date
   updatedAt: Date
 }
@@ -582,7 +652,7 @@ export class Resource {
   private readonly _id: ResourceId
   private readonly _namespace: Namespace
   private readonly _name: ResourceName
-  private readonly _secret: string
+  private readonly _secret: Secret  // ✅ Value Object вместо string
   private readonly _createdAt: Date
   private readonly _updatedAt: Date
 
@@ -607,16 +677,17 @@ export class Resource {
     // Создаем Value Objects (они используют спецификации внутри)
     const namespaceVO = Namespace.create(namespace)
     const nameVO = ResourceName.create(name)
+    const secretVO = Secret.create(secret)
     const id = ResourceId.generate()
     
-    // Комбинируем результаты валидации
+    // Комбинируем результаты валидации ВСЕ Value Objects
     return ValidationCombinators.sequence(
-      [namespaceVO, nameVO],
-      ([ns, nm]) => new Resource({
+      [namespaceVO, nameVO, secretVO],
+      ([ns, nm, sec]) => new Resource({
         id,
         namespace: ns,
         name: nm,
-        secret,
+        secret: sec,  // ✅ Secret Value Object
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -652,7 +723,7 @@ export class Resource {
     return this._name
   }
   
-  getSecret(): string {
+  getSecret(): Secret {
     return this._secret
   }
   
@@ -723,6 +794,7 @@ src/domain/
     │   ├── ResourceId.ts                # → UuidInvariant (shared)
     │   ├── Namespace.ts                 # → NamespaceInvariant (local)
     │   ├── ResourceName.ts              # → ResourceNameInvariant (local)
+    │   ├── Secret.ts                    # → CommonNotEmptySpec + CommonLengthSpec
     │   └── index.ts
     │
     └── aggregates/               # Aggregate Roots

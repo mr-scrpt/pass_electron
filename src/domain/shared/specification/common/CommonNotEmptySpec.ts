@@ -3,33 +3,41 @@ import { ISpecification } from "@/shared/specification";
 import { ValidationError } from "@/shared/errors";
 
 /**
- * Спецификация: проверка на пустую строку
- * 
+ * Конфигурация для проверки на пустоту
+ */
+export interface NotEmptyConfig {
+  readonly entityType: string;
+}
+
+/**
+ * Спецификация: проверка что строка не пуста
+ *
  * Singleton Factory Pattern - экземпляры кэшируются по entityType
+ * Использует именованные параметры для консистентности с другими спецификациями
  */
 export class CommonNotEmptySpec implements ISpecification<string> {
-  // Кэш экземпляров по entityType
+  // Flyweight: кэш экземпляров по entityType
   private static readonly _instances = new Map<string, CommonNotEmptySpec>();
 
-  private constructor(private readonly entityType: string) {}
+  private constructor(private readonly config: NotEmptyConfig) {}
 
   /**
-   * Получить или создать экземпляр для entityType
-   * @param entityType - тип сущности для сообщений об ошибках
+   * Получить или создать экземпляр
+   * @param config - конфигурация с именованными параметрами
    */
-  static for(entityType: string): CommonNotEmptySpec {
-    if (!CommonNotEmptySpec._instances.has(entityType)) {
-      CommonNotEmptySpec._instances.set(
-        entityType,
-        new CommonNotEmptySpec(entityType)
-      );
+  static for(config: NotEmptyConfig): CommonNotEmptySpec {
+    const key = config.entityType;
+    
+    if (!CommonNotEmptySpec._instances.has(key)) {
+      CommonNotEmptySpec._instances.set(key, new CommonNotEmptySpec(config));
     }
-    return CommonNotEmptySpec._instances.get(entityType)!;
+    
+    return CommonNotEmptySpec._instances.get(key)!;
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return isTrue(!!(value && value.trim().length > 0), value)
+    return isTrue(Boolean(value && value.trim().length > 0), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, "cannot be empty"));
+      .invalid(new ValidationError(this.config.entityType, "cannot be empty"));
   }
 }

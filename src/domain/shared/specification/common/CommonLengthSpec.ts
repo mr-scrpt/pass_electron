@@ -2,52 +2,38 @@ import { Validation, isTrue } from "@/shared/validation";
 import { ISpecification } from "@/shared/specification";
 import { ValidationError } from "@/shared/errors";
 
-/**
- * Спецификация: проверка диапазона длины строки
- * 
- * Singleton Factory Pattern - экземпляры кэшируются по комбинации параметров
- */
+export interface LengthConfig {
+  readonly entityType: string;
+  readonly minLength: number;
+  readonly maxLength: number;
+}
+
 export class CommonLengthSpec implements ISpecification<string> {
-  // Кэш экземпляров по ключу "entityType:min:max"
   private static readonly _instances = new Map<string, CommonLengthSpec>();
 
-  private constructor(
-    private readonly entityType: string,
-    private readonly minLength: number,
-    private readonly maxLength: number,
-  ) {}
+  private constructor(private readonly config: LengthConfig) {}
 
-  /**
-   * Получить или создать экземпляр
-   * @param entityType - тип сущности для сообщений об ошибках
-   * @param minLength - минимальная длина
-   * @param maxLength - максимальная длина
-   */
-  static for(
-    entityType: string,
-    minLength: number,
-    maxLength: number,
-  ): CommonLengthSpec {
-    const key = `${entityType}:${minLength}:${maxLength}`;
+  static for(config: LengthConfig): CommonLengthSpec {
+    const key = `${config.entityType}:${config.minLength}:${config.maxLength}`;
+
     if (!CommonLengthSpec._instances.has(key)) {
-      CommonLengthSpec._instances.set(
-        key,
-        new CommonLengthSpec(entityType, minLength, maxLength)
-      );
+      CommonLengthSpec._instances.set(key, new CommonLengthSpec(config));
     }
+
     return CommonLengthSpec._instances.get(key)!;
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
     return isTrue(
-      value.length >= this.minLength && value.length <= this.maxLength,
+      value.length >= this.config.minLength &&
+        value.length <= this.config.maxLength,
       value,
     )
       .valid()
       .invalid(
         new ValidationError(
-          this.entityType,
-          `must be ${this.minLength}-${this.maxLength} characters`,
+          this.config.entityType,
+          `must be ${this.config.minLength}-${this.config.maxLength} characters`,
         ),
       );
   }

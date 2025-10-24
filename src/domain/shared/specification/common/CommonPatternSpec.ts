@@ -3,44 +3,43 @@ import { ISpecification } from "@/shared/specification";
 import { ValidationError } from "@/shared/errors";
 
 /**
+ * Конфигурация для проверки паттерна
+ */
+export interface PatternConfig {
+  readonly entityType: string;
+  readonly pattern: RegExp;
+  readonly message: string;
+}
+
+/**
  * Спецификация: проверка по регулярному выражению
  * 
  * Singleton Factory Pattern - экземпляры кэшируются по комбинации параметров
+ * Использует именованные параметры для предотвращения ошибок
  */
 export class CommonPatternSpec implements ISpecification<string> {
-  // Кэш экземпляров по ключу "entityType:pattern:message"
+  // Flyweight: кэш экземпляров по ключу "entityType:pattern:message"
   private static readonly _instances = new Map<string, CommonPatternSpec>();
 
-  private constructor(
-    private readonly entityType: string,
-    private readonly pattern: RegExp,
-    private readonly message: string,
-  ) {}
+  private constructor(private readonly config: PatternConfig) {}
 
   /**
    * Получить или создать экземпляр
-   * @param entityType - тип сущности для сообщений об ошибках
-   * @param pattern - регулярное выражение для проверки
-   * @param message - сообщение об ошибке
+   * @param config - конфигурация с именованными параметрами
    */
-  static for(
-    entityType: string,
-    pattern: RegExp,
-    message: string,
-  ): CommonPatternSpec {
-    const key = `${entityType}:${pattern.source}:${message}`;
+  static for(config: PatternConfig): CommonPatternSpec {
+    const key = `${config.entityType}:${config.pattern.source}:${config.message}`;
+    
     if (!CommonPatternSpec._instances.has(key)) {
-      CommonPatternSpec._instances.set(
-        key,
-        new CommonPatternSpec(entityType, pattern, message)
-      );
+      CommonPatternSpec._instances.set(key, new CommonPatternSpec(config));
     }
+    
     return CommonPatternSpec._instances.get(key)!;
   }
 
   isSatisfiedBy(value: string): Validation<ValidationError, string> {
-    return isTrue(this.pattern.test(value), value)
+    return isTrue(this.config.pattern.test(value), value)
       .valid()
-      .invalid(new ValidationError(this.entityType, this.message));
+      .invalid(new ValidationError(this.config.entityType, this.config.message));
   }
 }

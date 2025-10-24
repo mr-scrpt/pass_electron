@@ -51,9 +51,11 @@ password-manager/
     │       ├── errors/            # Domain Errors
     │       │   ├── DomainError.ts
     │       │   ├── InvariantViolationError.ts
-    │       │   ├── ValidationError.ts
+    │       │   ├── NotFoundError.ts
     │       │   └── ...
-    │       ├── invariants/        # Reusable Invariants
+    │       ├── invariants/        # Reusable Invariants (UuidInvariant)
+    │       ├── specification/     # Domain Specifications
+    │       │   └── common/        # CommonLengthSpec, CommonPatternSpec, etc.
     │       ├── base/              # Base classes/interfaces
     │       └── index.ts
     │
@@ -76,7 +78,8 @@ password-manager/
     │
     ├── shared/                    # Shared Utilities (framework-agnostic)
     │   ├── validation/            # Validation API (фасад над @sweet-monads/either)
-    │   ├── specification/         # Specification Pattern
+    │   ├── specification/         # ISpecification interface
+    │   ├── errors/                # ValidationError (используется в спецификациях)
     │   └── types/                 # Type re-exports
     │
     └── presentation/              # Presentation Layer (DDD)
@@ -352,7 +355,6 @@ src/application/
 │   ├── IStorageService.ts                             
 │   └── index.ts
 ├── errors/                                            
-│   ├── ValidationError.ts                             
 │   ├── CommandError.ts                                
 │   ├── QueryError.ts                                  
 │   └── index.ts
@@ -512,14 +514,16 @@ src/infrastructure/
 src/shared/
 ├── validation/                # Validation API (фасад над @sweet-monads/either)
 │   ├── Validation.ts          # type Validation<E, T>
-│   ├── ValidationCombinators.ts  # Фасад для accumulate/sequence
+│   ├── ValidationCombinators.ts  # Фасад для mergeInMany/sequence
+│   ├── helpers.ts             # isTrue() - Fluent API для условной валидации
 │   └── index.ts
 │
-├── specification/             # Specification Pattern (переиспользуемые правила)
-│   ├── ISpecification.ts      # Базовый интерфейс
-│   ├── CompositeSpecification.ts  # Композитор (allOf, anyOf)
-│   ├── StringSpecifications.ts    # NotEmpty, LengthRange, Pattern
-│   ├── UuidSpecifications.ts      # UuidV4Spec
+├── specification/             # Specification Pattern (базовый интерфейс)
+│   ├── ISpecification.ts      # interface ISpecification<T>
+│   └── index.ts
+│
+├── errors/                    # Технические ошибки валидации
+│   ├── ValidationError.ts     # Используется в спецификациях
 │   └── index.ts
 │
 └── types/                     # Type re-exports
@@ -533,14 +537,18 @@ src/shared/
 1. **validation/** - Фасад над `@sweet-monads/either`
    - ✅ Domain импортирует `Validation<E, T>` вместо `Either<E, T>`
    - ✅ Легко заменить библиотеку (sweet-monads → fp-ts → neverthrow)
+   - ✅ `helpers.ts` - Fluent API (`isTrue().valid().invalid()`)
    - ✅ Единая точка изменений
 
-2. **specification/** - Specification Pattern для валидации
-   - ✅ Переиспользуемые правила (NotEmpty, LengthRange, Pattern, UUID)
-   - ✅ Композиторы (allOf, anyOf, accumulate)
-   - ✅ Не зависят от бизнес-логики
+2. **specification/** - Базовый интерфейс Specification Pattern
+   - ✅ `ISpecification<T>` - используется Domain спецификациями
+   - ✅ Реальные спецификации живут в `src/domain/shared/specification/common/`
 
-3. **types/** - Переэкспорт типов для удобства
+3. **errors/** - ValidationError для спецификаций
+   - ✅ Технический тип ошибки (не Domain Error)
+   - ✅ Используется в ISpecification.isSatisfiedBy()
+
+4. **types/** - Переэкспорт типов для удобства
    - ✅ Удобство импорта типов из разных слоев
 
 **Правила:**

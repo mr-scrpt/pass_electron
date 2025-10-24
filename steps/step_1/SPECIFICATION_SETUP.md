@@ -189,8 +189,8 @@ export { ValidationCombinators } from './ValidationCombinators'
 ```typescript
 // src/domain/shared/specification/common/CommonLengthSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification } from '../ISpecification'
-import { ValidationError } from '../ValidationError'
+import { ISpecification } from '@/shared/specification'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки длины
@@ -255,8 +255,8 @@ export class CommonLengthSpec implements ISpecification<string> {
 ```typescript
 // src/domain/shared/specification/common/CommonPatternSpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification } from '../ISpecification'
-import { ValidationError } from '../ValidationError'
+import { ISpecification } from '@/shared/specification'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки паттерна
@@ -315,8 +315,8 @@ export class CommonPatternSpec implements ISpecification<string> {
 ```typescript
 // src/domain/shared/specification/common/CommonNotEmptySpec.ts
 import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification } from '../ISpecification'
-import { ValidationError } from '../ValidationError'
+import { ISpecification } from '@/shared/specification'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Конфигурация для проверки на пустоту
@@ -390,22 +390,25 @@ export class CommonNotEmptySpec implements ISpecification<string> {
 ```
 src/
 ├── shared/                        # Технические утилиты
-│   └── validation/
-│       ├── Validation.ts          # Фасад над @sweet-monads/either
-│       ├── ValidationCombinators.ts
-│       ├── helpers.ts             # isTrue fluent API
+│   ├── validation/
+│   │   ├── Validation.ts          # Фасад над @sweet-monads/either
+│   │   ├── ValidationCombinators.ts
+│   │   ├── helpers.ts             # isTrue fluent API
+│   │   └── index.ts
+│   ├── specification/
+│   │   ├── ISpecification.ts      # Интерфейс спецификации
+│   │   └── index.ts
+│   └── errors/
+│       ├── ValidationError.ts     # Ошибка валидации
 │       └── index.ts
 │
-└── domain/shared/                 # Shared Kernel
-    ├── errors/
-    │   └── ValidationError.ts     # Ошибка валидации
+└── domain/shared/                 # Shared Kernel (Domain спецификации)
     └── specification/
-        ├── ISpecification.ts      # Интерфейс спецификации
-        ├── common/
-        │   ├── CommonLengthSpec.ts
-        │   ├── CommonPatternSpec.ts
-        │   └── CommonNotEmptySpec.ts
-        └── index.ts
+        └── common/
+            ├── CommonLengthSpec.ts
+            ├── CommonPatternSpec.ts
+            ├── CommonNotEmptySpec.ts
+            └── index.ts
 ```
 
 **Что дальше?**

@@ -42,15 +42,15 @@ export class ResourceNameInvariant implements IInvariant<string> {
     value: string,
     entityType: string,
   ): Validation<ValidationError[], string> {
-    // Используем Singleton Factory для спецификаций
+    // Используем именованные параметры для спецификаций
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonLengthSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonLengthSpec.for({
           entityType,
-          ResourceNameInvariant.MIN_LENGTH,
-          ResourceNameInvariant.MAX_LENGTH,
-        ).isSatisfiedBy(value),
+          minLength: ResourceNameInvariant.MIN_LENGTH,
+          maxLength: ResourceNameInvariant.MAX_LENGTH,
+        }).isSatisfiedBy(value),
       ],
       () => value,
     );

@@ -51,20 +51,20 @@ export class NamespaceInvariant implements IInvariant<string> {
     value: string,
     entityType: string,
   ): Validation<ValidationError[], string> {
-    // Используем Singleton Factory для спецификаций
+    // Используем именованные параметры для спецификаций
     return ValidationCombinators.sequence(
       [
-        CommonNotEmptySpec.for(entityType).isSatisfiedBy(value),
-        CommonLengthSpec.for(
+        CommonNotEmptySpec.for({ entityType }).isSatisfiedBy(value),
+        CommonLengthSpec.for({
           entityType,
-          NamespaceInvariant.MIN_LENGTH,
-          NamespaceInvariant.MAX_LENGTH,
-        ).isSatisfiedBy(value),
-        CommonPatternSpec.for(
+          minLength: NamespaceInvariant.MIN_LENGTH,
+          maxLength: NamespaceInvariant.MAX_LENGTH,
+        }).isSatisfiedBy(value),
+        CommonPatternSpec.for({
           entityType,
-          NamespaceInvariant.PATTERN,
-          NamespaceInvariant.PATTERN_MESSAGE,
-        ).isSatisfiedBy(value),
+          pattern: NamespaceInvariant.PATTERN,
+          message: NamespaceInvariant.PATTERN_MESSAGE,
+        }).isSatisfiedBy(value),
       ],
       () => value,
     );

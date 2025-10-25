@@ -11,10 +11,18 @@ export class ResourceId {
   private static readonly ENTITY_TYPE = "ResourceId";
   private constructor(private readonly _value: string) {}
 
+  /**
+   * Генерация нового ResourceId (БЕЗ валидации)
+   * Используется при создании новых Resource
+   */
   static generate(): ResourceId {
     return new ResourceId(crypto.randomUUID());
   }
 
+  /**
+   * Создание ResourceId с валидацией
+   * Используется при обработке пользовательского ввода
+   */
   static create(
     value: string,
   ): Validation<ValidationError[], ResourceId> {
@@ -23,6 +31,16 @@ export class ResourceId {
     return UuidInvariant.instance.validate(value, ResourceId.ENTITY_TYPE).map(
       (validValue: string) => new ResourceId(validValue),
     );
+  }
+
+  /**
+   * Восстановление ResourceId из хранилища БЕЗ валидации
+   * Используется в Repository для reconstitution из БД
+   * 
+   * ⚠️ Предполагается что значение уже валидно
+   */
+  static reconstitute(value: string): ResourceId {
+    return new ResourceId(value);
   }
 
   getValue(): string {

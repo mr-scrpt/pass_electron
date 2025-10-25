@@ -1,12 +1,8 @@
 import { ResourceId, ResourceName, Namespace } from "../value-objects";
 import type { Validation } from "@/shared/validation";
-import { mergeInMany } from "@sweet-monads/either";
+import { ValidationCombinators } from "@/shared/validation";
 import type { ValidationError } from "@/shared/errors";
 
-/**
- * Параметры для создания Resource
- * Используем именованные поля для предотвращения ошибок с порядком параметров
- */
 interface ResourceProps {
   readonly id: ResourceId;
   readonly namespace: Namespace;
@@ -34,33 +30,16 @@ export class Resource {
   }
 
   /**
-   * Создание Resource с аккумуляцией ВСЕХ ошибок Value Objects
-   * 
-   * @param namespace - Validation<ValidationError[], Namespace>
-   * @param name - Validation<ValidationError[], ResourceName>
-   * @param secret - строка секрета
-   * @returns Validation<ValidationError[], Resource> с ВСЕМИ ошибками или созданным Resource
-   * 
-   * @example
-   * ```typescript
-   * const result = Resource.create(
-   *   Namespace.create(input.namespace),     // может быть Left(['error1', 'error2'])
-   *   ResourceName.create(input.name),       // может быть Left(['error3'])
-   *   input.secret
-   * )
-   * // => Left(['error1', 'error2', 'error3']) - ВСЕ ошибки!
-   * // ИЛИ Right(Resource)
-   * ```
+   * Создание нового Resource с валидацией
+   * Используется в Command Handlers для создания новых ресурсов
    */
   static create(
     namespace: Validation<ValidationError[], Namespace>,
     name: Validation<ValidationError[], ResourceName>,
     secret: string,
   ): Validation<ValidationError[], Resource> {
-    // Комбинируем ВСЕ ошибки через mergeInMany!
-    return mergeInMany([namespace, name])
-      .mapLeft((errorsArray) => errorsArray.flat())  // Flatten ValidationError[][] → ValidationError[]
-      .map(([ns, nm]) =>
+    return ValidationCombinators.combine(namespace, name).map(
+      ([ns, nm]) =>
         new Resource({
           id: ResourceId.generate(),
           namespace: ns,
@@ -69,6 +48,30 @@ export class Resource {
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
-      );
+    );
+  }
+
+  /**
+   * Восстановление Resource из хранилища БЕЗ валидации
+   * Используется в Repository для reconstitution из БД
+   * 
+   * ⚠️ Предполагается что данные уже валидны (прошли валидацию при создании)
+   */
+  static reconstitute(data: {
+    id: string;
+    namespace: string;
+    name: string;
+    secret: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }): Resource {
+    return new Resource({
+      id: ResourceId.reconstitute(data.id),
+      namespace: Namespace.reconstitute(data.namespace),
+      name: ResourceName.reconstitute(data.name),
+      secret: data.secret,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    });
   }
 }

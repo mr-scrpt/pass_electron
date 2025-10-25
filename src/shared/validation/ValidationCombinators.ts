@@ -14,4 +14,15 @@ export class ValidationCombinators {
   ): Validation<E[], U> {
     return mergeInMany(validations).map(fn);
   }
+
+  /**
+   * Комбинирует две Validation с разными типами значений
+   * Аккумулирует ошибки из обеих
+   */
+  static combine<E, T1, T2>(
+    v1: Validation<E[], T1>,
+    v2: Validation<E[], T2>,
+  ): Validation<E[], [T1, T2]> {
+    return mergeInMany([v1, v2]) as Validation<E[], [T1, T2]>;
+  }
 }

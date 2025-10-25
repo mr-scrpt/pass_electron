@@ -13,6 +13,10 @@ export class Namespace {
       .map((validValue: string) => new Namespace(validValue));
   }
 
+  static reconstitute(value: string): Namespace {
+    return new Namespace(value);
+  }
+
   getValue(): string {
     return this._value;
   }

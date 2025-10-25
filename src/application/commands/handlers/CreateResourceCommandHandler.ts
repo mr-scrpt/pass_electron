@@ -3,7 +3,7 @@ import type { ILogger } from "@/application/ports";
 import type { IResourceRepository } from "@/domain";
 import { Resource, Namespace, ResourceName } from "@/domain";
 import type { Validation } from "@/shared/validation";
-import { valid, fromCondition } from "@/shared/validation";
+import { fromCondition } from "@/shared/validation";
 import type { IError } from "@/shared/errors";
 import { DuplicateError } from "@/shared/errors";
 import { Pipeline } from "@/shared/pipeline";
@@ -46,8 +46,9 @@ export class CreateResourceCommandHandler
   private async checkUniqueness(
     ctx: CreateResourceContext,
   ): Promise<Validation<IError[], CreateResourceContext>> {
-    const namespaceValidation = Namespace.create(ctx.command.namespace)
-      .mapLeft((errors): IError[] => errors);
+    const namespaceValidation = Namespace.create(ctx.command.namespace).mapLeft(
+      (errors): IError[] => errors,
+    );
 
     return namespaceValidation.asyncChain(async (namespace) =>
       this.handleInfrastructureErrors(
@@ -67,7 +68,7 @@ export class CreateResourceCommandHandler
     );
   }
 
-  private async createEntity(
+  private createEntity(
     ctx: CreateResourceContext,
   ): Promise<Validation<IError[], CreateResourceContext>> {
     return Promise.resolve(
@@ -75,7 +76,7 @@ export class CreateResourceCommandHandler
         Namespace.create(ctx.command.namespace),
         ResourceName.create(ctx.command.name),
         ctx.command.secret,
-      ).map((entity) => ({ ...ctx, entity })),
+      ).map((entity) => ({ ...ctx, entity }))
     );
   }
 

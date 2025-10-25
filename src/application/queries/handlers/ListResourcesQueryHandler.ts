@@ -47,7 +47,7 @@ export class ListResourcesQueryHandler
       .map((resources) => ({ ...ctx, resources }));
   }
 
-  private async transformToDTOs(
+  private transformToDTOs(
     ctx: ListResourcesContext,
   ): Promise<Validation<IError[], ListResourcesContext>> {
     return Promise.resolve(

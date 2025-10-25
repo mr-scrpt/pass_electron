@@ -2,9 +2,31 @@
 
 Этот раздел содержит полную документацию по обработке ошибок, валидации и инвариантам в проекте.
 
+> **⭐ НОВОЕ:** С версии 2.0 используется **полиморфная система ошибок** через интерфейс `IError` — БЕЗ `instanceof`, БЕЗ `switch/case`. См. [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)
+
 ---
 
 ## 📚 Содержание
+
+### 0. **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** — Полиморфная система ошибок ⭐ NEW
+
+Документ описывает **новую архитектуру** обработки ошибок:
+- Интерфейс `IError` — минимальный, только технические методы
+- Полиморфизм через методы (`getMessage()`, `getLogLevel()`, `toUserError()`)
+- БЕЗ `instanceof`, БЕЗ `switch/case`, БЕЗ тернарников
+- Монадный подход с `tapLeft`, `mapLeft`
+- Специфичные ошибки для каждого слоя (Domain, Infrastructure, Application)
+- Функциональная композиция
+
+**Ключевые преимущества:**
+- ✅ Полиморфная обработка через методы интерфейса
+- ✅ Каждый слой — свои ошибки, но работают одинаково
+- ✅ Type Safety — компилятор проверяет реализацию IError
+- ✅ Монадический подход — чистые функции, композиция
+
+**Начни с этого документа**, если внедряешь новый код или рефакторишь существующий.
+
+---
 
 ### 1. **[INVARIANTS.md](./INVARIANTS.md)** — Инварианты и валидация
 
@@ -13,14 +35,14 @@
 - Где они живут (Value Objects, Aggregates)
 - Паттерн Shared Kernel для переиспользуемых правил валидации
 - Примеры: `UuidInvariant` (shared), `NamespaceInvariant` (resource), `ResourceNameInvariant` (resource)
-- Интеграция с `InvariantViolationError`
+- Интеграция с `InvariantViolationError` (implements `IError`)
 
 **Ключевые концепции:**
 - Fail Fast — валидация при создании
 - DRY — переиспользуемые инварианты
 - Type Safety — компилятор проверяет
 
-**Начни с этого документа**, если нужно понять как работает валидация в Domain Layer.
+**Читай этот документ**, если нужно понять как работает валидация в Domain Layer.
 
 ---
 
@@ -46,66 +68,72 @@
 
 ---
 
-### 2. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Иерархия ошибок
+### 2. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — Иерархия ошибок (Legacy)
 
-Документ описывает:
+> ⚠️ **Устарело:** Документ описывает старую архитектуру с `AppError` и `isOperational`. Для нового кода используй [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)
+
+Документ описывает (legacy подход):
 - Разделение ошибок по архитектурным слоям
-- **Domain Errors**: `InvariantViolationError`, `NotFoundError`, `DuplicateError`, `InvalidOperationError`
-- **Application Errors**: `ValidationError`, `CommandError`, `QueryError`
-- **Infrastructure Errors**: `NetworkError`, `ApiError`, `StorageError`
-- Преобразование ошибок на границах слоев (Infrastructure → Domain)
-- Обработка в Presentation Layer
+- **Domain Errors**: `BaseError` (теперь implements `IError`)
+- **Application Errors**: `GenericApplicationError` (теперь implements `IError`)
+- **Infrastructure Errors**: `NetworkError`, `ApiError`, `StorageError` (теперь implements `IError`)
+- Преобразование ошибок на границах слоев
 
-**Ключевые принципы:**
+**Ключевые принципы (актуальны):**
 - Ошибки следуют архитектурным границам
 - Domain ошибки — часть Ubiquitous Language
-- Infrastructure ошибки преобразуются в Domain на границе
+- Infrastructure ошибки трансформируются через `toUserError()`
 
-**Читай этот документ**, чтобы понять какие ошибки в каком слое должны быть.
+**Читай для истории**, но используй новый подход из POLYMORPHIC_ERROR_SYSTEM.md
 
 ---
 
-### 2.5 **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — Обработка ошибок в Application Layer ⭐
+### 2.5 **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — Обработка ошибок в Application Layer (Partial Legacy)
 
-Практическое руководство по обработке ошибок в Command/Query Handlers:
+> ⚠️ **Частично устарело:** Документ использует `isOperational` вместо `isExpected()`. Концепции актуальны, но API изменился.
+
+Практическое руководство (концепции актуальны):
 - **Контекстно-зависимые ошибки** — дубликат в CREATE vs UPDATE
-- **Разделение operational vs infrastructure** БЕЗ instanceof
-- **ErrorClassifier** — утилита для классификации ошибок (один вызов вместо 10 строк)
-- **BaseCommandHandler** — переиспользуемые методы для handlers
-- **Логирование** infrastructure ошибок (operational идут пользователю)
+- **Разделение expected vs unexpected** через `error.isExpected()` (вместо `isOperational`)
+- **Логирование** через `error.getLogLevel()` и `tapLeft`
+- **Трансформация** через `error.toUserError()` (вместо GenericApplicationError)
 - Полные примеры Create/Update/Delete handlers
 - Интеграция с Presentation Layer
 
-**Ключевые паттерны:**
-- ✅ `isOperational` вместо instanceof — надежно, масштабируемо
-- ✅ `ErrorClassifier.check()` — инкапсулирует всю логику
-- ✅ `BaseCommandHandler` — DRY, переиспользуемо
-- ✅ Контекстная трансформация — разные ошибки в разных контекстах
+**Ключевые паттерны (обновлены):**
+- ✅ `error.isExpected()` — expected vs unexpected (вместо isOperational)
+- ✅ `error.getLogLevel()` — полиморфное логирование
+- ✅ `tapLeft` для side effects — монадический подход
+- ✅ Контекстная трансформация через `toUserError()`
 
-**Читай этот документ**, чтобы понять как правильно обрабатывать ошибки в Application Layer.
+**Читай с учетом новых методов IError** (см. POLYMORPHIC_ERROR_SYSTEM.md)
 
-> 📄 **Reference:** 
-> - [ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md) — полный код ErrorClassifier
-> - [BASE_HANDLERS_REFERENCE.md](./BASE_HANDLERS_REFERENCE.md) — полный код BaseCommandHandler
+> 📄 **Reference (Legacy):** 
+> - [ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md) — устарел, используй методы IError
+> - [BASE_HANDLERS_REFERENCE.md](./BASE_HANDLERS_REFERENCE.md) — частично актуален
 
 ---
 
-### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Either Pattern
+### 3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Эскалация ошибок через Either Pattern ✅
+
+> ✅ **Актуально:** Концепции монадной обработки полностью применимы к новой системе IError
 
 Документ описывает:
 - Проблемы традиционного `try-catch` подхода (Try-Catch Hell)
-- **@sweet-monads/either** — Either монада (рекомендуется!) ⭐
+- **@sweet-monads/either** — Either монада (используется!) ⭐
 - `mergeInMany` — накопление ВСЕХ ошибок валидации
 - `mapLeft` — трансформация ошибок между слоями
+- **tapLeft** — side effects (логирование) NEW ⭐
 - План миграции
 
-**Ключевые концепции:**
+**Ключевые концепции (актуальны):**
 - Type-safe обработка ошибок
 - Railway-oriented programming
-- Ошибки как часть сигнатуры типа
+- Ошибки как часть сигнатуры типа `Validation<IError[], T>`
 - Накопление всех ошибок (уникально!)
+- Функциональная композиция
 
-**Читай этот документ**, чтобы понять как избавиться от `try-catch` и сделать обработку ошибок type-safe.
+**Читай этот документ**, чтобы понять монадный подход к обработке ошибок.
 
 ---
 
@@ -152,20 +180,23 @@
 
 ## 🎯 Рекомендуемый порядок изучения
 
-### Для начинающих:
-1. **[INVARIANTS.md](./INVARIANTS.md)** — понять валидацию в DDD
-2. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — понять эволюцию подхода ⭐
-3. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — Specification Pattern
-4. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — иерархия ошибок
-5. **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — практика в Application Layer ⭐
-6. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Either Pattern
+### Для начинающих (с нуля):
+1. **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** — новая система ошибок ⭐ **НАЧНИ ЗДЕСЬ**
+2. **[INVARIANTS.md](./INVARIANTS.md)** — понять валидацию в DDD
+3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — Either Pattern и монады
+4. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — понять эволюцию подхода
+5. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — Specification Pattern
 
-### Для опытных:
-1. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — полный путь от try-catch к Specification ⭐
-2. **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — паттерны обработки ошибок ⭐
-3. **[SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md)** — детали Specification Pattern
-4. **[ERROR_ESCALATION_EXTENDED.md](./ERROR_ESCALATION_EXTENDED.md)** — сравнение монад
-5. **[ERROR_HANDLING.md](./ERROR_HANDLING.md)** — архитектурные правила
+### Для опытных (уже знаком с проектом):
+1. **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** — что изменилось в v2.0 ⭐
+2. **[APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md)** — обновленные паттерны
+3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — tapLeft и новые операторы
+4. **[VALIDATION_EVOLUTION.md](./VALIDATION_EVOLUTION.md)** — полный контекст
+
+### Для миграции с v1.0:
+1. **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** — новая архитектура
+2. Раздел "Чек-лист создания новой ошибки" в POLYMORPHIC_ERROR_SYSTEM.md
+3. **[ERROR_ESCALATION.md](./ERROR_ESCALATION.md)** — новые операторы tapLeft/tapRight
 
 ---
 
@@ -215,25 +246,54 @@ class ResourceName {
 
 > 📖 См. [INVARIANTS.md](./INVARIANTS.md) для деталей
 
-### 3. Ошибки по слоям
+### 3. Ошибки по слоям (v2.0)
 ```typescript
+// ✅ Все реализуют IError
+import type { IError } from '@/shared/errors';
+
 // Domain Layer
-class InvariantViolationError extends DomainError { }
+class InvariantViolationError extends BaseError implements IError {
+  isExpected() { return true; }
+  getLogLevel() { return 'info'; }
+  toUserError() { return this; }
+}
 
 // Application Layer  
-class ValidationError extends Error { }
+class GenericApplicationError extends Error implements IError {
+  isExpected() { return true; }
+  getLogLevel() { return 'warn'; }
+  toUserError() { return this; }
+}
 
 // Infrastructure Layer
-class NetworkError extends Error { }
+class NetworkError extends Error implements IError {
+  isExpected() { return false; }  // ✅ Unexpected!
+  getLogLevel() { return 'error'; }
+  toUserError() { return new GenericApplicationError('Service unavailable', this); }
+}
 ```
 
-### 4. Either для type-safe обработки
+### 4. Either + IError для type-safe обработки (v2.0)
 ```typescript
-// ✅ ХОРОШО: Either делает ошибки явными
-function findUser(id: string): Either<NotFoundError, User> {
-  // Компилятор заставит обработать NotFoundError!
-  // ⚠️ Порядок: Either<Error, Success>
+import type { IError } from '@/shared/errors';
+import type { Validation } from '@/shared/validation';
+import { tapLeft } from '@/shared/validation';
+
+// ✅ Все ошибки - IError[]
+function findUser(id: string): Validation<IError[], User> {
+  // Компилятор заставит обработать IError[]!
 }
+
+// ✅ Полиморфная обработка БЕЗ instanceof
+return result
+  .mapLeft(tapLeft(errors => 
+    errors.forEach(error => 
+      logger.log(error.getLogLevel(), error.getMessage())  // Полиморфно!
+    )
+  ))
+  .mapLeft(errors => 
+    errors.map(error => error.toUserError())  // Полиморфно!
+  );
 ```
 
 ---
@@ -247,4 +307,21 @@ function findUser(id: string): Either<NotFoundError, User> {
 
 ---
 
-**💡 Совет**: Начни с INVARIANTS.md, чтобы понять основы, затем переходи к ERROR_HANDLING.md и ERROR_ESCALATION.md!
+**💡 Совет v2.0**: Начни с **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** для понимания новой архитектуры, затем [INVARIANTS.md](./INVARIANTS.md) и [ERROR_ESCALATION.md](./ERROR_ESCALATION.md)!
+
+---
+
+## 📝 История версий
+
+### v2.0 (2025-10-24) - Полиморфная система ошибок
+- ✅ Введен интерфейс `IError` 
+- ✅ Методы `isExpected()`, `getLogLevel()`, `toUserError()`
+- ✅ Полиморфная обработка БЕЗ `instanceof` и `switch/case`
+- ✅ Монадные операторы `tapLeft`, `tapRight`, `fromNullable`
+- ✅ Все ошибки implements `IError`
+- ⚠️ `AppError` и `isOperational` - deprecated
+
+### v1.0 - Классический подход
+- `AppError` интерфейс с `isOperational`
+- `ErrorClassifier` для классификации
+- `BaseError` и иерархия ошибок

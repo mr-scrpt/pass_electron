@@ -16,7 +16,12 @@ export class NotFoundError extends BaseError {
     message: string,
     public readonly searchCriteria?: Record<string, unknown>
   ) {
-    super(entityType, message, 'NOT_FOUND', searchCriteria)
-    this.name = 'NotFoundError'
+    super({
+      entityType,
+      message,
+      code: 'NOT_FOUND',
+      context: searchCriteria,
+    });
+    this.name = 'NotFoundError';
   }
 }

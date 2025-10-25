@@ -1,4 +1,8 @@
-# BaseCommandHandler & BaseQueryHandler - Reference Implementation
+# BaseCommandHandler & BaseQueryHandler - Reference Implementation (Partial Legacy)
+
+> ⚠️ **Частично устарело:** Документ использует `ErrorClassifier`. В v2.0 используйте `tapLeft` и методы IError.
+
+> 🆕 **v2.0:** Вместо helper методов используйте `tapLeft` для логирования и `mapLeft` для трансформации. См. [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)
 
 Полная реализация базовых классов для переиспользования логики обработки ошибок в Command/Query Handlers.
 
@@ -680,8 +684,58 @@ describe('BaseCommandHandler', () => {
 
 ---
 
+## 🆕 v2.0 Альтернатива
+
+Вместо BaseCommandHandler используйте композицию монадных операторов:
+
+```typescript
+import { tapLeft } from '@/shared/validation';
+import type { IError } from '@/shared/errors';
+
+export class CreateResourceCommandHandler {
+  constructor(
+    private readonly repo: IResourceRepository,
+    private readonly logger: ILogger
+  ) {}
+  
+  async handle(cmd: CreateResourceCommand): Promise<Validation<IError[], Resource>> {
+    // Логируем начало
+    this.logger.info('CreateResourceCommand', { name: cmd.name });
+    
+    const result = await this.repo.findByName(cmd.name)
+      // ✅ Side effect - логирование
+      .mapLeft(tapLeft((errors: IError[]) => 
+        errors.forEach(error => 
+          this.logger.log(error.getLogLevel(), error.getMessage(), error.getContext())
+        )
+      ))
+      // ✅ Трансформация
+      .mapLeft(errors => 
+        errors.map(error => error.toUserError())
+      );
+    
+    // Логируем успех
+    if (result.isRight()) {
+      this.logger.info('CreateResourceCommand - success');
+    }
+    
+    return result;
+  }
+}
+```
+
+**Преимущества v2.0:**
+- ✅ Полиморфно - БЕЗ ErrorClassifier
+- ✅ Монадно - композиция через mapLeft/tapLeft
+- ✅ Чище - нет базовых классов
+- ✅ Гибче - легко кастомизировать
+
+---
+
 ## 📚 Связанные документы
 
+- ⭐ [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md) - новая система v2.0
 - [APPLICATION_ERROR_HANDLING.md](./APPLICATION_ERROR_HANDLING.md) - практические примеры
+- [ERROR_ESCALATION.md](./ERROR_ESCALATION.md) - монадный подход
 - [ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md) - ErrorClassifier
 - [ERROR_HANDLING.md](./ERROR_HANDLING.md) - иерархия ошибок

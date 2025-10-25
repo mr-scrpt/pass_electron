@@ -142,16 +142,80 @@ return ValidationCombinators.sequence(
 
 ---
 
-## 0.4. Создать Public API
+## 0.4. Создать helper функции (v2.0)
+
+**Файл: `src/shared/validation/helpers.ts`**
+
+#### helpers.ts [#code]
+
+```typescript
+// src/shared/validation/helpers.ts
+import type { Validation } from './Validation';
+
+/**
+ * tapLeft - side effect для Left (ошибок)
+ * Используется для логирования, метрик, etc
+ * НЕ изменяет значение, только выполняет side effect
+ */
+export const tapLeft = <E, T>(fn: (error: E) => void) => {
+  return (value: E): E => {
+    fn(value);
+    return value;
+  };
+};
+
+/**
+ * tapRight - side effect для Right (успеха)
+ * Используется для логирования успешных операций
+ */
+export const tapRight = <E, T>(fn: (value: T) => void) => {
+  return (value: T): T => {
+    fn(value);
+    return value;
+  };
+};
+
+/**
+ * fromNullable - конвертация null/undefined в Validation
+ */
+export function fromNullable<E, T>(
+  value: T | null | undefined,
+  error: E
+): Validation<E, T> {
+  return value != null ? valid(value) : invalid(error);
+}
+```
+
+**Использование:**
+
+```typescript
+// tapLeft для логирования ошибок
+return result
+  .mapLeft(tapLeft(errors => 
+    errors.forEach(error => logger.error(error.getMessage()))
+  ))
+  .mapLeft(errors => errors.map(error => error.toUserError()));
+
+// fromNullable для опциональных значений
+const user = fromNullable(
+  maybeUser,
+  new NotFoundError('User', userId)
+);
+```
+
+---
+
+## 0.5. Создать Public API
 
 **Файл: `src/shared/validation/index.ts`**
 
-#### Validation Public API [#code|#structure:path]
+#### Validation Public API [#code]
 
 ```typescript
 // src/shared/validation/index.ts
-export * from './Validation'
-export * from './ValidationCombinators'
+export * from './Validation';
+export * from './ValidationCombinators';
+export * from './helpers';
 ```
 
 **Почему Public API?**
@@ -170,8 +234,16 @@ src/shared/
 └── validation/
     ├── Validation.ts              # Фасад над @sweet-monads/either
     ├── ValidationCombinators.ts   # accumulate, sequence
+    ├── helpers.ts                 # tapLeft, tapRight, fromNullable (v2.0)
     └── index.ts                   # Public API
 ```
+
+**Ключевые возможности:**
+- ✅ `Validation<E, T>` - type-safe результат валидации
+- ✅ `valid/invalid` - создание результатов
+- ✅ `accumulate/sequence` - комбинаторы
+- ✅ `tapLeft/tapRight` - side effects (логирование) **NEW v2.0**
+- ✅ `fromNullable` - работа с null/undefined **NEW v2.0**
 
 **Что дальше?**
 

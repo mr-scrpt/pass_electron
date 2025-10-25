@@ -17,7 +17,12 @@ export class InvariantViolationError extends BaseError {
     message: string,
     context?: Record<string, unknown>
   ) {
-    super(entityType, message, 'INVARIANT_VIOLATION', context)
-    this.name = 'InvariantViolationError'
+    super({
+      entityType,
+      message,
+      code: 'INVARIANT_VIOLATION',
+      context,
+    });
+    this.name = 'InvariantViolationError';
   }
 }

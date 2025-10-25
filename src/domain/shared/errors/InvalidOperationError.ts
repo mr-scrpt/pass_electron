@@ -18,7 +18,12 @@ export class InvalidOperationError extends BaseError {
     public readonly operation?: string,
     context?: Record<string, unknown>
   ) {
-    super(entityType, message, 'INVALID_OPERATION', context)
-    this.name = 'InvalidOperationError'
+    super({
+      entityType,
+      message,
+      code: 'INVALID_OPERATION',
+      context,
+    });
+    this.name = 'InvalidOperationError';
   }
 }

@@ -38,6 +38,10 @@ export class CommonNotEmptySpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(Boolean(value && value.trim().length > 0), value)
       .valid()
-      .invalid(new BaseError(this.config.entityType, "cannot be empty"));
+      .invalid(new BaseError({
+        entityType: this.config.entityType,
+        message: "cannot be empty",
+        code: 'SPECIFICATION_VIOLATION',
+      }));
   }
 }

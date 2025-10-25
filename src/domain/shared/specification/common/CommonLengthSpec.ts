@@ -31,10 +31,11 @@ export class CommonLengthSpec implements ISpecification<string> {
     )
       .valid()
       .invalid(
-        new BaseError(
-          this.config.entityType,
-          `must be ${this.config.minLength}-${this.config.maxLength} characters`,
-        ),
+        new BaseError({
+          entityType: this.config.entityType,
+          message: `must be ${this.config.minLength}-${this.config.maxLength} characters`,
+          code: 'SPECIFICATION_VIOLATION',
+        }),
       );
   }
 }

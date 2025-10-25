@@ -1,7 +1,7 @@
-import { ErrorClassifier } from "@/shared/errors/ErrorClassifier";
-import { GenericApplicationError } from "@/application/errors";
+//  src/application/shared/BaseQueryHandler.ts
+import type { IError } from "@/shared/errors";
 import type { Validation } from "@/shared/validation";
-import { invalid } from "@/shared/validation";
+import { tapLeft, valid } from "@/shared/validation";
 import type { ILogger } from "@/application/ports";
 
 export abstract class BaseQueryHandler {
@@ -11,58 +11,78 @@ export abstract class BaseQueryHandler {
     this.logger = logger;
   }
 
-  protected checkInfrastructureErrors(
-    errors: Error[],
-    operation: string,
-  ): Validation<Error[], never> | null {
-    const errorCheck = ErrorClassifier.check(errors);
-
-    if (!errorCheck.hasInfrastructureErrors && !errorCheck.hasUnknownErrors) {
-      return null;
-    }
-
-    if (errorCheck.hasInfrastructureErrors) {
-      this.logger.error(`Infrastructure error: ${operation}`, {
-        errors: errorCheck.classification.infrastructure.map((e) => ({
-          code: e.code,
-          message: e.message,
-          severity: e.severity,
-        })),
-      });
-    }
-
-    if (errorCheck.hasUnknownErrors) {
-      this.logger.error(`Unknown error: ${operation}`, {
-        errors: errorCheck.classification.unknown.map((e) => ({
-          name: e.name,
-          message: e.message,
-          stack: e.stack,
-        })),
-      });
-    }
-
-    return invalid([
-      new GenericApplicationError(
-        `Cannot ${operation}: service temporarily unavailable`,
-      ),
-    ]);
+  /**
+   * Трансформация ошибок: unexpected → GenericApplicationError
+   * Функциональный стиль БЕЗ if-ов и тернарников
+   */
+  protected transformInfrastructureErrors(errors: IError[]): IError[] {
+    return errors.map(error => error.toUserError());
   }
 
-  protected handleRepositoryResult<T>(
-    result: Validation<Error[], T>,
+  /**
+   * Логирование ТОЛЬКО unexpected ошибок (Infrastructure errors)
+   * Expected ошибки (Domain/Application) НЕ логируем - это нормальный flow
+   */
+  protected logInfrastructureErrors(
     operation: string,
-  ): Validation<Error[], T> | null {
-    if (result.isRight()) {
-      return null;
-    }
+  ): (errors: IError[]) => void {
+    return (errors: IError[]) => {
+      errors
+        .filter(error => !error.isExpected())  // Только unexpected
+        .forEach(error => {
+          const level = error.getLogLevel();
+          const logMethod = this.logger[level];
+          logMethod.call(
+            this.logger,
+            `${operation}: ${error.getMessage()}`,
+            error.getContext()
+          );
+        });
+    };
+  }
 
-    const errorCheck = this.checkInfrastructureErrors(result.value, operation);
+  /**
+   * Логирование ошибок через tapLeft
+   * Полиморфный подход БЕЗ проверок типов
+   */
+  protected logErrors(
+    operation: string,
+  ): (errors: IError[]) => void {
+    return (errors: IError[]) => {
+      errors.forEach(error => {
+        const level = error.getLogLevel();
+        const logMethod = this.logger[level];
+        logMethod.call(
+          this.logger,
+          `${operation}: ${error.getMessage()}`,
+          error.getContext()
+        );
+      });
+    };
+  }
 
-    if (errorCheck !== null) {
-      return errorCheck;
-    }
+  /**
+   * Обработка Infrastructure errors (repository, external services)
+   * - Логирует ТОЛЬКО unexpected ошибки
+   * - Трансформирует ошибки через toUserError()
+   */
+  protected handleInfrastructureErrors<T>(
+    result: Validation<IError[], T>,
+    operation: string,
+  ): Validation<IError[], T> {
+    return tapLeft<IError[], T>(this.logInfrastructureErrors(operation))(result)
+      .mapLeft(errors => this.transformInfrastructureErrors(errors));
+  }
 
-    return result;
+  /**
+   * Alias для handleInfrastructureErrors (обратная совместимость)
+   * @deprecated Используйте handleInfrastructureErrors
+   */
+  protected handleRepositoryResult<T>(
+    result: Validation<IError[], T>,
+    operation: string,
+  ): Validation<IError[], T> {
+    return this.handleInfrastructureErrors(result, operation);
   }
 
   protected logQueryExecution(
@@ -79,14 +99,49 @@ export abstract class BaseQueryHandler {
     this.logger.info(`Query executed successfully: ${queryName}`, result);
   }
 
-  protected logQueryFailure(queryName: string, errors: Error[]): void {
-    const errorCheck = ErrorClassifier.check(errors);
+  /**
+   * Логирование ошибок query - полиморфный подход
+   */
+  protected logQueryFailure(queryName: string, errors: IError[]): void {
+    errors.forEach(error => {
+      const level = error.getLogLevel();
+      const logMethod = this.logger[level];
+      logMethod.call(
+        this.logger,
+        `Query failed: ${queryName} - ${error.getMessage()}`,
+        error.getContext()
+      );
+    });
+  }
 
-    if (errorCheck.hasInfrastructureErrors || errorCheck.hasUnknownErrors) {
-      this.logger.error(`Query failed: ${queryName}`, {
-        infrastructure: errorCheck.classification.infrastructure,
-        unknown: errorCheck.classification.unknown,
-      });
-    }
+  /**
+   * Helper для создания Pipeline шага с обработкой Infrastructure errors
+   * Используется когда нужен многошаговый query с retry/условиями
+   */
+  protected createInfrastructureStep<TContext, T>(
+    operation: string,
+    fn: (ctx: TContext) => Promise<Validation<IError[], T>>
+  ): (ctx: TContext) => Promise<Validation<IError[], TContext & { result: T }>> {
+    return async (ctx: TContext) => {
+      return this.handleInfrastructureErrors(
+        await fn(ctx),
+        operation
+      )
+        .map((result) => ({ ...ctx, result }));
+    };
+  }
+
+  /**
+   * Helper для создания простого Pipeline шага
+   * Используется для трансформации данных без Infrastructure calls
+   */
+  protected createTransformStep<TContext, T>(
+    fn: (ctx: TContext) => Validation<IError[], T>
+  ): (ctx: TContext) => Promise<Validation<IError[], TContext & { result: T }>> {
+    return async (ctx: TContext) => {
+      return Promise.resolve(
+        fn(ctx).map((result) => ({ ...ctx, result }))
+      );
+    };
   }
 }

@@ -83,16 +83,17 @@ mkdir -p src/shared/validation
 **Что создаем:**
 - `src/shared/validation/Validation.ts` - фасад над Either
 - `src/shared/validation/ValidationCombinators.ts` - accumulate, sequence
-- `src/shared/validation/helpers.ts` - isTrue fluent API
+- `src/shared/validation/helpers.ts` - **tapLeft, tapRight, fromNullable** ⭐ v2.0
 
 ### Шаг 2: Error Setup → [ERROR_SETUP.md](./ERROR_SETUP.md)
 
-Создать базовый класс **BaseError** для всех ошибок приложения.
+Создать **IError интерфейс** и базовый класс **BaseError** v2.0.
 
 **Что создаем:**
-- `src/shared/errors/BaseError.ts` - базовый класс для ВСЕХ ошибок
-- Поддержка `code`, `context`, `cause` (error chaining)
-- `toJSON()` и `toString()` для логирования
+- `src/shared/errors/IError.ts` - интерфейс для полиморфной обработки ⭐ v2.0
+- `src/shared/errors/BaseError.ts` - базовый класс для Domain ошибок
+- `BaseErrorProps` - именованные параметры
+- Методы: `getMessage()`, `getLogLevel()`, `isExpected()`, `toUserError()`
 
 ### Шаг 3: Specification Pattern → [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
 
@@ -107,7 +108,7 @@ mkdir -p src/shared/validation
 Создать ядро приложения - Domain Layer.
 
 **Что создаем:**
-- Shared инварианты (UuidInvariant, IInvariant, InvariantViolationError)
+- Shared инварианты (UuidInvariant, IInvariant, InvariantViolationError **implements IError** ⭐)
 - Resource инварианты (NamespaceInvariant, ResourceNameInvariant)
 - Value Objects (ResourceId, Namespace, ResourceName)
 - Спецификации (NotReservedNamespaceSpec)

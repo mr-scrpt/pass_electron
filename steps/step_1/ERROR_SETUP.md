@@ -1,4 +1,4 @@
-# Error Setup (Shared Layer)
+# Error Setup (Shared Layer) - v2.0
 
 > **Назад:** [VALIDATION_SETUP.md](./VALIDATION_SETUP.md)  
 > **Далее:** [SPECIFICATION_SETUP.md](./SPECIFICATION_SETUP.md)
@@ -7,80 +7,201 @@
 
 ## 🎯 Цель
 
-Создать базовый класс ошибок **BaseError** для всего приложения. Все остальные ошибки (Domain, Application, Infrastructure) будут наследоваться от него.
+Создать **полиморфную систему ошибок** через интерфейс `IError` и базовый класс `BaseError` для Domain errors.
 
-> **📚 Детали**: [ERROR_HANDLING.md](../../docs/ERROR_HANDLING.md) - Иерархия ошибок
-
----
-
-## Зачем единый базовый класс?
-
-**Проблема без базового класса:**
-- ❌ Каждый слой создает свои ошибки по-разному
-- ❌ Нет единой структуры для логирования
-- ❌ Сложно обрабатывать ошибки на границах слоев
-- ❌ Нет поддержки цепочек ошибок (error chaining)
-
-**Решение - BaseError:**
-- ✅ Единая структура для ВСЕХ типов ошибок
-- ✅ Поддержка контекста и метаданных
-- ✅ Поддержка error chaining (вложенные ошибки)
-- ✅ Timestamp для логирования
-- ✅ Error codes для категоризации
-- ✅ JSON сериализация для API/логов
+> **📚 Детали**: [POLYMORPHIC_ERROR_SYSTEM.md](../../docs/error-handling/POLYMORPHIC_ERROR_SYSTEM.md) - Полная документация v2.0
 
 ---
 
-## 0.6. Создать BaseError
+## Зачем полиморфная система?
+
+**Проблема с традиционным подходом:**
+- ❌ `instanceof` проверки везде
+- ❌ `switch/case` на кодах ошибок
+- ❌ Тернарники для логирования и трансформации
+- ❌ Хрупкая поддержка (забыл добавить case → баг)
+
+**Решение - IError полиморфизм:**
+- ✅ Работа через методы интерфейса (`getMessage()`, `getLogLevel()`, `toUserError()`)
+- ✅ БЕЗ `instanceof`, БЕЗ `switch/case`, БЕЗ тернарников
+- ✅ Каждый слой — свои ошибки, но работают одинаково
+- ✅ Type Safety — компилятор проверяет
+- ✅ Монадный подход (`tapLeft`, `mapLeft`)
+
+---
+
+## 0.6. Создать IError интерфейс
+
+**Файл: `src/shared/errors/IError.ts`**
+
+### IError [#interface:IError|#code]
+
+```typescript
+// src/shared/errors/IError.ts
+
+/**
+ * Минимальный интерфейс для всех ошибок в приложении
+ * Технические методы без Application концепций
+ */
+export interface IError {
+  /**
+   * Техническое сообщение об ошибке
+   */
+  getMessage(): string;
+
+  /**
+   * Уникальный код ошибки для категоризации
+   */
+  getCode(): string;
+
+  /**
+   * Контекст ошибки для отладки
+   */
+  getContext(): Record<string, unknown>;
+
+  /**
+   * Является ли ошибка ожидаемой (expected) или неожиданной (unexpected)
+   * - true: Domain errors, Validation errors (показываем пользователю)
+   * - false: Infrastructure errors, Bugs (скрываем, логируем)
+   */
+  isExpected(): boolean;
+
+  /**
+   * Уровень логирования для этой ошибки
+   */
+  getLogLevel(): 'info' | 'warn' | 'error' | 'debug';
+
+  /**
+   * Трансформация ошибки для показа пользователю
+   * Expected errors возвращают себя
+   * Unexpected errors возвращают generic ошибку
+   */
+  toUserError(): IError;
+}
+```
+
+---
+
+## 0.7. Создать BaseError
 
 **Файл: `src/shared/errors/BaseError.ts`**
 
-### BaseError [#class:BaseError|#code|#structure:path]
+### BaseError [#class:BaseError|#code]
 
 ```typescript
 // src/shared/errors/BaseError.ts
+import type { IError } from './IError';
 
 /**
- * Базовый класс для ВСЕХ ошибок приложения
- * 
- * Используется как основа для:
- * - Domain errors (InvariantViolationError, NotFoundError, etc.)
- * - Application errors (CommandError, QueryError, etc.)
- * - Infrastructure errors (NetworkError, FileSystemError, etc.)
- * - Unexpected errors (системные, непредвиденные)
- * 
+ * Параметры для создания BaseError
+ * Используем именованные поля для предотвращения ошибок с порядком параметров
+ */
+export interface BaseErrorProps {
+  readonly entityType: string;
+  readonly message: string;
+  readonly code: string;
+  readonly context?: Record<string, unknown>;
+  readonly cause?: Error;
+}
+
+/**
+ * Базовый класс для ошибок приложения
+ *
+ * Используется как основа для Domain errors
+ * Infrastructure errors НЕ используют BaseError (имплементируют IError напрямую)
+ *
  * @property entityType - тип сущности или компонента где произошла ошибка
  * @property message - человекочитаемое описание ошибки
- * @property code - опциональный код ошибки (для категоризации)
- * @property context - опциональный контекст (дополнительные данные)
- * @property cause - опциональная причина (вложенная ошибка)
+ * @property code - код ошибки (для категоризации)
+ * @property context - контекст (дополнительные данные)
+ * @property cause - причина (вложенная ошибка)
  */
-export class BaseError extends Error {
-  public readonly timestamp: Date
-  
-  constructor(
-    public readonly entityType: string,
-    message: string,
-    public readonly code?: string,
-    public readonly context?: Record<string, unknown>,
-    public readonly cause?: Error
-  ) {
-    super(message)
-    this.name = 'BaseError'
-    this.timestamp = new Date()
-    
+export class BaseError extends Error implements IError {
+  public readonly timestamp: Date;
+  public readonly entityType: string;
+  private readonly _message: string;
+  private readonly _code: string;
+  private readonly _context?: Record<string, unknown>;
+  public readonly cause?: Error;
+
+  constructor(props: BaseErrorProps) {
+    super(props.message);
+    this.name = "BaseError";
+    this.timestamp = new Date();
+    this.entityType = props.entityType;
+    this._message = props.message;
+    this._code = props.code;
+    this._context = props.context;
+    this.cause = props.cause;
+
     // Сохраняем stack trace
     if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor)
+      Error.captureStackTrace(this, this.constructor);
     }
-    
+
     // Сохраняем причину (для цепочки ошибок)
-    if (cause && 'cause' in Error.prototype) {
-      // @ts-ignore - ES2022 feature
-      this.cause = cause
+    if (props.cause && "cause" in Error.prototype) {
+      this.cause = props.cause;
     }
   }
-  
+
+  // ============================================
+  // IError interface methods
+  // ============================================
+
+  getMessage(): string {
+    return `[${this.entityType}] ${this._message}`;
+  }
+
+  getCode(): string {
+    return this._code;
+  }
+
+  getContext(): Record<string, unknown> {
+    return {
+      entityType: this.entityType,
+      timestamp: this.timestamp.toISOString(),
+      ...this._context,
+    };
+  }
+
+  /**
+   * BaseError используется для Domain errors
+   * Domain errors всегда ожидаемые (expected)
+   */
+  isExpected(): boolean {
+    return true;
+  }
+
+  /**
+   * Domain errors логируем как info
+   */
+  getLogLevel(): 'info' | 'warn' | 'error' | 'debug' {
+    return 'info';
+  }
+
+  /**
+   * Domain errors показываем пользователю как есть
+   */
+  toUserError(): IError {
+    return this;
+  }
+
+  // ============================================
+  // Utility methods
+  // ============================================
+
+  /**
+   * Для обратной совместимости
+   */
+  get code(): string {
+    return this._code;
+  }
+
+  get context(): Record<string, unknown> | undefined {
+    return this._context;
+  }
+
   /**
    * Получить полное описание ошибки включая контекст
    */
@@ -88,22 +209,25 @@ export class BaseError extends Error {
     return {
       name: this.name,
       entityType: this.entityType,
-      message: this.message,
-      code: this.code,
-      context: this.context,
+      message: this._message,
+      code: this._code,
+      context: this._context,
       timestamp: this.timestamp.toISOString(),
       stack: this.stack,
-      cause: this.cause instanceof BaseError ? this.cause.toJSON() : this.cause?.message
-    }
+      cause:
+        this.cause instanceof BaseError
+          ? this.cause.toJSON()
+          : this.cause?.message,
+    };
   }
-  
+
   /**
    * Краткое представление для логов
    */
   toString(): string {
-    const parts = [this.name, `[${this.entityType}]`, this.message]
-    if (this.code) parts.push(`(${this.code})`)
-    return parts.join(' ')
+    const parts = [this.name, `[${this.entityType}]`, this._message];
+    if (this._code) parts.push(`(${this._code})`);
+    return parts.join(" ");
   }
 }
 ```

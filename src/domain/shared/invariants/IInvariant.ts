@@ -1,12 +1,14 @@
 // src/domain/shared/invariants/IInvariant.ts
 import { Validation } from '@/shared/validation'
-import { BaseError } from '@/shared/errors'
+import { ValidationError } from '@/shared/errors'
 
 /**
  * Интерфейс для инвариантов
  * Инварианты валидируют данные через Specification Pattern
  * 
  * @template T - тип валидируемого значения
+ * 
+ * ⚠️ Возвращает ValidationError[] (не BaseError[])
  */
 export interface IInvariant<T> {
   /**
@@ -14,7 +16,7 @@ export interface IInvariant<T> {
    * 
    * @param value - значение для валидации
    * @param entityType - тип сущности (для сообщений об ошибках)
-   * @returns Validation с массивом ошибок или валидным значением
+   * @returns Validation с ValidationError[] или валидным значением
    */
-  validate(value: T, entityType: string): Validation<BaseError[], T>
+  validate(value: T, entityType: string): Validation<ValidationError[], T>
 }

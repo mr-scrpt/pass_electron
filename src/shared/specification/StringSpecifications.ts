@@ -25,7 +25,11 @@ export class NotEmptySpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(!!(value && value.trim()), value)
       .valid()
-      .invalid(new BaseError(this.entityType, "cannot be empty"))
+      .invalid(new BaseError({
+        entityType: this.entityType,
+        message: "cannot be empty",
+        code: 'SPECIFICATION_VIOLATION',
+      }))
   }
 }
 
@@ -52,10 +56,11 @@ export class LengthRangeSpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(value.length >= this.min && value.length <= this.max, value)
       .valid()
-      .invalid(new BaseError(
-          this.entityType,
-          `must be ${this.min}-${this.max} characters`
-        ))
+      .invalid(new BaseError({
+        entityType: this.entityType,
+        message: `must be ${this.min}-${this.max} characters`,
+        code: 'SPECIFICATION_VIOLATION',
+      }))
   }
 }
 
@@ -82,7 +87,11 @@ export class PatternSpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(this.pattern.test(value), value)
       .valid()
-      .invalid(new BaseError(this.entityType, this.message))
+      .invalid(new BaseError({
+        entityType: this.entityType,
+        message: this.message,
+        code: 'SPECIFICATION_VIOLATION',
+      }))
   }
 }
 
@@ -104,6 +113,10 @@ export class LowercaseSpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(value === value.toLowerCase(), value)
       .valid()
-      .invalid(new BaseError(this.entityType, "must be lowercase"))
+      .invalid(new BaseError({
+        entityType: this.entityType,
+        message: "must be lowercase",
+        code: 'SPECIFICATION_VIOLATION',
+      }))
   }
 }

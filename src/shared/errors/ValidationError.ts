@@ -12,12 +12,12 @@ export class ValidationError extends BaseError {
     public readonly errors: string[],
     context?: Record<string, unknown>
   ) {
-    super(
+    super({
       entityType,
-      errors.join('; '),
-      'VALIDATION_ERROR',
-      { ...context, errors }
-    );
+      message: errors.join('; '),
+      code: 'VALIDATION_ERROR',
+      context: { ...context, errors },
+    });
     this.name = 'ValidationError';
   }
 }

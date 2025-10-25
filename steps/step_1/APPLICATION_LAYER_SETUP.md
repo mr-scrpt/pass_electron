@@ -49,13 +49,14 @@ export interface ResourceListItemDTO {
 
 ```typescript
 // Маппинг Domain → DTO (выполняется в QueryHandler)
+// Resource имеет публичные readonly поля (не геттеры!)
 const dto: ResourceListItemDTO = {
-  id: resource.getId().getValue(),
-  namespace: resource.getNamespace().getValue(),
-  name: resource.getName().getValue(),
-  secretPreview: '****',  // Фиксированная маска для списка
-  fieldsCount: 0,        // Step 1: нет CustomField
-  updatedAt: resource.getUpdatedAt().toISOString()
+  id: resource.id.getValue(),         // ResourceId → string
+  namespace: resource.namespace.getValue(),  // Namespace → string
+  name: resource.name.getValue(),     // ResourceName → string
+  secretPreview: '****',              // Фиксированная маска для списка
+  fieldsCount: 0,                     // Step 1: нет CustomField
+  updatedAt: resource.updatedAt.toISOString()  // Date → string
 }
 ```
 
@@ -144,26 +145,28 @@ export class ListResourcesQuery implements IQuery {
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
 import { BaseQueryHandler } from '@/application/shared/BaseQueryHandler'
+import type { ILogger } from '@/application/ports'
+import type { IResourceRepository } from '@/domain'
+import type { Resource } from '@/domain'
 import type { Validation } from '@/shared/validation'
 import type { IQueryHandler } from '../IQueryHandler'
 import type { ListResourcesQuery } from '../ListResourcesQuery'
 import type { ResourceListItemDTO } from '../dtos/ResourceListItemDTO'
-import type { IResourceRepository } from '@/domain'
-import type { ILogger } from '@/application/ports'
-import type { Resource } from '@/domain'
 
 /**
  * Query Handler: Получить список ресурсов
  * 
- * Ответственность:
- * 1. Получить Domain объекты из Repository (Validation монады)
- * 2. Проверить infrastructure ошибки через BaseQueryHandler
- * 3. Преобразовать Domain → DTO
- * 4. Вернуть DTO для Presentation Layer
+ * ✅ МОНАДИЧЕСКИЙ СТИЛЬ обработки:
+ * - await repository.findAll() → Validation<Error[], Resource[]>
+ * - .mapLeft() → обработка infrastructure/unknown ошибок
+ * - .map() → трансформация Domain → DTO
+ * - .map() → side-effect логирование
+ * 
+ * Консистентно с Value Objects и Invariants из Domain Layer
  * 
  * Наследование:
  * - extends BaseQueryHandler - получаем protected методы:
- *   - handleRepositoryResult() - проверка ошибок
+ *   - transformInfrastructureErrors() - для .mapLeft()
  *   - logQueryExecution() - логирование начала
  *   - logQuerySuccess() - логирование успеха
  * 
@@ -172,7 +175,7 @@ import type { Resource } from '@/domain'
  * - logger: ILogger - логирование (передается в super())
  */
 export class ListResourcesQueryHandler 
-  extends BaseQueryHandler  // ✅ НАСЛЕДОВАНИЕ - получаем protected методы
+  extends BaseQueryHandler
   implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]> {
   
   constructor(
@@ -185,46 +188,49 @@ export class ListResourcesQueryHandler
   async handle(
     query: ListResourcesQuery
   ): Promise<Validation<Error[], ResourceListItemDTO[]>> {
-    // 1. Логирование начала (protected метод из BaseQueryHandler)
     this.logQueryExecution('ListResourcesQuery')
     
-    // 2. Получаем Domain объекты
-    //    Repository возвращает Validation<Error[], Resource[]>
-    const result = await this.repository.findAll()
-    
-    // 3. Проверка infrastructure/unknown ошибок (protected метод)
-    //    Возвращает:
-    //    - null если OK (можно продолжать)
-    //    - Validation с ошибкой если infrastructure/unknown найдены
-    const error = this.handleRepositoryResult(result, 'find all resources')
-    if (error !== null) return error  // Критичные ошибки - выходим
-    
-    // 4. Здесь result.isRight() гарантировано
-    //    Преобразуем Domain → DTO через монадический .map()
-    const dtos = result.map(resources =>
-      resources.map(resource => this.toDTO(resource))
-    )
-    
-    // 5. Логирование успеха (protected метод из BaseQueryHandler)
-    this.logQuerySuccess('ListResourcesQuery', { count: dtos.value.length })
-    
-    return dtos
+    // ✅ Монадический pipeline без if-ов
+    return (await this.repository.findAll())
+      // 1. Обрабатываем infrastructure/unknown ошибки
+      .mapLeft((errors) => 
+        this.transformInfrastructureErrors(errors, 'find all resources')
+      )
+      // 2. Трансформируем Domain → DTO
+      .map((resources) => 
+        resources.map((resource) => this.toDTO(resource))
+      )
+      // 3. Side-effect: логируем успех
+      .map((dtos) => {
+        this.logQuerySuccess('ListResourcesQuery', { count: dtos.length })
+        return dtos
+      })
   }
   
   /**
    * Маппинг Domain → DTO
+   * 
+   * Resource (Domain класс с Value Objects) → ResourceListItemDTO (простой объект)
+   * 
+   * Извлекаем примитивы из Value Objects:
+   * - resource.id (ResourceId) → resource.id.getValue() → string
+   * - resource.namespace (Namespace) → resource.namespace.getValue() → string
+   * - resource.name (ResourceName) → resource.name.getValue() → string
+   * 
+   * ⚠️ Resource имеет публичные readonly поля (не геттеры getId(), getNamespace() и т.д.)
+   * 
    * Изолирован в отдельный метод для:
    * - Читаемости (не засоряем handle())
    * - Тестирования (можно тестировать отдельно)
    */
   private toDTO(resource: Resource): ResourceListItemDTO {
     return {
-      id: resource.getId().getValue(),
-      namespace: resource.getNamespace().getValue(),
-      name: resource.getName().getValue(),
+      id: resource.id.getValue(),
+      namespace: resource.namespace.getValue(),
+      name: resource.name.getValue(),
       secretPreview: '****',  // Фиксированная маска
       fieldsCount: 0,         // Step 1: нет CustomField
-      updatedAt: resource.getUpdatedAt().toISOString()
+      updatedAt: resource.updatedAt.toISOString()
     }
   }
 }
@@ -235,28 +241,53 @@ export class ListResourcesQueryHandler
 **Архитектура:**
 - ✅ **Validation монады** вместо try-catch (type-safe)
 - ✅ **BaseQueryHandler** для переиспользования (DRY)
-- ✅ **handleRepositoryResult()** - проверяет все типы ошибок
-- ✅ **Логирование** встроено в базовый класс
+- ✅ **Монадический стиль** - `.mapLeft()` + `.map()` без if-ов
+- ✅ **Консистентно с Domain Layer** - как Value Objects и Invariants
 
 **Наследование vs DI:**
 - **BaseQueryHandler** - наследование (extends) - получаем protected методы
 - **ILogger** - DI (через конструктор) - передается в super()
 - **IResourceRepository** - DI (через конструктор) - используется в handle()
 
-**Обработка ошибок:**
-- `handleRepositoryResult()` проверяет infrastructure/unknown
-- Если найдены - логирует ERROR, возвращает generic сообщение
-- Если только operational - пробрасывает (но для findAll их нет)
+**Монадическая обработка ошибок:**
+- `.mapLeft(errors => this.transformInfrastructureErrors(...))` - трансформация ошибок
+- `transformInfrastructureErrors()` классифицирует БЕЗ instanceof
+- Если infrastructure/unknown - логирует ERROR, возвращает [GenericApplicationError]
+- Если только operational - пробрасывает без изменений
+- **НЕТ if-ов** - чистая монадическая композиция
 
-**Потоки данных:**
+**Resource структура:**
+- ✅ **Публичные readonly поля** - `resource.id`, `resource.namespace`, `resource.name`
+- ❌ **НЕ геттеры** - нет `getId()`, `getNamespace()` и т.д.
+- Это допустимый подход в DDD для простых Aggregate Roots
+
+**Монадический pipeline:**
 ```
-Repository → Validation<Error[], Resource[]>
+Repository.findAll() → Validation<Error[], Resource[]>
      ↓
-handleRepositoryResult() → проверка ошибок
+.mapLeft() → transformInfrastructureErrors (обработка инфраструктурных)
      ↓
-.map() → Domain → DTO
+.map() → Domain → DTO (трансформация данных)
+     ↓
+.map() → logging (side-effect)
      ↓
 Return → Validation<Error[], ResourceListItemDTO[]>
+```
+
+**Консистентность с Domain Layer:**
+```typescript
+// Value Object (Domain)
+ResourceId.create(value)
+  .map(validValue => new ResourceId(validValue))
+
+// Invariant (Domain)
+specResult
+  .mapLeft(errors => errors.map(...))
+
+// Query Handler (Application) - АНАЛОГИЧНО! ⭐
+repository.findAll()
+  .mapLeft(errors => this.transformInfrastructureErrors(...))
+  .map(resources => resources.map(this.toDTO))
 ```
 
 ---

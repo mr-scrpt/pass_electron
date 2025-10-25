@@ -29,7 +29,11 @@ export class UuidV4Spec implements ISpecification<string> {
     return isTrue(UuidV4Spec.UUID_V4_REGEX.test(value), value)
       .valid()
       .invalid(
-          new BaseError(this.entityType, `Invalid UUID format: ${value}`),
+          new BaseError({
+            entityType: this.entityType,
+            message: `Invalid UUID format: ${value}`,
+            code: 'SPECIFICATION_VIOLATION',
+          }),
         );
   }
 }

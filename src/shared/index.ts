@@ -9,3 +9,7 @@ export type { ISpecification } from './specification'
 
 // BaseError (технический - базовый класс для всех ошибок)
 export { BaseError } from './errors'
+
+// Pipeline Pattern (композиция монадических операций)
+export { Pipeline } from './pipeline'
+export type { PipelineContext } from './pipeline'

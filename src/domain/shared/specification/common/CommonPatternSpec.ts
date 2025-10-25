@@ -40,6 +40,10 @@ export class CommonPatternSpec implements ISpecification<string> {
   isSatisfiedBy(value: string): Validation<BaseError, string> {
     return isTrue(this.config.pattern.test(value), value)
       .valid()
-      .invalid(new BaseError(this.config.entityType, this.config.message));
+      .invalid(new BaseError({
+        entityType: this.config.entityType,
+        message: this.config.message,
+        code: 'SPECIFICATION_VIOLATION',
+      }));
   }
 }

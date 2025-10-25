@@ -17,7 +17,12 @@ export class DuplicateError extends BaseError {
     message: string,
     public readonly conflictingData?: Record<string, unknown>
   ) {
-    super(entityType, message, 'DUPLICATE', conflictingData)
-    this.name = 'DuplicateError'
+    super({
+      entityType,
+      message,
+      code: 'DUPLICATE',
+      context: conflictingData,
+    });
+    this.name = 'DuplicateError';
   }
 }

@@ -1,8 +1,12 @@
-# Обработка ошибок (Error Handling)
+# Обработка ошибок (Error Handling) - Legacy
+
+> ⚠️ **УСТАРЕЛО:** Этот документ описывает старую архитектуру с `AppError` и `isOperational`. Для нового кода используйте **[POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)** v2.0
 
 Ошибки в приложении разделены по архитектурным слоям согласно Clean Architecture и DDD.
 
 > 💡 **Валидация:** Для валидации инвариантов используйте **[Specification Pattern](./SPECIFICATION_VALIDATION.md)** - декларативный подход БЕЗ if-ов!
+
+> 🆕 **v2.0:** Новая полиморфная система через интерфейс `IError` — БЕЗ `instanceof`, БЕЗ `switch/case`. См. [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)
 
 ## 📦 Библиотека @sweet-monads/either
 

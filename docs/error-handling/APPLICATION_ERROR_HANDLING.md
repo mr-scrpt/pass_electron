@@ -1,8 +1,12 @@
-# Обработка ошибок в Application Layer
+# Обработка ошибок в Application Layer - Partial Legacy
 
-Практическое руководство по обработке ошибок в Command/Query Handlers с использованием монад, ErrorClassifier и базовых паттернов для переиспользования логики.
+> ⚠️ **Частично устарело:** Документ использует `isOperational` и `ErrorClassifier`. Концепции актуальны, но API изменился на методы IError.
 
-> 📖 **Теория:** См. [ERROR_HANDLING.md](./ERROR_HANDLING.md) для понимания иерархии ошибок по слоям  
+> 🆕 **v2.0:** Используйте `error.isExpected()`, `error.getLogLevel()`, `tapLeft` вместо ErrorClassifier. См. [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md)
+
+Практическое руководство по обработке ошибок в Command/Query Handlers с использованием монад и полиморфных методов IError.
+
+> 📖 **Теория:** См. [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md) - новая система v2.0 ⭐  
 > 📖 **Монады:** См. [ERROR_ESCALATION.md](./ERROR_ESCALATION.md) для понимания Either Pattern  
 > 📖 **Валидация:** См. [SPECIFICATION_VALIDATION.md](./SPECIFICATION_VALIDATION.md) для Specification Pattern
 
@@ -10,14 +14,14 @@
 
 ## 📋 Содержание
 
-1. [Проблема контекстно-зависимых ошибок](#1-проблема-контекстно-зависимых-ошибок)
-2. [Классификация ошибок БЕЗ instanceof](#2-классификация-ошибок-без-instanceof)
-3. [ErrorClassifier - утилита классификации](#3-errorclassifier---утилита-классификации)
-4. [BaseCommandHandler - переиспользуемые методы](#4-basecommandhandler---переиспользуемые-методы)
-5. [Практические примеры](#5-практические-примеры)
-6. [Логирование](#6-логирование)
-7. [Интеграция с Presentation Layer](#7-интеграция-с-presentation-layer)
-8. [Тестирование](#8-тестирование)
+1. [Проблема контекстно-зависимых ошибок](#1-проблема-контекстно-зависимых-ошибок) ✅ Актуально
+2. [Классификация ошибок БЕЗ instanceof](#2-классификация-ошибок-без-instanceof) ⚠️ Legacy (используй error.isExpected())
+3. [ErrorClassifier - утилита классификации](#3-errorclassifier---утилита-классификации) ⚠️ Deprecated (используй методы IError)
+4. [BaseCommandHandler - переиспользуемые методы](#4-basecommandhandler---переиспользуемые-методы) ⚠️ Partial (используй tapLeft)
+5. [Практические примеры](#5-практические-примеры) ✅ Актуально (концепции)
+6. [Логирование](#6-логирование) ⚠️ Legacy (используй error.getLogLevel() + tapLeft)
+7. [Интеграция с Presentation Layer](#7-интеграция-с-presentation-layer) ✅ Актуально
+8. [Тестирование](#8-тестирование) ✅ Актуально
 
 ---
 
@@ -684,28 +688,29 @@ describe('ErrorClassifier', () => {
 
 ## 🎯 Итого
 
-### Ключевые паттерны
+### Ключевые паттерны (Legacy → v2.0)
 
-1. ✅ **isOperational вместо instanceof** - надежно, масштабируемо
-2. ✅ **ErrorClassifier** - инкапсулирует всю логику классификации
-3. ✅ **BaseCommandHandler** - переиспользуемые методы для handlers
-4. ✅ **Контекстная трансформация** - разные ошибки в разных контекстах
-5. ✅ **Логирование только infrastructure** - operational идут пользователю
+1. ~~**isOperational вместо instanceof**~~ → **error.isExpected()** ⭐ v2.0
+2. ~~**ErrorClassifier**~~ → **Методы IError** (getMessage, getLogLevel, toUserError) ⭐ v2.0
+3. ~~**BaseCommandHandler**~~ → **tapLeft для side effects** ⭐ v2.0
+4. ✅ **Контекстная трансформация** - актуально (через toUserError())
+5. ~~**Логирование только infrastructure**~~ → **error.getLogLevel() + tapLeft** ⭐ v2.0
 
-### Что получили
+### Что получили (v2.0)
 
-- 🚀 **Нет дублирования** - пишем один раз, используем везде
-- 🎯 **Type-safe** - TypeScript проверяет типы
-- 🧪 **Легко тестировать** - можно mock ErrorClassifier
-- 📦 **DRY** - вся логика в одном месте
-- 🔧 **Легко расширять** - добавляем новые типы ошибок
+- 🚀 **Полиморфизм** - БЕЗ instanceof, БЕЗ switch/case
+- 🎯 **Type-safe** - TypeScript проверяет реализацию IError
+- 🧪 **Легко тестировать** - можно mock методы IError
+- 📦 **DRY** - поведение инкапсулировано в классах ошибок
+- 🔧 **Легко расширять** - добавляем новые ошибки с IError
+- 🎨 **Монадный подход** - tapLeft/mapLeft для композиции
 
 ---
 
 ## 📚 Связанные документы
 
-- [ERROR_HANDLING.md](./ERROR_HANDLING.md) - иерархия ошибок
+- ⭐ [POLYMORPHIC_ERROR_SYSTEM.md](./POLYMORPHIC_ERROR_SYSTEM.md) - новая система v2.0
 - [ERROR_ESCALATION.md](./ERROR_ESCALATION.md) - монады и Either Pattern
-- [ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md) - полный код ErrorClassifier
-- [BASE_HANDLERS_REFERENCE.md](./BASE_HANDLERS_REFERENCE.md) - полный код BaseCommandHandler
-- [ARCHITECTURE_BOUNDARIES.md](../ARCHITECTURE_BOUNDARIES.md) - монады в CORE
+- [ERROR_HANDLING.md](./ERROR_HANDLING.md) - иерархия ошибок (Legacy)
+- ~~[ERROR_CLASSIFIER_REFERENCE.md](./ERROR_CLASSIFIER_REFERENCE.md)~~ - deprecated
+- ~~[BASE_HANDLERS_REFERENCE.md](./BASE_HANDLERS_REFERENCE.md)~~ - partial legacy

@@ -13,3 +13,38 @@ export const fromCondition = <E, T>(
 ): Validation<E, T> => {
   return condition ? valid(value) : invalid(error);
 };
+
+/**
+ * Выполняет side effect на левом значении (ошибке) и возвращает исходную монаду
+ * Используется для логирования ошибок
+ */
+export const tapLeft = <E, T>(
+  fn: (error: E) => void,
+) => (validation: Validation<E, T>): Validation<E, T> => {
+  if (validation.isLeft()) {
+    fn(validation.value);
+  }
+  return validation;
+};
+
+/**
+ * Выполняет side effect на правом значении (успехе) и возвращает исходную монаду
+ */
+export const tapRight = <E, T>(
+  fn: (value: T) => void,
+) => (validation: Validation<E, T>): Validation<E, T> => {
+  if (validation.isRight()) {
+    fn(validation.value);
+  }
+  return validation;
+};
+
+/**
+ * Проверка на null/undefined с возвратом Validation
+ */
+export const fromNullable = <E, T>(
+  value: T | null | undefined,
+  error: E,
+): Validation<E, T> => {
+  return value != null ? valid(value) : invalid(error);
+};

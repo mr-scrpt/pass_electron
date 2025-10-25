@@ -14,7 +14,7 @@ import type { Resource } from "../aggregates";
  */
 export interface IResourceRepository {
   findAll(): Promise<Validation<IError[], Resource[]>>;
-  findById(id: ResourceId): Promise<Validation<IError[], Resource | null>>;
+  findById(id: ResourceId): Promise<Validation<IError[], Resource>>;
   findByNamespace(namespace: Namespace): Promise<Validation<IError[], Resource[]>>;
   search(query: string): Promise<Validation<IError[], Resource[]>>;
   save(resource: Resource): Promise<Validation<IError[], Resource>>;

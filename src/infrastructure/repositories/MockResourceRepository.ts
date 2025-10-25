@@ -3,7 +3,7 @@ import { Namespace, Resource, ResourceId } from "@/domain";
 import type { IError } from "@/shared/errors";
 import { NotFoundError } from "@/shared/errors";
 import type { Validation } from "@/shared/validation";
-import { invalid, valid } from "@/shared/validation";
+import { fromCondition, fromNullable, valid } from "@/shared/validation";
 import { mockResourcesData, type ResourceData } from "./mockData";
 
 /**
@@ -17,41 +17,20 @@ export class MockResourceRepository implements IResourceRepository {
 
   async findAll(): Promise<Validation<IError[], Resource[]>> {
     await this.delay(100);
-
-    const resources = this.storage.map((data) =>
-      Resource.reconstitute({
-        id: data.id,
-        namespace: data.namespace,
-        name: data.name,
-        secret: data.secret,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      }),
-    );
-
-    return valid(resources);
+    return valid(this.storage.map((data) => this.toDomain(data)));
   }
 
   async findById(
     id: ResourceId,
-  ): Promise<Validation<IError[], Resource | null>> {
+  ): Promise<Validation<IError[], Resource>> {
     await this.delay(50);
 
     const data = this.storage.find((d) => d.id === id.getValue());
-    if (!data) {
-      return valid(null);
-    }
-
-    return valid(
-      Resource.reconstitute({
-        id: data.id,
-        namespace: data.namespace,
-        name: data.name,
-        secret: data.secret,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      }),
-    );
+    
+    return fromNullable(
+      data,
+      [new NotFoundError("Resource", id.getValue())]
+    ).map(d => this.toDomain(d));
   }
 
   async findByNamespace(
@@ -63,18 +42,7 @@ export class MockResourceRepository implements IResourceRepository {
       (d) => d.namespace === namespace.getValue(),
     );
 
-    const resources = filtered.map((data) =>
-      Resource.reconstitute({
-        id: data.id,
-        namespace: data.namespace,
-        name: data.name,
-        secret: data.secret,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      }),
-    );
-
-    return valid(resources);
+    return valid(filtered.map((data) => this.toDomain(data)));
   }
 
   async search(query: string): Promise<Validation<IError[], Resource[]>> {
@@ -87,18 +55,7 @@ export class MockResourceRepository implements IResourceRepository {
         d.namespace.toLowerCase().includes(lowerQuery),
     );
 
-    const resources = filtered.map((data) =>
-      Resource.reconstitute({
-        id: data.id,
-        namespace: data.namespace,
-        name: data.name,
-        secret: data.secret,
-        createdAt: new Date(data.createdAt),
-        updatedAt: new Date(data.updatedAt),
-      }),
-    );
-
-    return valid(resources);
+    return valid(filtered.map((data) => this.toDomain(data)));
   }
 
   async save(resource: Resource): Promise<Validation<IError[], Resource>> {
@@ -117,12 +74,14 @@ export class MockResourceRepository implements IResourceRepository {
       (d) => d.id === resource.id.getValue(),
     );
 
-    if (index === -1) {
-      return invalid([new NotFoundError("Resource", resource.id.getValue())]);
-    }
-
-    this.storage[index] = this.toData(resource);
-    return valid(resource);
+    return fromCondition(
+      index !== -1,
+      resource,
+      [new NotFoundError("Resource", resource.id.getValue())],
+    ).map((res) => {
+      this.storage[index] = this.toData(res);
+      return res;
+    });
   }
 
   async delete(id: ResourceId): Promise<Validation<IError[], void>> {
@@ -130,14 +89,34 @@ export class MockResourceRepository implements IResourceRepository {
 
     const index = this.storage.findIndex((d) => d.id === id.getValue());
 
-    if (index === -1) {
-      return invalid([new NotFoundError("Resource", id.getValue())]);
-    }
-
-    this.storage.splice(index, 1);
-    return valid(undefined);
+    return fromCondition(
+      index !== -1,
+      undefined as void,
+      [new NotFoundError("Resource", id.getValue())],
+    ).map(() => {
+      this.storage.splice(index, 1);
+    });
   }
 
+  /**
+   * DTO → Domain (reconstitution без валидации)
+   * Преобразует простые данные из хранилища в Domain объект
+   */
+  private toDomain(data: ResourceData): Resource {
+    return Resource.reconstitute({
+      id: data.id,
+      namespace: data.namespace,
+      name: data.name,
+      secret: data.secret,
+      createdAt: new Date(data.createdAt),
+      updatedAt: new Date(data.updatedAt),
+    });
+  }
+
+  /**
+   * Domain → DTO
+   * Преобразует Domain объект в простые данные для хранилища
+   */
   private toData(resource: Resource): ResourceData {
     return {
       id: resource.id.getValue(),

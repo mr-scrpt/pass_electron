@@ -2,6 +2,8 @@
 
 Документ описывает, как в проекте сочетаются Domain-Driven Design (Eric Evans) и Clean Architecture (Robert C. Martin).
 
+> **🆕 Обновлено (2025-01-25):** Примеры кода обновлены с учетом **Pipeline Pattern**, **Validation<IError[], T>**, и **функционального стиля**. См. раздел ["Что нового в 2025?"](#-что-нового-в-2025) в конце документа.
+
 ---
 
 ## Обзор подходов
@@ -258,23 +260,30 @@ export class Resource {  // Aggregate Root
 
 ```typescript
 // src/domain/resource/repositories/IResourceRepository.ts
+import type { Validation } from "@/shared/validation";
+import type { IError } from "@/shared/errors";
 import type { ResourceId } from '../value-objects/ResourceId'
+import type { Namespace } from '../value-objects/Namespace'
 import type { Resource } from '../aggregates/Resource'
 
 export interface IResourceRepository {
-  findById(id: ResourceId): Promise<Resource | null>
-  findByNamespace(namespace: Namespace): Promise<Resource[]>
-  findAll(): Promise<Resource[]>
-  save(resource: Resource): Promise<void>
-  remove(id: ResourceId): Promise<void>
+  findAll(): Promise<Validation<IError[], Resource[]>>;
+  findById(id: ResourceId): Promise<Validation<IError[], Resource | null>>;
+  findByNamespace(namespace: Namespace): Promise<Validation<IError[], Resource[]>>;
+  search(query: string): Promise<Validation<IError[], Resource[]>>;
+  save(resource: Resource): Promise<Validation<IError[], Resource>>;
+  update(resource: Resource): Promise<Validation<IError[], Resource>>;
+  delete(id: ResourceId): Promise<Validation<IError[], void>>;
 }
 ```
 
-**Характеристики:**
+**Характеристики (2025):**
 - Интерфейс в Domain Layer
 - Работает с Aggregates (не с отдельными Entity)
+- Возвращает `Validation<IError[], T>` (Either монада) - type-safe обработка ошибок
 - Скрывает персистентность (DB, API, Mock)
 - Реализация в Infrastructure Layer
+- БЕЗ throws - ошибки как значения
 
 ### Domain Service (DDD)
 
@@ -333,92 +342,168 @@ export class ResourceRenamedEvent extends DomainEvent {
 
 ---
 
-## Application Layer: CQRS Handlers
+## Application Layer: CQRS Handlers с Pipeline Pattern
 
-**В нашем проекте Application Layer реализован через CQRS** (Command Query Responsibility Segregation).
+**В нашем проекте Application Layer реализован через CQRS + Pipeline Pattern** (2025).
 
 **Концептуально:**
 - Clean Architecture называет это "Use Cases"
 - DDD называет это "Application Services"
 - CQRS разделяет на "Query Handlers" (чтение) и "Command Handlers" (запись)
+- **Pipeline Pattern** - декларативная композиция операций
 
-**Мы используем CQRS** — более современный и явный подход.
+**Мы используем CQRS + Pipeline** — современный функциональный подход.
 
-### Query Handler (чтение данных)
+### Query Handler (чтение данных) с Pipeline
 
 #### ListResourcesQueryHandler [#class:ListResourcesQueryHandler|#code|#structure:path]
 
 ```typescript
 // src/application/queries/handlers/ListResourcesQueryHandler.ts
+import { BaseQueryHandler } from "@/application/shared/BaseQueryHandler";
+import { Pipeline } from "@/shared/pipeline";
+import type { Validation } from "@/shared/validation";
+import { valid } from "@/shared/validation";
+import type { IError } from "@/shared/errors";
 
-export class ListResourcesQueryHandler {
-  constructor(private readonly repository: IResourceRepository) {}
+interface ListResourcesContext {
+  query: ListResourcesQuery;
+  resources?: Resource[];
+  dtos?: ResourceListItemDTO[];
+}
 
-  async handle(query: ListResourcesQuery): Promise<Validation<Error[], ResourceListItemDTO[]>> {
-    try {
-      // Получаем данные из репозитория
-      const resources = query.namespace
-        ? await this.repository.findByNamespace(query.namespace)
-        : await this.repository.findAll()
-      
-      // Преобразуем Domain Model → DTO
-      const data = resources.map(r => ({
-        id: r.id,
-        namespace: r.namespace,
-        name: r.name,
-        fieldsCount: r.customFields.length,
-        updatedAt: r.updatedAt
-      }))
-      
-      return { data }
-    } catch (error) {
-      return { data: [], error: error.message }
-    }
+export class ListResourcesQueryHandler extends BaseQueryHandler {
+  constructor(
+    private readonly repository: IResourceRepository,
+    logger: ILogger
+  ) {
+    super(logger);
+  }
+
+  async handle(query: ListResourcesQuery): Promise<Validation<IError[], ResourceListItemDTO[]>> {
+    return (await new Pipeline<ListResourcesContext>()
+      .step(ctx => this.fetchResources(ctx))      // Шаг 1: Infrastructure
+      .step(ctx => this.transformToDTOs(ctx))     // Шаг 2: Transformation
+      .execute({ query }))
+      .map(ctx => ctx.dtos!);
+  }
+
+  // Pipeline шаги
+  private async fetchResources(ctx: ListResourcesContext) {
+    return this.handleInfrastructureErrors(
+      await this.repository.findAll(),
+      "fetch resources"
+    ).map(resources => ({ ...ctx, resources }));
+  }
+
+  private transformToDTOs(ctx: ListResourcesContext): Promise<Validation<IError[], ListResourcesContext>> {
+    return Promise.resolve(
+      valid({
+        ...ctx,
+        dtos: ctx.resources!.map(r => this.toDTO(r)),
+      })
+    );
+  }
+
+  private toDTO(resource: Resource): ResourceListItemDTO {
+    return {
+      id: resource.id.getValue(),
+      namespace: resource.namespace.getValue(),
+      name: resource.name.getValue(),
+      secretPreview: "****",
+      fieldsCount: 0,
+      updatedAt: resource.updatedAt.toISOString(),
+    };
   }
 }
 ```
 
-### Command Handler (запись данных)
+**Ключевые особенности (2025):**
+- ✅ Pipeline Pattern - декларативные шаги
+- ✅ BaseQueryHandler - переиспользуемые методы
+- ✅ handleInfrastructureErrors - логирует ТОЛЬКО unexpected
+- ✅ Функциональный стиль - БЕЗ try-catch
+- ✅ Immutable контекст
+
+### Command Handler (запись данных) с Pipeline
 
 #### CreateResourceCommandHandler [#class:CreateResourceCommandHandler|#code|#structure:path]
 
 ```typescript
 // src/application/commands/handlers/CreateResourceCommandHandler.ts
+import { BaseCommandHandler } from "@/application/shared/BaseCommandHandler";
+import { Pipeline } from "@/shared/pipeline";
+import type { Validation } from "@/shared/validation";
+import { fromCondition } from "@/shared/validation";
+import type { IError } from "@/shared/errors";
+import { DuplicateError } from "@/shared/errors";
 
-export class CreateResourceCommandHandler {
+interface CreateResourceContext extends CreateContext<CreateResourceCommand, Resource> {
+  existingResources?: Resource[];
+}
+
+export class CreateResourceCommandHandler extends BaseCommandHandler {
   constructor(
     private readonly repository: IResourceRepository,
-    private readonly eventBus: IEventBus
-  ) {}
+    logger: ILogger
+  ) {
+    super(logger);
+  }
 
-  async handle(command: CreateResourceCommand): Promise<CommandResult<{ id: string }>> {
-    try {
-      // Создаем агрегат через Domain Factory
-      const resource = Resource.create({
-        name: ResourceName.create(command.name),
-        namespace: Namespace.create(command.namespace),
-        secret: SecretField.create(command.secretValue)
-      })
-      
-      // Сохраняем через Repository
-      await this.repository.save(resource)
-      
-      // Публикуем Domain Event
-      this.eventBus.publish(new ResourceCreated(resource.id))
-      
-      return { 
-        success: true, 
-        data: { id: resource.id.getValue() } 
-      }
-    } catch (error) {
-      return { 
-        success: false, 
-        error: error.message 
-      }
-    }
+  async handle(command: CreateResourceCommand): Promise<Validation<IError[], void>> {
+    return (await new Pipeline<CreateResourceContext>()
+      .step(ctx => this.checkUniqueness(ctx))         // Шаг 1: Business rule
+      .step(ctx => this.createEntity(ctx))            // Шаг 2: Domain validation
+      .stepWithRetry(ctx => this.persistResource(ctx), 3)  // Шаг 3: Save with retry
+      .execute({ command }))
+      .map(() => undefined);
+  }
+
+  // Pipeline шаги
+  private async checkUniqueness(ctx: CreateResourceContext) {
+    const namespaceValidation = Namespace.create(ctx.command.namespace)
+      .mapLeft((errors): IError[] => errors);
+
+    return namespaceValidation.asyncChain(async (namespace) =>
+      this.handleInfrastructureErrors(
+        await this.repository.findByNamespace(namespace),
+        "check uniqueness"
+      ).chain((existingResources) =>
+        fromCondition(  // ✅ Функциональный стиль БЕЗ if
+          existingResources.length === 0,
+          { ...ctx, existingResources },
+          [new DuplicateError("Resource", ctx.command.namespace, { field: "namespace" })]
+        )
+      )
+    );
+  }
+
+  private createEntity(ctx: CreateResourceContext): Promise<Validation<IError[], CreateResourceContext>> {
+    return Promise.resolve(
+      Resource.create(
+        Namespace.create(ctx.command.namespace),
+        ResourceName.create(ctx.command.name),
+        ctx.command.secret
+      ).map(entity => ({ ...ctx, entity }))
+    );
+  }
+
+  private async persistResource(ctx: CreateResourceContext) {
+    return this.handleInfrastructureErrors(
+      await this.repository.save(ctx.entity!),
+      "save resource"
+    ).map(() => ctx);
   }
 }
 ```
+
+**Ключевые особенности (2025):**
+- ✅ Pipeline Pattern - 3 четких шага
+- ✅ BaseCommandHandler - переиспользуемые методы
+- ✅ Функциональный стиль - asyncChain вместо if
+- ✅ fromCondition - валидация БЕЗ тернарников
+- ✅ stepWithRetry - автоматические повторы для Infrastructure
+- ✅ Commands возвращают void (побочные эффекты)
 
 **Использование через Facade:**
 
@@ -457,25 +542,93 @@ export async function action({ request }) {
 
 Infrastructure реализует интерфейсы из Domain и Application.
 
-### Repository Implementation
+### Repository Implementation (Mock для разработки)
 
 #### MockResourceRepository [#class:MockResourceRepository|#code|#structure:path]
 
 ```typescript
 // src/infrastructure/repositories/MockResourceRepository.ts
+import type { IResourceRepository } from "@/domain";
+import { Resource, Namespace, ResourceName, ResourceId } from "@/domain";
+import type { Validation } from "@/shared/validation";
+import { valid, invalid } from "@/shared/validation";
+import type { IError } from "@/shared/errors";
+import { NotFoundError } from "@/shared/errors";
+
+// Mock данные (in-memory)
+const mockResources: Resource[] = [
+  Resource.create(
+    Namespace.create('social'),
+    ResourceName.create('Facebook'),
+    'facebook-password-123'
+  ).value as Resource,
+  
+  Resource.create(
+    Namespace.create('work'),
+    ResourceName.create('Jira'),
+    'jira-password-789'
+  ).value as Resource,
+];
 
 export class MockResourceRepository implements IResourceRepository {
-  private resources = new Map<string, Resource>()
+  private resources: Resource[] = [...mockResources];
 
-  async findById(id: ResourceId): Promise<Resource | null> {
-    return this.resources.get(id.getValue()) || null
+  async findAll(): Promise<Validation<IError[], Resource[]>> {
+    await this.delay(100);  // Симуляция задержки сети
+    return valid([...this.resources]);
   }
 
-  async save(resource: Resource): Promise<void> {
-    this.resources.set(resource.id.getValue(), resource)
+  async findById(id: ResourceId): Promise<Validation<IError[], Resource | null>> {
+    await this.delay(50);
+    const resource = this.resources.find((r) => r.id.equals(id));
+    return valid(resource || null);
+  }
+
+  async findByNamespace(namespace: Namespace): Promise<Validation<IError[], Resource[]>> {
+    await this.delay(50);
+    const filtered = this.resources.filter((r) =>
+      r.namespace.equals(namespace)
+    );
+    return valid(filtered);
+  }
+
+  async save(resource: Resource): Promise<Validation<IError[], Resource>> {
+    await this.delay(150);
+    this.resources.push(resource);
+    return valid(resource);
+  }
+
+  async delete(id: ResourceId): Promise<Validation<IError[], void>> {
+    await this.delay(100);
+    const index = this.resources.findIndex((r) => r.id.equals(id));
+    
+    if (index === -1) {
+      return invalid([new NotFoundError('Resource', id.getValue())]);
+    }
+    
+    this.resources.splice(index, 1);
+    return valid(undefined);
+  }
+
+  // Helper для симуляции задержки
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Utility для тестирования
+  reset(): void {
+    this.resources = [...mockResources];
   }
 }
 ```
+
+**Характеристики (2025):**
+- ✅ Реализует `IResourceRepository` из Domain Layer (Dependency Inversion)
+- ✅ Возвращает `Validation<IError[], T>` - type-safe
+- ✅ In-memory хранилище - для разработки и тестирования
+- ✅ Симуляция задержки сети - для тестирования async поведения
+- ✅ БЕЗ throws - ошибки как значения
+- ✅ Готов к замене на `ApiResourceRepository` в production
 
 ### Query Bus Adapter
 
@@ -701,12 +854,80 @@ Domain, Application, Infrastructure — не зависят от Remix. Можн
 
 ## Связанные документы
 
-- **[concepts/THEORETICAL_CONCEPT.md](./concepts/THEORETICAL_CONCEPT.md)** - Теоретические концепции DDD
-- **[concepts/ARCHITECTURE_DESIGN.md](./concepts/ARCHITECTURE_DESIGN.md)** - Дизайн архитектуры
+### Быстрый старт (2025)
+- **[QUICK_START.md](./QUICK_START.md)** ⭐ - Быстрый старт с Pipeline Pattern (НАЧНИ ЗДЕСЬ!)
+- **[error-handling/PIPELINE_HANDLERS_GUIDE.md](./error-handling/PIPELINE_HANDLERS_GUIDE.md)** - Практическое руководство по Pipeline Handlers
+- **[patterns/PIPELINE.md](./patterns/PIPELINE.md)** - Pipeline Pattern детально
+
+### Архитектура и паттерны
 - **[PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)** - Структура проекта
+- **[concepts/ARCHITECTURE_DESIGN.md](./concepts/ARCHITECTURE_DESIGN.md)** - Дизайн архитектуры
+- **[concepts/THEORETICAL_CONCEPT.md](./concepts/THEORETICAL_CONCEPT.md)** - Теоретические концепции DDD
+- **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Adapter Pattern + DI
+
+### CQRS и обработка данных
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus (CQRS Commands)
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers (CQRS Queries)
-- **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Adapter Pattern + DI (Hexagonal Architecture - Ports & Adapters)
+
+### Обработка ошибок
+- **[error-handling/README.md](./error-handling/README.md)** - Обработка ошибок
+- **[error-handling/INVARIANTS.md](./error-handling/INVARIANTS.md)** - Инварианты и валидация
+- **[error-handling/ERROR_ESCALATION.md](./error-handling/ERROR_ESCALATION.md)** - Either Pattern и монады
+
+### Контракты и типы
 - **[contracts/domain-types.md](./contracts/domain-types.md)** - Типы домена
 - **[contracts/system-interfaces.md](./contracts/system-interfaces.md)** - Системные интерфейсы
+
+---
+
+## 🆕 Что нового в 2025?
+
+### Pipeline Pattern для Handlers
+```typescript
+new Pipeline<Context>()
+  .step(ctx => this.fetchData(ctx))
+  .step(ctx => this.transform(ctx))
+  .stepWithRetry(ctx => this.save(ctx), 3)
+  .execute(initialContext)
+```
+
+### Validation<IError[], T> вместо throws
+```typescript
+// Repository интерфейсы
+findAll(): Promise<Validation<IError[], Resource[]>>
+
+// Handlers
+handle(query): Promise<Validation<IError[], DTO[]>>
+```
+
+### Функциональный стиль БЕЗ if-ов
+```typescript
+// asyncChain вместо if (isLeft())
+return validation.asyncChain(async (value) => ...)
+
+// fromCondition вместо if (condition)
+return fromCondition(isValid, success, [error])
+```
+
+### BaseHandlers с helper методами
+```typescript
+class ListResourcesQueryHandler extends BaseQueryHandler {
+  // handleInfrastructureErrors - логирует ТОЛЬКО unexpected
+  // createInfrastructureStep - helper для Repository calls
+}
+```
+
+### Логирование ТОЛЬКО unexpected ошибок
+```typescript
+// Domain ошибки (ValidationError, DuplicateError) - НЕ логируются
+// Infrastructure ошибки (NetworkError) - логируются
+this.handleInfrastructureErrors(result, "operation")
+```
+
+**См. подробнее:** [QUICK_START.md](./QUICK_START.md) и [PIPELINE_HANDLERS_GUIDE.md](./error-handling/PIPELINE_HANDLERS_GUIDE.md)
+
+---
+
+**Дата последнего обновления:** 2025-01-25  
+**Версия документа:** 2.0 (Pipeline approach)

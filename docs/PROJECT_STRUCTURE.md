@@ -349,7 +349,13 @@ src/application/
 │   │   ├── UpdateResourceCommandHandler.ts            
 │   │   └── DeleteResourceCommandHandler.ts            
 │   └── index.ts
+├── shared/                                            
+│   ├── BaseQueryHandler.ts                            
+│   ├── BaseCommandHandler.ts                          
+│   ├── ApplicationPipelineContext.ts                  
+│   └── index.ts
 ├── ports/                                             
+│   ├── ILogger.ts                                     
 │   ├── IRequestParser.ts                              
 │   ├── IClipboardService.ts                           
 │   ├── IStorageService.ts                             
@@ -371,10 +377,17 @@ src/application/
 - Зависит только от Domain Layer (Dependency Rule)
 - **Queries** - чтение данных (CQRS - Read)
 - **Commands** - запись данных (CQRS - Write)
-- **Query/Command Handlers** - содержат бизнес-логику операций
-- **Ports** - интерфейсы для адаптеров (Hexagonal Architecture)
+- **Query/Command Handlers** - используют Pipeline Pattern для композиции операций
+- **shared/** - BaseQueryHandler, BaseCommandHandler с helper методами
+- **Ports** - интерфейсы для адаптеров (Hexagonal Architecture), включая ILogger
 - Реализует CQRS (Command Query Responsibility Segregation)
 - Предоставляет высокоуровневый API для Presentation Layer через Facades
+
+**Новое в 2025:**
+- ✅ Pipeline Pattern для всех Handlers
+- ✅ BaseHandlers с переиспользуемыми helper методами
+- ✅ Функциональный стиль (asyncChain, fromCondition)
+- ✅ Логирование ТОЛЬКО unexpected ошибок через ILogger
 
 ### 3. Application Services (`src/application/services/`)
 
@@ -515,7 +528,12 @@ src/shared/
 ├── validation/                # Validation API (фасад над @sweet-monads/either)
 │   ├── Validation.ts          # type Validation<E, T>
 │   ├── ValidationCombinators.ts  # Фасад для mergeInMany/sequence
-│   ├── helpers.ts             # isTrue() - Fluent API для условной валидации
+│   ├── helpers.ts             # valid, invalid, fromCondition, asyncChain
+│   └── index.ts
+│
+├── pipeline/                  # Pipeline Pattern (NEW 2025)
+│   ├── Pipeline.ts            # Pipeline класс для композиции операций
+│   ├── PipelineContext.ts     # Базовый контекст
 │   └── index.ts
 │
 ├── specification/             # Specification Pattern (базовый интерфейс)
@@ -523,7 +541,11 @@ src/shared/
 │   └── index.ts
 │
 ├── errors/                    # Базовые ошибки
+│   ├── IError.ts              # Интерфейс для ошибок
 │   ├── BaseError.ts           # Базовый класс для ВСЕХ ошибок
+│   ├── ValidationError.ts     # Ошибки валидации
+│   ├── DuplicateError.ts      # Ошибки дублирования
+│   ├── NotFoundError.ts       # Ошибки "не найдено"
 │   └── index.ts
 │
 └── types/                     # Type re-exports
@@ -537,19 +559,27 @@ src/shared/
 1. **validation/** - Фасад над `@sweet-monads/either`
    - ✅ Domain импортирует `Validation<E, T>` вместо `Either<E, T>`
    - ✅ Легко заменить библиотеку (sweet-monads → fp-ts → neverthrow)
-   - ✅ `helpers.ts` - Fluent API (`isTrue().valid().invalid()`)
+   - ✅ `helpers.ts` - valid, invalid, fromCondition, asyncChain
    - ✅ Единая точка изменений
 
-2. **specification/** - Базовый интерфейс Specification Pattern
+2. **pipeline/** - Pipeline Pattern для композиции операций ⭐ NEW 2025
+   - ✅ Декларативное описание последовательности шагов
+   - ✅ Поддержка retry, условных шагов, компенсаций (Saga)
+   - ✅ Используется в Query/Command Handlers
+   - ✅ Framework-agnostic паттерн
+
+3. **specification/** - Базовый интерфейс Specification Pattern
    - ✅ `ISpecification<T>` - используется Domain спецификациями
    - ✅ Реальные спецификации живут в `src/domain/shared/specification/common/`
 
-3. **errors/** - BaseError для всех ошибок
-   - ✅ Базовый класс для Domain, Application, Infrastructure errors
+4. **errors/** - Базовые ошибки и интерфейс IError
+   - ✅ `IError` - интерфейс для полиморфной обработки ошибок
+   - ✅ `BaseError` - базовый класс для Domain, Application, Infrastructure errors
+   - ✅ `ValidationError`, `DuplicateError`, `NotFoundError` - специализированные ошибки
    - ✅ Используется в ISpecification.isSatisfiedBy()
    - ✅ Поддержка code, context, cause (error chaining)
 
-4. **types/** - Переэкспорт типов для удобства
+5. **types/** - Переэкспорт типов для удобства
    - ✅ Удобство импорта типов из разных слоев
 
 **Правила:**
@@ -570,6 +600,26 @@ src/shared/
 - Технические паттерны (не бизнес-логика)
 - Фасады над библиотеками (защита от vendor lock-in)
 - Переиспользуемые утилиты (для всех слоев)
+
+#### Shared index.ts - Public API [#code|#structure:path]
+
+```typescript
+// src/shared/index.ts
+// Validation API
+export type { Validation } from './validation'
+export { valid, invalid, fromCondition, ValidationCombinators } from './validation'
+
+// Pipeline Pattern
+export { Pipeline } from './pipeline'
+export type { PipelineContext } from './pipeline'
+
+// Specification Pattern
+export type { ISpecification } from './specification'
+
+// BaseError
+export { BaseError } from './errors'
+export type { IError } from './errors'
+```
 
 #### Shared types index.ts [#code|#structure:path]
 
@@ -1406,9 +1456,10 @@ const { mode, enterEditingMode } = useModal()
 | Слой | Источник | Почему нужен | Что решает | Public API | Внутренности |
 |------|----------|--------------|------------|------------|--------------|
 | **Domain** | DDD (Eric Evans) | Бизнес-логика не зависит от технологий | Изоляция бизнес-правил | Entities, VOs, Events, Errors | Приватные методы |
-| **Application** | DDD + CQRS + Hexagonal | Оркестрация use cases | Валидация, транзакции, DTO↔Domain | Query/Command типы, Handlers, Ports | Приватные методы |
+| **Application** | DDD + CQRS + Hexagonal + **Pipeline** ⭐ | Оркестрация use cases с Pipeline | Композиция операций, валидация, DTO↔Domain, логирование | Query/Command типы, Handlers, Ports, BaseHandlers | Pipeline шаги, приватные методы |
 | **Infrastructure** | DDD + Hexagonal + Clean | Изоляция технических деталей | Работа с API/DB/внешними системами | Репозитории, Services, Factories | Приватные методы |
 | **Composition** ⭐ | DI Principles + Clean + Hexagonal | Соблюдение Dependency Rule | DI, сборка приложения, упрощение Presentation | queries, commands facades | DI логика, ServiceContainer |
+| **Shared** | Clean Architecture | Framework-agnostic утилиты | Validation, Pipeline, Errors, Specifications | Validation API, Pipeline, IError, ISpecification | Адаптеры библиотек |
 | **Presentation** | DDD + Clean + Hexagonal | Framework as Detail | UI, навигация, пользовательский ввод | React компоненты, hooks | Приватные компоненты |
 
 **Ключевое отличие Composition от классического DDD:**
@@ -1442,13 +1493,28 @@ const { mode, enterEditingMode } = useModal()
 
 ## См. также
 
+### Быстрый старт (2025)
+- **[Quick Start](./QUICK_START.md)** ⭐ - Быстрый старт с Pipeline Pattern (НАЧНИ ЗДЕСЬ!)
+- **[Pipeline Handlers Guide](./error-handling/PIPELINE_HANDLERS_GUIDE.md)** - Практическое руководство по Handlers
+- **[Pipeline Pattern](./patterns/PIPELINE.md)** - Детальное описание Pipeline Pattern
+
+### Архитектура
 - [Getting Started](./GETTING_STARTED.md) - Руководство по началу работы
 - [Architecture Boundaries](./ARCHITECTURE_BOUNDARIES.md) - Детали правил импортов и ESLint
 - [Composition Layer](./COMPOSITION_LAYER.md) - Подробнее о Composition Root
-- [Error Handling](./error-handling/README.md) - Обработка ошибок, инварианты и Result Pattern
-- [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
+- [DDD and Clean Architecture](./DDD_AND_CLEAN_ARCHITECTURE.md) - DDD паттерны
+
+### CQRS и обработка данных
 - [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд (CQRS - Commands)
 - [Query Handlers](./QUERY_HANDLERS.md) - Query Handlers для чтения данных (CQRS - Queries)
+- [Data Flow](./DATA_FLOW.md) - Поток данных и работа с Application Services
+
+### Обработка ошибок
+- [Error Handling](./error-handling/README.md) - Обработка ошибок, инварианты и Result Pattern
+- [Invariants](./error-handling/INVARIANTS.md) - Инварианты и валидация в DDD
+- [Error Escalation](./error-handling/ERROR_ESCALATION.md) - Either Pattern и монады
+
+### Контракты и типы
 - [Architecture Design](./concepts/ARCHITECTURE_DESIGN.md) - Детальная архитектура
 - [System Interfaces](./contracts/system-interfaces.md) - Интерфейсы систем
 - [Domain Types](./contracts/domain-types.md) - Доменные типы

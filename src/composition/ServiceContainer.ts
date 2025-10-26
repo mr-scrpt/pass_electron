@@ -2,8 +2,10 @@ import type { IResourceRepository } from '@/domain'
 import type { ILogger } from '@/application/ports'
 import type { IQueryBus } from '@/application/queries/IQueryBus'
 import type { ICommandBus } from '@/application/commands/ICommandBus'
+import type { IActionBus } from '@/application/actions'
 import { InMemoryQueryBus } from '@/infrastructure/queries/InMemoryQueryBus'
 import { InMemoryCommandBus } from '@/infrastructure/commands/InMemoryCommandBus'
+import { InMemoryActionBus } from '@/infrastructure/actions'
 import { ResourceModule } from './modules/ResourceModule'
 import { SystemModule } from './modules/SystemModule'
 import { QueryFacade } from './queries'
@@ -26,6 +28,7 @@ export class ServiceContainer {
   
   private static queryBus: IQueryBus | null = null
   private static commandBus: ICommandBus | null = null
+  private static actionBus: IActionBus | null = null
   private static queryFacade: QueryFacade | null = null
   private static commandFacade: CommandFacade | null = null
   private static initialized = false
@@ -63,6 +66,10 @@ export class ServiceContainer {
     this.queryFacade = new QueryFacade(queryBus)
     this.commandFacade = new CommandFacade(commandBus)
 
+    // Создаем Action Bus для Keymap/UI коммуникации
+    const actionBus = new InMemoryActionBus()
+    this.actionBus = actionBus
+
     this.initialized = true
   }
 
@@ -84,6 +91,20 @@ export class ServiceContainer {
     return isTrue(
       this.commandFacade !== null,
       this.commandFacade!
+    )
+      .valid()
+      .invalid([
+        new InfrastructureError(
+          'ServiceContainer',
+          'Container not initialized. Call initialize() first.'
+        )
+      ])
+  }
+
+  static getActionBus(): Validation<IError[], IActionBus> {
+    return isTrue(
+      this.actionBus !== null,
+      this.actionBus!
     )
       .valid()
       .invalid([
@@ -117,6 +138,7 @@ export class ServiceContainer {
     this.systemModule.reset()
     this.queryBus = null
     this.commandBus = null
+    this.actionBus = null
     this.queryFacade = null
     this.commandFacade = null
     this.initialized = false

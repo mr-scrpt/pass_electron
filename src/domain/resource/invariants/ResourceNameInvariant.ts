@@ -1,10 +1,11 @@
-import { Validation, ValidationCombinators } from "@/shared/validation";
+import type { Validation } from "@/shared/validation";
+import { ValidationCombinators } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
 import {
   CommonNotEmptySpec,
   CommonLengthSpec,
 } from "@/domain/shared/specification";
-import { IInvariant } from "@/domain/shared/invariants";
+import type { IInvariant } from "@/domain/shared/invariants";
 
 export class ResourceNameInvariant implements IInvariant<string> {
   private static readonly MIN_LENGTH = 1;

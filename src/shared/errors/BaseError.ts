@@ -13,10 +13,13 @@ export interface BaseErrorProps {
 }
 
 /**
- * Базовый класс для ошибок приложения
+ * Базовый класс для ВСЕХ ошибок приложения
  *
- * Используется как основа для Domain errors
- * Infrastructure errors НЕ используют BaseError (имплементируют IError напрямую)
+ * Используется как основа для:
+ * - Domain errors (InvariantViolationError, InvalidOperationError)
+ * - Shared errors (NotFoundError, DuplicateError, ValidationError)
+ * - Application errors (GenericApplicationError, CommandValidationError)
+ * - Infrastructure errors (InfrastructureError)
  *
  * @property entityType - тип сущности или компонента где произошла ошибка
  * @property message - человекочитаемое описание ошибки

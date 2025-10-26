@@ -1,5 +1,5 @@
 // src/application/queries/IQueryHandler.ts
-import { Validation } from "@/shared/validation";
+import type { Validation } from "@/shared/validation";
 import type { IError } from "@/shared/errors";
 import type { IQuery } from "./IQuery";
 

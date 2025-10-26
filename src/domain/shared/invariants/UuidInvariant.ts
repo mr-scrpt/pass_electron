@@ -1,7 +1,8 @@
-import { Validation, ValidationCombinators } from "@/shared/validation";
+import type { Validation } from "@/shared/validation";
+import { ValidationCombinators } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
 import { CommonNotEmptySpec, CommonPatternSpec } from "../specification";
-import { IInvariant } from "./IInvariant";
+import type { IInvariant } from "./IInvariant";
 
 export class UuidInvariant implements IInvariant<string> {
   private static readonly UUID_V4_REGEX =

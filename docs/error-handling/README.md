@@ -175,7 +175,14 @@ private async transformToDTOs(ctx) {  // ❌ ESLint ошибка!
 import { DuplicateError } from "@/shared/errors";
 import { NotFoundError } from "@/shared/errors";
 import { ValidationError } from "@/shared/errors";
+import { InfrastructureError } from "@/shared/errors";
 ```
+
+**Важно:** ВСЕ ошибки наследуются от `BaseError`:
+- Domain errors (InvariantViolationError, InvalidOperationError)
+- Shared errors (NotFoundError, DuplicateError, ValidationError)
+- Application errors (GenericApplicationError, CommandValidationError)
+- Infrastructure errors (InfrastructureError)
 
 ---
 

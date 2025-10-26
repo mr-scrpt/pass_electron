@@ -175,14 +175,14 @@ export abstract class BaseCommandHandler {
     shouldExist: boolean,
     errorIfFailed: (ctx: TContext) => IError
   ): (ctx: TContext & { result: TEntity | null }) => Promise<Validation<IError[], TContext & { result: TEntity | null }>> {
-    return async (ctx) => {
+    return (ctx) => {
       const exists = ctx.result !== null;
       
       if (exists === shouldExist) {
-        return valid(ctx);
+        return Promise.resolve(valid(ctx));
       }
       
-      return invalid([errorIfFailed(ctx)]);
+      return Promise.resolve(invalid([errorIfFailed(ctx)]));
     };
   }
 }

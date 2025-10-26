@@ -3,6 +3,7 @@ export { BaseError } from './BaseError';
 export { ValidationError } from './ValidationError';
 export { DuplicateError } from './DuplicateError';
 export { NotFoundError } from './NotFoundError';
+export { InfrastructureError } from './InfrastructureError';
 export type { AppError } from './AppError';
 export { ErrorClassifier } from './ErrorClassifier';
 export type { ErrorClassification, ErrorCheckResult } from './ErrorClassifier';

@@ -1,5 +1,5 @@
 import { mergeInMany } from "@sweet-monads/either";
-import { Validation } from "./Validation";
+import type { Validation } from "./Validation";
 
 export class ValidationCombinators {
   static accumulate<E, T>(

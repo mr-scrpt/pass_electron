@@ -1,4 +1,4 @@
-import { Validation } from "@/shared/validation";
+import type { Validation } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";
 import { ResourceNameInvariant } from "../invariants";
 

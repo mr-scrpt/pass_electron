@@ -1,4 +1,4 @@
-import { Validation } from "../validation";
+import type { Validation } from "../validation";
 import { BaseError } from "../errors/BaseError";
 
 export interface ISpecification<T> {

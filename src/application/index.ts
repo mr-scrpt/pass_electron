@@ -2,3 +2,5 @@
 export * from './errors'
 export * from './ports'
 export * from './shared'
+export * from './queries'
+export * from './commands'

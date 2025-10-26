@@ -3,8 +3,9 @@
  * Singleton Factory Pattern - экземпляры кэшируются по entityType
  */
 
-import { Validation, isTrue } from '@/shared/validation'
-import { ISpecification } from '@/shared/specification'
+import type { Validation } from '@/shared/validation'
+import { isTrue } from '@/shared/validation'
+import type { ISpecification } from './ISpecification'
 import { BaseError } from '@/shared/errors'
 
 /**

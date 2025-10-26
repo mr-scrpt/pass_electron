@@ -1,5 +1,5 @@
 // src/domain/resource/value-objects/ResourceId.ts
-import { Validation } from "@/shared/validation";
+import type { Validation } from "@/shared/validation";
 import { ValidationError } from "@/shared/errors";  // ✅ Явный импорт технического типа
 import { UuidInvariant } from "@/domain/shared";
 

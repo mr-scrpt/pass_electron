@@ -1,11 +1,5 @@
-// src/presentation/web/react/src/root.tsx
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from "react-router";
+//  src/presentation/web/react/src/root.tsx
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import "./styles/tailwind.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -16,6 +10,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className="bg-ctp-base text-ctp-text">
         {children}

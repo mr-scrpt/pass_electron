@@ -1,13 +1,23 @@
-// src/presentation/web/react/src/routes/_index.tsx
-export default function Index() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-ctp-base">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-ctp-mauve mb-4">
-          🔐 Password Manager
-        </h1>
-        <p className="text-ctp-text">Tailwind CSS + Catppuccin Mocha ✅</p>
-      </div>
-    </div>
-  );
+//  src/presentation/web/react/src/routes/_index.tsx
+import { ServiceContainer } from '@/composition'
+import Home from "./home";
+
+/**
+ * Loader - получение данных на сервере (SSR)
+ */
+export async function loader() {
+  // Получаем queries facade из контейнера (монадический подход)
+  return ServiceContainer.getQueries()
+    .asyncChain(async (queries) => {
+      // Получаем список ресурсов через Query facade
+      return queries.list()
+    })
+    .then(result => 
+      result
+        .map((resources) => ({ resources }))
+        .mapLeft((errors) => ({ errors }))
+        .value
+    )
 }
+
+export default Home;

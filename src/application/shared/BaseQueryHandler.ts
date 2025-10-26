@@ -1,7 +1,7 @@
 //  src/application/shared/BaseQueryHandler.ts
 import type { IError } from "@/shared/errors";
 import type { Validation } from "@/shared/validation";
-import { tapLeft, valid } from "@/shared/validation";
+import { tapLeft } from "@/shared/validation";
 import type { ILogger } from "@/application/ports";
 
 export abstract class BaseQueryHandler {

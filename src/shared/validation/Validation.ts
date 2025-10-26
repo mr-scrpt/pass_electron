@@ -1,4 +1,5 @@
-import { Either, left, right } from "@sweet-monads/either";
+import type { Either } from "@sweet-monads/either";
+import { left, right } from "@sweet-monads/either";
 
 export type Validation<E, T> = Either<E, T>;
 

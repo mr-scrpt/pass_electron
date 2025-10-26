@@ -1,1 +1,1 @@
-export { IResourceRepository } from "./IResourceRepository";
+export type { IResourceRepository } from "./IResourceRepository";

@@ -1,4 +1,5 @@
-import type { IError } from '@/shared/errors';
+import { BaseError } from '@/shared/errors/BaseError'
+import type { IError } from '@/shared/errors'
 
 /**
  * Generic ошибка Application Layer
@@ -12,64 +13,29 @@ import type { IError } from '@/shared/errors';
  * 
  * Это expected (ожидаемая) ошибка - показываем пользователю
  */
-export class GenericApplicationError extends Error implements IError {
-  private readonly _message: string;
-  private readonly _context?: Record<string, unknown>;
-  readonly cause?: Error;
-  
+export class GenericApplicationError extends BaseError {
   constructor(
     message: string,
     cause?: Error | IError,
     context?: Record<string, unknown>
   ) {
-    super(message);
-    this.name = 'GenericApplicationError';
-    this._message = message;
-    this.cause = cause as Error;
-    this._context = context;
-    
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-  }
-
-  // ============================================
-  // IError interface methods
-  // ============================================
-
-  getMessage(): string {
-    return this._message;
-  }
-
-  getCode(): string {
-    return 'APPLICATION_ERROR';
-  }
-
-  getContext(): Record<string, unknown> {
-    return {
-      cause: this.cause?.message,
-      ...this._context,
-    };
-  }
-
-  /**
-   * GenericApplicationError - expected (показываем пользователю)
-   */
-  isExpected(): boolean {
-    return true;
+    super({
+      entityType: 'Application',
+      message,
+      code: 'APPLICATION_ERROR',
+      context,
+      cause: cause as Error
+    })
+    this.name = 'GenericApplicationError'
   }
 
   /**
    * Application errors - логируем как warn
    */
   getLogLevel(): 'info' | 'warn' | 'error' | 'debug' {
-    return 'warn';
+    return 'warn'
   }
 
-  /**
-   * Показываем как есть (уже generic message)
-   */
-  toUserError(): IError {
-    return this;
-  }
+  // isExpected() = true унаследовано от BaseError
+  // toUserError() = this унаследовано от BaseError
 }

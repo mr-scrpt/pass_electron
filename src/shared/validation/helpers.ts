@@ -1,5 +1,6 @@
 // src/shared/validation/helpers.ts
-import { Validation, fromCondition } from "./Validation";
+import type { Validation } from "./Validation";
+import { fromCondition } from "./Validation";
 
 class ValidationBuilder<T> {
   constructor(

@@ -1,12 +1,46 @@
 // src/presentation/web/react/src/routes/test-keymaps.tsx
 import { Link } from "react-router";
-import { useTestKeymaps } from "../features/test-keymaps/model/useTestKeymaps";
+import { useState, useEffect } from "react";
+import { useNotificationManager } from "../contexts/NotificationContext";
+import { List } from "../shared/ui/NavigationList";
+import { withKeymapNavigation } from "../shared/keymap/withKeymapNavigation";
+import { testKeymapConfig } from "../features/test-keymaps/config/keymaps";
+
+/**
+ * Тип элемента для тестового списка
+ */
+type TestItem = {
+  id: number;
+  name: string;
+};
+
+/**
+ * ✅ Создаем контейнер с кеймапами через HOC
+ * 
+ * Чистый компонент List оборачивается HOC
+ * который добавляет логику фокуса, кеймапы и highlight стили
+ */
+const KeymapNavigationList = withKeymapNavigation<TestItem>(List, {
+  keymapConfig: testKeymapConfig,
+  getDeps: ({ focusNext, focusPrevious }) => ({
+    // Из navigation получаем focusNext/Previous
+    focusNext,
+    focusPrevious,
+    // Добавляем остальные deps из компонента
+    incrementCounter: () => {},  // будет переопределено ниже
+    showSuccess: () => {},
+    showWarning: () => {},
+    showError: () => {},
+    showInfo: () => {},
+  }),
+});
 
 /**
  * Тестовая страница для проверки Keymap системы
  * 
- * ✅ Чистый view компонент - только вызывает хук
- * ✅ Вся логика в композиционном хуке
+ * ✅ Использует чистые компоненты + HOC
+ * ✅ Компоненты переиспользуемые
+ * ✅ Кеймапы добавляются через HOC
  * 
  * Горячие клавиши:
  * - Ctrl+1 → Success notification
@@ -17,8 +51,25 @@ import { useTestKeymaps } from "../features/test-keymaps/model/useTestKeymaps";
  * - k → Focus previous
  */
 export default function TestKeymaps() {
-  // ✅ Один композиционный хук - вся логика внутри
-  const { counter, focusedIndex, items } = useTestKeymaps();
+  const [counter, setCounter] = useState(0);
+  const notification = useNotificationManager();
+
+  // ✅ Данные для списка (чистые, без isFocused)
+  const items: TestItem[] = Array.from({ length: 5 }, (_, i) => ({
+    id: i,
+    name: `Test Item ${i}`,
+  }));
+
+  // ✅ Side effect: показываем success после инкремента
+  useEffect(() => {
+    if (counter > 0) {
+      notification.notify({
+        level: "success",
+        message: `✅ Success! Counter: ${counter}`,
+        duration: 3000,
+      });
+    }
+  }, [counter, notification]);
 
   return (
     <div className="min-h-screen bg-ctp-base p-8">
@@ -82,30 +133,14 @@ export default function TestKeymaps() {
           </div>
         </div>
 
-        {/* Focus Test Items */}
-        <div className="bg-ctp-surface0 p-6 rounded-lg">
-          <h2 className="text-xl font-semibold text-ctp-text mb-4">
-            Focus Navigation Test
-          </h2>
-          <p className="text-ctp-subtext0 text-sm mb-4">
-            Use <kbd className="px-2 py-1 bg-ctp-surface1 rounded">j</kbd> / 
-            <kbd className="px-2 py-1 bg-ctp-surface1 rounded ml-1">k</kbd> to navigate
-          </p>
-          <ul className="space-y-2">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className={`p-3 rounded transition-colors ${
-                  focusedIndex === item.id
-                    ? "bg-ctp-mauve text-ctp-base font-semibold"
-                    : "bg-ctp-surface1 text-ctp-text"
-                }`}
-              >
-                {item.name}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Focus Test Items - используем HOC компонент */}
+        <KeymapNavigationList
+          items={items}
+          getItemId={(item) => item.id}
+          renderItem={(item) => item.name}
+          title="Focus Navigation Test"
+          description="Use j / k to navigate"
+        />
 
         {/* Test Error Link */}
         <div className="mt-8 p-6 bg-ctp-red/10 border-2 border-ctp-red rounded-lg">

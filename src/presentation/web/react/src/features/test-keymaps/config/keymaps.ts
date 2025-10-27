@@ -1,9 +1,14 @@
 // src/presentation/web/react/src/features/test-keymaps/config/keymaps.ts
+import type { FeatureKeymapConfig } from "../../../shared/keymap/types";
 
 /**
  * Типизируем зависимости для этой feature
+ * 
+ * ✅ Это контракт - что должен предоставить композиционный хук
+ * ✅ TypeScript проверит что все deps переданы
  */
-export type TestKeymapActions = {
+export type TestKeymapDeps = {
+  // Navigation mode
   incrementCounter: () => void;
   showSuccess: (counter: number) => void;
   showWarning: () => void;
@@ -14,77 +19,63 @@ export type TestKeymapActions = {
 };
 
 /**
- * Конфигурация кеймапа с фабрикой action
- */
-export type KeymapConfig<TDeps> = {
-  key: string;
-  description: string;
-  context: {
-    route?: string;
-    mode?: "navigation" | "editing";
-  };
-  action: (deps: TDeps) => void | Promise<void>;
-};
-
-/**
  * Конфиг кеймапов для тестовой страницы
  * 
- * 📝 NOTE: Это пример для будущего - как можно сделать декларативные конфиги
- * Сейчас используется императивный подход в useTestKeymaps.ts
- * 
+ * ✅ Несколько режимов (navigation) в одной feature
+ * ✅ Одна клавиша может иметь разные действия в разных режимах
+ * ✅ Слушатели автоматически активируются для каждого режима
  * ✅ Чистые данные - без React, без зависимостей
- * ✅ TypeScript проверяет что все deps предоставлены
  * 
  * @layer Presentation/Features
  */
-export const testKeymapConfigs: KeymapConfig<TestKeymapActions>[] = [
-  {
-    key: "Ctrl+1",
-    description: "Show success notification",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.incrementCounter();
-      // deps.showSuccess вызовется в хуке после инкремента
-    },
+export const testKeymapConfig: FeatureKeymapConfig<TestKeymapDeps> = {
+  // Режим навигации
+  navigation: {
+    route: "/test-keymaps",
+    mode: "navigation",
+    keymaps: [
+      {
+        key: "Ctrl+1",
+        description: "Increment counter + success notification",
+        action: (deps) => {
+          deps.incrementCounter();
+        },
+      },
+      {
+        key: "Ctrl+2",
+        description: "Show warning notification",
+        action: (deps) => {
+          deps.showWarning();
+        },
+      },
+      {
+        key: "Ctrl+3",
+        description: "Show error notification",
+        action: (deps) => {
+          deps.showError();
+        },
+      },
+      {
+        key: "Ctrl+4",
+        description: "Show info notification",
+        action: (deps) => {
+          deps.showInfo();
+        },
+      },
+      {
+        key: "J",  // ✅ Uppercase - KeymapExecutor.normalizeKey делает toUpperCase()
+        description: "Focus next item",
+        action: (deps) => {
+          deps.focusNext();
+        },
+      },
+      {
+        key: "K",  // ✅ Uppercase - KeymapExecutor.normalizeKey делает toUpperCase()
+        description: "Focus previous item",
+        action: (deps) => {
+          deps.focusPrevious();
+        },
+      },
+    ],
   },
-  {
-    key: "Ctrl+2",
-    description: "Show warning notification",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.showWarning();
-    },
-  },
-  {
-    key: "Ctrl+3",
-    description: "Show error notification",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.showError();
-    },
-  },
-  {
-    key: "Ctrl+4",
-    description: "Show info notification",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.showInfo();
-    },
-  },
-  {
-    key: "j",
-    description: "Focus next item",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.focusNext();
-    },
-  },
-  {
-    key: "k",
-    description: "Focus previous item",
-    context: { route: "/test-keymaps", mode: "navigation" },
-    action: (deps) => {
-      deps.focusPrevious();
-    },
-  },
-];
+};

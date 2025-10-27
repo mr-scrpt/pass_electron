@@ -59,6 +59,7 @@ export function useValidatedQuery<TData>(
       // 2. Validation → Promise (для TanStack Query)
       if (result.isLeft()) {
         // Left → throw (TanStack Query установит isError = true)
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw result.value
       }
 

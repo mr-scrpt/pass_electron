@@ -82,7 +82,7 @@ export async function action({ request }: { request: Request }) {
         // Flatten на случай вложенных массивов + сериализация для JSON
         errors: errors.flat().map((e) => ({
           message:
-            typeof e.getMessage === "function" ? e.getMessage() : String(e),
+            typeof e.getMessage === "function" ? e.getMessage() : JSON.stringify(e),
         })),
         type: testType,
       })).value;

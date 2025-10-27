@@ -82,8 +82,12 @@ export function useKeymapListener(context: KeymapContext) {
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    const handleKeyPressWrapper = (e: KeyboardEvent) => {
+      void handleKeyPress(e);
+    };
+
+    window.addEventListener("keydown", handleKeyPressWrapper);
+    return () => window.removeEventListener("keydown", handleKeyPressWrapper);
   }, [context.route, context.mode]);
 }
 

@@ -40,7 +40,7 @@ export function useInvalidateResources() {
      * Используется когда изменения могут повлиять на любые данные.
      */
     invalidateAll: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: resourceKeys.all,  // ← Prefix match: все что начинается с ['resources']
       })
     },
@@ -52,7 +52,7 @@ export function useInvalidateResources() {
      * Детали конкретных ресурсов НЕ инвалидируются.
      */
     invalidateLists: () => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: resourceKeys.lists(),  // ← Prefix match: ['resources', 'list']
       })
     },
@@ -64,7 +64,7 @@ export function useInvalidateResources() {
      * Списки НЕ инвалидируются.
      */
     invalidateDetail: (id: string) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: resourceKeys.detail(id),  // ← Exact match: ['resources', 'detail', id]
       })
     },
@@ -76,10 +76,10 @@ export function useInvalidateResources() {
      * (например, изменение namespace).
      */
     invalidateDetailAndLists: (id: string) => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: resourceKeys.detail(id),
       })
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: resourceKeys.lists(),
       })
     },

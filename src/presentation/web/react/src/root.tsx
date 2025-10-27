@@ -46,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   return (
-    <NotificationProvider manager={appServices!.notificationManager}>
+    <NotificationProvider manager={appServices.notificationManager}>
       <Outlet />
     </NotificationProvider>
   );

@@ -3,7 +3,8 @@
     "**/*",
     "**/.server/**/*",
     "**/.client/**/*",
-    ".react-router/types/**/*"
+    ".react-router/types/**/*",
+    "../../shared/**/*"
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -17,13 +18,16 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/domain": ["../../../domain/index.ts"],
+      "@/domain/*": ["../../../domain/*"],
       "@/composition": ["../../../composition/index.ts"],
       "@/composition/*": ["../../../composition/*"],
       "@/application": ["../../../application/index.ts"],
       "@/application/*": ["../../../application/*"],
       "@/infrastructure": ["../../../infrastructure/index.ts"],
       "@/infrastructure/*": ["../../../infrastructure/*"],
-      "@/shared/*": ["../../../shared/*"]
+      "@/shared": ["../../../shared/index.ts"],
+      "@/shared/*": ["../../../shared/*"],
+      "@/presentation/shared/systems/*": ["../../shared/systems/*"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,

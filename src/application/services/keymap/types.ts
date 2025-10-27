@@ -1,4 +1,5 @@
 import type { IActionBus } from '@/application/actions'
+import type { INotificationManager } from '@/application/ports'
 
 /**
  * App Mode - режим работы приложения
@@ -8,7 +9,11 @@ export type AppMode = 'navigation' | 'editing'
 /**
  * Action Context - контекст для выполнения keymap actions
  * 
- * Предоставляет зависимости через Dependency Injection
+ * Предоставляет зависимости через Dependency Injection.
+ * Keymaps получают все необходимые сервисы через этот контекст.
+ * 
+ * @pattern Service Locator (для функциональных keymaps)
+ * @pattern Dependency Injection
  */
 export interface ActionContext {
   /**
@@ -27,10 +32,21 @@ export interface ActionContext {
    */
   actionBus?: IActionBus
   
+  /**
+   * Notification Manager для показа уведомлений
+   * ✅ Изолирует Keymap систему от конкретной UI библиотеки
+   * 
+   * @example
+   * ctx.notificationManager?.notify({
+   *   level: 'success',
+   *   message: 'Action completed!'
+   * })
+   */
+  notificationManager?: INotificationManager
+  
   // Другие зависимости будут добавлены позже:
   // modalManager?: IModalManager
   // focusManager?: IFocusManager
-  // notificationManager?: INotificationManager
 }
 
 /**

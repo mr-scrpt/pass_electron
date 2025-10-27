@@ -1,44 +1,25 @@
 //  src/presentation/web/react/src/routes/home.tsx
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useLoaderData } from 'react-router'
-import type { IActionHandler } from '@/application/actions'
-import { ShowRandomResourceAction } from '@/application/actions'
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
-import { ServiceContainer } from '@/composition'
+import { useRandomResourceAction } from '../hooks/useRandomResourceAction'
 
 /**
- * ShowRandomResourceHandler - обработчик действия "показать случайный ресурс"
+ * Home Component - главная страница
  * 
- * Реализован в Presentation Layer (знает о React state)
- * Регистрируется динамически в useEffect
+ * ✅ Чистый презентационный компонент:
+ * - Использует кастомные хуки
+ * - Получает данные из loader
+ * - Отображает UI
+ * 
+ * ❌ НЕ знает о:
+ * - ServiceContainer
+ * - Монадах
+ * - DI
+ * - Handler классах
+ * 
+ * @layer Presentation
  */
-class ShowRandomResourceHandler implements IActionHandler<ShowRandomResourceAction> {
-  constructor(
-    private resources: ResourceListItemDTO[],
-    private setRandomResource: (resource: ResourceListItemDTO | null) => void
-  ) {}
-  
-  handle(_action: ShowRandomResourceAction): void {
-    if (this.resources.length === 0) {
-      console.warn('[ShowRandomResourceHandler] No resources available')
-      return
-    }
-    
-    // Выбираем случайный ресурс
-    const randomIndex = Math.floor(Math.random() * this.resources.length)
-    const randomResource = this.resources[randomIndex]
-    
-    // Обновляем UI (React state)
-    this.setRandomResource(randomResource)
-    
-    // Логируем на сервере (server-side console.log)
-    console.log('🎲 Random Resource Selected:', {
-      id: randomResource.id,
-      namespace: randomResource.namespace,
-      name: randomResource.name
-    })
-  }
-}
 
 interface LoaderData {
   resources?: ResourceListItemDTO[]
@@ -52,45 +33,8 @@ export default function Home() {
   // State для случайно выбранного ресурса
   const [randomResource, setRandomResource] = useState<ResourceListItemDTO | null>(null)
   
-  // Регистрация Action Handler для Ctrl+I
-  useEffect(() => {
-    // Получаем Action Bus из ServiceContainer
-    const actionBusResult = ServiceContainer.getActionBus()
-    
-    // Монадический подход - обрабатываем успех и ошибку
-    return actionBusResult
-      .map(actionBus => {
-        // Создаем handler с доступом к resources и setState
-        const handler = new ShowRandomResourceHandler(resources, setRandomResource)
-        
-        // Регистрируем handler
-        actionBus.register('ShowRandomResourceAction', handler)
-        console.log('[Home] ShowRandomResourceAction handler registered')
-        
-        // ВРЕМЕННО: Прямой перехват Ctrl+I (до реализации KeymapExecutor)
-        const handleKeyDown = (e: KeyboardEvent) => {
-          if (e.ctrlKey && e.key === 'i') {
-            e.preventDefault()
-            console.log('[Home] Ctrl+I pressed, dispatching action...')
-            actionBus.dispatch(new ShowRandomResourceAction()).catch(console.error)
-          }
-        }
-        
-        window.addEventListener('keydown', handleKeyDown)
-        
-        // Cleanup функция - отменяем регистрацию при unmount
-        return () => {
-          window.removeEventListener('keydown', handleKeyDown)
-          actionBus.unregister('ShowRandomResourceAction')
-          console.log('[Home] ShowRandomResourceAction handler unregistered')
-        }
-      })
-      .mapLeft(errors => {
-        console.error('[Home] Failed to get ActionBus:', errors)
-        return () => {} // Пустой cleanup если ошибка
-      })
-      .value // Извлекаем cleanup функцию из монады
-  }, [resources]) // Re-register when resources change
+  // ✅ Хук инкапсулирует всю логику DI, монад, Handler'ов
+  useRandomResourceAction(resources, setRandomResource)
   
   return (
     <div className="min-h-screen bg-ctp-base p-8">
@@ -98,9 +42,19 @@ export default function Home() {
         <h1 className="text-4xl font-bold text-ctp-mauve mb-2">
           Password Manager
         </h1>
-        <p className="text-ctp-subtext0 mb-8">
+        <p className="text-ctp-subtext0 mb-4">
           Press <kbd className="px-2 py-1 bg-ctp-surface0 rounded">Ctrl+I</kbd> to show random resource
         </p>
+        
+        {/* Test Notifications Link */}
+        <div className="mb-8">
+          <a
+            href="/test-notifications"
+            className="inline-block px-4 py-2 bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-pink transition-colors"
+          >
+            🧪 Test Notifications (Domain → UI Error Flow)
+          </a>
+        </div>
         
         {/* Random Resource Highlight */}
         {randomResource && (

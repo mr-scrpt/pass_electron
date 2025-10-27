@@ -13,6 +13,7 @@ import type { CreateResourceCommand } from "../CreateResourceCommand";
 
 interface CreateResourceContext
   extends CreateContext<CreateResourceCommand, Resource> {
+  namespace?: Namespace;
   existingResources?: Resource[];
 }
 
@@ -34,14 +35,15 @@ export class CreateResourceCommandHandler
       await new Pipeline<CreateResourceContext>()
         .step((ctx) => this.checkUniqueness(ctx))
         .step((ctx) => this.createEntity(ctx))
-        .stepWithRetry((ctx) => this.persistResource(ctx), 3)
+        .stepWithRetry(
+          (ctx) => this.persistResource(ctx),
+          3,
+          1000,
+          "Resource not saved", // ✅ Заглушка для критического шага
+        )
         .execute({ command })
     ).map(() => undefined);
   }
-
-  // ============================================
-  // Pipeline шаги - каждый одна ответственность
-  // ============================================
 
   private async checkUniqueness(
     ctx: CreateResourceContext,
@@ -57,7 +59,7 @@ export class CreateResourceCommandHandler
       ).chain((existingResources) =>
         fromCondition(
           existingResources.length === 0,
-          { ...ctx, existingResources },
+          { ...ctx, namespace, existingResources },
           [
             new DuplicateError("Resource", ctx.command.namespace, {
               field: "namespace",
@@ -76,7 +78,9 @@ export class CreateResourceCommandHandler
         Namespace.create(ctx.command.namespace),
         ResourceName.create(ctx.command.name),
         ctx.command.secret,
-      ).map((entity) => ({ ...ctx, entity }))
+      )
+        .mapLeft((errors): IError[] => errors)
+        .map((entity) => ({ ...ctx, entity })),
     );
   }
 

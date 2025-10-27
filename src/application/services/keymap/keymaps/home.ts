@@ -12,14 +12,24 @@ export const homeKeymaps: Keymap[] = [
     name: 'Show Random Resource',
     binding: { key: 'i', ctrl: true },
     action: async (ctx) => {
+      // 🆕 Показываем info уведомление ДО выполнения
+      // NotificationManager изолирует от конкретной UI библиотеки
+      ctx.notificationManager?.notify({
+        level: 'info',
+        message: 'Loading random resource...',
+        duration: 2000
+      })
+      
       // ✅ Отправляем Action через Action Bus
       // Keymap система НЕ ЗНАЕТ о React, DOM, setState
       // Handler реализован в Presentation Layer
       await ctx.actionBus?.dispatch(
         new ShowRandomResourceAction()
       )
+      
+      // ✅ Success уведомление будет показано в Handler
     },
-    description: 'Show random resource from list and log to console',
+    description: 'Show random resource from list with notifications',
     modes: ['navigation'],
     routes: ['/']
   }

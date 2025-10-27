@@ -11,12 +11,14 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@password-manager/platform-configs": "workspace:*",
     "@react-router/node": "^7.9.2",
     "@react-router/serve": "^7.9.2",
     "isbot": "^5.1.31",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router": "^7.9.2"
+    "react-router": "^7.9.2",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@catppuccin/tailwindcss": "^1.0.0",

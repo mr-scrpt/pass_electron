@@ -14,20 +14,28 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/test-notifications": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/";
+    page: "/" | "/test-notifications";
   };
   "routes/_index.tsx": {
     id: "routes/_index";
     page: "/";
+  };
+  "routes/test-notifications.tsx": {
+    id: "routes/test-notifications";
+    page: "/test-notifications";
   };
 };
 
 type RouteModules = {
   "root": typeof import("./src/root.tsx");
   "routes/_index": typeof import("./src/routes/_index.tsx");
+  "routes/test-notifications": typeof import("./src/routes/test-notifications.tsx");
 };

@@ -43,8 +43,24 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.18.11)(lightningcss@1.30.1)
 
+  src/presentation/platform-configs:
+    dependencies:
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.18.11
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+
   src/presentation/web/react:
     dependencies:
+      '@password-manager/platform-configs':
+        specifier: workspace:*
+        version: link:../../platform-configs
       '@react-router/node':
         specifier: ^7.9.2
         version: 7.9.4(react-router@7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(typescript@5.9.3)
@@ -63,6 +79,9 @@ importers:
       react-router:
         specifier: ^7.9.2
         version: 7.9.4(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
     devDependencies:
       '@catppuccin/tailwindcss':
         specifier: ^1.0.0
@@ -2112,6 +2131,12 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
+
+  sonner@2.0.7:
+    resolution: {integrity: sha512-W6ZN4p58k8aDKA4XPcx2hpIQXBRAgyiWVkYhT7CvK6D3iAu7xjvVyhQHg2/iaKJZ1XVJ4r7XuwGL+WGEK37i9w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -4438,6 +4463,11 @@ snapshots:
   siginfo@2.0.0: {}
 
   signal-exit@4.1.0: {}
+
+  sonner@2.0.7(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+    dependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   source-map-js@1.2.1: {}
 

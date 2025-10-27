@@ -19,6 +19,7 @@
 - **[ARCHITECTURE_BOUNDARIES.md](./ARCHITECTURE_BOUNDARIES.md)** - Правила импортов между слоями, алиасы, ESLint enforcement ⭐
 - **[DATA_FLOW.md](./DATA_FLOW.md)** - Поток данных, CQRS + Facades, DI Container (Remix специфика)
 - **[COMMAND_BUS.md](./COMMAND_BUS.md)** - Command Bus паттерн для UI команд (DDD + Hexagonal Architecture)
+- **[NOTIFICATION_SYSTEM.md](./NOTIFICATION_SYSTEM.md)** - Notification System: Port & Adapter + монадическая обработка ошибок ⭐
 - **[QUERY_HANDLERS.md](./QUERY_HANDLERS.md)** - Query Handlers и Facade для чтения данных в Loaders (CQRS)
 - **[COMPOSITION_LAYER.md](./COMPOSITION_LAYER.md)** - Декомпозиция Composition Layer, Multi-UI поддержка, константы
 - **[ADAPTER_PATTERN_DI.md](./ADAPTER_PATTERN_DI.md)** - Канонический подход к внедрению внешних зависимостей (Adapter Pattern + DI)
@@ -68,13 +69,14 @@
 8. `ARCHITECTURE_BOUNDARIES.md` - Правила импортов, алиасы, ESLint enforcement ⭐
 9. `DATA_FLOW.md` - Работа с данными (CQRS + Facades, DI Container)
 10. `COMMAND_BUS.md` - Command Bus для UI команд (CQRS - Commands)
-11. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
-12. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
-13. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
-14. `contracts/domain-types.md` - Типы предметной области
-15. `contracts/system-interfaces.md` - Интерфейсы систем
-16. `contracts/api-contracts.md` - API контракты
-17. `contracts/events.md` - События системы
+11. `NOTIFICATION_SYSTEM.md` - Notification System и монадическая обработка ошибок ⭐
+12. `QUERY_HANDLERS.md` - Query Handlers для чтения данных (CQRS - Queries)
+13. `COMPOSITION_LAYER.md` - Декомпозиция Composition Layer и Multi-UI поддержка
+14. `ADAPTER_PATTERN_DI.md` - Внедрение внешних зависимостей (Adapter Pattern + DI)
+15. `contracts/domain-types.md` - Типы предметной области
+16. `contracts/system-interfaces.md` - Интерфейсы систем
+17. `contracts/api-contracts.md` - API контракты
+18. `contracts/events.md` - События системы
 
 ## Технический стек
 

@@ -84,18 +84,44 @@ password-manager/
     │
     └── presentation/              # Presentation Layer (DDD)
         │
+        ├── platform-configs/      # Platform Configs workspace (NEW!)
+        │   ├── package.json       # Platform-specific dependencies (sonner)
+        │   ├── tsconfig.json      # TypeScript для platform-configs
+        │   ├── README.md          # Быстрый старт
+        │   │
+        │   ├── common/            # Базовые зависимости (все платформы)
+        │   │   └── index.ts       # createCommonDependencies()
+        │   │
+        │   ├── web/               # Web конфиг
+        │   │   ├── adapters/
+        │   │   │   └── SonnerNotificationDisplay.ts
+        │   │   └── index.ts       # createPlatformDependencies()
+        │   │
+        │   └── electron/          # Electron конфиг
+        │       └── index.ts       # createPlatformDependencies()
+        │
+        ├── electron/              # Electron-specific
+        │   ├── adapters/
+        │   │   └── ElectronNotificationDecorator.ts
+        │   └── scripts/
+        │       └── prepare-web.sh # Build script (подмена конфига)
+        │
         └── web/                   # Web presentations
             └── react/             # React Router implementation
-                ├── package.json   # Web-specific dependencies
+                ├── package.json   # Web-specific + platform-configs
                 ├── vite.config.ts # Vite build tool config
                 ├── tailwind.config.js
                 ├── postcss.config.js
+                │
+                ├── configs/
+                │   └── platform.config.ts  # Реэкспорт (подменяется!)
                 │
                 └── src/           # React Router code
                     ├── routes/
                     ├── components/
                     ├── hooks/
                     ├── styles/
+                    ├── init.ts    # initializeApp(deps)
                     ├── root.tsx
                     └── entry.client.tsx
 ```
@@ -734,6 +760,39 @@ src/presentation/
 - Использует hooks для доступа к Application Services
 - Вызывает Queries/Commands через Composition Facades (`@/composition`)
 - Импортирует Domain типы через алиасы (`@/domain`)
+
+---
+
+### 6.1. Platform Configs (`src/presentation/platform-configs/`) ⚙️
+
+**NEW!** Workspace для platform-specific конфигураций и зависимостей.
+
+**🎯 Назначение**: Централизованное управление зависимостями для разных платформ (Web, Electron, Mobile).
+
+**📦 Структура:**
+
+```
+src/presentation/platform-configs/
+├── common/                    # Базовые зависимости (все платформы)
+│   └── index.ts              # repository, logger
+│
+├── web/                      # Web конфиг
+│   ├── adapters/
+│   │   └── SonnerNotificationDisplay.ts
+│   └── index.ts              # РАСШИРЯЕТ common + notification
+│
+└── electron/                 # Electron конфиг
+    └── index.ts              # РАСШИРЯЕТ common + ElectronDecorator
+```
+
+**✅ Что решает:**
+- ❌ React НЕ знает о платформе (Web/Electron)
+- ❌ Vite НЕ содержит условную логику
+- ❌ Библиотеки НЕ дублируются
+- ✅ DI через `createPlatformDependencies()`
+- ✅ Decorator Pattern для расширения Web → Electron
+
+**📚 Детали:** См. [`/docs/PLATFORM_CONFIGS_ARCHITECTURE.md`](./PLATFORM_CONFIGS_ARCHITECTURE.md)
 
 ---
 
@@ -1503,6 +1562,7 @@ const { mode, enterEditingMode } = useModal()
 - [Architecture Boundaries](./ARCHITECTURE_BOUNDARIES.md) - Детали правил импортов и ESLint
 - [Composition Layer](./COMPOSITION_LAYER.md) - Подробнее о Composition Root
 - [DDD and Clean Architecture](./DDD_AND_CLEAN_ARCHITECTURE.md) - DDD паттерны
+- **[Platform Configs Architecture](./PLATFORM_CONFIGS_ARCHITECTURE.md)** ⭐ **NEW!** - Platform-specific конфигурации и DI
 
 ### CQRS и обработка данных
 - [Command Bus](./COMMAND_BUS.md) - Паттерн Command Bus для UI команд (CQRS - Commands)

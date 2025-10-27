@@ -6,6 +6,9 @@
   "scripts": {
     "dev:web": "pnpm --filter @password-manager/web dev",
     "build:web": "pnpm --filter @password-manager/web build",
+    "prepare:electron": "./src/presentation/electron/scripts/prepare-web.sh",
+    "build:electron:web": "cd src/presentation/electron/.build/web && pnpm vite build",
+    "build:electron": "pnpm prepare:electron && pnpm build:electron:web",
     "typecheck": "tsc -p src/presentation/web/react/tsconfig.json --noEmit",
     "typecheck:root": "tsc --noEmit",
     "lint": "eslint src --ignore-pattern 'src/presentation'",

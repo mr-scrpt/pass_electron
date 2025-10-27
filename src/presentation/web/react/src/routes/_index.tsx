@@ -1,20 +1,6 @@
 //  src/presentation/web/react/src/routes/_index.tsx
-import { ServiceContainer, ConsoleLogger } from '@/composition'
-import { MockResourceRepository } from '../../../../../infrastructure/repositories'
+import { ServiceContainer } from '@/composition'
 import Home from "./home";
-
-// Инициализация ServiceContainer при первом импорте
-try {
-  const initialized = (ServiceContainer as unknown as { initialized?: boolean }).initialized
-  if (!initialized) {
-    ServiceContainer.initialize({
-      repository: new MockResourceRepository(),
-      logger: new ConsoleLogger()
-    })
-  }
-} catch (error) {
-  console.error('Failed to initialize ServiceContainer:', error)
-}
 
 /**
  * Loader - получение данных на сервере (SSR)

@@ -18,9 +18,11 @@
       "@/*": ["./src/*"],
       "@/domain": ["../../../domain/index.ts"],
       "@/composition": ["../../../composition/index.ts"],
+      "@/composition/*": ["../../../composition/*"],
       "@/application": ["../../../application/index.ts"],
       "@/application/*": ["../../../application/*"],
       "@/infrastructure": ["../../../infrastructure/index.ts"],
+      "@/infrastructure/*": ["../../../infrastructure/*"],
       "@/shared/*": ["../../../shared/*"]
     },
     "esModuleInterop": true,

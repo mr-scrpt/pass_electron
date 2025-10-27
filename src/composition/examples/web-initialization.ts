@@ -8,15 +8,21 @@
 import { ServiceContainer } from '../ServiceContainer'
 import { MockResourceRepository } from '@/infrastructure/repositories'
 import { ConsoleLogger } from '../ConsoleLogger'
+import { WebNotificationManager } from '@/infrastructure/notifications'
+import { ConsoleNotificationManager } from '@/infrastructure/notifications'
 
 /**
  * Инициализация для Web приложения
- * Вызывается ОДИН РАЗ в entry.client.tsx
+ * Вызывается ОДИН РАЗ в entry point (init.ts)
+ * 
+ * ⚠️ Для реального Web приложения нужно создать SonnerNotificationDisplay
+ * из Presentation Layer. Этот пример использует ConsoleNotificationManager.
  */
 export function initializeWebContainer(): void {
   ServiceContainer.initialize({
     repository: new MockResourceRepository(),
-    logger: new ConsoleLogger()
+    logger: new ConsoleLogger(),
+    notificationManager: new ConsoleNotificationManager()
   })
 }
 

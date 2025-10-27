@@ -1,11 +1,12 @@
 import type { IResourceRepository } from '@/domain'
-import type { ILogger } from '@/application/ports'
+import type { ILogger, INotificationManager } from '@/application/ports'
 import type { IQueryBus } from '@/application/queries/IQueryBus'
 import type { ICommandBus } from '@/application/commands/ICommandBus'
 import type { IActionBus } from '@/application/actions'
 import { InMemoryQueryBus } from '@/infrastructure/queries/InMemoryQueryBus'
 import { InMemoryCommandBus } from '@/infrastructure/commands/InMemoryCommandBus'
 import { InMemoryActionBus } from '@/infrastructure/actions'
+import { MockResourceRepository } from '@/infrastructure/repositories'
 import { ResourceModule } from './modules/ResourceModule'
 import { SystemModule } from './modules/SystemModule'
 import { QueryFacade } from './queries'
@@ -18,7 +19,15 @@ import { InfrastructureError } from '@/shared/errors'
 /**
  * Service Container - Root DI Container
  * 
- * Инициализирует модули и регистрирует handlers в Query/Command Bus
+ * Инициализирует модули и регистрирует handlers в Query/Command Bus.
+ * 
+ * ⚠️ ВАЖНО: Управляет БИЗНЕС-СЛОЕМ зависимостями:
+ * - Repository (создает MockResourceRepository)
+ * - Handlers (регистрирует в Bus)
+ * - Bus instances (Query, Command, Action)
+ * 
+ * Platform-specific зависимости (logger, notificationManager) получает извне.
+ * 
  * ✅ Использует инстансы модулей вместо static
  */
 export class ServiceContainer {
@@ -29,24 +38,37 @@ export class ServiceContainer {
   private static queryBus: IQueryBus | null = null
   private static commandBus: ICommandBus | null = null
   private static actionBus: IActionBus | null = null
+  private static notificationManager: INotificationManager | null = null
   private static queryFacade: QueryFacade | null = null
   private static commandFacade: CommandFacade | null = null
   private static initialized = false
 
   /**
    * Инициализация контейнера
-   * Вызывается ОДИН РАЗ при старте приложения (entry point)
+   * 
+   * Принимает ТОЛЬКО platform-specific зависимости:
+   * - logger (console, файловый, remote)
+   * - notificationManager (Web sonner, Electron OS)
+   * 
+   * Бизнес-слой зависимости создает сам:
+   * - repository (MockResourceRepository)
+   * - handlers (через модули)
+   * 
+   * Вызывается ОДИН РАЗ при старте приложения (entry point).
    */
   static initialize(config: {
-    repository: IResourceRepository
     logger: ILogger
+    notificationManager: INotificationManager
   }): void {
     if (this.initialized) return
 
-    // Инициализируем модули (инстансы)
+    // ✅ Создаем бизнес-слой зависимости ЗДЕСЬ (Composition Layer)
+    const repository: IResourceRepository = new MockResourceRepository()
+
+    // Инициализируем модули
     this.systemModule.initialize({ logger: config.logger })
     this.resourceModule.initialize({
-      repository: config.repository,
+      repository,  // ← Создали в Composition Layer
       logger: config.logger
     })
 
@@ -69,6 +91,9 @@ export class ServiceContainer {
     // Создаем Action Bus для Keymap/UI коммуникации
     const actionBus = new InMemoryActionBus()
     this.actionBus = actionBus
+
+    // Сохраняем Notification Manager (создан в entry point)
+    this.notificationManager = config.notificationManager
 
     this.initialized = true
   }
@@ -131,6 +156,40 @@ export class ServiceContainer {
   }
 
   /**
+   * Получить Notification Manager
+   * 
+   * Возвращает Validation монаду с INotificationManager или ошибкой.
+   * Следует монадическому подходу - НЕ throws, а возвращает Result.
+   * 
+   * @returns Validation<IError[], INotificationManager>
+   * 
+   * @example
+   * // Монадический подход:
+   * const result = ServiceContainer.getNotificationManager()
+   * result
+   *   .map(manager => {
+   *     const id = manager.notify({ level: 'success', message: 'Hello!' })
+   *     return id
+   *   })
+   *   .mapLeft(errors => {
+   *     console.error('Failed to get NotificationManager:', errors)
+   *   })
+   */
+  static getNotificationManager(): Validation<IError[], INotificationManager> {
+    return isTrue(
+      this.notificationManager !== null,
+      this.notificationManager!
+    )
+      .valid()
+      .invalid([
+        new InfrastructureError(
+          'ServiceContainer',
+          'Container not initialized. Call initialize() first.'
+        )
+      ])
+  }
+
+  /**
    * Reset для тестов (сбрасываем инстансы)
    */
   static reset(): void {
@@ -139,6 +198,7 @@ export class ServiceContainer {
     this.queryBus = null
     this.commandBus = null
     this.actionBus = null
+    this.notificationManager = null
     this.queryFacade = null
     this.commandFacade = null
     this.initialized = false

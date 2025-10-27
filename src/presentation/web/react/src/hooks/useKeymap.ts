@@ -1,5 +1,3 @@
-// presentation/web/react/hooks/useKeymap.ts
-
 import type {
   Keymap,
   KeymapContext,
@@ -7,17 +5,6 @@ import type {
 import { useEffect, useState } from "react";
 import { useKeymapExecutor, useKeymapRegistry } from "./useKeymapSystems";
 
-/**
- * React hook для регистрации горячих клавиш
- *
- * @example
- * useKeymap({
- *   key: 'Enter',
- *   description: 'Open resource',
- *   context: { route: '/resources', mode: 'navigation' },
- *   action: () => navigate(`/resources/${focusedId}`),
- * })
- */
 export function useKeymap(keymap: Keymap) {
   const registry = useKeymapRegistry();
 
@@ -34,9 +21,6 @@ export function useKeymap(keymap: Keymap) {
   }, [keymap.key, keymap.context.route, keymap.context.mode]);
 }
 
-/**
- * Hook для получения активных клавиш в текущем контексте
- */
 export function useActiveKeymaps(context: KeymapContext): Keymap[] {
   const registry = useKeymapRegistry();
   const [keymaps, setKeymaps] = useState<Keymap[]>([]);
@@ -49,15 +33,11 @@ export function useActiveKeymaps(context: KeymapContext): Keymap[] {
   return keymaps;
 }
 
-/**
- * Hook для обработки событий клавиатуры
- */
 export function useKeymapListener(context: KeymapContext) {
   const executor = useKeymapExecutor();
 
   useEffect(() => {
     const handleKeyPress = async (e: KeyboardEvent) => {
-      // Игнорируем если фокус в input/textarea (кроме navigation mode)
       if (context.mode !== "navigation") {
         const target = e.target as HTMLElement;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
@@ -76,7 +56,6 @@ export function useKeymapListener(context: KeymapContext) {
         context,
       );
 
-      // Предотвратить поведение по умолчанию если обработали
       if (handled) {
         e.preventDefault();
       }
@@ -90,4 +69,3 @@ export function useKeymapListener(context: KeymapContext) {
     return () => window.removeEventListener("keydown", handleKeyPressWrapper);
   }, [context.route, context.mode]);
 }
-

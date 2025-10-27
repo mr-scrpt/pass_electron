@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useLoaderData } from 'react-router'
 import type { ResourceListItemDTO } from '@/application/queries/dtos'
 import { useRandomResourceAction } from '../hooks/useRandomResourceAction'
+import { useKeymapListener } from '../hooks/useKeymap'
 
 /**
  * Home Component - главная страница
@@ -33,7 +34,13 @@ export default function Home() {
   // State для случайно выбранного ресурса
   const [randomResource, setRandomResource] = useState<ResourceListItemDTO | null>(null)
   
-  // ✅ Хук инкапсулирует всю логику DI, монад, Handler'ов
+  // ✅ Активируем систему горячих клавиш
+  useKeymapListener({
+    route: "/",
+    mode: "navigation",
+  })
+  
+  // ✅ Регистрируем Ctrl+I для показа случайного ресурса
   useRandomResourceAction(resources, setRandomResource)
   
   return (
@@ -46,13 +53,19 @@ export default function Home() {
           Press <kbd className="px-2 py-1 bg-ctp-surface0 rounded">Ctrl+I</kbd> to show random resource
         </p>
         
-        {/* Test Notifications Link */}
-        <div className="mb-8">
+        {/* Test Links */}
+        <div className="mb-8 flex gap-4">
           <a
             href="/test-notifications"
             className="inline-block px-4 py-2 bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-pink transition-colors"
           >
-            🧪 Test Notifications (Domain → UI Error Flow)
+            🧪 Test Notifications
+          </a>
+          <a
+            href="/test-keymaps"
+            className="inline-block px-4 py-2 bg-ctp-blue text-ctp-base rounded hover:bg-ctp-sapphire transition-colors"
+          >
+            🎹 Test Keymaps & Errors
           </a>
         </div>
         

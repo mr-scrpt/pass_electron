@@ -1,12 +1,15 @@
 // presentation/web/react/hooks/useKeymap.ts
 
-import { useEffect, useCallback, useState } from 'react'
-import { useKeymapRegistry, useKeymapExecutor } from './useKeymapSystems'
-import type { Keymap, KeymapContext } from '@/presentation/shared/systems/keymap'
+import type {
+  Keymap,
+  KeymapContext,
+} from "@/presentation/shared/systems/keymap";
+import { useEffect, useState } from "react";
+import { useKeymapExecutor, useKeymapRegistry } from "./useKeymapSystems";
 
 /**
  * React hook для регистрации горячих клавиш
- * 
+ *
  * @example
  * useKeymap({
  *   key: 'Enter',
@@ -16,48 +19,49 @@ import type { Keymap, KeymapContext } from '@/presentation/shared/systems/keymap
  * })
  */
 export function useKeymap(keymap: Keymap) {
-  const registry = useKeymapRegistry()
+  const registry = useKeymapRegistry();
 
   useEffect(() => {
-    registry.register(keymap)
+    registry.register(keymap);
 
     return () => {
-      registry.unregister(keymap.key, { 
-        route: keymap.context.route || '', 
-        mode: keymap.context.mode 
-      })
-    }
-  }, [keymap.key, keymap.context.route, keymap.context.mode])
+      const route = keymap.context.route;
+      registry.unregister(keymap.key, {
+        route: typeof route === "string" ? route : route?.source || "",
+        mode: keymap.context.mode,
+      });
+    };
+  }, [keymap.key, keymap.context.route, keymap.context.mode]);
 }
 
 /**
  * Hook для получения активных клавиш в текущем контексте
  */
 export function useActiveKeymaps(context: KeymapContext): Keymap[] {
-  const registry = useKeymapRegistry()
-  const [keymaps, setKeymaps] = useState<Keymap[]>([])
+  const registry = useKeymapRegistry();
+  const [keymaps, setKeymaps] = useState<Keymap[]>([]);
 
   useEffect(() => {
-    const active = registry.findForContext(context)
-    setKeymaps(active)
-  }, [context.route, context.mode])
+    const active = registry.findForContext(context);
+    setKeymaps(active);
+  }, [context.route, context.mode]);
 
-  return keymaps
+  return keymaps;
 }
 
 /**
  * Hook для обработки событий клавиатуры
  */
 export function useKeymapListener(context: KeymapContext) {
-  const executor = useKeymapExecutor()
+  const executor = useKeymapExecutor();
 
   useEffect(() => {
     const handleKeyPress = async (e: KeyboardEvent) => {
       // Игнорируем если фокус в input/textarea (кроме navigation mode)
-      if (context.mode !== 'navigation') {
-        const target = e.target as HTMLElement
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-          return
+      if (context.mode !== "navigation") {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
         }
       }
 
@@ -69,16 +73,17 @@ export function useKeymapListener(context: KeymapContext) {
           altKey: e.altKey,
           metaKey: e.metaKey,
         },
-        context
-      )
+        context,
+      );
 
       // Предотвратить поведение по умолчанию если обработали
       if (handled) {
-        e.preventDefault()
+        e.preventDefault();
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [context.route, context.mode])
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [context.route, context.mode]);
 }
+

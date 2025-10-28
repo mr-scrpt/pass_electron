@@ -30,3 +30,7 @@ export type * from "@/application/ports";
 export type * from "@/application/queries/dto";
 
 export type { CreateResourceCommand } from "@/application/commands";
+
+// Infrastructure types (для platform configs)
+export type { INotificationDisplay } from "@/infrastructure/notifications/INotificationDisplay";
+export { WebNotificationManager } from "@/infrastructure/notifications/WebNotificationManager";

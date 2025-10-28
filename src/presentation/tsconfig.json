@@ -7,23 +7,24 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    
+
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    
+
     // ✅ Composite mode для использования в других проектах
     "composite": true,
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    
+
     "baseUrl": ".",
     "paths": {
       // ✅ DDD слои (для platform-configs нужен доступ к ILogger и т.д.)
-      "@/main/application/*": ["../application/*"],
-      
+      // "@/main/application/*": ["../application/*"],
+      "@/main/composition": ["../composition/index.ts"],
+
       // ✅ Presentation shared (переиспользуемые модули)
       "@/platform": ["./shared/platform/index.ts"],
       "@/platform/*": ["./shared/platform/*"],
@@ -31,19 +32,11 @@
       "@/systems/*": ["./shared/systems/*"]
     }
   },
-  
-  "include": [
-    "shared/**/*.ts"
-  ],
-  
-  "exclude": [
-    "node_modules",
-    "web",
-    "electron"
-  ],
-  
+
+  "include": ["shared/**/*.ts"],
+
+  "exclude": ["web", "electron"],  // ← Убрали node_modules из exclude
+
   // ✅ Reference на DDD слои
-  "references": [
-    { "path": "../../tsconfig.json" }
-  ]
+  "references": [{ "path": "../../tsconfig.json" }]
 }

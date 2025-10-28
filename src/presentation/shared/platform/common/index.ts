@@ -1,40 +1,15 @@
-import type { ILogger } from '@/main/application/ports'
+import type { ILogger } from "@/main/composition";
 
-/**
- * Common Platform Dependencies
- * 
- * Базовые PLATFORM-SPECIFIC зависимости для ВСЕХ платформ.
- * 
- * ⚠️ ВАЖНО: Здесь ТОЛЬКО platform-specific зависимости!
- * - Logger (console, файловый, remote)
- * - Другие platform-specific сервисы
- * 
- * ❌ НЕ включаем бизнес-слой зависимости:
- * - Repository - управляется Composition Layer (ServiceContainer)
- * - Handlers - управляются Composition Layer
- * 
- * @layer Platform Configs (Common)
- */
 export interface CommonDependencies {
-  logger: ILogger
+  logger: ILogger;
 }
 
-/**
- * Create Common Dependencies
- * 
- * Создает базовые platform-specific зависимости:
- * - ConsoleLogger (дефолтный для всех платформ)
- * 
- * Platform-specific конфиги могут ПЕРЕОПРЕДЕЛИТЬ logger,
- * например, Electron может заменить на файловый.
- */
 export function createCommonDependencies(): CommonDependencies {
-  console.log('[Platform Config] 📦 Loading COMMON dependencies')
-  
-  // Logger: Console (дефолтный для всех, можно переопределить)
-  const logger = createConsoleLogger()
-  
-  return { logger }
+  console.log("[Platform Config] 📦 Loading COMMON dependencies");
+
+  const logger = createConsoleLogger();
+
+  return { logger };
 }
 
 function createConsoleLogger(): ILogger {

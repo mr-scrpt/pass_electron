@@ -1,3 +1,3 @@
 packages:
-  - 'src/presentation/platform-configs'
+  - 'src/presentation/shared/platform'
   - 'src/presentation/web/react'

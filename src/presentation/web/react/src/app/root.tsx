@@ -1,27 +1,23 @@
-//  src/presentation/web/react/src/root.tsx
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteError, isRouteErrorResponse } from "react-router";
-import { Toaster } from "sonner";
-import { initializeApp } from "./init";
-import { createPlatformDependencies } from "../configs/platform.config";
-import { NotificationProvider } from "./contexts/NotificationContext";
-import "./styles/tailwind.css";
+//  src/presentation/web/react/src/app/root.tsx
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useRouteError,
+  isRouteErrorResponse,
+} from "react-router";
 
-/**
- * ✅ ЕДИНСТВЕННОЕ место инициализации ServiceContainer
- * 
- * 1. Получаем platform-specific зависимости (logger, notificationManager)
- * 2. Передаем в initializeApp
- * 3. ServiceContainer создает бизнес-слой (repository, handlers)
- * 
- * React НЕ знает какая платформа (Web или Electron).
- */
-const deps = createPlatformDependencies();
-const appServices = initializeApp(deps);
+// ✅ Инициализация приложения (выполняется и на сервере и на клиенте)
+import "./setup";
+
+import "../styles/tailwind.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
+      <head suppressHydrationWarning>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
@@ -30,13 +26,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="bg-ctp-base text-ctp-text">
         {children}
-        <Toaster 
-          position="top-right"
-          richColors
-          theme="dark"
-          expand={false}
-          duration={4000}
-        />
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -45,31 +34,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
-  return (
-    <NotificationProvider manager={appServices.notificationManager}>
-      <Outlet />
-    </NotificationProvider>
-  );
+  return <Outlet />;
 }
 
-/**
- * Root ErrorBoundary - перехватывает все необработанные ошибки
- * 
- * Автоматически вызывается React Router когда:
- * - loader/action выбрасывает ошибку
- * - компонент роута выбрасывает ошибку
- * - любой дочерний компонент выбрасывает ошибку
- * 
- * @layer Presentation
- */
 export function ErrorBoundary() {
   const error = useRouteError();
 
-  // ❌ НЕ можем использовать useNotificationManager здесь!
-  // ErrorBoundary рендерится ВМЕСТО Root, то есть ВНЕ NotificationProvider
-  // Уведомления показывать нельзя, только UI
-
-  // HTTP ошибки (404, 500, etc)
   if (isRouteErrorResponse(error)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ctp-base">
@@ -86,7 +56,6 @@ export function ErrorBoundary() {
     );
   }
 
-  // JavaScript ошибки
   if (error instanceof Error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-ctp-base p-8">
@@ -116,7 +85,6 @@ export function ErrorBoundary() {
     );
   }
 
-  // Неизвестные ошибки
   return (
     <div className="min-h-screen flex items-center justify-center bg-ctp-base">
       <div className="text-center">

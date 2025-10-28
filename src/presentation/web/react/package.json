@@ -23,6 +23,7 @@
   "devDependencies": {
     "@catppuccin/tailwindcss": "^1.0.0",
     "@react-router/dev": "^7.9.2",
+    "@react-router/fs-routes": "^7.9.4",
     "@tailwindcss/vite": "^4.1.13",
     "@tanstack/react-query-devtools": "^5.90.2",
     "@types/node": "^22",

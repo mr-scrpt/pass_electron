@@ -14,44 +14,20 @@ type Pages = {
   "/": {
     params: {};
   };
-  "/test-notifications": {
-    params: {};
-  };
-  "/test-keymaps": {
-    params: {};
-  };
-  "/test-error": {
-    params: {};
-  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/test-notifications" | "/test-keymaps" | "/test-error";
-  };
-  "routes/_index.tsx": {
-    id: "routes/_index";
     page: "/";
   };
-  "routes/test-notifications.tsx": {
-    id: "routes/test-notifications";
-    page: "/test-notifications";
-  };
-  "routes/test-keymaps.tsx": {
-    id: "routes/test-keymaps";
-    page: "/test-keymaps";
-  };
-  "routes/test-error.tsx": {
-    id: "routes/test-error";
-    page: "/test-error";
+  "page/_index.tsx": {
+    id: "page/_index";
+    page: "/";
   };
 };
 
 type RouteModules = {
-  "root": typeof import("./src/root.tsx");
-  "routes/_index": typeof import("./src/routes/_index.tsx");
-  "routes/test-notifications": typeof import("./src/routes/test-notifications.tsx");
-  "routes/test-keymaps": typeof import("./src/routes/test-keymaps.tsx");
-  "routes/test-error": typeof import("./src/routes/test-error.tsx");
+  "root": typeof import("./src/app/root.tsx");
+  "page/_index": typeof import("./src/app/page/_index.tsx");
 };

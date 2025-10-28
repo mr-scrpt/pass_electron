@@ -1,15 +1,18 @@
+//  src/presentation/shared/platform/web/index.ts
 import { SonnerNotificationDisplay } from "./adapters/SonnerNotificationDisplay";
-import { WebNotificationManager } from "@/infrastructure/notifications";
 import { createCommonDependencies } from "../common";
-import type { INotificationManager } from "@/application/ports";
-import type { ILogger } from "@/application/ports";
+import {
+  INotificationManager,
+  ILogger,
+  WebNotificationManager,
+} from "@/main/composition";
 
-export interface PlatformDependencies {
+export interface WebDependencies {
   notificationManager: INotificationManager;
   logger: ILogger;
 }
 
-export function createPlatformDependencies(): PlatformDependencies {
+export function createWebDependencies(): WebDependencies {
   console.log("[Platform Config] 🌐 Loading WEB configuration");
 
   const common = createCommonDependencies();

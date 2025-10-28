@@ -1,18 +1,21 @@
 import type { IResourceRepository } from "@/domain";
 import type { ILogger } from "@/application/ports";
-import type { IQueryBus } from "@/application/queries/IQueryBus";
 import type { ICommandBus } from "@/application/commands/ICommandBus";
 import {
   CreateResourceCommandHandler,
-  ListResourcesQueryHandler,
+  ResourceListQueryHandler,
 } from "@/application";
-import type { ListResourcesQuery, CreateResourceCommand } from "@/application";
-import type { ResourceListItemDTO } from "@/application/queries/dtos";
-import { BaseModule } from './BaseModule';
+import type {
+  ListResourcesQuery,
+  CreateResourceCommand,
+  IQueryBus,
+} from "@/application";
+import type { ResourceItemListDTO } from "@/application/queries/";
+import { BaseModule } from "./BaseModule";
 
 /**
  * Resource Module - DI для Resource сущности
- * 
+ *
  * Наследует BaseModule для унификации структуры модулей
  * ✅ Монадический подход через checkInitialization()
  */
@@ -31,12 +34,12 @@ export class ResourceModule extends BaseModule<
   }
 
   registerQueryHandlers(queryBus: IQueryBus): void {
-    queryBus.register<ListResourcesQuery, ResourceListItemDTO[]>(
+    queryBus.register<ListResourcesQuery, ResourceItemListDTO[]>(
       "ListResourcesQuery",
       async (query) => {
         return this.checkInitialization().asyncChain(
           async ({ repository, logger }) => {
-            const handler = new ListResourcesQueryHandler(repository, logger);
+            const handler = new ResourceListQueryHandler(repository, logger);
             return handler.handle(query);
           },
         );
@@ -60,5 +63,4 @@ export class ResourceModule extends BaseModule<
       },
     );
   }
-
 }

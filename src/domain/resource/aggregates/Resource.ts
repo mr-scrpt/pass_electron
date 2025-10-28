@@ -1,3 +1,4 @@
+//  src/domain/resource/aggregates/Resource.ts
 import { ResourceId, ResourceName, Namespace } from "../value-objects";
 import type { Validation } from "@/shared/validation";
 import { ValidationCombinators } from "@/shared/validation";
@@ -29,10 +30,6 @@ export class Resource {
     this.updatedAt = props.updatedAt;
   }
 
-  /**
-   * Создание нового Resource с валидацией
-   * Используется в Command Handlers для создания новых ресурсов
-   */
   static create(
     namespace: Validation<ValidationError[], Namespace>,
     name: Validation<ValidationError[], ResourceName>,
@@ -51,12 +48,6 @@ export class Resource {
     );
   }
 
-  /**
-   * Восстановление Resource из хранилища БЕЗ валидации
-   * Используется в Repository для reconstitution из БД
-   * 
-   * ⚠️ Предполагается что данные уже валидны (прошли валидацию при создании)
-   */
   static reconstitute(data: {
     id: string;
     namespace: string;

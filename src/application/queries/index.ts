@@ -1,10 +1,8 @@
-/**
- * Application Layer - Queries Public API
- */
+export { ResourceListQueryHandler } from "./handlers/ResourceListQuery.handler";
 
-export type { IQuery } from "./IQuery";
-export type { IQueryHandler } from "./IQueryHandler";
-export { ListResourcesQuery } from "./ListResourcesQuery";
+export type { IQuery } from "./type/IQuery";
+export type { IQueryBus } from "./type/IQueryBus";
+export type { IQueryHandler } from "./type/IQueryHandler";
 
-// Handlers
-export { ListResourcesQueryHandler } from "./handlers/ListResourcesQueryHandler";
+export type { ResourceItemListDTO } from "./dto/ResourceItemList.dto";
+export { ResourceListQuery as ListResourcesQuery } from "./type/ListResourcesQuery";

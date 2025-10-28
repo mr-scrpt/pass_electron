@@ -1,3 +1,4 @@
+//  src/application/queries/handlers/ListResourcesQueryHandler.ts
 import { BaseQueryHandler } from "@/application/shared/BaseQueryHandler";
 import type { ILogger } from "@/application/ports";
 import type { IResourceRepository } from "@/domain";
@@ -6,19 +7,19 @@ import type { Validation } from "@/shared/validation";
 import { valid } from "@/shared/validation";
 import type { IError } from "@/shared/errors";
 import { Pipeline } from "@/shared/pipeline";
-import type { IQueryHandler } from "../IQueryHandler";
-import type { ListResourcesQuery } from "../ListResourcesQuery";
-import type { ResourceListItemDTO } from "../dtos/ResourceListItemDTO";
+import { IQueryHandler } from "../type/IQueryHandler";
+import { ResourceListQuery } from "../type/ListResourcesQuery";
+import { ResourceItemListDTO } from "../dto/ResourceItemList.dto";
 
-interface ListResourcesContext {
-  query: ListResourcesQuery;
+interface ResourceListContext {
+  query: ResourceListQuery;
   resources?: Resource[];
-  dtos?: ResourceListItemDTO[];
+  dtos?: ResourceItemListDTO[];
 }
 
-export class ListResourcesQueryHandler
+export class ResourceListQueryHandler
   extends BaseQueryHandler
-  implements IQueryHandler<ListResourcesQuery, ResourceListItemDTO[]>
+  implements IQueryHandler<ResourceListQuery, ResourceItemListDTO[]>
 {
   constructor(
     private readonly repository: IResourceRepository,
@@ -28,37 +29,37 @@ export class ListResourcesQueryHandler
   }
 
   async handle(
-    query: ListResourcesQuery,
-  ): Promise<Validation<IError[], ResourceListItemDTO[]>> {
-    return (await new Pipeline<ListResourcesContext>()
-      .step((ctx) => this.fetchResources(ctx))
-      .step((ctx) => this.transformToDTOs(ctx))
-      .execute({ query }))
-      .map((ctx) => ctx.dtos!);
+    query: ResourceListQuery,
+  ): Promise<Validation<IError[], ResourceItemListDTO[]>> {
+    return (
+      await new Pipeline<ResourceListContext>()
+        .step((ctx) => this.fetchResources(ctx))
+        .step((ctx) => this.transformToDTOs(ctx))
+        .execute({ query })
+    ).map((ctx) => ctx.dtos!);
   }
 
   private async fetchResources(
-    ctx: ListResourcesContext,
-  ): Promise<Validation<IError[], ListResourcesContext>> {
+    ctx: ResourceListContext,
+  ): Promise<Validation<IError[], ResourceListContext>> {
     return this.handleInfrastructureErrors(
       await this.repository.findAll(),
-      "fetch resources"
-    )
-      .map((resources) => ({ ...ctx, resources }));
+      "fetch resources",
+    ).map((resources) => ({ ...ctx, resources }));
   }
 
   private transformToDTOs(
-    ctx: ListResourcesContext,
-  ): Promise<Validation<IError[], ListResourcesContext>> {
+    ctx: ResourceListContext,
+  ): Promise<Validation<IError[], ResourceListContext>> {
     return Promise.resolve(
       valid({
         ...ctx,
         dtos: ctx.resources!.map((resource) => this.toDTO(resource)),
-      })
+      }),
     );
   }
 
-  private toDTO(resource: Resource): ResourceListItemDTO {
+  private toDTO(resource: Resource): ResourceItemListDTO {
     return {
       id: resource.id.getValue(),
       namespace: resource.namespace.getValue(),

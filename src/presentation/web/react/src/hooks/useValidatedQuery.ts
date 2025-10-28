@@ -1,6 +1,6 @@
-import { useQuery, type UseQueryResult, type UseQueryOptions } from '@tanstack/react-query'
-import type { Validation } from '@/shared/validation'
-import type { IError } from '@/shared/errors'
+import { useQuery, type UseQueryOptions, type UseQueryResult } from '@tanstack/react-query'
+import type { Validation } from '@/main/shared'
+import type { IError } from '@/main/shared/errors'
 
 /**
  * useValidatedQuery - wrapper над useQuery для Validation<IError[], T>

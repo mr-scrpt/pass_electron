@@ -1,11 +1,5 @@
+//  src/presentation/web/react/tsconfig.json
 {
-  "include": [
-    "**/*",
-    "**/.server/**/*",
-    "**/.client/**/*",
-    ".react-router/types/**/*",
-    "../../shared/**/*"
-  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["node", "vite/client"],
@@ -16,18 +10,19 @@
     "rootDirs": [".", "./.react-router/types"],
     "baseUrl": ".",
     "paths": {
+      // ✅ FSD слои (React код)
       "@/*": ["./src/*"],
-      "@/domain": ["../../../domain/index.ts"],
-      "@/domain/*": ["../../../domain/*"],
-      "@/composition": ["../../../composition/index.ts"],
-      "@/composition/*": ["../../../composition/*"],
-      "@/application": ["../../../application/index.ts"],
-      "@/application/*": ["../../../application/*"],
-      "@/infrastructure": ["../../../infrastructure/index.ts"],
-      "@/infrastructure/*": ["../../../infrastructure/*"],
-      "@/shared": ["../../../shared/index.ts"],
-      "@/shared/*": ["../../../shared/*"],
-      "@/presentation/shared/systems/*": ["../../shared/systems/*"]
+      
+      // ✅ DDD слои - ЕДИНСТВЕННЫЕ точки входа
+      "@/main/composition": ["../../../composition/index.ts"],
+      "@/main/shared": ["../../../shared/index.ts"],
+      "@/main/shared/*": ["../../../shared/*"],
+      
+      // ✅ Presentation shared (переиспользуемые между платформами)  
+      "@/platform": ["../../shared/platform/index.ts"],
+      "@/platform/*": ["../../shared/platform/*"],
+      "@/systems": ["../../shared/systems/index.ts"],
+      "@/systems/*": ["../../shared/systems/*"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
@@ -35,5 +30,19 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true
-  }
+  },
+  
+  // ✅ Project Reference только на DDD слои (presentation включаем напрямую)
+  "references": [
+    { "path": "../../../../tsconfig.json" }      // DDD слои
+  ],
+  
+  "include": [
+    "**/*",
+    "**/.server/**/*",
+    "**/.client/**/*",
+    ".react-router/types/**/*",
+    "../../shared/systems/**/*",  // ← Включаем systems напрямую
+    "../../shared/platform/**/*"  // ← Включаем platform напрямую
+  ]
 }

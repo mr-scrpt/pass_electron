@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useModalStateMachine } from './useKeymapSystems'
-import type { ModeState } from '@/presentation/shared/systems/modal'
+import type { ModeState } from '@/systems/modal'
 
 /**
  * React hook для работы с модальными режимами

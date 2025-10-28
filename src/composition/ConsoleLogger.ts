@@ -1,10 +1,5 @@
 import type { ILogger } from "@/application/ports";
 
-/**
- * Console Logger - простая реализация ILogger для разработки
- * 
- * Выводит логи в console с цветным форматированием
- */
 export class ConsoleLogger implements ILogger {
   info(message: string, context?: Record<string, unknown>): void {
     console.log(`ℹ️ [INFO] ${message}`, context || "");

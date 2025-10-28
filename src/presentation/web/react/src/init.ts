@@ -1,5 +1,8 @@
-import { ServiceContainer } from "@/composition";
-import type { INotificationManager, ILogger } from "@/application/ports";
+import {
+  initializeContainer,
+  type ILogger,
+  type INotificationManager,
+} from "@/main/composition";
 
 export interface PlatformDependencies {
   notificationManager: INotificationManager;
@@ -11,7 +14,7 @@ interface AppServices {
 }
 
 export function initializeApp(deps: PlatformDependencies): AppServices {
-  ServiceContainer.initialize({
+  initializeContainer({
     notificationManager: deps.notificationManager,
     logger: deps.logger,
   });

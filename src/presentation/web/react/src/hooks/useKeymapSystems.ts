@@ -1,8 +1,8 @@
 // presentation/web/react/hooks/useKeymapSystems.ts
 
 import { useMemo } from 'react'
-import { KeymapRegistry, KeymapExecutor } from '@/presentation/shared/systems/keymap'
-import { ModalStateMachine } from '@/presentation/shared/systems/modal'
+import { KeymapRegistry, KeymapExecutor } from '@/systems/keymap'
+import { ModalStateMachine } from '@/systems/modal'
 
 // Singleton instances
 let keymapRegistry: KeymapRegistry | null = null

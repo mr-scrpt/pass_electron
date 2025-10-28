@@ -1,3 +1,4 @@
+//  src/composition/ServiceContainer.ts
 import type { IResourceRepository } from "@/domain";
 import type { ILogger, INotificationManager } from "@/application/ports";
 import type { IQueryBus } from "@/application/queries";
@@ -42,18 +43,16 @@ export class ServiceContainer {
       logger: config.logger,
     });
 
-    const queryBus = new InMemoryQueryBus();
-    this.resourceModule.registerQueryHandlers(queryBus);
-    this.systemModule.registerQueryHandlers(queryBus);
-    this.queryBus = queryBus;
+    this.queryBus = new InMemoryQueryBus();
+    this.resourceModule.registerQueryHandlers(this.queryBus);
+    this.systemModule.registerQueryHandlers(this.queryBus);
 
-    const commandBus = new InMemoryCommandBus();
-    this.resourceModule.registerCommandHandlers(commandBus);
-    this.systemModule.registerCommandHandlers(commandBus);
-    this.commandBus = commandBus;
+    this.commandBus = new InMemoryCommandBus();
+    this.resourceModule.registerCommandHandlers(this.commandBus);
+    this.systemModule.registerCommandHandlers(this.commandBus);
 
-    this.queryFacade = new QueryFacade(queryBus);
-    this.commandFacade = new CommandFacade(commandBus);
+    this.queryFacade = new QueryFacade(this.queryBus);
+    this.commandFacade = new CommandFacade(this.commandBus);
 
     const actionBus = new InMemoryActionBus();
     this.actionBus = actionBus;

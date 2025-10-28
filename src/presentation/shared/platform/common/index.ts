@@ -1,4 +1,4 @@
-import type { ILogger } from '@/application/ports'
+import type { ILogger } from '@/main/application/ports'
 
 /**
  * Common Platform Dependencies

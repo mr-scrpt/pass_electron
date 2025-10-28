@@ -1,7 +1,7 @@
 // presentation/web/react/hooks/useFocus.ts
 
 import { useState, useEffect, useCallback } from 'react'
-import { FocusManager } from '@/presentation/shared/systems/focus'
+import { FocusManager } from '@/systems/focus'
 
 /**
  * React hook для управления фокусом в списке

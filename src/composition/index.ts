@@ -1,41 +1,32 @@
-import { ServiceContainer as ServiceContainerClass } from "./ServiceContainer";
+import { Validation } from "@/shared";
+import { ServiceContainer } from "./ServiceContainer";
+import { IError } from "@/shared/errors";
+import { QueryFacade } from "./queries";
+import { CommandFacade } from "./commands";
+import type { INotificationManager, ILogger } from "@/application/ports";
 
-export { ServiceContainer } from "./ServiceContainer";
-export { ConsoleLogger } from "./ConsoleLogger";
-export { BaseModule } from "./modules/BaseModule";
-export { ResourceModule } from "./modules/ResourceModule";
-export { SystemModule } from "./modules/SystemModule";
-export { QueryFacade } from "./queries";
-export { CommandFacade } from "./commands";
-
-export function getQueries() {
-  const result = ServiceContainerClass.getQueries();
-
-  if (result.isLeft()) {
-    throw new Error("ServiceContainer not initialized");
-  }
-
-  return result.value;
+export function initializeContainer(deps: PlatformDependencies): void {
+  ServiceContainer.initialize(deps);
 }
 
-export function getCommands() {
-  const result = ServiceContainerClass.getCommands();
-
-  if (result.isLeft()) {
-    throw new Error("ServiceContainer not initialized");
-  }
-
-  return result.value;
+export interface PlatformDependencies {
+  notificationManager: INotificationManager;
+  logger: ILogger;
 }
 
-export const queries = {
-  list: () => getQueries().list(),
-};
+export function getValidatedQueries(): Validation<IError[], QueryFacade> {
+  return ServiceContainer.getQueries();
+}
 
-export const commands = {
-  createResource: (params: {
-    namespace: string;
-    name: string;
-    secret: string;
-  }) => getCommands().createResource(params),
-};
+export function getValidatedCommands(): Validation<IError[], CommandFacade> {
+  return ServiceContainer.getCommands();
+}
+
+export type { QueryFacade } from "./queries";
+export type { CommandFacade } from "./commands";
+
+export type * from "@/application/ports";
+
+export type * from "@/application/queries/dto";
+
+export type { CreateResourceCommand } from "@/application/commands";

@@ -1,4 +1,3 @@
-//  src/application/queries/handlers/ListResourcesQueryHandler.ts
 import { BaseQueryHandler } from "@/application/shared/BaseQueryHandler";
 import type { ILogger } from "@/application/ports";
 import type { IResourceRepository } from "@/domain";
@@ -13,14 +12,19 @@ import { ResourceItemListDTO } from "../dto/ResourceItemList.dto";
 
 interface ResourceListContext {
   query: ResourceListQuery;
-  resources?: Resource[];
-  dtos?: ResourceItemListDTO[];
+  resources: Resource[];
+  dtos: ResourceItemListDTO[];
 }
 
 export class ResourceListQueryHandler
   extends BaseQueryHandler
   implements IQueryHandler<ResourceListQuery, ResourceItemListDTO[]>
 {
+  private static readonly initialContextDefaults = {
+    resources: [],
+    dtos: [],
+  };
+
   constructor(
     private readonly repository: IResourceRepository,
     logger: ILogger,
@@ -34,9 +38,12 @@ export class ResourceListQueryHandler
     return (
       await new Pipeline<ResourceListContext>()
         .step((ctx) => this.fetchResources(ctx))
-        .step((ctx) => this.transformToDTOs(ctx))
-        .execute({ query })
-    ).map((ctx) => ctx.dtos!);
+        .criticalStep(
+          (ctx) => this.transformToDTOs(ctx),
+          "DTO transformation skipped due to data fetching errors",
+        )
+        .execute({ query, ...ResourceListQueryHandler.initialContextDefaults })
+    ).map((ctx) => ctx.dtos ?? []);
   }
 
   private async fetchResources(
@@ -51,10 +58,14 @@ export class ResourceListQueryHandler
   private transformToDTOs(
     ctx: ResourceListContext,
   ): Promise<Validation<IError[], ResourceListContext>> {
+    const dtos = ctx.resources
+      ? ctx.resources.map((resource) => this.toDTO(resource))
+      : [];
+
     return Promise.resolve(
       valid({
         ...ctx,
-        dtos: ctx.resources!.map((resource) => this.toDTO(resource)),
+        dtos,
       }),
     );
   }

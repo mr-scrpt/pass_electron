@@ -1,48 +1,28 @@
-//  src/presentation/web/react/src/routes/home.tsx
-import { useState } from 'react'
-import { useLoaderData } from 'react-router'
-import type { ResourceListItemDTO } from '@/application/queries/dtos'
-import { useRandomResourceAction } from '../hooks/useRandomResourceAction'
-import { useKeymapListener } from '../hooks/useKeymap'
-
-/**
- * Home Component - главная страница
- * 
- * ✅ Чистый презентационный компонент:
- * - Использует кастомные хуки
- * - Получает данные из loader
- * - Отображает UI
- * 
- * ❌ НЕ знает о:
- * - ServiceContainer
- * - Монадах
- * - DI
- * - Handler классах
- * 
- * @layer Presentation
- */
+import { useState } from "react";
+import { useLoaderData } from "react-router";
+import { useRandomResourceAction } from "../hooks/useRandomResourceAction";
+import { useKeymapListener } from "../hooks/useKeymap";
+import type { ResourceItemListDTO } from "@/application";
 
 interface LoaderData {
-  resources?: ResourceListItemDTO[]
-  errors?: unknown
+  resources?: ResourceItemListDTO[];
+  errors?: unknown;
 }
 
 export default function Home() {
-  const data = useLoaderData<LoaderData>()
-  const resources = data.resources ?? []
-  
-  // State для случайно выбранного ресурса
-  const [randomResource, setRandomResource] = useState<ResourceListItemDTO | null>(null)
-  
-  // ✅ Активируем систему горячих клавиш
+  const data = useLoaderData<LoaderData>();
+  const resources = data.resources ?? [];
+
+  const [randomResource, setRandomResource] =
+    useState<ResourceItemListDTO | null>(null);
+
   useKeymapListener({
     route: "/",
     mode: "navigation",
-  })
-  
-  // ✅ Регистрируем Ctrl+I для показа случайного ресурса
-  useRandomResourceAction(resources, setRandomResource)
-  
+  });
+
+  useRandomResourceAction(resources, setRandomResource);
+
   return (
     <div className="min-h-screen bg-ctp-base p-8">
       <div className="max-w-4xl mx-auto">
@@ -50,10 +30,11 @@ export default function Home() {
           Password Manager
         </h1>
         <p className="text-ctp-subtext0 mb-4">
-          Press <kbd className="px-2 py-1 bg-ctp-surface0 rounded">Ctrl+I</kbd> to show random resource
+          Press <kbd className="px-2 py-1 bg-ctp-surface0 rounded">Ctrl+I</kbd>{" "}
+          to show random resource
         </p>
-        
-        {/* Test Links */}
+
+        {}
         <div className="mb-8 flex gap-4">
           <a
             href="/test-notifications"
@@ -68,8 +49,8 @@ export default function Home() {
             🎹 Test Keymaps & Errors
           </a>
         </div>
-        
-        {/* Random Resource Highlight */}
+
+        {}
         {randomResource && (
           <div className="mb-8 p-4 bg-ctp-yellow/10 border-2 border-ctp-yellow rounded-lg">
             <div className="flex items-center gap-2 mb-2">
@@ -79,8 +60,9 @@ export default function Home() {
               </h2>
             </div>
             <div className="text-ctp-text">
-              <span className="text-ctp-subtext0">[{randomResource.namespace}]</span>
-              {' '}
+              <span className="text-ctp-subtext0">
+                [{randomResource.namespace}]
+              </span>{" "}
               <span className="font-medium">{randomResource.name}</span>
             </div>
             <button
@@ -91,17 +73,19 @@ export default function Home() {
             </button>
           </div>
         )}
-        
-        {/* Resources List */}
+
+        {}
         <div>
           <h2 className="text-2xl font-semibold text-ctp-text mb-4">
             Resources ({resources.length})
           </h2>
           {resources.length === 0 ? (
-            <p className="text-ctp-subtext0">No resources yet. Create one to get started!</p>
+            <p className="text-ctp-subtext0">
+              No resources yet. Create one to get started!
+            </p>
           ) : (
             <ul className="space-y-2">
-              {resources.map(resource => (
+              {resources.map((resource) => (
                 <li
                   key={resource.id}
                   className={
@@ -111,8 +95,9 @@ export default function Home() {
                   }
                 >
                   <div className="text-ctp-text">
-                    <span className="text-ctp-subtext0">[{resource.namespace}]</span>
-                    {' '}
+                    <span className="text-ctp-subtext0">
+                      [{resource.namespace}]
+                    </span>{" "}
                     <span className="font-medium">{resource.name}</span>
                   </div>
                 </li>

@@ -1,28 +1,49 @@
+//  src/presentation/tsconfig.json
+// Конфигурация для presentation/shared и platform-configs
 {
-  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "../..",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // ✅ Composite mode для использования в других проектах
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    
+    "baseUrl": ".",
     "paths": {
-      "@/domain": ["./src/domain/index.ts"],
-      "@/domain/*": ["./src/domain/*"],
-      "@/application": ["./src/application/index.ts"],
-      "@/application/*": ["./src/application/*"],
-      "@/infrastructure": ["./src/infrastructure/index.ts"],
-      "@/infrastructure/*": ["./src/infrastructure/*"],
-      "@/composition": ["./src/composition/index.ts"],
-      "@/composition/*": ["./src/composition/*"],
-      "@/shared": ["./src/shared/index.ts"],
-      "@/shared/*": ["./src/shared/*"],
-      "@/presentation/*": ["./src/presentation/*"],
-      "@/presentation/shared/systems/*": ["./src/presentation/shared/systems/*"]
+      // ✅ DDD слои (для platform-configs нужен доступ к ILogger и т.д.)
+      "@/main/application/*": ["../application/*"],
+      
+      // ✅ Presentation shared (переиспользуемые модули)
+      "@/platform": ["./shared/platform/index.ts"],
+      "@/platform/*": ["./shared/platform/*"],
+      "@/systems": ["./shared/systems/index.ts"],
+      "@/systems/*": ["./shared/systems/*"]
     }
   },
+  
   "include": [
-    "shared/**/*.ts",
-    "platform-configs/**/*.ts"
+    "shared/**/*.ts"
   ],
+  
   "exclude": [
     "node_modules",
-    "web"
+    "web",
+    "electron"
+  ],
+  
+  // ✅ Reference на DDD слои
+  "references": [
+    { "path": "../../tsconfig.json" }
   ]
 }

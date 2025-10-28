@@ -11,7 +11,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "noEmit": true,
+    
+    // ✅ Composite mode для Project References
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
     
     "baseUrl": ".",
     "paths": {

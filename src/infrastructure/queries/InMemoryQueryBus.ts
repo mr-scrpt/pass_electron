@@ -1,43 +1,40 @@
-import type { IQueryBus } from '@/application/queries/IQueryBus'
-import type { IQuery } from '@/application/queries/IQuery'
-import type { Validation } from '@/shared/validation'
-import { invalid } from '@/shared/validation'
-import type { IError } from '@/shared/errors'
-import { InfrastructureError } from '@/shared/errors'
+import type { Validation } from "@/shared/validation";
+import { invalid } from "@/shared/validation";
+import type { IError } from "@/shared/errors";
+import { InfrastructureError } from "@/shared/errors";
+import { IQueryBus, IQuery } from "@/application";
 
-/**
- * In-Memory Query Bus implementation
- * 
- * Хранит handlers в Map и диспатчит queries
- */
 export class InMemoryQueryBus implements IQueryBus {
   private readonly handlers = new Map<
     string,
     (query: IQuery) => Promise<Validation<IError[], unknown>>
-  >()
+  >();
 
   register<TQuery extends IQuery, TResult>(
     queryType: string,
-    handler: (query: TQuery) => Promise<Validation<IError[], TResult>>
+    handler: (query: TQuery) => Promise<Validation<IError[], TResult>>,
   ): void {
-    this.handlers.set(queryType, handler as (query: IQuery) => Promise<Validation<IError[], unknown>>)
+    this.handlers.set(
+      queryType,
+      handler as (query: IQuery) => Promise<Validation<IError[], unknown>>,
+    );
   }
 
   async execute<TResult>(
-    query: IQuery
+    query: IQuery,
   ): Promise<Validation<IError[], TResult>> {
-    const handler = this.handlers.get(query.type)
+    const handler = this.handlers.get(query.type);
 
     if (!handler) {
       return invalid([
         new InfrastructureError(
-          'QueryBus',
+          "QueryBus",
           `No handler registered for query type: ${query.type}`,
-          { queryType: query.type }
-        )
-      ])
+          { queryType: query.type },
+        ),
+      ]);
     }
 
-    return handler(query) as Promise<Validation<IError[], TResult>>
+    return handler(query) as Promise<Validation<IError[], TResult>>;
   }
 }

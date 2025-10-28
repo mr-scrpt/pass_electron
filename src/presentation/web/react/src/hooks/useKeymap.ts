@@ -1,7 +1,7 @@
 import type {
   Keymap,
   KeymapContext,
-} from "@/presentation/shared/systems/keymap";
+} from "@/systems/keymap";
 import { useEffect, useState } from "react";
 import { useKeymapExecutor, useKeymapRegistry } from "./useKeymapSystems";
 

@@ -1,3 +1,4 @@
+//  src/composition/modules/ResourceModule.ts
 import type { IResourceRepository } from "@/domain";
 import type { ILogger } from "@/application/ports";
 import type { ICommandBus } from "@/application/commands/ICommandBus";
@@ -13,19 +14,10 @@ import type {
 import type { ResourceItemListDTO } from "@/application/queries/";
 import { BaseModule } from "./BaseModule";
 
-/**
- * Resource Module - DI для Resource сущности
- *
- * Наследует BaseModule для унификации структуры модулей
- * ✅ Монадический подход через checkInitialization()
- */
 export class ResourceModule extends BaseModule<
   { repository: IResourceRepository; logger: ILogger },
   { repository: IResourceRepository; logger: ILogger }
 > {
-  /**
-   * Построение зависимостей - просто возвращаем config as is
-   */
   protected buildDependencies(config: {
     repository: IResourceRepository;
     logger: ILogger;

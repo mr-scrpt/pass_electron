@@ -1,6 +1,6 @@
 import type { ResourceListItemDTO } from "@/application/queries/dtos";
 import { useKeymap } from "./useKeymap";
-import { useNotificationManager } from "../contexts/NotificationContext";
+import { useNotification } from "../shared/provider/NotificationContext";
 // import { tapLeft, tapRight } from "@/shared/validation"; // ✅ Можем использовать для side effects
 
 /**
@@ -16,7 +16,7 @@ export function useRandomResourceAction(
   resources: ResourceListItemDTO[],
   setRandomResource: (resource: ResourceListItemDTO | null) => void,
 ): void {
-  const notificationManager = useNotificationManager();
+  const { notificationManager } = useNotification();
 
   // ✅ Регистрируем горячую клавишу через нашу систему
   useKeymap({

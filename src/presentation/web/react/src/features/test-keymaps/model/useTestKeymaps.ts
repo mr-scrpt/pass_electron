@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useKeymapListener } from "../../../hooks/useKeymap";
 import { useKeymaps } from "../../../shared/keymap/useKeymaps";
-import { useNotificationManager } from "../../../contexts/NotificationContext";
+import { useNotification } from "../../../shared/provider/NotificationContext";
 import { testKeymapConfig } from "../config/keymaps";
 
 /**
@@ -27,7 +27,7 @@ type NavigationItem = {
 export function useTestKeymaps(): { counter: number; items: NavigationItem[] } {
   const [counter, setCounter] = useState(0);
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const notification = useNotificationManager();
+  const { notificationManager } = useNotification();
 
   // ✅ Активируем слушатель для navigation режима
   // (нужно вручную, так как кол-во режимов может быть динамическим)
@@ -42,28 +42,28 @@ export function useTestKeymaps(): { counter: number; items: NavigationItem[] } {
       setCounter(c => c + 1);
     },
     showSuccess: (counter: number) => {
-      notification.notify({
+      notificationManager.notify({
         level: "success",
         message: `✅ Success! Counter: ${counter}`,
         duration: 3000,
       });
     },
     showWarning: () => {
-      notification.notify({
+      notificationManager.notify({
         level: "warning",
         message: "⚠️ Warning: This is a test warning",
         duration: 3000,
       });
     },
     showError: () => {
-      notification.notify({
+      notificationManager.notify({
         level: "error",
         message: "❌ Error: This is a test error",
         duration: 3000,
       });
     },
     showInfo: () => {
-      notification.notify({
+      notificationManager.notify({
         level: "info",
         message: "ℹ️ Info: This is a test info message",
         duration: 3000,
@@ -72,7 +72,7 @@ export function useTestKeymaps(): { counter: number; items: NavigationItem[] } {
     focusNext: () => {
       setFocusedIndex(i => {
         const newIndex = (i + 1) % 5;
-        notification.notify({
+        notificationManager.notify({
           level: "info",
           message: `Focus: Item ${newIndex}`,
           duration: 1000,
@@ -83,7 +83,7 @@ export function useTestKeymaps(): { counter: number; items: NavigationItem[] } {
     focusPrevious: () => {
       setFocusedIndex(i => {
         const newIndex = (i - 1 + 5) % 5;
-        notification.notify({
+        notificationManager.notify({
           level: "info",
           message: `Focus: Item ${newIndex}`,
           duration: 1000,
@@ -96,13 +96,13 @@ export function useTestKeymaps(): { counter: number; items: NavigationItem[] } {
   // ✅ Side effect: показываем success после инкремента counter
   useEffect(() => {
     if (counter > 0) {
-      notification.notify({
+      notificationManager.notify({
         level: "success",
         message: `✅ Success! Counter: ${counter}`,
         duration: 3000,
       });
     }
-  }, [counter, notification]);
+  }, [counter, notificationManager]);
 
   // ✅ Возвращаем обогащенные данные - компонент НЕ знает про focusedIndex
   return {

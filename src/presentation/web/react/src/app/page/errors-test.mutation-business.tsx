@@ -53,14 +53,14 @@ export default function MutationBusiness() {
 
       // Преобразуем Validation в Promise
       if (result.isLeft()) {
-        throw result.value;
+        throw result.value; // ✅ Глобальный onError покажет notifications
       }
 
       return result.value;
     },
 
     onSuccess: (data) => {
-      // ✅ Показываем success notification
+      // ✅ Success обрабатываем локально
       notificationManager.notify({
         level: "success",
         message: `${data.message}. New balance: $${data.newBalance}`,
@@ -71,16 +71,7 @@ export default function MutationBusiness() {
       setAmount("");
     },
 
-    onError: (errors: BaseError[]) => {
-      // ✅ Показываем error notifications (business rule violations)
-      errors.forEach((err) => {
-        notificationManager.notify({
-          level: "warning",
-          message: err.getMessage(),
-          duration: 5000,
-        });
-      });
-    },
+    // ✅ onError убрали - работает глобальный обработчик!
   });
 
   const handleSubmit = (e: React.FormEvent) => {

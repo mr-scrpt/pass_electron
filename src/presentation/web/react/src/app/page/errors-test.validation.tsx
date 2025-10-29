@@ -1,19 +1,32 @@
-import { getValidatedQueries } from "@/main/composition";
+import { BaseError, invalid } from "@/main/shared";
 
 /**
- * РЕАЛЬНАЯ ошибка - забыли проверить Validation
- * URL: /page/errors-test/validation
+ * Domain Errors - ПЛОХАЯ ПРАКТИКА!
+ * Expected errors (IError[]) выбрасываются через throw
+ * URL: /errors-test/validation
  */
 export async function loader() {
-  const queriesResult = getValidatedQueries();
-  const queries = queriesResult.value;
-  const result = await queries.list();
+  // Симуляция Domain/Application ошибок
+  const validationErrors = invalid([
+    new BaseError({
+      entityType: "Resource",
+      message: "Resource name is required",
+      code: "VALIDATION_ERROR",
+    }),
+    new BaseError({
+      entityType: "Resource",
+      message: "Namespace is invalid",
+      code: "VALIDATION_ERROR",
+    }),
+  ]);
 
-  if (result.isLeft()) {
-    throw result.value;
+  // ❌ ПЛОХАЯ ПРАКТИКА - throw IError[]!
+  // Expected errors НЕ ДОЛЖНЫ попадать в ErrorBoundary
+  if (validationErrors.isLeft()) {
+    throw validationErrors.value;
   }
 
-  return { resources: result.value };
+  return { data: "success" };
 }
 
 export default function ValidationError() {

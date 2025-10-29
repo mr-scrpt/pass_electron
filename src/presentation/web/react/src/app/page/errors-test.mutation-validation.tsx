@@ -54,14 +54,14 @@ export default function MutationValidation() {
 
       // Преобразуем Validation в Promise
       if (result.isLeft()) {
-        throw result.value; // TanStack Query поймает как error
+        throw result.value; // ✅ Глобальный onError в QueryClient покажет notifications
       }
 
-      return result.value; // TanStack Query поймает как data
+      return result.value;
     },
     
     onSuccess: (data) => {
-      // ✅ Показываем success notification
+      // ✅ Success обрабатываем локально (специфично для этой формы)
       notificationManager.notify({
         level: "success",
         message: data.message,
@@ -73,16 +73,7 @@ export default function MutationValidation() {
       setEmail("");
     },
     
-    onError: (errors: BaseError[]) => {
-      // ✅ Показываем error notifications
-      errors.forEach((err) => {
-        notificationManager.notify({
-          level: "error",
-          message: err.getMessage(),
-          duration: 5000,
-        });
-      });
-    },
+    // ✅ onError убрали - работает глобальный обработчик!
   });
 
   const handleSubmit = (e: React.FormEvent) => {

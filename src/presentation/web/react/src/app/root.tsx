@@ -15,6 +15,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { orElse } from "@/main/shared";
 import { NotificationProvider } from "./provider/notification.provider";
 import { useNotificationManager, useLogger } from "@/platform";
+import { handleExpectedErrors } from "@/shared/error-boundary/utils/handleExpectedErrors";
 import {
   handleRouteError,
   handlePlatformError,
@@ -52,6 +53,10 @@ export default function Root() {
       queries: {
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
+      },
+      mutations: {
+        // ✅ Глобальная обработка Expected Errors для mutations
+        onError: (error: unknown) => handleExpectedErrors(error, notificationManager),
       },
     },
   });

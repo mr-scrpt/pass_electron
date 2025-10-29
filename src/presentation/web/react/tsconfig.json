@@ -42,6 +42,7 @@
     "**/.server/**/*",
     "**/.client/**/*",
     ".react-router/types/**/*",
+    "src/types/**/*.d.ts",        // ← Type definitions для CSS/images
     "../../shared/systems/**/*",  // ← Включаем systems напрямую
     "../../shared/platform/**/*"  // ← Включаем platform напрямую
   ]

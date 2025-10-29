@@ -35,19 +35,36 @@ export default function Home() {
         </p>
 
         {}
-        <div className="mb-8 flex gap-4">
-          <a
-            href="/test-notifications"
-            className="inline-block px-4 py-2 bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-pink transition-colors"
-          >
-            🧪 Test Notifications
-          </a>
-          <a
-            href="/test-keymaps"
-            className="inline-block px-4 py-2 bg-ctp-blue text-ctp-base rounded hover:bg-ctp-sapphire transition-colors"
-          >
-            🎹 Test Keymaps & Errors
-          </a>
+        <div className="mb-8 flex flex-col gap-4">
+          <div className="flex gap-4">
+            <a
+              href="/test-notifications"
+              className="inline-block px-4 py-2 bg-ctp-mauve text-ctp-base rounded hover:bg-ctp-pink transition-colors"
+            >
+              🧪 Test Notifications
+            </a>
+            <a
+              href="/test-keymaps"
+              className="inline-block px-4 py-2 bg-ctp-blue text-ctp-base rounded hover:bg-ctp-sapphire transition-colors"
+            >
+              🎹 Test Keymaps
+            </a>
+          </div>
+          
+          <div className="flex gap-4">
+            <a
+              href="/errors-test"
+              className="inline-block px-4 py-2 bg-ctp-red text-ctp-base rounded hover:bg-ctp-maroon transition-colors"
+            >
+              🚨 Error Handling Tests
+            </a>
+            <a
+              href="/test-folder-routing"
+              className="inline-block px-4 py-2 bg-ctp-green text-ctp-base rounded hover:bg-ctp-teal transition-colors"
+            >
+              📁 Folder-Based Routing Test
+            </a>
+          </div>
         </div>
       </div>
     </div>

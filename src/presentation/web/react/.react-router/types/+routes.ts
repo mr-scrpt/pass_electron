@@ -14,6 +14,15 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/test-folder-routing": {
+    params: {};
+  };
+  "/test-folder-routing/example-1": {
+    params: {};
+  };
+  "/test-folder-routing/example-2": {
+    params: {};
+  };
   "/errors-test": {
     params: {};
   };
@@ -46,7 +55,19 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
+    page: "/" | "/test-folder-routing" | "/test-folder-routing/example-1" | "/test-folder-routing/example-2" | "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
+  };
+  "page/test-folder-routing/route.tsx": {
+    id: "page/test-folder-routing";
+    page: "/test-folder-routing" | "/test-folder-routing/example-1" | "/test-folder-routing/example-2";
+  };
+  "page/test-folder-routing.example-1/route.tsx": {
+    id: "page/test-folder-routing.example-1";
+    page: "/test-folder-routing/example-1";
+  };
+  "page/test-folder-routing.example-2/route.tsx": {
+    id: "page/test-folder-routing.example-2";
+    page: "/test-folder-routing/example-2";
   };
   "page/errors-test.tsx": {
     id: "page/errors-test";
@@ -96,6 +117,9 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./src/app/root.tsx");
+  "page/test-folder-routing": typeof import("./src/app/page/test-folder-routing/route.tsx");
+  "page/test-folder-routing.example-1": typeof import("./src/app/page/test-folder-routing.example-1/route.tsx");
+  "page/test-folder-routing.example-2": typeof import("./src/app/page/test-folder-routing.example-2/route.tsx");
   "page/errors-test": typeof import("./src/app/page/errors-test.tsx");
   "page/errors-test.mutation-validation": typeof import("./src/app/page/errors-test.mutation-validation.tsx");
   "page/errors-test.mutation-business": typeof import("./src/app/page/errors-test.mutation-business.tsx");

@@ -1,6 +1,7 @@
 // src/presentation/web/react/eslint.config.js
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
+import importPlugin from "eslint-plugin-import";
 
 export default tseslint.config(
   js.configs.recommended,
@@ -14,6 +15,18 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: {
+      import: importPlugin,
+    },
+
+    settings: {
+      "import/resolver": {
+        typescript: true,
+        node: {
+          extensions: [".ts", ".tsx", ".css", ".scss"],
+        },
+      },
+    },
 
     rules: {
       "@typescript-eslint/no-unused-vars": [
@@ -21,6 +34,7 @@ export default tseslint.config(
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
+      "import/no-unresolved": "error",
     },
   },
   {

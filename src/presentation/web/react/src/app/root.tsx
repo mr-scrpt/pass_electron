@@ -1,4 +1,3 @@
-//  src/presentation/web/react/src/app/root.tsx
 import {
   Links,
   Meta,
@@ -8,22 +7,21 @@ import {
   useRouteError,
 } from "react-router";
 
-// ✅ Инициализация приложения (выполняется и на сервере и на клиенте)
 import "./setup";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { orElse } from "@/main/shared";
-import { NotificationProvider } from "./provider/notification.provider";
-import { useNotificationManager, useLogger } from "@/platform";
-import { handleExpectedErrors } from "@/shared/error-boundary/utils/handleExpectedErrors";
+import { useLogger, useNotificationManager } from "@/platform";
 import {
-  handleRouteError,
-  handlePlatformError,
   handleIError,
   handleJavaScriptError,
+  handlePlatformError,
+  handleRouteError,
   handleUnknown,
 } from "@/shared/error-boundary";
-import "../styles/tailwind.css";
+import { handleExpectedErrors } from "@/shared/error-boundary/utils/handleExpectedErrors";
+import "@/shared/styles/tailwind.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NotificationProvider } from "./provider/notification.provider";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -46,17 +44,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   const notificationManager = useNotificationManager();
-  
-  // ✅ QueryClient для TanStack Query (создаем каждый раз, SSR-safe)
+
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
         retry: 1,
       },
       mutations: {
-        // ✅ Глобальная обработка Expected Errors для mutations
-        onError: (error: unknown) => handleExpectedErrors(error, notificationManager),
+        onError: (error: unknown) =>
+          handleExpectedErrors(error, notificationManager),
       },
     },
   });
@@ -74,15 +71,12 @@ export function ErrorBoundary() {
   const error = useRouteError();
   const logger = useLogger();
 
-  // ✅ Монадическая цепочка обработчиков с orElse
   const component = orElse(() => handlePlatformError(error, logger))(
     orElse(() => handleIError(error, logger))(
       orElse(() => handleJavaScriptError(error, logger))(
-        orElse(() => handleUnknown(error, logger))(
-          handleRouteError(error)
-        )
-      )
-    )
+        orElse(() => handleUnknown(error, logger))(handleRouteError(error)),
+      ),
+    ),
   ).value;
 
   return <>{component}</>;

@@ -29,6 +29,10 @@ export function getValidatedNotificationManager(): Validation<
   return ServiceContainer.getNotificationManager();
 }
 
+export function getValidatedLogger(): Validation<IError[], ILogger> {
+  return ServiceContainer.getLogger();
+}
+
 export type { QueryFacade } from "./queries";
 export type { CommandFacade } from "./commands";
 

@@ -32,9 +32,10 @@
     "strict": true
   },
   
-  // ✅ Project Reference только на DDD слои (presentation включаем напрямую)
+  // ✅ Project References
   "references": [
-    { "path": "../../../../tsconfig.json" }      // DDD слои
+    { "path": "../../../../tsconfig.json" },     // DDD слои
+    { "path": "../../tsconfig.json" }            // Presentation (для Platform типов)
   ],
   
   "include": [

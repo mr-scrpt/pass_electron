@@ -12,6 +12,7 @@ export * from '../errors';
 
 // ✅ Re-export hooks
 export { useNotificationManager } from './hook/useNotificationManager';
+export { useLogger } from './hook/useLogger';
 
 // ✅ Re-export UI components
 export { Toast } from './ui/toast';

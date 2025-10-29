@@ -2,7 +2,7 @@
 
 // Validation API (фасад над @sweet-monads/either)
 export type { Validation } from './validation'
-export { valid, invalid, fromCondition, isTrue, ValidationCombinators } from './validation'
+export { valid, invalid, fromCondition, isTrue, ValidationCombinators, orElse } from './validation'
 
 // Specification Pattern (технический интерфейс)
 export type { ISpecification } from './specification'

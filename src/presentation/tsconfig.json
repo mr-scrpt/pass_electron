@@ -24,11 +24,11 @@
 
     "baseUrl": ".",
     "paths": {
-      // ✅ DDD слои (для platform ошибок нужен доступ к BaseError, IError и т.д.)
-      "@/shared": ["../shared/index.ts"],
-      "@/shared/*": ["../shared/*"],
-      "@/application": ["../application/index.ts"],
-      "@/application/*": ["../application/*"],
+      // ✅ DDD слои (единая схема алиасов через @/main/*)
+      "@/main/shared": ["../shared/index.ts"],
+      "@/main/shared/*": ["../shared/*"],
+      "@/main/application": ["../application/index.ts"],
+      "@/main/application/*": ["../application/*"],
       "@/main/composition": ["../composition/index.ts"],
 
       // ✅ Presentation shared (переиспользуемые модули)

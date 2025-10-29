@@ -49,3 +49,18 @@ export const fromNullable = <E, T>(
 ): Validation<E, T> => {
   return value != null ? valid(value) : invalid(error);
 };
+
+/**
+ * Возвращает fallback Validation если исходная Left
+ * Используется для цепочки обработчиков с fallback
+ * 
+ * @example
+ * const result = validation
+ *   .pipe(orElse(() => fallbackValidation))
+ *   .pipe(orElse(() => anotherFallback))
+ */
+export const orElse = <E, T>(
+  fallback: () => Validation<E, T>
+) => (validation: Validation<E, T>): Validation<E, T> => {
+  return validation.isRight() ? validation : fallback();
+};

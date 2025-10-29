@@ -1,6 +1,6 @@
-import { BaseError } from '@/shared/errors/BaseError';
-import { GenericApplicationError } from '@/application/errors';
-import type { IError } from '@/shared/errors';
+import { BaseError } from '@/main/shared/errors/BaseError';
+import { GenericApplicationError } from '@/main/application/errors';
+import type { IError } from '@/main/shared/errors';
 
 /**
  * Platform Error - ошибка Platform Layer

@@ -1,5 +1,5 @@
 import { PlatformError } from './PlatformError';
-import type { IError } from '@/shared/errors';
+import type { IError } from '@/main/shared/errors';
 
 /**
  * Ошибка разрешения зависимости из DI контейнера

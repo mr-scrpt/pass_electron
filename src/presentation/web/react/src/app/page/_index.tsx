@@ -5,7 +5,7 @@ import {
 } from "@/main/composition";
 import type { Validation } from "@/main/shared";
 import type { IError } from "@/main/shared/errors";
-import Home from "@/temp/app/home";
+import Home from "@/page/main/home";
 
 export async function loader() {
   const queriesResult = getValidatedQueries();

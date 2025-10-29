@@ -3,10 +3,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+
+    // ✅ React support (для UI компонентов в platform)
+    "jsx": "react-jsx",
 
     "strict": true,
     "esModuleInterop": true,
@@ -21,8 +24,11 @@
 
     "baseUrl": ".",
     "paths": {
-      // ✅ DDD слои (для platform-configs нужен доступ к ILogger и т.д.)
-      // "@/main/application/*": ["../application/*"],
+      // ✅ DDD слои (для platform ошибок нужен доступ к BaseError, IError и т.д.)
+      "@/shared": ["../shared/index.ts"],
+      "@/shared/*": ["../shared/*"],
+      "@/application": ["../application/index.ts"],
+      "@/application/*": ["../application/*"],
       "@/main/composition": ["../composition/index.ts"],
 
       // ✅ Presentation shared (переиспользуемые модули)
@@ -33,7 +39,7 @@
     }
   },
 
-  "include": ["shared/**/*.ts"],
+  "include": ["shared/**/*.ts", "shared/**/*.tsx"],
 
   "exclude": ["web", "electron"],  // ← Убрали node_modules из exclude
 

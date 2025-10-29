@@ -7,6 +7,15 @@ import {
   WebNotificationManager,
 } from "@/main/composition";
 
+// ✅ Re-export platform errors
+export * from '../errors';
+
+// ✅ Re-export hooks
+export { useNotificationManager } from './hook/useNotificationManager';
+
+// ✅ Re-export UI components
+export { Toast } from './ui/toast';
+
 export interface WebDependencies {
   notificationManager: INotificationManager;
   logger: ILogger;

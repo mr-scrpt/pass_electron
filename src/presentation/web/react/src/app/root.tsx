@@ -12,7 +12,10 @@ import {
 // ✅ Инициализация приложения (выполняется и на сервере и на клиенте)
 import "./setup";
 
+import { getValidatedNotificationManager } from "@/main/composition";
+import { NotificationProvider } from "./provider/notification.provider";
 import "../styles/tailwind.css";
+import { useNotificationManager } from "@/platform/web/hook/useNotificationManager";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -34,7 +37,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
-  return <Outlet />;
+  const notificationManager = useNotificationManager();
+
+  return (
+    <NotificationProvider manager={notificationManager}>
+      <Outlet />
+    </NotificationProvider>
+  );
 }
 
 export function ErrorBoundary() {

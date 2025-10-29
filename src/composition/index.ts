@@ -22,6 +22,13 @@ export function getValidatedCommands(): Validation<IError[], CommandFacade> {
   return ServiceContainer.getCommands();
 }
 
+export function getValidatedNotificationManager(): Validation<
+  IError[],
+  INotificationManager
+> {
+  return ServiceContainer.getNotificationManager();
+}
+
 export type { QueryFacade } from "./queries";
 export type { CommandFacade } from "./commands";
 

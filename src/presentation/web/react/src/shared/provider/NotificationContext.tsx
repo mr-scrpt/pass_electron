@@ -1,4 +1,4 @@
-import type { INotificationManager } from "@/main/application/ports";
+import type { INotificationManager } from "@/main/composition";
 import { createStrictContext, useStrictContext } from "@/shared/lib/react";
 
 const NotificationContext = createStrictContext<INotificationManager>();

@@ -1,7 +1,7 @@
 import { valid, invalid, type Validation } from "@/main/shared";
 import type { ILogger } from "@/main/composition";
 import { PlatformError } from "@/platform";
-import { ErrorView } from "../components/ErrorView";
+import { ErrorView } from "../ui/ErrorView";
 
 type ErrorHandlerResult = React.ReactNode;
 
@@ -10,7 +10,7 @@ type ErrorHandlerResult = React.ReactNode;
  */
 export function handlePlatformError(
   error: unknown,
-  logger: ILogger
+  logger: ILogger,
 ): Validation<"not_handled", ErrorHandlerResult> {
   if (error instanceof PlatformError) {
     // Логируем с полным контекстом
@@ -24,7 +24,7 @@ export function handlePlatformError(
       })),
       context: error.getContext(),
     };
-    
+
     // Используем соответствующий метод logger
     if (logLevel === "error") {
       logger.error("[ErrorBoundary] Platform error", logData);
@@ -43,7 +43,7 @@ export function handlePlatformError(
         showDetails={import.meta.env.DEV}
         details={error.stack}
         onRetry={() => window.location.reload()}
-      />
+      />,
     );
   }
 

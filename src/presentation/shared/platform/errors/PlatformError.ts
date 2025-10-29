@@ -68,9 +68,12 @@ export class PlatformError extends BaseError {
   toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
-      underlyingErrors: this.underlyingErrors.map(err =>
-        'toJSON' in err ? err.toJSON() : { message: err.getMessage() }
-      ),
+      underlyingErrors: this.underlyingErrors.map(err => {
+        if ('toJSON' in err && typeof err.toJSON === 'function') {
+          return err.toJSON() as Record<string, unknown>;
+        }
+        return { message: err.getMessage() };
+      }),
     };
   }
 }

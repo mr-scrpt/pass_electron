@@ -11,6 +11,7 @@ import {
 // ✅ Инициализация приложения (выполняется и на сервере и на клиенте)
 import "./setup";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { orElse } from "@/main/shared";
 import { NotificationProvider } from "./provider/notification.provider";
 import { useNotificationManager, useLogger } from "@/platform";
@@ -44,11 +45,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function Root() {
   const notificationManager = useNotificationManager();
+  
+  // ✅ QueryClient для TanStack Query (создаем каждый раз, SSR-safe)
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        retry: 1,
+      },
+    },
+  });
 
   return (
-    <NotificationProvider manager={notificationManager}>
-      <Outlet />
-    </NotificationProvider>
+    <QueryClientProvider client={queryClient}>
+      <NotificationProvider manager={notificationManager}>
+        <Outlet />
+      </NotificationProvider>
+    </QueryClientProvider>
   );
 }
 

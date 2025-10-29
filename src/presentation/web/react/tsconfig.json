@@ -34,8 +34,7 @@
   
   // ✅ Project References
   "references": [
-    { "path": "../../../../tsconfig.json" },     // DDD слои
-    { "path": "../../tsconfig.json" }            // Presentation (для Platform типов)
+    { "path": "../../../../tsconfig.json" }      // DDD слои
   ],
   
   "include": [

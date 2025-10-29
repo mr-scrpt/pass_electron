@@ -1,7 +1,7 @@
 import { valid, type Validation } from "@/main/shared";
 import type { ILogger } from "@/main/composition";
 import { PlatformError } from "@/platform";
-import { ErrorView } from "../components/ErrorView";
+import { ErrorView } from "../ui/ErrorView";
 
 type ErrorHandlerResult = React.ReactNode;
 
@@ -11,14 +11,14 @@ type ErrorHandlerResult = React.ReactNode;
  */
 export function handleUnknown(
   error: unknown,
-  logger: ILogger
+  logger: ILogger,
 ): Validation<"not_handled", ErrorHandlerResult> {
   // Оборачиваем в PlatformError
   const unknownError = new PlatformError(
     "UnknownError",
     "Unknown error type",
     [],
-    { error: String(error), type: typeof error }
+    { error: String(error), type: typeof error },
   );
 
   // Логируем для отладки

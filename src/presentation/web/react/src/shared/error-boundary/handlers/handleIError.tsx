@@ -1,7 +1,7 @@
 import { valid, invalid, type Validation } from "@/main/shared";
 import type { ILogger } from "@/main/composition";
 import { isIError } from "../utils/isIError";
-import { ErrorView } from "../components/ErrorView";
+import { ErrorView } from "../ui/ErrorView";
 
 type ErrorHandlerResult = React.ReactNode;
 
@@ -10,7 +10,7 @@ type ErrorHandlerResult = React.ReactNode;
  */
 export function handleIError(
   error: unknown,
-  logger: ILogger
+  logger: ILogger,
 ): Validation<"not_handled", ErrorHandlerResult> {
   if (isIError(error)) {
     const level = error.getLogLevel();
@@ -22,7 +22,7 @@ export function handleIError(
       context: error.getContext(),
       expected: error.isExpected(),
     };
-    
+
     // Используем соответствующий метод logger
     if (level === "error") {
       logger.error("[ErrorBoundary] IError", logData);
@@ -45,7 +45,7 @@ export function handleIError(
       <ErrorView
         message={userError.getMessage()}
         onRetry={() => window.location.reload()}
-      />
+      />,
     );
   }
 

@@ -14,12 +14,79 @@ type Pages = {
   "/": {
     params: {};
   };
+  "/errors-test": {
+    params: {};
+  };
+  "/errors-test/mutation-validation": {
+    params: {};
+  };
+  "/errors-test/mutation-business": {
+    params: {};
+  };
+  "/errors-test/javascript": {
+    params: {};
+  };
+  "/errors-test/validation": {
+    params: {};
+  };
+  "/errors-test/http-500": {
+    params: {};
+  };
+  "/errors-test/platform": {
+    params: {};
+  };
+  "/errors-test/network": {
+    params: {};
+  };
+  "/errors-test/query": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/";
+    page: "/" | "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
+  };
+  "page/errors-test.tsx": {
+    id: "page/errors-test";
+    page: "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
+  };
+  "page/errors-test.mutation-validation.tsx": {
+    id: "page/errors-test.mutation-validation";
+    page: "/errors-test/mutation-validation";
+  };
+  "page/errors-test.mutation-business.tsx": {
+    id: "page/errors-test.mutation-business";
+    page: "/errors-test/mutation-business";
+  };
+  "page/errors-test.javascript.tsx": {
+    id: "page/errors-test.javascript";
+    page: "/errors-test/javascript";
+  };
+  "page/errors-test.validation.tsx": {
+    id: "page/errors-test.validation";
+    page: "/errors-test/validation";
+  };
+  "page/errors-test.http-500.tsx": {
+    id: "page/errors-test.http-500";
+    page: "/errors-test/http-500";
+  };
+  "page/errors-test.platform.tsx": {
+    id: "page/errors-test.platform";
+    page: "/errors-test/platform";
+  };
+  "page/errors-test.network.tsx": {
+    id: "page/errors-test.network";
+    page: "/errors-test/network";
+  };
+  "page/errors-test._index.tsx": {
+    id: "page/errors-test._index";
+    page: "/errors-test";
+  };
+  "page/errors-test.query.tsx": {
+    id: "page/errors-test.query";
+    page: "/errors-test/query";
   };
   "page/_index.tsx": {
     id: "page/_index";
@@ -29,5 +96,15 @@ type RouteFiles = {
 
 type RouteModules = {
   "root": typeof import("./src/app/root.tsx");
+  "page/errors-test": typeof import("./src/app/page/errors-test.tsx");
+  "page/errors-test.mutation-validation": typeof import("./src/app/page/errors-test.mutation-validation.tsx");
+  "page/errors-test.mutation-business": typeof import("./src/app/page/errors-test.mutation-business.tsx");
+  "page/errors-test.javascript": typeof import("./src/app/page/errors-test.javascript.tsx");
+  "page/errors-test.validation": typeof import("./src/app/page/errors-test.validation.tsx");
+  "page/errors-test.http-500": typeof import("./src/app/page/errors-test.http-500.tsx");
+  "page/errors-test.platform": typeof import("./src/app/page/errors-test.platform.tsx");
+  "page/errors-test.network": typeof import("./src/app/page/errors-test.network.tsx");
+  "page/errors-test._index": typeof import("./src/app/page/errors-test._index.tsx");
+  "page/errors-test.query": typeof import("./src/app/page/errors-test.query.tsx");
   "page/_index": typeof import("./src/app/page/_index.tsx");
 };

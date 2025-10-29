@@ -1,7 +1,7 @@
 import { valid, invalid, type Validation } from "@/main/shared";
 import type { ILogger } from "@/main/composition";
 import { PlatformError } from "@/platform";
-import { ErrorView } from "../components/ErrorView";
+import { ErrorView } from "../ui/ErrorView";
 
 type ErrorHandlerResult = React.ReactNode;
 
@@ -10,7 +10,7 @@ type ErrorHandlerResult = React.ReactNode;
  */
 export function handleJavaScriptError(
   error: unknown,
-  logger: ILogger
+  logger: ILogger,
 ): Validation<"not_handled", ErrorHandlerResult> {
   if (error instanceof Error) {
     // Оборачиваем в PlatformError для единообразия
@@ -22,7 +22,7 @@ export function handleJavaScriptError(
         originalError: error.message,
         stack: error.stack,
         name: error.name,
-      }
+      },
     );
 
     // Логируем с полным стеком
@@ -41,7 +41,7 @@ export function handleJavaScriptError(
         showDetails={import.meta.env.DEV}
         details={error.stack}
         onRetry={() => window.location.reload()}
-      />
+      />,
     );
   }
 

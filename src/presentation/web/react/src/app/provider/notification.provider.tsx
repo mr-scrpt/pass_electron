@@ -1,14 +1,13 @@
-import type { INotificationManager } from "@/main/composition";
+import { useNotificationManager } from "@/platform";
 import { Toast } from "@/platform/web/ui/toast";
 import { NotificationProviderInstanse } from "@/shared/provider/NotificationContext";
 import { type ComponentProps } from "react";
 
-type NotificationProviderProps = ComponentProps<"div"> & {
-  manager: INotificationManager;
-};
+type NotificationProviderProps = ComponentProps<"div">;
 
 export const NotificationProvider = (props: NotificationProviderProps) => {
-  const { children, manager } = props;
+  const { children } = props;
+  const manager = useNotificationManager();
   return (
     <NotificationProviderInstanse value={manager}>
       {children}

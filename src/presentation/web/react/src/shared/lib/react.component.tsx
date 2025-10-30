@@ -1,3 +1,4 @@
+"use client";
 import { Children, createElement, isValidElement, type ReactNode } from "react";
 
 export function ComposeChildren({ children }: { children: ReactNode }) {

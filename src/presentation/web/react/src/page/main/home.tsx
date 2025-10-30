@@ -1,28 +1,4 @@
-// import { useState } from "react";
-// import { useLoaderData } from "react-router";
-// import { useRandomResourceAction } from "../hooks/useRandomResourceAction";
-// import { useKeymapListener } from "../hooks/useKeymap";
-// import type { ResourceItemListDTO } from "@/main/composition";
-
-// interface LoaderData {
-//   resources?: ResourceItemListDTO[];
-//   errors?: unknown;
-// }
-
 export default function Home() {
-  // const data = useLoaderData<LoaderData>();
-  // const resources = data.resources ?? [];
-  //
-  // const [randomResource, setRandomResource] =
-  //   useState<ResourceItemListDTO | null>(null);
-  //
-  // useKeymapListener({
-  //   route: "/",
-  //   mode: "navigation",
-  // });
-  //
-  // useRandomResourceAction(resources, setRandomResource);
-
   return (
     <div className="min-h-screen bg-ctp-base p-8">
       <div className="max-w-4xl mx-auto">
@@ -50,7 +26,7 @@ export default function Home() {
               🎹 Test Keymaps
             </a>
           </div>
-          
+
           <div className="flex gap-4">
             <a
               href="/errors-test"

@@ -69,6 +69,10 @@ type RouteFiles = {
     id: "page/test-folder-routing.example-2";
     page: "/test-folder-routing/example-2";
   };
+  "page/test-folder-routing._index/route.tsx": {
+    id: "page/test-folder-routing._index";
+    page: "/test-folder-routing";
+  };
   "page/errors-test.tsx": {
     id: "page/errors-test";
     page: "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
@@ -120,6 +124,7 @@ type RouteModules = {
   "page/test-folder-routing": typeof import("./src/app/page/test-folder-routing/route.tsx");
   "page/test-folder-routing.example-1": typeof import("./src/app/page/test-folder-routing.example-1/route.tsx");
   "page/test-folder-routing.example-2": typeof import("./src/app/page/test-folder-routing.example-2/route.tsx");
+  "page/test-folder-routing._index": typeof import("./src/app/page/test-folder-routing._index/route.tsx");
   "page/errors-test": typeof import("./src/app/page/errors-test.tsx");
   "page/errors-test.mutation-validation": typeof import("./src/app/page/errors-test.mutation-validation.tsx");
   "page/errors-test.mutation-business": typeof import("./src/app/page/errors-test.mutation-business.tsx");

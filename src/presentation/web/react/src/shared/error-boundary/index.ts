@@ -1,3 +1,5 @@
+export { handleExpectedErrors } from "./utils/handleExpectedErrors";
+
 export { handleRouteError } from "./handlers/handleRouteError";
 export { handlePlatformError } from "./handlers/handlePlatformError";
 export { handleIError } from "./handlers/handleIError";

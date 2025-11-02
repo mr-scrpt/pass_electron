@@ -1,12 +1,12 @@
-import { useValidatedQuery } from "@/hooks/useValidatedQuery";
 import { BaseError, invalid } from "@/main/shared";
+import { useAppQuery } from "@/shared/adapter/useAppQuery";
 
 /**
  * ПРАВИЛЬНАЯ обработка через TanStack Query
  * URL: /page/errors-test/query
  */
 export default function QueryError() {
-  const { data, error, isError, isLoading } = useValidatedQuery({
+  const { data, error, isError, isLoading } = useAppQuery({
     queryKey: ["test-query-validation"],
     queryFn: async () => {
       return invalid([

@@ -1,15 +1,17 @@
 // presentation/web/react/hooks/useFocus.ts
 
-import { useState, useEffect, useCallback } from 'react'
-import { FocusManager } from '@/systems/focus'
+import { FocusManager } from "@/systems";
+import { useState, useEffect, useCallback } from "react";
+
+// import { FocusManager } from '@/systems/focus'
 
 /**
  * React hook для управления фокусом в списке
- * 
+ *
  * @example
  * function ResourceList({ resources }) {
  *   const { focusedIndex, focusedItem, moveNext, movePrevious } = useFocus(resources)
- *   
+ *
  *   // Регистрируем клавиши
  *   useKeymap({
  *     key: 'ArrowDown',
@@ -17,7 +19,7 @@ import { FocusManager } from '@/systems/focus'
  *     context: { route: '/resources', mode: 'navigation' },
  *     action: moveNext,
  *   })
- *   
+ *
  *   return (
  *     <ul>
  *       {resources.map((resource, index) => (
@@ -30,22 +32,22 @@ import { FocusManager } from '@/systems/focus'
  * }
  */
 export function useFocus<T>(items: T[]) {
-  const [manager] = useState(() => new FocusManager<T>())
-  const [focusedIndex, setFocusedIndex] = useState(0)
-  const [focusedItem, setFocusedItem] = useState<T | null>(null)
+  const [manager] = useState(() => new FocusManager<T>());
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const [focusedItem, setFocusedItem] = useState<T | null>(null);
 
   // Обновляем элементы
   useEffect(() => {
-    manager.setItems(items)
-  }, [items])
+    manager.setItems(items);
+  }, [items]);
 
   // Подписываемся на изменения
   useEffect(() => {
     manager.onChange((item, index) => {
-      setFocusedItem(item)
-      setFocusedIndex(index)
-    })
-  }, [])
+      setFocusedItem(item);
+      setFocusedIndex(index);
+    });
+  }, []);
 
   return {
     focusedIndex,
@@ -54,6 +56,10 @@ export function useFocus<T>(items: T[]) {
     movePrevious: useCallback(() => manager.movePrevious(), []),
     moveFirst: useCallback(() => manager.moveFirst(), []),
     moveLast: useCallback(() => manager.moveLast(), []),
-    setFocusedIndex: useCallback((index: number) => manager.setFocusedIndex(index), []),
-  }
+    setFocusedIndex: useCallback(
+      (index: number) => manager.setFocusedIndex(index),
+      [],
+    ),
+  };
 }
+

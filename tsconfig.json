@@ -20,6 +20,7 @@
     
     "baseUrl": ".",
     "paths": {
+      // DDD слои
       "@/domain": ["./src/domain/index.ts"],
       "@/domain/*": ["./src/domain/*"],
       "@/application": ["./src/application/index.ts"],
@@ -29,7 +30,16 @@
       "@/composition": ["./src/composition/index.ts"],
       "@/composition/*": ["./src/composition/*"],
       "@/shared": ["./src/shared/index.ts"],
-      "@/shared/*": ["./src/shared/*"]
+      "@/shared/*": ["./src/shared/*"],
+      
+      // FSD слои (для vtsls, чтобы мог резолвить импорты в React)
+      "@/features/*": ["./src/presentation/web/react/src/features/*"],
+      "@/entity/*": ["./src/presentation/web/react/src/entity/*"],
+      "@/widget/*": ["./src/presentation/web/react/src/widget/*"],
+      "@/page/*": ["./src/presentation/web/react/src/page/*"],
+      "@/app/*": ["./src/presentation/web/react/src/app/*"],
+      "@/hooks/*": ["./src/presentation/web/react/src/hooks/*"],
+      "@/lib/*": ["./src/presentation/web/react/src/lib/*"]
     }
   },
   

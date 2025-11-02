@@ -10,8 +10,16 @@
     "rootDirs": [".", "./.react-router/types"],
     "baseUrl": ".",
     "paths": {
-      // ✅ FSD слои (React код)
+      // ✅ FSD слои (React код) - явные paths для vtsls
       "@/*": ["./src/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/entity/*": ["./src/entity/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/widget/*": ["./src/widget/*"],
+      "@/page/*": ["./src/page/*"],
+      "@/app/*": ["./src/app/*"],
       
       // ✅ DDD слои - ЕДИНСТВЕННЫЕ точки входа
       "@/main/composition": ["../../../composition/index.ts"],

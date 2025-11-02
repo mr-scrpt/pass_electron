@@ -14,11 +14,11 @@ export interface PlatformDependencies {
   logger: ILogger;
 }
 
-export function getValidatedQueries(): Validation<IError[], QueryFacade> {
+export function getQueries(): Validation<IError[], QueryFacade> {
   return ServiceContainer.getQueries();
 }
 
-export function getValidatedCommands(): Validation<IError[], CommandFacade> {
+export function getCommands(): Validation<IError[], CommandFacade> {
   return ServiceContainer.getCommands();
 }
 

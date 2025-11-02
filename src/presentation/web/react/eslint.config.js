@@ -1,4 +1,4 @@
-// src/presentation/web/react/eslint.config.js
+//  src/presentation/web/react/eslint.config.js
 import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import importPlugin from "eslint-plugin-import";
@@ -21,7 +21,10 @@ export default tseslint.config(
 
     settings: {
       "import/resolver": {
-        typescript: true,
+        typescript: {
+          alwaysTryTypes: true,
+          project: "./tsconfig.json",
+        },
         node: {
           extensions: [".ts", ".tsx", ".css", ".scss"],
         },
@@ -34,7 +37,7 @@ export default tseslint.config(
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
-      "import/no-unresolved": "error",
+      "import/no-unresolved": "off",  // Отключено: resolver не работает с React Router paths
     },
   },
   {

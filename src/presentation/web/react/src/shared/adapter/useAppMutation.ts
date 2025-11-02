@@ -5,6 +5,7 @@ import {
 } from "@tanstack/react-query";
 import type { Validation } from "@/main/shared";
 import type { IError } from "@/main/shared/errors";
+import { type CommandFacade, getCommands } from "@/main/composition";
 
 export function useAppMutation<TData, TVariables>(
   options: Omit<
@@ -29,4 +30,10 @@ export function useAppMutation<TData, TVariables>(
       return result.value;
     },
   });
+}
+
+export async function executeCommand<TResult>(
+  fn: (commands: CommandFacade) => Promise<Validation<IError[], TResult>>,
+): Promise<Validation<IError[], TResult>> {
+  return await getCommands().asyncChain(fn);
 }

@@ -9,7 +9,7 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        project: "./tsconfig.json",  // Явно указываем tsconfig
+        project: "../tsconfig.json",  // Явно указываем tsconfig
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -85,7 +85,7 @@ export default tseslint.config(
       "**/dist/**",
       "**/.cache/**",
       "eslint.config.js",
-      "src/presentation/**",  // Игнорируем Presentation (у них свой конфиг)
+      "presentation/**",  // Игнорируем Presentation (у них свой конфиг)
     ],
   },
 );

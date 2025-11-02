@@ -1,4 +1,3 @@
-"use client";
 import type { ComponentProps } from "react";
 import { QueryProvider } from "./query.provider";
 import { ComposeChildren } from "@/shared/lib/react.component";

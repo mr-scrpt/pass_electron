@@ -1,6 +1,6 @@
 import { ResourceList } from "@/features/resourceList";
 
-const Home = () => {
+export default function Home() {
   return (
     <div className="min-h-screen bg-ctp-base p-8">
       <div className="max-w-4xl mx-auto">
@@ -47,6 +47,4 @@ const Home = () => {
       </div>
     </div>
   );
-};
-
-export default Home;
+}

@@ -1,3 +1,4 @@
+//  src/presentation/web/react/src/hooks/mutations/useCreateResource.ts
 import { useAppMutation } from "@/shared/adapter/useAppMutation";
 
 export type CreateResourceParams = {

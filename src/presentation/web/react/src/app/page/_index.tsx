@@ -1,14 +1,11 @@
 //  src/presentation/web/react/src/app/page/_index.tsx
-import {
-  getValidatedQueries,
-  type ResourceItemListDTO,
-} from "@/main/composition";
+import { getQueries, type ResourceItemListDTO } from "@/main/composition";
 import type { Validation } from "@/main/shared";
 import type { IError } from "@/main/shared/errors";
 import Home from "@/page/main/home";
 
 export async function loader() {
-  const queriesResult = getValidatedQueries();
+  const queriesResult = getQueries();
 
   if (queriesResult.isLeft()) {
     return { errors: queriesResult.value };

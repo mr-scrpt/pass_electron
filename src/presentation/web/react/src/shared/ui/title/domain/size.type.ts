@@ -1,6 +1,12 @@
-import { createDict } from "@/shared/lib/typescript";
+import { getEnumKeys } from "@/shared/lib/typescript";
 
-const TITLE_SIZE_KEY = ["S", "M", "L", "XL"] as const;
-export const TITLE_SIZE = createDict(TITLE_SIZE_KEY);
+export enum TITLE_SIZE {
+  S,
+  M,
+  L,
+  XL,
+}
 
-export type TitleSizeType = (typeof TITLE_SIZE_KEY)[number];
+export type TitleSizeType = TITLE_SIZE;
+
+export const TITLE_SIZE_KEY = getEnumKeys(TITLE_SIZE);

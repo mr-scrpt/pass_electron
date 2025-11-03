@@ -1,6 +1,6 @@
-import type { TitleViewType } from "./view.type";
+import { TITLE_VIEW, type TitleViewType } from "./view.type";
 
 export const titleViewCln = {
-  PIMARY: "text-ctp-mauve",
-  SECONDARY: "text-ctp-green",
+  [TITLE_VIEW.PIMARY]: "text-ctp-mauve",
+  [TITLE_VIEW.SECONDARY]: "text-ctp-green",
 } satisfies Record<TitleViewType, string>;

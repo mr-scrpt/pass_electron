@@ -1,6 +1,8 @@
-import { createDict } from "@/shared/lib/typescript";
+import { getEnumKeys } from "@/shared/lib/typescript";
 
-const TITLE_VIEW_KEY = ["PIMARY", "SECONDARY"] as const;
-export const TITLE_VIEW = createDict(TITLE_VIEW_KEY);
-
-export type TitleViewType = (typeof TITLE_VIEW_KEY)[number];
+export enum TITLE_VIEW {
+  PIMARY,
+  SECONDARY,
+}
+export type TitleViewType = TITLE_VIEW;
+export const TITLE_VIEW_KEY = getEnumKeys(TITLE_VIEW);

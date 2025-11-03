@@ -12,3 +12,6 @@ export function createDict<T extends readonly string[]>(values: T) {
     [K in T[number]]: K;
   };
 }
+export function getEnumKeys<T extends object>(enumObj: T): (keyof T)[] {
+  return Object.keys(enumObj).filter((k) => isNaN(Number(k))) as (keyof T)[];
+}

@@ -10,10 +10,13 @@ export const ResourceList = (props: ResourceListProps) => {
   return (
     <div {...rest}>
       <div className="flex flex-col">
-        {true && <div className="flex flex-col items-center">Loading...</div>}
-        {!true &&
+        {isPending && (
+          <div className="flex flex-col items-center">Loading...</div>
+        )}
+        {!isPending &&
           resourceList?.map((item) => (
             <ResourceListItem
+              key={item.id}
               data={{ name: item.name, namespace: item.namespace }}
             />
           ))}

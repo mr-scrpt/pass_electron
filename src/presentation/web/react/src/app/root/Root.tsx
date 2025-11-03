@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-import { RootProvider } from "../provider/root.provider";
 
 // import type { LinksFunction } from "react-router";
 // import tailwindStylesheet from "@/shared/styles/tailwind.css?url";
@@ -11,9 +10,5 @@ import { RootProvider } from "../provider/root.provider";
 // import "../setup";
 
 export default function Root() {
-  return (
-    <RootProvider>
-      <Outlet />
-    </RootProvider>
-  );
+  return <Outlet />;
 }

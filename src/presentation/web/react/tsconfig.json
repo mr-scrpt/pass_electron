@@ -16,17 +16,16 @@
       "@/entity/*": ["./src/entity/*"],
       "@/shared/*": ["./src/shared/*"],
       "@/hooks/*": ["./src/hooks/*"],
-      "@/lib/*": ["./src/lib/*"],
       "@/widget/*": ["./src/widget/*"],
       "@/page/*": ["./src/page/*"],
       "@/app/*": ["./src/app/*"],
-      
+
       // ✅ DDD слои - ЕДИНСТВЕННЫЕ точки входа
       "@/main/composition": ["../../../composition/index.ts"],
       "@/main/shared": ["../../../shared/index.ts"],
       "@/main/shared/*": ["../../../shared/*"],
-      
-      // ✅ Presentation shared (переиспользуемые между платформами)  
+
+      // ✅ Presentation shared (переиспользуемые между платформами)
       "@/platform": ["../../shared/platform/index.ts"],
       "@/platform/*": ["../../shared/platform/*"],
       "@/systems": ["../../shared/systems/index.ts"],
@@ -39,19 +38,19 @@
     "skipLibCheck": true,
     "strict": true
   },
-  
+
   // ✅ Project References
   "references": [
-    { "path": "../../../../tsconfig.json" }      // DDD слои
+    { "path": "../../../../tsconfig.json" } // DDD слои
   ],
-  
+
   "include": [
     "**/*",
     "**/.server/**/*",
     "**/.client/**/*",
     ".react-router/types/**/*",
-    "src/types/**/*.d.ts",        // ← Type definitions для CSS/images
-    "../../shared/systems/**/*",  // ← Включаем systems напрямую
-    "../../shared/platform/**/*"  // ← Включаем platform напрямую
+    "src/types/**/*.d.ts", // ← Type definitions для CSS/images
+    "../../shared/systems/**/*", // ← Включаем systems напрямую
+    "../../shared/platform/**/*" // ← Включаем platform напрямую
   ]
 }

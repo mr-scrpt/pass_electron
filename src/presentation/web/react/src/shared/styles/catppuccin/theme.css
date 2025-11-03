@@ -1,86 +1,86 @@
 @layer base {
   :root,
   [data-theme="mauve"] {
-    --primary: var(--ctp-mauve);
-    --ring: var(--ctp-mauve);
-    --sidebar-primary: var(--ctp-mauve);
+    --primary: var(--catppuccin-color-mauve);
+    --ring: var(--catppuccin-color-mauve);
+    --sidebar-primary: var(--catppuccin-color-mauve);
   }
 
   [data-theme="rosewater"] {
-    --primary: var(--ctp-rosewater);
-    --ring: var(--ctp-rosewater);
-    --sidebar-primary: var(--ctp-rosewater);
+    --primary: var(--catppuccin-color-rosewater);
+    --ring: var(--catppuccin-color-rosewater);
+    --sidebar-primary: var(--catppuccin-color-rosewater);
   }
 
   [data-theme="flamingo"] {
-    --primary: var(--ctp-flamingo);
-    --ring: var(--ctp-flamingo);
-    --sidebar-primary: var(--ctp-flamingo);
+    --primary: var(--catppuccin-color-flamingo);
+    --ring: var(--catppuccin-color-flamingo);
+    --sidebar-primary: var(--catppuccin-color-flamingo);
   }
 
   [data-theme="pink"] {
-    --primary: var(--ctp-pink);
-    --ring: var(--ctp-pink);
-    --sidebar-primary: var(--ctp-pink);
+    --primary: var(--catppuccin-color-pink);
+    --ring: var(--catppuccin-color-pink);
+    --sidebar-primary: var(--catppuccin-color-pink);
   }
 
   [data-theme="maroon"] {
-    --primary: var(--ctp-maroon);
-    --ring: var(--ctp-maroon);
-    --sidebar-primary: var(--ctp-maroon);
+    --primary: var(--catppuccin-color-maroon);
+    --ring: var(--catppuccin-color-maroon);
+    --sidebar-primary: var(--catppuccin-color-maroon);
   }
 
   [data-theme="red"] {
-    --primary: var(--ctp-red);
-    --ring: var(--ctp-red);
-    --sidebar-primary: var(--ctp-red);
+    --primary: var(--catppuccin-color-red);
+    --ring: var(--catppuccin-color-red);
+    --sidebar-primary: var(--catppuccin-color-red);
   }
 
   [data-theme="peach"] {
-    --primary: var(--ctp-peach);
-    --ring: var(--ctp-peach);
-    --sidebar-primary: var(--ctp-peach);
+    --primary: var(--catppuccin-color-peach);
+    --ring: var(--catppuccin-color-peach);
+    --sidebar-primary: var(--catppuccin-color-peach);
   }
 
   [data-theme="yellow"] {
-    --primary: var(--ctp-yellow);
-    --ring: var(--ctp-yellow);
-    --sidebar-primary: var(--ctp-yellow);
+    --primary: var(--catppuccin-color-yellow);
+    --ring: var(--catppuccin-color-yellow);
+    --sidebar-primary: var(--catppuccin-color-yellow);
   }
 
   [data-theme="green"] {
-    --primary: var(--ctp-green);
-    --ring: var(--ctp-green);
-    --sidebar-primary: var(--ctp-green);
+    --primary: var(--catppuccin-color-green);
+    --ring: var(--catppuccin-color-green);
+    --sidebar-primary: var(--catppuccin-color-green);
   }
 
   [data-theme="teal"] {
-    --primary: var(--ctp-teal);
-    --ring: var(--ctp-teal);
-    --sidebar-primary: var(--ctp-teal);
+    --primary: var(--catppuccin-color-teal);
+    --ring: var(--catppuccin-color-teal);
+    --sidebar-primary: var(--catppuccin-color-teal);
   }
 
   [data-theme="sky"] {
-    --primary: var(--ctp-sky);
-    --ring: var(--ctp-sky);
-    --sidebar-primary: var(--ctp-sky);
+    --primary: var(--catppuccin-color-sky);
+    --ring: var(--catppuccin-color-sky);
+    --sidebar-primary: var(--catppuccin-color-sky);
   }
 
   [data-theme="sapphire"] {
-    --primary: var(--ctp-sapphire);
-    --ring: var(--ctp-sapphire);
-    --sidebar-primary: var(--ctp-sapphire);
+    --primary: var(--catppuccin-color-sapphire);
+    --ring: var(--catppuccin-color-sapphire);
+    --sidebar-primary: var(--catppuccin-color-sapphire);
   }
 
   [data-theme="blue"] {
-    --primary: var(--ctp-blue);
-    --ring: var(--ctp-blue);
-    --sidebar-primary: var(--ctp-blue);
+    --primary: var(--catppuccin-color-blue);
+    --ring: var(--catppuccin-color-blue);
+    --sidebar-primary: var(--catppuccin-color-blue);
   }
 
   [data-theme="lavender"] {
-    --primary: var(--ctp-lavender);
-    --ring: var(--ctp-lavender);
-    --sidebar-primary: var(--ctp-lavender);
+    --primary: var(--catppuccin-color-lavender);
+    --ring: var(--catppuccin-color-lavender);
+    --sidebar-primary: var(--catppuccin-color-lavender);
   }
 }

@@ -4,9 +4,10 @@ import { Meta, Links, Scripts, ScrollRestoration } from "react-router";
 type HtmlLayoutProps = ComponentProps<"html"> & { locale?: string };
 
 export const HtmlLayout = (props: HtmlLayoutProps) => {
-  const { children, locale = "en" } = props;
+  const { children, locale = "en", className, ...rest } = props;
+  const rootClassName = className ? `mocha ${className}` : "mocha";
   return (
-    <html lang={locale}>
+    <html lang={locale} data-theme="mauve" className={rootClassName} {...rest}>
       <head suppressHydrationWarning>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

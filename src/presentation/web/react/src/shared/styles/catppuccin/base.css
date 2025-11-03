@@ -2,43 +2,43 @@
   :root {
     --radius: 0.625rem;
 
-    --background: var(--ctp-base);
-    --foreground: var(--ctp-text);
+    --background: var(--catppuccin-color-base);
+    --foreground: var(--catppuccin-color-text);
 
-    --card: var(--ctp-mantle);
-    --card-foreground: var(--ctp-text);
-    --popover: var(--ctp-mantle);
-    --popover-foreground: var(--ctp-text);
+    --card: var(--catppuccin-color-mantle);
+    --card-foreground: var(--catppuccin-color-text);
+    --popover: var(--catppuccin-color-mantle);
+    --popover-foreground: var(--catppuccin-color-text);
 
-    --primary-foreground: var(--ctp-base);
+    --primary-foreground: var(--catppuccin-color-base);
 
-    --secondary: var(--ctp-surface0);
-    --secondary-foreground: var(--ctp-text);
+    --secondary: var(--catppuccin-color-surface0);
+    --secondary-foreground: var(--catppuccin-color-text);
 
-    --muted: var(--ctp-surface0);
-    --muted-foreground: var(--ctp-subtext1);
+    --muted: var(--catppuccin-color-surface0);
+    --muted-foreground: var(--catppuccin-color-subtext1);
 
-    --accent: var(--ctp-surface1);
-    --accent-foreground: var(--ctp-text);
+    --accent: var(--catppuccin-color-surface1);
+    --accent-foreground: var(--catppuccin-color-text);
 
-    --destructive: var(--ctp-red);
-    --destructive-foreground: var(--ctp-base);
+    --destructive: var(--catppuccin-color-red);
+    --destructive-foreground: var(--catppuccin-color-base);
 
-    --border: var(--ctp-surface1);
-    --input: var(--ctp-surface1);
+    --border: var(--catppuccin-color-surface1);
+    --input: var(--catppuccin-color-surface1);
 
-    --chart-1: var(--ctp-red);
-    --chart-2: var(--ctp-teal);
-    --chart-3: var(--ctp-blue);
-    --chart-4: var(--ctp-yellow);
-    --chart-5: var(--ctp-green);
+    --chart-1: var(--catppuccin-color-red);
+    --chart-2: var(--catppuccin-color-teal);
+    --chart-3: var(--catppuccin-color-blue);
+    --chart-4: var(--catppuccin-color-yellow);
+    --chart-5: var(--catppuccin-color-green);
 
-    --sidebar: var(--ctp-mantle);
-    --sidebar-foreground: var(--ctp-text);
-    --sidebar-primary-foreground: var(--ctp-base);
-    --sidebar-accent: var(--ctp-surface0);
-    --sidebar-accent-foreground: var(--ctp-text);
-    --sidebar-border: var(--ctp-surface1);
-    --sidebar-ring: var(--ctp-surface1);
+    --sidebar: var(--catppuccin-color-mantle);
+    --sidebar-foreground: var(--catppuccin-color-text);
+    --sidebar-primary-foreground: var(--catppuccin-color-base);
+    --sidebar-accent: var(--catppuccin-color-surface0);
+    --sidebar-accent-foreground: var(--catppuccin-color-text);
+    --sidebar-border: var(--catppuccin-color-surface1);
+    --sidebar-ring: var(--catppuccin-color-surface1);
   }
 }

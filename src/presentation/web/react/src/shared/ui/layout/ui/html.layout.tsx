@@ -1,8 +1,7 @@
 import type { ComponentProps } from "react";
 import { Meta, Links, Scripts, ScrollRestoration } from "react-router";
 
-
-type HtmlLayoutProps = ComponentProps<"html"> & { locale: string };
+type HtmlLayoutProps = ComponentProps<"html"> & { locale?: string };
 
 export const HtmlLayout = (props: HtmlLayoutProps) => {
   const { children, locale = "en" } = props;

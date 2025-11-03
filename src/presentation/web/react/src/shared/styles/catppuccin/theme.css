@@ -1,0 +1,86 @@
+@layer base {
+  :root,
+  [data-theme="mauve"] {
+    --primary: var(--ctp-mauve);
+    --ring: var(--ctp-mauve);
+    --sidebar-primary: var(--ctp-mauve);
+  }
+
+  [data-theme="rosewater"] {
+    --primary: var(--ctp-rosewater);
+    --ring: var(--ctp-rosewater);
+    --sidebar-primary: var(--ctp-rosewater);
+  }
+
+  [data-theme="flamingo"] {
+    --primary: var(--ctp-flamingo);
+    --ring: var(--ctp-flamingo);
+    --sidebar-primary: var(--ctp-flamingo);
+  }
+
+  [data-theme="pink"] {
+    --primary: var(--ctp-pink);
+    --ring: var(--ctp-pink);
+    --sidebar-primary: var(--ctp-pink);
+  }
+
+  [data-theme="maroon"] {
+    --primary: var(--ctp-maroon);
+    --ring: var(--ctp-maroon);
+    --sidebar-primary: var(--ctp-maroon);
+  }
+
+  [data-theme="red"] {
+    --primary: var(--ctp-red);
+    --ring: var(--ctp-red);
+    --sidebar-primary: var(--ctp-red);
+  }
+
+  [data-theme="peach"] {
+    --primary: var(--ctp-peach);
+    --ring: var(--ctp-peach);
+    --sidebar-primary: var(--ctp-peach);
+  }
+
+  [data-theme="yellow"] {
+    --primary: var(--ctp-yellow);
+    --ring: var(--ctp-yellow);
+    --sidebar-primary: var(--ctp-yellow);
+  }
+
+  [data-theme="green"] {
+    --primary: var(--ctp-green);
+    --ring: var(--ctp-green);
+    --sidebar-primary: var(--ctp-green);
+  }
+
+  [data-theme="teal"] {
+    --primary: var(--ctp-teal);
+    --ring: var(--ctp-teal);
+    --sidebar-primary: var(--ctp-teal);
+  }
+
+  [data-theme="sky"] {
+    --primary: var(--ctp-sky);
+    --ring: var(--ctp-sky);
+    --sidebar-primary: var(--ctp-sky);
+  }
+
+  [data-theme="sapphire"] {
+    --primary: var(--ctp-sapphire);
+    --ring: var(--ctp-sapphire);
+    --sidebar-primary: var(--ctp-sapphire);
+  }
+
+  [data-theme="blue"] {
+    --primary: var(--ctp-blue);
+    --ring: var(--ctp-blue);
+    --sidebar-primary: var(--ctp-blue);
+  }
+
+  [data-theme="lavender"] {
+    --primary: var(--ctp-lavender);
+    --ring: var(--ctp-lavender);
+    --sidebar-primary: var(--ctp-lavender);
+  }
+}

@@ -3,3 +3,4 @@
 
 /* Catppuccin Mocha theme for Tailwind v4 */
 @import "@catppuccin/tailwindcss/mocha.css";
+@import "./catppuccin/shadcn-adapter.css";

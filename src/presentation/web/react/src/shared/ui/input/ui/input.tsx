@@ -6,6 +6,7 @@ import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
 import { InputLib } from "@/shared/ui/shadcn/input";
 import { inputSizeCln } from "../domain/size.cln";
 import { inputViewCln } from "../domain/view.cln";
+import { inputBaseCln } from "../domain/base";
 
 type InputProps = ComponentProps<"input"> & {
   size?: InputSizeType;
@@ -20,7 +21,11 @@ export const Input = (props: InputProps) => {
     ...rest // Собираем все остальные пропсы (type, placeholder, value, onChange...)
   } = props;
 
-  const clsInput = cn([inputSizeCln[size], inputViewCln[view]], className);
+  const clsInput = cn(
+    inputBaseCln,
+    [inputSizeCln[size], inputViewCln[view]],
+    className,
+  );
 
   // Передаем ...rest в InputLib
   return <InputLib className={clsInput} {...rest} />;

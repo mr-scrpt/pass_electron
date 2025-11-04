@@ -1,10 +1,10 @@
 //  src/presentation/web/react/src/shared/ui/title/ui/title.tsx
-import cn from "classnames";
 import { type ComponentProps, type ElementType } from "react";
 import { titleSizeCln } from "../domain/size.cln";
 import { TITLE_SIZE, type TitleSizeType } from "../domain/size.type";
 import { titleViewCln } from "../domain/view.cln";
 import { TITLE_VIEW, type TitleViewType } from "../domain/view.type";
+import { cn } from "@/shared/lib/shadcn";
 
 type TitleProps = Omit<ComponentProps<"h1">, "size"> & {
   text: string;

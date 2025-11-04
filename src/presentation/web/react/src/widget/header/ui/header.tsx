@@ -1,6 +1,6 @@
+import { cn } from "@/shared/lib/shadcn";
 import { Logo, LOGO_SIZE } from "@/shared/ui/logo";
 import { Title, TITLE_SIZE, TITLE_VIEW } from "@/shared/ui/title";
-import cn from "classnames";
 import type { ComponentProps } from "react";
 type HeaderProps = ComponentProps<"header">;
 

@@ -26,6 +26,7 @@
 
     --border: var(--catppuccin-color-surface1);
     --input: var(--catppuccin-color-surface1);
+    --input-secondary: var(--catppuccin-color-pink);
 
     --chart-1: var(--catppuccin-color-red);
     --chart-2: var(--catppuccin-color-teal);

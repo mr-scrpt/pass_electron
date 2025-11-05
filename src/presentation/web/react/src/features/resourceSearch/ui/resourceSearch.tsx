@@ -12,7 +12,7 @@ export const ResourseSearch = (props: ResourceSearchProps) => {
   return (
     <div className={cn(className)}>
       <div className="flex">
-        <Input size={INPUT_SIZE.S} view={INPUT_VIEW.SECONDARY} />
+        <Input size={INPUT_SIZE.S} view={INPUT_VIEW.PIMARY} />
       </div>
     </div>
   );

@@ -1,12 +1,9 @@
 // Input.tsx
-import { cn } from "@/shared/lib/shadcn";
+import { InputLib } from "@/shared/ui/shadcn/input";
 import type { ComponentProps } from "react";
 import { INPUT_SIZE, type InputSizeType } from "../domain/size.type";
 import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
-import { InputLib } from "@/shared/ui/shadcn/input";
-import { inputSizeCln } from "../domain/size.cln";
-import { inputViewCln } from "../domain/view.cln";
-import { inputBaseCln } from "../domain/base";
+import { useInputClassBuilder } from "../model/useInputClassBuilder.model";
 
 type InputProps = ComponentProps<"input"> & {
   size?: InputSizeType;
@@ -21,12 +18,7 @@ export const Input = (props: InputProps) => {
     ...rest // Собираем все остальные пропсы (type, placeholder, value, onChange...)
   } = props;
 
-  const clsInput = cn(
-    inputBaseCln,
-    [inputSizeCln[size], inputViewCln[view]],
-    className,
-  );
+  const clsInput = useInputClassBuilder({ size, view, className });
 
-  // Передаем ...rest в InputLib
   return <InputLib className={clsInput} {...rest} />;
 };

@@ -1,4 +1,4 @@
-// domain/size.cln.ts
+//  src/presentation/web/react/src/shared/ui/input/domain/size.cln.ts
 import { INPUT_SIZE } from "./size.type";
 
 // Теперь каждый размер контролирует высоту, паддинги и размер шрифта

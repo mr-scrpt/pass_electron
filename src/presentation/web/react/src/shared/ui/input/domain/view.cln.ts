@@ -1,3 +1,4 @@
+//  src/presentation/web/react/src/shared/ui/input/domain/view.cln.ts
 import { INPUT_VIEW, type InputViewType } from "./view.type";
 
 const commonViewStyles = [

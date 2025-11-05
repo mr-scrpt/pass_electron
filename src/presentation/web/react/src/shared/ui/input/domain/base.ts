@@ -1,3 +1,4 @@
+// src/presentation/web/react/src/shared/ui/input/domain/base.ts
 export const inputBaseCln = [
   "flex",
   "w-full",
@@ -13,6 +14,6 @@ export const inputBaseCln = [
   "focus-visible:outline-none",
 
   // Состояния
-  "disabled:cursor-not-allowed",
-  "disabled:opacity-50",
+  // "disabled:cursor-not-allowed",
+  // "disabled:opacity-50", // <-- УДАЛЕНО: Этот стиль переехал в state.cln.ts
 ];

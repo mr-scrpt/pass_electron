@@ -1,6 +1,7 @@
 export const inputDisabledCln = [
   "disabled:cursor-not-allowed",
   "disabled:opacity-50",
+  "disabled:pointer-events-none",
 
   "disabled:hover:border-input",
   "disabled:hover:bg-transparent",
@@ -12,6 +13,7 @@ export const inputDisabledCln = [
 export const inputReadonlyCln = [
   "read-only:cursor-default",
   "read-only:bg-muted/30",
+  "disabled:pointer-events-none",
 
   "read-only:hover:border-input",
   "read-only:hover:bg-transparent",

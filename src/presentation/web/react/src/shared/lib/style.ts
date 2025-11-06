@@ -16,3 +16,14 @@ export const resolveState = <TState>({
 }: ResolveStateParams<TState>): TState => {
   return resolvers.find(({ condition }) => condition)?.state ?? defaultState;
 };
+
+export const mergeNativeProps = <T extends Record<string, unknown>>(
+  props: T,
+  defaults: Required<T>,
+): Required<T> => {
+  return Object.keys(defaults).reduce((acc, key) => {
+    const k = key as keyof T;
+    acc[k] = props[k] ?? defaults[k];
+    return acc;
+  }, {} as Required<T>);
+};

@@ -1,18 +1,25 @@
 //  src/presentation/web/react/src/shared/ui/input/ui/input.tsx
-import { InputLib } from "@/shared/ui/shadcn/input";
-import type { ComponentProps } from "react";
-import { INPUT_SIZE, type InputSizeType } from "../domain/size.type";
-import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
-import { useInputClassBuilder } from "../model/useInputClassBuilder.model";
-import { resolveState } from "@/shared/lib/style";
-import { INPUT_STATE, type InputStateType } from "../domain/state.type";
+import { InputLib } from '@/shared/ui/shadcn/input';
+import type { ComponentProps } from 'react';
+import { INPUT_SIZE, type InputSizeType } from '../domain/size.type';
+import { INPUT_VIEW, type InputViewType } from '../domain/view.type';
+import { INPUT_STATE, type InputStateType } from '../domain/state.type';
+import { useInputClassBuilder } from '../model/useInputClassBuilder.model';
 
-type InputProps = ComponentProps<"input"> & {
+type InputProps = ComponentProps<'input'> & {
   size?: InputSizeType;
   view?: InputViewType;
   state?: InputStateType;
 };
 
+/**
+ * Input компонент с поддержкой декларативной системы стилей
+ * 
+ * Особенности:
+ * - Статичные стили (view, size, state) через CVA
+ * - Интерактивные стили (focus, hover, active) через compound матрицу
+ * - Native состояния (disabled, readonly) автоматически перебивают интерактивные стили через CSS
+ */
 export const Input = (props: InputProps) => {
   const {
     className,
@@ -21,22 +28,14 @@ export const Input = (props: InputProps) => {
     state = INPUT_STATE.DEFAULT,
     disabled,
     readOnly,
-    ...rest // Собираем все остальные пропсы (type, placeholder, value, onChange...)
+    ...rest // Все остальные нативные пропсы (type, placeholder, value, onChange, onBlur...)
   } = props;
-
-  const resolvedState = resolveState({
-    resolvers: [
-      { condition: !!disabled, state: INPUT_STATE.DISABLED },
-      { condition: !!readOnly, state: INPUT_STATE.READONLY },
-    ],
-    defaultState: state,
-  });
 
   const clsInput = useInputClassBuilder({
     size,
     view,
+    state,
     className,
-    state: resolvedState,
   });
 
   return (

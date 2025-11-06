@@ -25,7 +25,7 @@ export const Input = (props: InputProps) => {
     className,
     size = INPUT_SIZE.L,
     view = INPUT_VIEW.PIMARY,
-    state = INPUT_STATE.DEFAULT,
+    state = INPUT_STATE.IDLE,  // ← IDLE вместо DEFAULT
     disabled,
     readOnly,
     ...rest // Все остальные нативные пропсы (type, placeholder, value, onChange, onBlur...)

@@ -1,11 +1,15 @@
 // src/presentation/web/react/src/shared/ui/input/domain/state.type.ts
-import { getEnumKeys } from "@/shared/lib/typescript";
+import { getEnumKeys } from '@/shared/lib/typescript';
 
-// Только визуальные/декоративные состояния
+/**
+ * Семантические состояния Input
+ * Не определяют стили напрямую - стили зависят от VIEW
+ */
 export enum INPUT_STATE {
-  DEFAULT,
-  ERROR,
-  SUCCESS,
+  IDLE,      // Нейтральное состояние (без изменений)
+  ERROR,     // Ошибка валидации
+  SUCCESS,   // Успешная валидация
+  WARNING,   // Предупреждение
 }
 
 export type InputStateType = INPUT_STATE;

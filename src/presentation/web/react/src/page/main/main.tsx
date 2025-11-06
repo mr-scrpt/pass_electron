@@ -14,7 +14,7 @@ export const PageMain = (props: MainPageProps) => {
     <main>
       <Input
         size={INPUT_SIZE.XL}
-        view={INPUT_VIEW.PIMARY}
+        view={INPUT_VIEW.SECONDARY}
         state={INPUT_STATE.SUCCESS}
       />
       {/* <Button>Button text</Button> */}

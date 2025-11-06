@@ -1,13 +1,7 @@
-//  src/presentation/web/react/src/shared/ui/input/domain/size.type.ts
-import { getEnumKeys } from "@/shared/lib/typescript";
+import { createDict } from "@/shared/lib/typescript";
 
-export enum INPUT_SIZE {
-  S,
-  M,
-  L,
-  XL,
-}
+export const INPUT_SIZE_ARRAY = ["S", "M", "L", "XL"] as const;
 
-export type InputSizeType = INPUT_SIZE;
+export const INPUT_SIZE = createDict(INPUT_SIZE_ARRAY);
 
-export const INPUT_SIZE_KEY = getEnumKeys(INPUT_SIZE);
+export type InputSizeType = (typeof INPUT_SIZE_ARRAY)[number];

@@ -1,23 +1,23 @@
-/**
- * Интерактивные темы - независимые от view/state
- * Переиспользуются для комбинирования разных визуальных стилей
- */
-export enum INTERACTION_THEME {
-  PRIMARY,
-  SECONDARY,
-  SUCCESS,
-  ATTENTION,
-  WARNING,
-  NONE,
-}
+import { createDict } from "@/shared/lib/typescript";
 
-export type InteractionThemeType = INTERACTION_THEME;
+export const INTERACTION_THEME_ARRAY = [
+  "PRIMARY",
+  "SECONDARY",
+  "SUCCESS",
+  "ATTENTION",
+  "WARNING",
+  "NONE",
+] as const;
+
+export const INTERACTION_THEME = createDict(INTERACTION_THEME_ARRAY);
+
+export type InteractionThemeType = (typeof INTERACTION_THEME_ARRAY)[number];
 
 /**
  * Набор интерактивных тем для Input
  * Input имеет три типа интерактивных состояний: focus, hover, active
  */
-export type InputInteractionTheme = {
+export type InputInteractionThemeType = {
   focus: InteractionThemeType;
   hover: InteractionThemeType;
   active: InteractionThemeType;

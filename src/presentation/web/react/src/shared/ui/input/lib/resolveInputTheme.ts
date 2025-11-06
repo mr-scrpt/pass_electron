@@ -1,14 +1,18 @@
-import { resolveCompoundState } from '@/shared/lib/compound-state-resolver';
-import { inputCompoundStateMapping } from '../domain/compound.config';
-import { inputCompoundStateCln } from '../domain/compound-state.cln';
-import { inputCompoundStateBehaviorCln } from '../domain/compound-state-behavior.cln';
-import { focusThemeCln, hoverThemeCln, activeThemeCln } from '../domain/theme-interaction.cln';
-import type { INPUT_VIEW } from '../domain/view.type';
-import type { INPUT_STATE } from '../domain/state.type';
+import { resolveCompoundState } from "@/shared/lib/compound-state-resolver";
+import { inputCompoundStateBehaviorCln } from "../domain/compound-state-behavior.cln";
+import { inputCompoundStateCln } from "../domain/compound-state.cln";
+import { inputCompoundStateMapping } from "../domain/compound.config";
+import type { InputStateType } from "../domain/state.type";
+import {
+  activeThemeCln,
+  focusThemeCln,
+  hoverThemeCln,
+} from "../domain/theme-interaction.cln";
+import type { InputViewType } from "../domain/view.type";
 
 type ResolveInputThemeParams = {
-  view: INPUT_VIEW;
-  state: INPUT_STATE;
+  view: InputViewType;
+  state: InputStateType;
 };
 
 type ResolvedInputTheme = {
@@ -18,32 +22,19 @@ type ResolvedInputTheme = {
   active: string[];
 };
 
-/**
- * Резолвит ВСЕ стили для Input (статические + интерактивные)
- * 
- * Алгоритм:
- * 1. view + state → compound state (через универсальный resolver)
- * 2. compound state → статические стили
- * 3. compound state → интерактивное поведение
- * 4. интерактивное поведение → классы
- * 
- * НЕТ if'ов - только lookup через compound state
- */
-export function resolveInputTheme(params: ResolveInputThemeParams): ResolvedInputTheme {
-  // 1. Резолвим compound state
+export function resolveInputTheme(
+  params: ResolveInputThemeParams,
+): ResolvedInputTheme {
   const compoundState = resolveCompoundState(inputCompoundStateMapping, params);
-  
-  // 2. Получаем статические стили
+
   const staticStyles = inputCompoundStateCln[compoundState];
-  
-  // 3. Получаем интерактивное поведение
+
   const behavior = inputCompoundStateBehaviorCln[compoundState];
-  
-  // 4. Получаем классы для интерактивных тем
+
   const focusClasses = focusThemeCln[behavior.focus];
   const hoverClasses = hoverThemeCln[behavior.hover];
   const activeClasses = activeThemeCln[behavior.active];
-  
+
   return {
     static: staticStyles,
     focus: focusClasses,
@@ -52,14 +43,6 @@ export function resolveInputTheme(params: ResolveInputThemeParams): ResolvedInpu
   };
 }
 
-/**
- * Получает все классы одним массивом
- */
 export function getInputThemeClasses(theme: ResolvedInputTheme): string[] {
-  return [
-    ...theme.static,
-    ...theme.focus,
-    ...theme.hover,
-    ...theme.active,
-  ];
+  return [...theme.static, ...theme.focus, ...theme.hover, ...theme.active];
 }

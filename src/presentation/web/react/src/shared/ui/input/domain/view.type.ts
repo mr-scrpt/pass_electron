@@ -1,9 +1,7 @@
-//  src/presentation/web/react/src/shared/ui/input/domain/view.type.ts
-import { getEnumKeys } from "@/shared/lib/typescript";
+import { createDict } from "@/shared/lib/typescript";
 
-export enum INPUT_VIEW {
-  PIMARY,
-  SECONDARY,
-}
-export type InputViewType = INPUT_VIEW;
-export const INPUT_VIEW_KEY = getEnumKeys(INPUT_VIEW);
+export const INPUT_VIEW_ARRAY = ["PRIMARY", "SECONDARY"] as const;
+
+export const INPUT_VIEW = createDict(INPUT_VIEW_ARRAY);
+
+export type InputViewType = (typeof INPUT_VIEW_ARRAY)[number];

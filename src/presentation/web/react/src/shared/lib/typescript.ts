@@ -1,4 +1,11 @@
 /**
+ * Phantom type для брендирования значений
+ * Делает типы номинальными вместо структурных
+ */
+declare const __brand: unique symbol;
+type Brand<T, TBrand extends string> = T & { [__brand]: TBrand };
+
+/**
  * Создает объект-словарь из массива строк
  * Каждый элемент массива становится ключом и значением
  * 
@@ -12,6 +19,38 @@
 export function createDict<T extends readonly string[]>(values: T) {
   return Object.fromEntries(values.map((v) => [v, v])) as {
     [K in T[number]]: K;
+  };
+}
+
+/**
+ * Создает branded объект-словарь из массива строк
+ * Значения становятся номинально типизированными и НЕ совместимы со строками
+ * 
+ * На runtime это просто строки, но TypeScript запретит передачу строковых литералов
+ * 
+ * @example
+ * ```typescript
+ * const SIZES = ["S", "M", "L"] as const;
+ * const SIZE = createBrandedDict(SIZES, "Size");
+ * type SizeType = typeof SIZE[keyof typeof SIZE];
+ * 
+ * // ✅ РАБОТАЕТ
+ * const size: SizeType = SIZE.M;
+ * 
+ * // ❌ ОШИБКА: Type '"M"' is not assignable to type 'SizeType'
+ * const size: SizeType = "M";
+ * ```
+ */
+export function createBrandedDict<
+  T extends readonly string[],
+  TBrand extends string
+>(arr: T, brand: TBrand) {
+  const result = {} as any;
+  arr.forEach((key) => {
+    result[key] = key;
+  });
+  return result as {
+    [K in T[number]]: Brand<K, TBrand>;
   };
 }
 

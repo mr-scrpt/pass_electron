@@ -1,4 +1,6 @@
-import { createDict } from "@/shared/lib/typescript";
+import { createBrandedDict } from "@/shared/lib/typescript";
+
+const INPUT_STATE_BRAND = "InputState" as const;
 
 export const INPUT_STATE_ARRAY = [
   "IDLE",
@@ -7,6 +9,6 @@ export const INPUT_STATE_ARRAY = [
   "WARNING",
 ] as const;
 
-export const INPUT_STATE = createDict(INPUT_STATE_ARRAY);
+export const INPUT_STATE = createBrandedDict(INPUT_STATE_ARRAY, INPUT_STATE_BRAND);
 
-export type InputStateType = (typeof INPUT_STATE_ARRAY)[number];
+export type InputStateType = typeof INPUT_STATE[keyof typeof INPUT_STATE];

@@ -1,7 +1,9 @@
-import { createDict } from "@/shared/lib/typescript";
+import { createBrandedDict } from "@/shared/lib/typescript";
+
+const INPUT_VIEW_BRAND = "InputView" as const;
 
 export const INPUT_VIEW_ARRAY = ["PRIMARY", "SECONDARY"] as const;
 
-export const INPUT_VIEW = createDict(INPUT_VIEW_ARRAY);
+export const INPUT_VIEW = createBrandedDict(INPUT_VIEW_ARRAY, INPUT_VIEW_BRAND);
 
-export type InputViewType = (typeof INPUT_VIEW_ARRAY)[number];
+export type InputViewType = typeof INPUT_VIEW[keyof typeof INPUT_VIEW];

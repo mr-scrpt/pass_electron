@@ -6,10 +6,10 @@ import type { EnsureAllKeys } from "@/shared/lib/typescript";
 
 /**
  * Темы интерактивности для Input
- * 
+ *
  * Используют custom variant "interactive" из variants.css
  * который исключает disabled и readonly состояния
- * 
+ *
  * @see @/shared/styles/variants.css - определение custom variants
  */
 

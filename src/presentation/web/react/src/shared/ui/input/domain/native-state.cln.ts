@@ -1,4 +1,4 @@
-export const inputDisabledCln = [
+const inputDisabledCln = [
   "disabled:cursor-not-allowed",
   "disabled:opacity-50",
   "disabled:pointer-events-none",
@@ -10,7 +10,7 @@ export const inputDisabledCln = [
   "disabled:active:bg-transparent",
 ];
 
-export const inputReadonlyCln = [
+const inputReadonlyCln = [
   "read-only:cursor-default",
   "read-only:bg-muted/30",
   "read-only:transition-none",

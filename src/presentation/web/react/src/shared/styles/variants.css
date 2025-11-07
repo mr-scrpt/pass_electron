@@ -1,0 +1,15 @@
+/**
+ * Custom variants для управления интерактивностью
+ * 
+ * Используются для исключения disabled/readonly состояний
+ * из hover, focus, active псевдоклассов
+ */
+
+/* Полностью интерактивный - не disabled и не readonly */
+@custom-variant interactive (&:not(:disabled):not(:read-only));
+
+/* Только не disabled (работает на readonly) */
+@custom-variant not-disabled (&:not(:disabled));
+
+/* Только не readonly (работает на disabled) */
+@custom-variant not-readonly (&:not(:read-only));

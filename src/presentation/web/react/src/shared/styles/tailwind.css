@@ -1,4 +1,8 @@
 /* src/presentation/web/react/src/styles/tailwind.css */
+
+/* Custom variants ДОЛЖНЫ быть ДО @import "tailwindcss" */
+@import "./variants.css";
+
 @import "tailwindcss";
 
 /* Catppuccin Mocha theme for Tailwind v4 */

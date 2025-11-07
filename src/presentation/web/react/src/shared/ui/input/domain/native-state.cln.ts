@@ -13,13 +13,8 @@ export const inputDisabledCln = [
 export const inputReadonlyCln = [
   "read-only:cursor-default",
   "read-only:bg-muted/30",
-  "disabled:pointer-events-none",
-
-  "read-only:hover:border-input",
-  "read-only:hover:bg-transparent",
+  "read-only:transition-none",
   "read-only:focus-visible:ring-0",
-  "read-only:active:scale-100",
-  "read-only:active:bg-transparent",
 ];
 
 export const inputNativeStateCln = [...inputDisabledCln, ...inputReadonlyCln];

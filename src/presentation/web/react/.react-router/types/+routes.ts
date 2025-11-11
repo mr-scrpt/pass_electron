@@ -50,12 +50,15 @@ type Pages = {
   "/errors-test/query": {
     params: {};
   };
+  "/uikit": {
+    params: {};
+  };
 };
 
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/test-folder-routing" | "/test-folder-routing/example-1" | "/test-folder-routing/example-2" | "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query";
+    page: "/" | "/test-folder-routing" | "/test-folder-routing/example-1" | "/test-folder-routing/example-2" | "/errors-test" | "/errors-test/mutation-validation" | "/errors-test/mutation-business" | "/errors-test/javascript" | "/errors-test/validation" | "/errors-test/http-500" | "/errors-test/platform" | "/errors-test/network" | "/errors-test/query" | "/uikit";
   };
   "page/test-folder-routing/route.tsx": {
     id: "page/test-folder-routing";
@@ -117,6 +120,10 @@ type RouteFiles = {
     id: "page/_index";
     page: "/";
   };
+  "page/uikit.tsx": {
+    id: "page/uikit";
+    page: "/uikit";
+  };
 };
 
 type RouteModules = {
@@ -136,4 +143,5 @@ type RouteModules = {
   "page/errors-test._index": typeof import("./src/app/page/errors-test._index.tsx");
   "page/errors-test.query": typeof import("./src/app/page/errors-test.query.tsx");
   "page/_index": typeof import("./src/app/page/_index.tsx");
+  "page/uikit": typeof import("./src/app/page/uikit.tsx");
 };

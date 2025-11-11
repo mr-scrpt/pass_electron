@@ -22,15 +22,20 @@ export const inputCompoundStateCln = {
     "text-ctp-peach",
   ],
 
-  [INPUT_COMPOUND_STATE.SECONDARY_IDLE]: [],
+  [INPUT_COMPOUND_STATE.SECONDARY_IDLE]: [
+    "bg-ctp-green",
+    "text-ctp-base",
+    "border-ctp-green",
+  ],
 
   [INPUT_COMPOUND_STATE.SECONDARY_ERROR]: [
     "bg-destructive",
     "text-ctp-base",
     "border-destructive",
   ],
+
   [INPUT_COMPOUND_STATE.SECONDARY_SUCCESS]: [
-    "bg-ctp-green", // ← Зеленый фон
+    "bg-ctp-green",
     "text-ctp-base",
     "border-ctp-green",
   ],
@@ -39,5 +44,22 @@ export const inputCompoundStateCln = {
     "bg-ctp-peach",
     "text-ctp-base",
     "border-ctp-peach",
+  ],
+
+  [INPUT_COMPOUND_STATE.OUTLINE_IDLE]: [],
+
+  [INPUT_COMPOUND_STATE.OUTLINE_ERROR]: [
+    "border-destructive",
+    "text-destructive",
+  ],
+
+  [INPUT_COMPOUND_STATE.OUTLINE_SUCCESS]: [
+    "border-ctp-green",
+    "text-ctp-green",
+  ],
+
+  [INPUT_COMPOUND_STATE.OUTLINE_WARNING]: [
+    "border-ctp-peach",
+    "text-ctp-peach",
   ],
 } satisfies EnsureAllKeys<InputCompoundStateType, string[]>;

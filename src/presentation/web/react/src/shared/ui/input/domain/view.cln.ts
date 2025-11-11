@@ -5,7 +5,7 @@ const commonViewStyles = [
   "rounded-md border-2",
   "bg-transparent",
   "shadow-sm",
-  "transition-colors",
+  "transition-all",
 ];
 
 export const inputViewCln = {
@@ -21,5 +21,12 @@ export const inputViewCln = {
     "border-ctp-green",
     "text-ctp-green",
     "placeholder:text-ctp-green/60",
+  ],
+
+  [INPUT_VIEW.OUTLINE]: [
+    ...commonViewStyles,
+    "border-input",
+    "text-foreground",
+    "placeholder:text-muted-foreground",
   ],
 } satisfies EnsureAllKeys<InputViewType, string[]>;

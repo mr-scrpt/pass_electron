@@ -1,1 +1,1 @@
-export { resolveCompoundState } from './resolver';
+export { resolveCompoundState, resolveCompoundInteractionStates } from './resolver';

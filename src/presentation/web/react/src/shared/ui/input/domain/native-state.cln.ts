@@ -4,15 +4,13 @@ const inputDisabledCln = [
   "disabled:pointer-events-none",
 
   "disabled:hover:border-input",
-  "disabled:hover:bg-transparent",
   "disabled:focus-visible:ring-0",
   "disabled:active:scale-100",
-  "disabled:active:bg-transparent",
 ];
 
 const inputReadonlyCln = [
   "read-only:cursor-default",
-  "read-only:bg-muted/30",
+  "read-only:opacity-70", // Простое решение: 70% для всего (текст вполне читаем)
   "read-only:transition-none",
   "read-only:focus-visible:ring-0",
 ];

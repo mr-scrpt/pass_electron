@@ -48,6 +48,18 @@ export const focusThemeCln = {
     "focus-visible:interactive:outline-none",
     "focus-visible:interactive:ring-0",
   ],
+
+  [INTERACTION_THEME.SECONDARY_FILLED]: [
+    "focus-visible:interactive:outline-none",
+    "focus-visible:interactive:ring-2",
+    "focus-visible:interactive:ring-ctp-green",
+  ],
+
+  [INTERACTION_THEME.OUTLINE]: [
+    "focus-visible:interactive:outline-none",
+    "focus-visible:interactive:ring-2",
+    "focus-visible:interactive:ring-input",
+  ],
 } satisfies EnsureAllKeys<InteractionThemeType, string[]>;
 
 export const hoverThemeCln = {
@@ -56,10 +68,10 @@ export const hoverThemeCln = {
     "hover:interactive:bg-ctp-mauve/5",
   ],
 
-  [INTERACTION_THEME.SECONDARY]: [
-    "hover:interactive:border-ctp-green",
-    "hover:interactive:bg-ctp-green/5",
-  ],
+  // [INTERACTION_THEME.SECONDARY]: [
+  //   "hover:interactive:border-ctp-green",
+  //   "hover:interactive:bg-ctp-green/5",
+  // ],
 
   [INTERACTION_THEME.SUCCESS]: [
     "hover:interactive:border-ctp-teal",
@@ -77,6 +89,13 @@ export const hoverThemeCln = {
   ],
 
   [INTERACTION_THEME.NONE]: [],
+
+  [INTERACTION_THEME.SECONDARY]: ["hover:interactive:brightness-110"],
+
+  [INTERACTION_THEME.OUTLINE]: [
+    "hover:interactive:border-ring", // Более контрастный цвет для hover
+    "hover:interactive:bg-muted/5",
+  ],
 } satisfies EnsureAllKeys<InteractionThemeType, string[]>;
 
 export const activeThemeCln = {
@@ -85,10 +104,10 @@ export const activeThemeCln = {
     "active:interactive:bg-ctp-mauve/10",
   ],
 
-  [INTERACTION_THEME.SECONDARY]: [
-    "active:interactive:scale-[0.99]",
-    "active:interactive:bg-ctp-green/10",
-  ],
+  // [INTERACTION_THEME.SECONDARY]: [
+  //   "active:interactive:scale-[0.99]",
+  //   "active:interactive:bg-ctp-green/10",
+  // ],
 
   [INTERACTION_THEME.SUCCESS]: [
     "active:interactive:scale-[0.99]",
@@ -106,4 +125,14 @@ export const activeThemeCln = {
   ],
 
   [INTERACTION_THEME.NONE]: [],
+
+  [INTERACTION_THEME.SECONDARY]: [
+    "active:interactive:scale-[0.99]",
+    "active:interactive:brightness-95",
+  ],
+
+  [INTERACTION_THEME.OUTLINE]: [
+    "active:interactive:scale-[0.99]",
+    "active:interactive:bg-muted/10",
+  ],
 } satisfies EnsureAllKeys<InteractionThemeType, string[]>;

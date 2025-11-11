@@ -1,16 +1,16 @@
-import { cva } from "class-variance-authority";
+import { cn } from "@/shared/lib/shadcn";
+import { cvax } from "@/shared/lib/cvax";
 import { inputBaseCln } from "../domain/base";
-import { inputViewCln } from "../domain/view.cln";
-import { inputSizeCln } from "../domain/size.cln";
+import { inputCompoundInteractionCln } from "../domain/compound-interaction.cln";
+import { inputCompoundStateCln } from "../domain/compound-state.cln";
 import { inputNativeStateCln } from "../domain/native-state.cln";
-import type { InputViewType } from "../domain/view.type";
+import { inputSizeCln } from "../domain/size.cln";
 import type { InputSizeType } from "../domain/size.type";
 import type { InputStateType } from "../domain/state.type";
-import {
-  resolveInputTheme,
-  getInputThemeClasses,
-} from "../lib/resolveInputTheme";
-import { cn } from "@/shared/lib/shadcn";
+import { inputViewCln } from "../domain/view.cln";
+import type { InputViewType } from "../domain/view.type";
+import { useCompoundInteractionClass } from "./useCompoundInteractionClass.model";
+import { useCompoundStateClass } from "./useStateClass.model";
 
 type UseInputClassBuilderParams = {
   view: InputViewType;
@@ -23,16 +23,24 @@ export function useInputClassBuilder(
   params: UseInputClassBuilderParams,
 ): string {
   const { view, size, state, className } = params;
+  const compoundState = useCompoundStateClass({ view, state });
+  const compoundInteraction = useCompoundInteractionClass({ view, state });
 
-  const staticClasses = cva([...inputBaseCln, ...inputNativeStateCln], {
+  const classes = cvax([...inputBaseCln, ...inputNativeStateCln], {
     variants: {
-      view: { ...inputViewCln },
-      size: { ...inputSizeCln },
+      view: inputViewCln,
+      size: inputSizeCln,
+      state: inputCompoundStateCln,
     },
-  })({ view, size });
+    multiVariants: {
+      interaction: inputCompoundInteractionCln,
+    },
+  })({
+    view,
+    size,
+    state: compoundState,
+    interaction: compoundInteraction,
+  });
 
-  const theme = resolveInputTheme({ view, state });
-  const themeClasses = getInputThemeClasses(theme);
-
-  return cn(staticClasses, themeClasses, className);
+  return cn(classes, className);
 }

@@ -7,9 +7,9 @@ import type { InputViewType } from "../domain/view.type";
 import { useCompoundInteractionClass } from "./useCompoundInteractionClass.model";
 import { useCompoundStateClass } from "./useStateClass.model";
 import { inputBaseCln, inputNativeStateCln } from "../data/base";
-import { inputCompoundInteractionCln } from "../data/compound-interaction.cln";
-import { inputCompoundStateCln } from "../data/compound-state.cln";
 import { inputSizeCln } from "../data/size.cln";
+import { inputInteractionCln } from "../data/interaction/interaction.cln";
+import { inputStateCln } from "../data/state/state.cln";
 
 type UseInputClassBuilderParams = {
   view: InputViewType;
@@ -29,10 +29,10 @@ export function useInputClassBuilder(
     variants: {
       view: inputViewCln,
       size: inputSizeCln,
-      state: inputCompoundStateCln,
+      state: inputStateCln,
     },
     multiVariants: {
-      interaction: inputCompoundInteractionCln,
+      interaction: inputInteractionCln,
     },
   })({
     view,

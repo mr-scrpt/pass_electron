@@ -23,11 +23,6 @@ export const INPUT_COMPOUND_INTERACTION = createBrandedDict(
 export type InputCompoundIteractionType =
   (typeof INPUT_COMPOUND_INTERACTION)[keyof typeof INPUT_COMPOUND_INTERACTION];
 
-// export type CompoundInteractionType = {
-//   compoundState: InputCompoundStateType;
-//   interaction: InputCompoundIteractionType;
-// };
-
 export const getInputCompoundInteractionKeyList = ({
   compoundState,
 }: {

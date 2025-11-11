@@ -1,5 +1,5 @@
+import { cn } from "@/shared/lib/shadcn";
 import type { ComponentProps, ReactNode } from "react";
-import { cn } from "@/shared/lib/utils";
 
 type SectionProps = ComponentProps<"section"> & {
   title: string;

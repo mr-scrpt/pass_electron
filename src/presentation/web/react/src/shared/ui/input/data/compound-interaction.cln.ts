@@ -1,8 +1,8 @@
+import type { EnsureAllKeys } from "@/shared/lib/typescript";
 import {
   INPUT_COMPOUND_INTERACTION,
   type InputCompoundIteractionType,
-} from "./compound-interaction.type";
-import type { EnsureAllKeys } from "@/shared/lib/typescript";
+} from "../domain/compound-interaction.type";
 
 const BASE_FOCUS = [
   "focus-visible:interactive:outline-none",

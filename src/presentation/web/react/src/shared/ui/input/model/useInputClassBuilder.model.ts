@@ -1,16 +1,15 @@
 import { cn } from "@/shared/lib/shadcn";
 import { cvax } from "@/shared/lib/cvax";
-import { inputBaseCln } from "../domain/base";
-import { inputCompoundInteractionCln } from "../domain/compound-interaction.cln";
-import { inputCompoundStateCln } from "../domain/compound-state.cln";
-import { inputNativeStateCln } from "../domain/native-state.cln";
-import { inputSizeCln } from "../domain/size.cln";
 import type { InputSizeType } from "../domain/size.type";
 import type { InputStateType } from "../domain/state.type";
-import { inputViewCln } from "../domain/view.cln";
+import { inputViewCln } from "../data/view.cln";
 import type { InputViewType } from "../domain/view.type";
 import { useCompoundInteractionClass } from "./useCompoundInteractionClass.model";
 import { useCompoundStateClass } from "./useStateClass.model";
+import { inputBaseCln, inputNativeStateCln } from "../data/base";
+import { inputCompoundInteractionCln } from "../data/compound-interaction.cln";
+import { inputCompoundStateCln } from "../data/compound-state.cln";
+import { inputSizeCln } from "../data/size.cln";
 
 type UseInputClassBuilderParams = {
   view: InputViewType;

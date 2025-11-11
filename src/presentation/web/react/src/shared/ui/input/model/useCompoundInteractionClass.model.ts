@@ -15,6 +15,5 @@ export const useCompoundInteractionClass = (props: CompoundStateProps) => {
     (key) => key in INPUT_COMPOUND_INTERACTION,
   );
 
-  console.log("output_log: IN  =>>>", iteractionObjectKeyList);
   return iteractionObjectKeyList;
 };

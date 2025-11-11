@@ -1,8 +1,8 @@
+import type { EnsureAllKeys } from "@/shared/lib/typescript";
 import {
   INPUT_COMPOUND_STATE,
   type InputCompoundStateType,
-} from "./compound-state.type";
-import type { EnsureAllKeys } from "@/shared/lib/typescript";
+} from "../domain/compound-state.type";
 
 export const inputCompoundStateCln = {
   [INPUT_COMPOUND_STATE.PRIMARY_IDLE]: [],

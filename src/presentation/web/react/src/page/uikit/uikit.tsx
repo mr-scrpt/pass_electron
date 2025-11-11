@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import { InputSection } from "@/shared/uikit";
-import { cn } from "@/shared/lib/utils";
+import { cn } from "@/shared/lib/shadcn";
 
 type UIKitPageProps = ComponentProps<"main">;
 

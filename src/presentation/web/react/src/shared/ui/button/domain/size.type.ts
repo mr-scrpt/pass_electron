@@ -1,6 +1,6 @@
 import { createBrandedDict } from "@/shared/lib/typescript";
 
-const BUTTON_SIZE_BRAND = "ButtonSize" as const;
+const BUTTON_SIZE_BRAND = "BUTTON_SIZE_BRAND" as const;
 
 export const BUTTON_SIZE_ARRAY = ["S", "M", "L", "XL"] as const;
 

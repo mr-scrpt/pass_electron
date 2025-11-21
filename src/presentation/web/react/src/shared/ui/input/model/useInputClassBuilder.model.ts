@@ -5,8 +5,8 @@ import type { InputStateType } from "../domain/state.type";
 import { inputViewCln } from "../data/view.cln";
 import type { InputViewType } from "../domain/view.type";
 import { useCompoundInteractionClass } from "./useCompoundInteractionClass.model";
-import { useCompoundStateClass } from "./useStateClass.model";
-import { inputBaseCln, inputNativeStateCln } from "../data/base";
+import { useCompoundStateClass } from "./useCompoundStateClass.model";
+import { inputBaseCls, inputNativeStateCls } from "../data/base.cls";
 import { inputSizeCln } from "../data/size.cln";
 import { inputInteractionCln } from "../data/interaction/interaction.cln";
 import { inputStateCln } from "../data/state/state.cln";
@@ -18,14 +18,14 @@ type UseInputClassBuilderParams = {
   className?: string;
 };
 
-export function useInputClassBuilder(
+export const useInputClassBuilder = (
   params: UseInputClassBuilderParams,
-): string {
+): string => {
   const { view, size, state, className } = params;
   const compoundState = useCompoundStateClass({ view, state });
   const compoundInteraction = useCompoundInteractionClass({ view, state });
 
-  const classes = cvax([...inputBaseCln, ...inputNativeStateCln], {
+  const classes = cvax([...inputBaseCls, ...inputNativeStateCls], {
     variants: {
       view: inputViewCln,
       size: inputSizeCln,
@@ -42,4 +42,4 @@ export function useInputClassBuilder(
   });
 
   return cn(classes, className);
-}
+};

@@ -3,10 +3,10 @@ import {
   INPUT_COMPOUND_INTERACTION,
 } from "../domain/compound-interaction.type";
 import type { CompoundStateProps } from "../domain/compound-state.type";
-import { useCompoundStateClass } from "./useStateClass.model";
+import { useCompoundStateClass } from "./useCompoundStateClass.model";
 
-export const useCompoundInteractionClass = (props: CompoundStateProps) => {
-  const compoundState = useCompoundStateClass(props);
+export const useCompoundInteractionClass = (params: CompoundStateProps) => {
+  const compoundState = useCompoundStateClass(params);
   const interactionKeyList = getInputCompoundInteractionKeyList({
     compoundState,
   });

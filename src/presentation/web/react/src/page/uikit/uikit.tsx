@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { InputSection } from "@/shared/uikit";
+import { InputSection, ColorsSection } from "@/shared/uikit";
 import { cn } from "@/shared/lib/shadcn";
 
 type UIKitPageProps = ComponentProps<"main">;
@@ -12,7 +12,10 @@ export const PageUIKit = (props: UIKitPageProps) => {
 
   return (
     <main
-      className={cn("container mx-auto space-y-12 p-8", className)}
+      className={cn(
+        "mx-auto w-full max-w-[1400px] space-y-12 px-8 py-12",
+        className,
+      )}
       {...rest}
     >
       {/* Заголовок страницы */}
@@ -27,6 +30,7 @@ export const PageUIKit = (props: UIKitPageProps) => {
 
       {/* Секции с компонентами */}
       <div className="space-y-12">
+        <ColorsSection />
         <InputSection />
         {/* Будущие секции:
         <ButtonSection />

@@ -1,4 +1,4 @@
-export const inputBaseCln = [
+export const inputBaseCls = [
   "flex",
   "w-full",
 
@@ -11,7 +11,7 @@ export const inputBaseCln = [
   // "focus-visible:outline-none",
 ];
 
-const inputDisabledCln = [
+const inputDisabledCls = [
   "disabled:cursor-not-allowed",
   "disabled:opacity-50",
   "disabled:pointer-events-none",
@@ -28,4 +28,4 @@ const inputReadonlyCln = [
   "read-only:focus-visible:ring-0",
 ];
 
-export const inputNativeStateCln = [...inputDisabledCln, ...inputReadonlyCln];
+export const inputNativeStateCls = [...inputDisabledCls, ...inputReadonlyCln];

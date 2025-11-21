@@ -5,3 +5,4 @@ export { Showcase } from "./ui/showcase";
 
 // Sections
 export { InputSection } from "./sections/input-section";
+export { ColorsSection } from "./sections/colors-section";

@@ -5,7 +5,7 @@ import {
   createBrandedDict,
 } from "@/shared/lib/typescript";
 
-const INPUT_COMPOUND_STATE_BRAND = "InputCompoundState" as const;
+const INPUT_COMPOUND_STATE_BRAND = "INPUT_COMPOUND_STATE" as const;
 
 export const INPUT_COMPOUND_STATE_ARRAY = generateCompoundArray(
   INPUT_VIEW_ARRAY,

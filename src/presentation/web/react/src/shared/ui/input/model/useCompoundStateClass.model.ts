@@ -4,8 +4,8 @@ import {
   type CompoundStateProps,
 } from "../domain/compound-state.type";
 
-export const useCompoundStateClass = (props: CompoundStateProps) => {
-  const stateKey = getInputCompoundStateKey(props);
+export const useCompoundStateClass = (params: CompoundStateProps) => {
+  const stateKey = getInputCompoundStateKey(params);
 
   return INPUT_COMPOUND_STATE[stateKey];
 };

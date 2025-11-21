@@ -13,13 +13,13 @@ export const Showcase = (props: ShowcaseProps) => {
   const { label, children, className, ...rest } = props;
 
   return (
-    <div className={cn("space-y-1.5", className)} {...rest}>
+    <div className={cn("space-y-1.5 flex flex-col", className)} {...rest}>
       {label && (
-        <label className="text-xs font-medium text-muted-foreground">
+        <label className="text-xs font-medium text-muted-foreground w-full">
           {label}
         </label>
       )}
-      {children}
+      <div className="flex">{children}</div>
     </div>
   );
 };

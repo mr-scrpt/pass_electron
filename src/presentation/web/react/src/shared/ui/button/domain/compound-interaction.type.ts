@@ -3,7 +3,10 @@ import {
   generateCompoundArray,
 } from "@/shared/lib/typescript";
 import type { INPUT_COMPOUND_INTERACTION } from "../../input/domain/compound-interaction.type";
-import { BUTTON_COMPOUND_STATE_ARRAY } from "./compound-state";
+import {
+  BUTTON_COMPOUND_STATE_ARRAY,
+  type ButtonCompoundStateType,
+} from "./compound-state";
 
 const BUTTON_COMPOUND_INTERACTION_BRAND = "ButtonCompoundInteraction" as const;
 export const INTERACTION_ARRAY = ["HOVER", "FOCUS", "ACTIVE"] as const;

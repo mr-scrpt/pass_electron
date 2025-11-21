@@ -2,7 +2,7 @@ import { cn } from "@/shared/lib/shadcn";
 import { cvax } from "@/shared/lib/cvax";
 import type { InputSizeType } from "../domain/size.type";
 import type { InputStateType } from "../domain/state.type";
-import { inputViewCln } from "../data/view.cln";
+import { inputViewCls } from "../data/view.cln";
 import type { InputViewType } from "../domain/view.type";
 import { useCompoundInteractionClass } from "./useCompoundInteractionClass.model";
 import { useCompoundStateClass } from "./useCompoundStateClass.model";
@@ -27,7 +27,7 @@ export const useInputClassBuilder = (
 
   const classes = cvax([...inputBaseCls, ...inputNativeStateCls], {
     variants: {
-      view: inputViewCln,
+      view: inputViewCls,
       size: inputSizeCln,
       state: inputStateCln,
     },

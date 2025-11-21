@@ -1,30 +1,31 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
 import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
 
-const commonViewStyles = [
-  "rounded-md border-2",
+const commonViewStyleList = [
+  "rounded-md",
+  "border-2",
   "bg-transparent",
   "shadow-sm",
   "transition-all",
 ];
 
-export const inputViewCln = {
+export const inputViewCls = {
   [INPUT_VIEW.PRIMARY]: [
-    ...commonViewStyles,
+    ...commonViewStyleList,
     "border-input",
     "text-ctp-mauve",
     "placeholder:text-muted-foreground",
   ],
 
   [INPUT_VIEW.SECONDARY]: [
-    ...commonViewStyles,
+    ...commonViewStyleList,
     "border-ctp-green",
     "text-ctp-green",
     "placeholder:text-ctp-green/60",
   ],
 
   [INPUT_VIEW.OUTLINE]: [
-    ...commonViewStyles,
+    ...commonViewStyleList,
     "border-input",
     "text-foreground",
     "placeholder:text-muted-foreground",

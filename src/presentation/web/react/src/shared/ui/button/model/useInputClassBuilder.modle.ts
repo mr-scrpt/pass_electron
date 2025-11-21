@@ -4,7 +4,7 @@ import type { ButtonStateType } from "../domain/state.type";
 import type { ButtonViewType } from "../domain/view.type";
 import { useComputedInteractionClass } from "./useCompoundInteractionClass.model";
 import { useCompoundStateClass } from "./useCompoundState.model";
-import { buttonBaseCls } from "../data/base.cls";
+import { buttonBaseCls, buttonNativeStateCls } from "../data/base.cls";
 import { buttonViewCls } from "../data/view.cls";
 import { buttonSizeCls } from "../data/size.cln";
 import { buttonStateCln } from "../data/state/state.cln";
@@ -24,7 +24,7 @@ export const useButtonClassBuilder = (params: UseButtonBuilderParams) => {
   const compoundState = useCompoundStateClass({ view, state });
   const compoundInteraction = useComputedInteractionClass({ view, state });
 
-  const classes = cvax([...buttonBaseCls], {
+  const classes = cvax([...buttonBaseCls, ...buttonNativeStateCls], {
     variants: {
       view: buttonViewCls,
       size: buttonSizeCls,

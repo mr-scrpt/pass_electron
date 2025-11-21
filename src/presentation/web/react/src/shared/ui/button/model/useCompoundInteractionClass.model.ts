@@ -1,5 +1,7 @@
-import { INPUT_COMPOUND_INTERACTION } from "../../input/domain/compound-interaction.type";
-import { getButtonCompoundInteractionKeyList } from "../domain/compound-interaction.type";
+import {
+  BUTTON_COMPOUND_INTERACTION,
+  getButtonCompoundInteractionKeyList
+} from "../domain/compound-interaction.type";
 import type { CompoundStateProps } from "../domain/compound-state";
 import { useCompoundStateClass } from "./useCompoundState.model";
 
@@ -10,5 +12,17 @@ export const useComputedInteractionClass = (params: CompoundStateProps) => {
     compoundState,
   });
 
-  return interactionKeyList.filter((key) => key in INPUT_COMPOUND_INTERACTION);
+  const filtered = interactionKeyList.filter((key) => key in BUTTON_COMPOUND_INTERACTION);
+
+  // DEBUG: посмотреть что генерируется
+  console.log('Button compound interaction:', {
+    view: params.view,
+    state: params.state,
+    compoundState,
+    interactionKeyList,
+    filtered,
+    buttonKeys: Object.keys(BUTTON_COMPOUND_INTERACTION)
+  });
+
+  return filtered;
 };

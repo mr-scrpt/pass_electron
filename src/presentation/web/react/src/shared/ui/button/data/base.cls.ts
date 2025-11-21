@@ -21,7 +21,7 @@ const buttonDisabledCls = [
   "disabled:opacity-50",
   "disabled:pointer-events-none",
 
-  "disabled:hover:border-button",
+  "disabled:hover:border-input",
   "disabled:focus-visible:ring-0",
   "disabled:active:scale-100",
 ];

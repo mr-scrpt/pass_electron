@@ -5,14 +5,17 @@ const commonViewStyleList = [
   "items-center",
   "justify-center",
   "rounded-md",
-  "transition-colors",
+  "border-2",
+  "bg-transparent",
+  "shadow-sm",
+  "transition-all",
 ];
 
 export const buttonViewCls = {
   [BUTTON_VIEW.PRIMARY]: [
     ...commonViewStyleList,
     "text-ctp-mauve",
-    "border-button",
+    "border-input",
   ],
   [BUTTON_VIEW.SECONDARY]: [
     ...commonViewStyleList,
@@ -22,6 +25,6 @@ export const buttonViewCls = {
   [BUTTON_VIEW.OUTLINE]: [
     ...commonViewStyleList,
     "text-foreground",
-    "border-button",
+    "border-input",
   ],
 } satisfies EnsureAllKeys<ButtonViewType, string[]>;

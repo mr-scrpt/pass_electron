@@ -18,6 +18,16 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* Shield background fill (transparent, appears on hover) */}
+      {animate && (
+        <path
+          d="M24 4L8 10V20C8 29.5 14.5 38.2 24 40C33.5 38.2 40 29.5 40 20V10L24 4Z"
+          fill={strokeColor}
+          opacity="0"
+          className="transition-all duration-300 group-hover:opacity-10"
+        />
+      )}
+
       {/* Shield outline */}
       <path
         d="M24 4L8 10V20C8 29.5 14.5 38.2 24 40C33.5 38.2 40 29.5 40 20V10L24 4Z"
@@ -27,7 +37,7 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         fill="none"
         className={
           animate
-            ? "transition-all duration-300 group-hover:stroke-[3] group-hover:drop-shadow-lg"
+            ? "transition-all duration-300 group-hover:drop-shadow-lg"
             : ""
         }
       />
@@ -44,10 +54,9 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         fill="none"
         className={
           animate
-            ? "transition-all duration-300 group-hover:fill-current group-hover:fill-opacity-20"
+            ? "transition-all duration-300"
             : ""
         }
-        style={{ color: strokeColor }}
       />
 
       {/* Lock shackle */}
@@ -58,7 +67,9 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         strokeLinecap="round"
         fill="none"
         className={
-          animate ? "transition-all duration-300 group-hover:stroke-[2.5]" : ""
+          animate
+            ? "transition-all duration-300"
+            : ""
         }
       />
 
@@ -68,7 +79,6 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         cy="26"
         r="1.5"
         fill={strokeColor}
-        className={animate ? "transition-all duration-300 group-hover:r-2" : ""}
       />
     </svg>
   );

@@ -1,0 +1,39 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield icon - minimalist style (Variant 2) -->
+  <path 
+    d="M24 4L8 10V20C8 29.5 14.5 38.2 24 40C33.5 38.2 40 29.5 40 20V10L24 4Z" 
+    stroke="#cba6f7" 
+    stroke-width="2.5" 
+    stroke-linejoin="round"
+    fill="none"
+  />
+  
+  <!-- Inner lock symbol -->
+  <rect 
+    x="19" 
+    y="22" 
+    width="10" 
+    height="8" 
+    rx="1"
+    stroke="#cba6f7" 
+    stroke-width="2"
+    fill="none"
+  />
+  
+  <!-- Lock shackle -->
+  <path 
+    d="M21 22V18C21 16.3431 22.3431 15 24 15C25.6569 15 27 16.3431 27 18V22" 
+    stroke="#cba6f7" 
+    stroke-width="2"
+    stroke-linecap="round"
+    fill="none"
+  />
+  
+  <!-- Keyhole dot -->
+  <circle 
+    cx="24" 
+    cy="26" 
+    r="1.5" 
+    fill="#cba6f7"
+  />
+</svg>

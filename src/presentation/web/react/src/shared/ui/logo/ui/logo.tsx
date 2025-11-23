@@ -1,12 +1,46 @@
-import type { SVGProps } from "react";
-import { CatppuccinLogo } from "./logoSVG";
-import type { LogoSizeType } from "../domain/size.type";
-import { logoSize } from "../domain/size.cln";
+import type { ComponentProps } from "react";
+import { LOGO_SIZE, type LogoSizeType } from "../domain/size.type";
+import { LOGO_VIEW, type LogoViewType } from "../domain/view.type";
+import { LOGO_VARIANT, type LogoVariantType } from "../domain/variant.type";
+import { logoVariantSVG } from "../data/variant-svg.map";
+import { useLogoContainerClassBuilder } from "../model/useLogoContainerClassBuilder.model";
+import { useLogoIconClassBuilder } from "../model/useLogoIconClassBuilder.model";
+import { useLogoTextClassBuilder } from "../model/useLogoTextClassBuilder.model";
 
-type LogoProps = SVGProps<SVGSVGElement> & { size: LogoSizeType };
+type LogoProps = Omit<ComponentProps<"div">, "size"> & {
+  size?: LogoSizeType;
+  view?: LogoViewType;
+  variant?: LogoVariantType;
+  withText?: boolean;
+  animate?: boolean;
+};
 
 export const Logo = (props: LogoProps) => {
-  const { className, size } = props;
-  const sizeSVG = logoSize[size];
-  return <CatppuccinLogo className={className} size={sizeSVG} />;
+  const {
+    size = LOGO_SIZE.L,
+    view = LOGO_VIEW.PRIMARY,
+    variant = LOGO_VARIANT.LOCK,
+    withText = false,
+    animate = true,
+    className,
+    ...rest
+  } = props;
+
+  // Get SVG component from collection using variant as key
+  const SVGComponent = logoVariantSVG[variant];
+
+  // Build classes using hooks
+  const containerClass = useLogoContainerClassBuilder({ className, animate });
+  const iconClass = useLogoIconClassBuilder({ size, view });
+  const textClass = useLogoTextClassBuilder({ view, animate });
+
+  return (
+    <div className={containerClass} {...rest}>
+      <div className={iconClass}>
+        <SVGComponent view={view} animate={animate} />
+      </div>
+      {withText && <span className={textClass}>Password Manager</span>}
+    </div>
+  );
 };
+

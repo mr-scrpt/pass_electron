@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { InputSection, ColorsSection, ButtonSection } from "@/shared/uikit";
+import { InputSection, ColorsSection, ButtonSection, LogoSection } from "@/shared/uikit";
 import { cn } from "@/shared/lib/shadcn";
 
 type UIKitPageProps = ComponentProps<"main">;
@@ -31,10 +31,10 @@ export const PageUIKit = (props: UIKitPageProps) => {
       {/* Секции с компонентами */}
       <div className="space-y-12">
         <ColorsSection />
+        <LogoSection />
         <InputSection />
         <ButtonSection />
         {/* Будущие секции:
-        <ButtonSection />
         <SelectSection />
         <CheckboxSection />
         */}

@@ -7,3 +7,4 @@ export { VariantBlock } from "./ui/variant-block";
 export { ColorsSection } from "./sections/colors-section";
 export { InputSection } from "./sections/input-section";
 export { ButtonSection } from "./sections/button-section";
+export { LogoSection } from "./sections/logo-section";

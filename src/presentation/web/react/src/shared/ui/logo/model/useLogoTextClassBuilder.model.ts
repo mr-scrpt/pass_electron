@@ -2,6 +2,7 @@ import { cn } from "@/shared/lib/shadcn";
 import type { LogoViewType } from "../domain/view.type";
 import { logoTextBaseCls } from "../data/base.cls";
 import { logoTextColorCln } from "../data/text-color.cln";
+import { logoTextAnimationCls } from "../data/animation.cls";
 
 type UseLogoTextClassBuilderParams = {
     view: LogoViewType;
@@ -19,9 +20,6 @@ export const useLogoTextClassBuilder = (
     return cn(
         logoTextBaseCls,
         logoTextColorCln[view],
-        animate && [
-            "transition-all duration-300",
-            "group-hover:scale-105",
-        ],
+        animate && logoTextAnimationCls,
     );
 };

@@ -1,5 +1,6 @@
 import { cn } from "@/shared/lib/shadcn";
 import { logoBaseCls } from "../data/base.cls";
+import { logoContainerGroupCls } from "../data/animation.cls";
 
 type UseLogoContainerClassBuilderParams = {
     className?: string;
@@ -14,5 +15,5 @@ export const useLogoContainerClassBuilder = (
 ): string => {
     const { className, animate } = params;
 
-    return cn(logoBaseCls, animate && "group", className);
+    return cn(logoBaseCls, animate && logoContainerGroupCls, className);
 };

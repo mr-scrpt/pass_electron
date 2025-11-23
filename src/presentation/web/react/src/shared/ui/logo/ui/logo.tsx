@@ -26,10 +26,8 @@ export const Logo = (props: LogoProps) => {
     ...rest
   } = props;
 
-  // Get SVG component from collection using variant as key
   const SVGComponent = logoVariantSVG[variant];
 
-  // Build classes using hooks
   const containerClass = useLogoContainerClassBuilder({ className, animate });
   const iconClass = useLogoIconClassBuilder({ size, view });
   const textClass = useLogoTextClassBuilder({ view, animate });
@@ -43,4 +41,3 @@ export const Logo = (props: LogoProps) => {
     </div>
   );
 };
-

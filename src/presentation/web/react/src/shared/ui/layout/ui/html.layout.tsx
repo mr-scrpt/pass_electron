@@ -18,12 +18,7 @@ export const HtmlLayout = (props: HtmlLayoutProps) => {
         className="bg-ctp-base text-ctp-text flex items-center justify-center"
         style={{ minHeight: "100dvh" }}
       >
-        <main
-          className="w-full min-h-[400px] px-4"
-          style={{ height: "100dvh", maxHeight: "800px" }}
-        >
-          {children}
-        </main>
+        {children}
         <ScrollRestoration />
         <Scripts />
       </body>

@@ -7,7 +7,6 @@ type LayoutProps = ComponentProps<"div">;
 
 import type { LinksFunction } from "react-router";
 import tailwindStylesheet from "@/shared/styles/tailwind.css?url";
-import { Header } from "@/widget/header/ui/header";
 import { RootProvider } from "../provider/root.provider";
 
 export const links: LinksFunction = () => [
@@ -34,10 +33,7 @@ export const Layout = (props: LayoutProps) => {
   // Основное приложение использует стандартный layout
   return (
     <RootProvider>
-      <HtmlLayout>
-        <Header className="w-full" />
-        {children}
-      </HtmlLayout>
+      <HtmlLayout>{children}</HtmlLayout>
     </RootProvider>
   );
 };

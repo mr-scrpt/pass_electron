@@ -3,20 +3,20 @@ import {
   generateCompoundArray,
 } from "@/shared/lib/typescript";
 import {
-  INPUT_COMPOUND_STATE_ARRAY,
+  INPUT_COMPOUND_STATE_VALUE_LIST,
   type InputCompoundStateType,
 } from "./compound-state.type";
 
 const INPUT_COMPOUND_INTERACTION_BRAND = "InputCompoundInteraction" as const;
-export const INTERACTION_ARRAY = ["HOVER", "FOCUS", "ACTIVE"] as const;
+export const INTERACTION_VALUE_LIST = ["HOVER", "FOCUS", "ACTIVE"] as const;
 
-export const INPUT_COMPOUND_INTERACTION_ARRAY = generateCompoundArray(
-  INPUT_COMPOUND_STATE_ARRAY,
-  INTERACTION_ARRAY,
+export const INPUT_COMPOUND_INTERACTION_VALUE_LIST = generateCompoundArray(
+  INPUT_COMPOUND_STATE_VALUE_LIST,
+  INTERACTION_VALUE_LIST,
 );
 
 export const INPUT_COMPOUND_INTERACTION = createBrandedDict(
-  INPUT_COMPOUND_INTERACTION_ARRAY,
+  INPUT_COMPOUND_INTERACTION_VALUE_LIST,
   INPUT_COMPOUND_INTERACTION_BRAND,
 );
 
@@ -28,7 +28,7 @@ export const getInputCompoundInteractionKeyList = ({
 }: {
   compoundState: InputCompoundStateType;
 }): InputCompoundIteractionType[] => {
-  return INPUT_COMPOUND_INTERACTION_ARRAY.filter((key) =>
+  return INPUT_COMPOUND_INTERACTION_VALUE_LIST.filter((key) =>
     key.startsWith(compoundState),
   ) as InputCompoundIteractionType[];
 };

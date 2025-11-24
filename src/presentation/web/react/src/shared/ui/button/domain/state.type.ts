@@ -2,7 +2,7 @@ import { createBrandedDict } from "@/shared/lib/typescript";
 
 const BUTTON_STATE_BRAND = "BUTTON_STATE_BRAND" as const;
 
-export const BUTTON_STATE_ARRAY = [
+export const BUTTON_STATE_VALUE_LIST = [
   "IDLE",
   "ERROR",
   "SUCCESS",
@@ -10,7 +10,7 @@ export const BUTTON_STATE_ARRAY = [
 ] as const;
 
 export const BUTTON_STATE = createBrandedDict(
-  BUTTON_STATE_ARRAY,
+  BUTTON_STATE_VALUE_LIST,
   BUTTON_STATE_BRAND,
 );
 

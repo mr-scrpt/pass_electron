@@ -2,7 +2,7 @@ import { createBrandedDict } from "@/shared/lib/typescript";
 
 const INPUT_STATE_BRAND = "InputState" as const;
 
-export const INPUT_STATE_ARRAY = [
+export const INPUT_STATE_VALUE_LIST = [
   "IDLE",
   "ERROR",
   "SUCCESS",
@@ -10,7 +10,7 @@ export const INPUT_STATE_ARRAY = [
 ] as const;
 
 export const INPUT_STATE = createBrandedDict(
-  INPUT_STATE_ARRAY,
+  INPUT_STATE_VALUE_LIST,
   INPUT_STATE_BRAND,
 );
 

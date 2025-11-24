@@ -4,20 +4,20 @@ import {
 } from "@/shared/lib/typescript";
 import type { INPUT_COMPOUND_INTERACTION } from "../../input/domain/compound-interaction.type";
 import {
-  BUTTON_COMPOUND_STATE_ARRAY,
+  BUTTON_COMPOUND_STATE_VALUE_LIST,
   type ButtonCompoundStateType,
 } from "./compound-state";
 
 const BUTTON_COMPOUND_INTERACTION_BRAND = "ButtonCompoundInteraction" as const;
-export const INTERACTION_ARRAY = ["HOVER", "FOCUS", "ACTIVE"] as const;
+export const INTERACTION_VALUE_LIST = ["HOVER", "FOCUS", "ACTIVE"] as const;
 
-export const BUTTON_COMPOUND_INTERACTION_ARRAY = generateCompoundArray(
-  BUTTON_COMPOUND_STATE_ARRAY,
-  INTERACTION_ARRAY,
+export const BUTTON_COMPOUND_INTERACTION_VALUE_LIST = generateCompoundArray(
+  BUTTON_COMPOUND_STATE_VALUE_LIST,
+  INTERACTION_VALUE_LIST,
 );
 
 export const BUTTON_COMPOUND_INTERACTION = createBrandedDict(
-  BUTTON_COMPOUND_INTERACTION_ARRAY,
+  BUTTON_COMPOUND_INTERACTION_VALUE_LIST,
   BUTTON_COMPOUND_INTERACTION_BRAND,
 );
 
@@ -29,7 +29,7 @@ export const getButtonCompoundInteractionKeyList = ({
 }: {
   compoundState: ButtonCompoundStateType;
 }): ButtonCompoundIteractionType[] => {
-  return BUTTON_COMPOUND_INTERACTION_ARRAY.filter((key) =>
+  return BUTTON_COMPOUND_INTERACTION_VALUE_LIST.filter((key) =>
     key.startsWith(compoundState),
   ) as ButtonCompoundIteractionType[];
 };

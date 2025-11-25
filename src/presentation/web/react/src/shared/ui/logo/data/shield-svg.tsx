@@ -14,7 +14,9 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
 
   return (
     <svg
-      viewBox="0 0 48 48"
+      width="100%"
+      height="100%"
+      viewBox="6 2 36 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -52,11 +54,7 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         stroke={strokeColor}
         strokeWidth="2"
         fill="none"
-        className={
-          animate
-            ? "transition-all duration-300"
-            : ""
-        }
+        className={animate ? "transition-all duration-300" : ""}
       />
 
       {/* Lock shackle */}
@@ -66,20 +64,11 @@ export const ShieldSVG: React.FC<ShieldSVGProps> = ({
         strokeWidth="2"
         strokeLinecap="round"
         fill="none"
-        className={
-          animate
-            ? "transition-all duration-300"
-            : ""
-        }
+        className={animate ? "transition-all duration-300" : ""}
       />
 
       {/* Keyhole dot */}
-      <circle
-        cx="24"
-        cy="26"
-        r="1.5"
-        fill={strokeColor}
-      />
+      <circle cx="24" cy="26" r="1.5" fill={strokeColor} />
     </svg>
   );
 };

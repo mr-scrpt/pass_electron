@@ -1,13 +1,18 @@
 import type { ComponentProps, ElementType, FC } from "react";
 import { SECTION_AREA, type SectionAreaType } from "../domain/area.type";
 import { SECTION_GAP, type SectionGapType } from "../domain/gap.type";
-import { useSectionClassBuilder } from "../model/useSectionClassBuilder.model";
 import { sectionBaseCls } from "../data/base.cls";
 import { cn } from "@/shared/lib/shadcn";
+import { SECTION_DECO, type SectionDecoType } from "../domain/deco.type";
+import { SECTION_VIEW, type SectionViewType } from "../domain/view.type";
+import { useSectionInnerClsBuilder } from "../model/useSectionInnerClsBuilder.model";
 
 type RowSectionProps = ComponentProps<"section"> & {
   area?: SectionAreaType;
   gap?: SectionGapType;
+
+  deco?: SectionDecoType;
+  view?: SectionViewType;
   classSection?: string;
   classInner?: string;
   classContent?: string;
@@ -20,16 +25,25 @@ export const RowSection: FC<RowSectionProps> = (props) => {
     classSection,
     area = SECTION_AREA.CONTAINER,
     gap = SECTION_GAP.PRIMARY,
+    deco = SECTION_DECO.BDR_CUP,
+    view = SECTION_VIEW.PRIMARY,
     classInner,
-    as: Component = "div",
+    as: Component = "section",
     ...rest
   } = props;
 
-  const clsSection = cn(sectionBaseCls, classSection);
-  const clsInner = useSectionClassBuilder({ gap, area, className: classInner });
+  const clsSectionRoot = cn(sectionBaseCls, classSection);
+
+  const { clsSectionInner } = useSectionInnerClsBuilder({
+    gap,
+    area,
+    deco,
+    view,
+    className: classInner,
+  });
   return (
-    <Component className={clsSection} {...rest}>
-      <div className={clsInner}>{children}</div>
+    <Component className={clsSectionRoot} {...rest}>
+      <div className={clsSectionInner}>{children}</div>
     </Component>
   );
 };

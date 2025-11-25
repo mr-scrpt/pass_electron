@@ -1,5 +1,5 @@
-import { Page } from "@/shared/ui/page";
-import { PAGE_VIEW } from "@/shared/ui/page/domain/view.type";
+import { Page } from "@/shared/ui/____page";
+import { PAGE_VIEW } from "@/shared/ui/____page/domain/view.type";
 import { Title } from "@/shared/ui/title";
 import { HeaderSection } from "@/widget/header";
 import { ResourceListSection } from "@/widget/resourceList";

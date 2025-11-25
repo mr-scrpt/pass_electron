@@ -1,1 +1,1 @@
-export const sectionBaseCls = ["w-full"];
+export const sectionBaseCls = ["w-full", "gird", "justify-items-center"];

@@ -1,5 +1,5 @@
-import { usePageItemClassBuilder } from "@/shared/ui/page";
-import { PAGE_ITEM_VIEW } from "@/shared/ui/page/domain/item-view.type";
+// import { usePageItemClassBuilder } from "@/shared/ui/____page";
+// import { PAGE_ITEM_VIEW } from "@/shared/ui/____page/domain/item-view.type";
 import { RowSection } from "@/shared/ui/section";
 import type { ComponentProps } from "react";
 import { HeaderLayout } from "./layout/header.layout";
@@ -7,7 +7,7 @@ import { HeaderLogo } from "./logo/heraderLogo";
 type HeaderProps = ComponentProps<"header">;
 
 export const HeaderSection = (props: HeaderProps) => {
-  const pageCls = usePageItemClassBuilder({ view: PAGE_ITEM_VIEW.SCONDARY });
+  // const pageCls = usePageItemClassBuilder({ view: PAGE_ITEM_VIEW.SCONDARY });
   // const { viewCls } = useSectionViewClass({
   //   view: SECTION_VIEW.PRIMARY,
   // });
@@ -16,7 +16,7 @@ export const HeaderSection = (props: HeaderProps) => {
   // });
 
   return (
-    <RowSection as="header" className={pageCls}>
+    <RowSection as="header">
       <HeaderLayout brand={<HeaderLogo />} />
     </RowSection>
   );

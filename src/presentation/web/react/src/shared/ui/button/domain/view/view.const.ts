@@ -12,5 +12,3 @@ export const BUTTON_VIEW = createBrandedDict(
   BUTTON_VIEW_VALUE_LIST,
   BUTTON_VIEW_BRAND,
 );
-
-export type ButtonViewType = (typeof BUTTON_VIEW)[keyof typeof BUTTON_VIEW];

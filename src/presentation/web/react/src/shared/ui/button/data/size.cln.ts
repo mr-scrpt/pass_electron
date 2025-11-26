@@ -1,5 +1,6 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
-import { BUTTON_SIZE, type ButtonSizeType } from "../domain/size.type";
+import { BUTTON_SIZE } from "../domain/size/size.const";
+import type { ButtonSizeType } from "../domain/size/size.type";
 
 export const buttonSizeCls = {
   [BUTTON_SIZE.S]: ["h-6", "px-2", "py-1", "text-xs"],

@@ -1,9 +1,9 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
-import type { ButtonStateType } from "../domain/state.type";
 import { buttonStateCls } from "../data/state/state.cls";
-import { useCompoundStateClass } from "./useCompoundState.model";
-import type { ButtonViewType } from "../domain/view.type";
+import type { ButtonStateType } from "../domain/state/state.type";
+import type { ButtonViewType } from "../domain/view/view.type";
+import { getCompositeState } from "../domain/composite-state/composite-state";
 
 type UseButtonStateClsParams = {
   state: ButtonStateType;
@@ -11,17 +11,17 @@ type UseButtonStateClsParams = {
   classNameState?: string;
 };
 
-export const useButtonStateCls = (params: UseButtonStateClsParams) => {
+export const getButtonStateCls = (params: UseButtonStateClsParams) => {
   const { state, view, classNameState } = params;
 
-  const compoundState = useCompoundStateClass({ view, state });
+  const composeState = getCompositeState({ view, state });
 
   const classes = cvax([], {
     variants: {
       state: buttonStateCls,
     },
   })({
-    state: compoundState,
+    state: composeState,
   });
 
   return { clsState: cn(classes, classNameState) };

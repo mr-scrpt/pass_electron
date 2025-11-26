@@ -1,9 +1,12 @@
 import { Button as ButtonLib } from "@/shared/ui/shadcn/button";
 import type { ComponentProps } from "react";
-import { BUTTON_SIZE, type ButtonSizeType } from "../domain/size.type";
-import { BUTTON_STATE, type ButtonStateType } from "../domain/state.type";
-import { BUTTON_VIEW, type ButtonViewType } from "../domain/view.type";
-import { useButtonClassBuilder } from "../model/useInputClsBuilder.modle";
+import { getButtonCls } from "../vm/build.model";
+import type { ButtonSizeType } from "../domain/size/size.type";
+import type { ButtonStateType } from "../domain/state/state.type";
+import type { ButtonViewType } from "../domain/view/view.type";
+import { BUTTON_SIZE } from "../domain/size/size.const";
+import { BUTTON_VIEW } from "../domain/view/view.const";
+import { BUTTON_STATE } from "../domain/state/state.const";
 
 type ButtonProps = Omit<ComponentProps<"button">, "size"> & {
   size?: ButtonSizeType;
@@ -20,7 +23,7 @@ export const Button = (props: ButtonProps) => {
     ...rest
   } = props;
 
-  const { clsButton } = useButtonClassBuilder({ size, view, state, className });
+  const { clsButton } = getButtonCls({ size, view, state, className });
 
   return <ButtonLib className={clsButton} disabled={disabled} {...rest} />;
 };

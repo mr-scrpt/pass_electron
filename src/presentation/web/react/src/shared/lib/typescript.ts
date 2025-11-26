@@ -20,7 +20,7 @@ export function createBrandedDict<
   };
 }
 
-export function generateCompoundArray<
+export function generateCompositeArray<
   TElemMain extends readonly string[],
   TElemAdd extends readonly string[],
 >(

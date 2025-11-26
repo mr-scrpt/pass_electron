@@ -1,6 +1,6 @@
 import {
   createBrandedDict,
-  generateCompoundArray,
+  generateCompositeArray,
 } from "@/shared/lib/typescript";
 import {
   INPUT_COMPOUND_STATE_VALUE_LIST,
@@ -10,7 +10,7 @@ import {
 const INPUT_COMPOUND_INTERACTION_BRAND = "InputCompoundInteraction" as const;
 export const INTERACTION_VALUE_LIST = ["HOVER", "FOCUS", "ACTIVE"] as const;
 
-export const INPUT_COMPOUND_INTERACTION_VALUE_LIST = generateCompoundArray(
+export const INPUT_COMPOUND_INTERACTION_VALUE_LIST = generateCompositeArray(
   INPUT_COMPOUND_STATE_VALUE_LIST,
   INTERACTION_VALUE_LIST,
 );

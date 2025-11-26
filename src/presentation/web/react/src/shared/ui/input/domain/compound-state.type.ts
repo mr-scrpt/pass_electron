@@ -1,13 +1,13 @@
 import { INPUT_VIEW_VALUE_LIST, type InputViewType } from "./view.type";
 import { INPUT_STATE_VALUE_LIST, type InputStateType } from "./state.type";
 import {
-  generateCompoundArray,
+  generateCompositeArray,
   createBrandedDict,
 } from "@/shared/lib/typescript";
 
 const INPUT_COMPOUND_STATE_BRAND = "INPUT_COMPOUND_STATE" as const;
 
-export const INPUT_COMPOUND_STATE_VALUE_LIST = generateCompoundArray(
+export const INPUT_COMPOUND_STATE_VALUE_LIST = generateCompositeArray(
   INPUT_VIEW_VALUE_LIST,
   INPUT_STATE_VALUE_LIST,
 );

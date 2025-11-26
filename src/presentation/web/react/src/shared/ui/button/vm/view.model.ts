@@ -1,14 +1,14 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
 import { buttonViewCls } from "../data/view.cls";
-import type { ButtonViewType } from "../domain/view.type";
+import type { ButtonViewType } from "../domain/view/view.type";
 
 type UseButtonViewClsParams = {
   view: ButtonViewType;
   classNameView?: string;
 };
 
-export const useButtonViewCls = (params: UseButtonViewClsParams) => {
+export const getButtonViewCls = (params: UseButtonViewClsParams) => {
   const { view, classNameView } = params;
 
   const classes = cvax([], {

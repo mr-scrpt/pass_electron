@@ -1,10 +1,12 @@
 import { Section } from "../ui/section";
 import { VariantBlock } from "../ui/variant-block";
 import { Showcase } from "../ui/showcase";
-import { BUTTON_SIZE } from "@/shared/ui/button/domain/size.type";
-import { BUTTON_STATE } from "@/shared/ui/button/domain/state.type";
-import { BUTTON_VIEW } from "@/shared/ui/button/domain/view.type";
-import { Button } from "@/shared/ui/button";
+import {
+  Button,
+  BUTTON_SIZE,
+  BUTTON_STATE,
+  BUTTON_VIEW,
+} from "@/shared/ui/button";
 
 /**
  * Секция с демонстрацией всех вариаций Button

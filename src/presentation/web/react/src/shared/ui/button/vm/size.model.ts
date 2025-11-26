@@ -1,14 +1,14 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
 import { buttonSizeCls } from "../data/size.cln";
-import type { ButtonSizeType } from "../domain/size.type";
+import type { ButtonSizeType } from "../domain/size/size.type";
 
-type UseButtonSizeClsParams = {
+type GetButtonSizeClsParams = {
   size: ButtonSizeType;
   classNameSize?: string;
 };
 
-export const useButtonSizeCls = (params: UseButtonSizeClsParams) => {
+export const getButtonSizeCls = (params: GetButtonSizeClsParams) => {
   const { size, classNameSize } = params;
 
   const classes = cvax([], {

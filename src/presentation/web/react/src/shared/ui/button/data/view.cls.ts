@@ -1,5 +1,6 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
-import { BUTTON_VIEW, type ButtonViewType } from "../domain/view.type";
+import { BUTTON_VIEW } from "../domain/view/view.const";
+import type { ButtonViewType } from "../domain/view/view.type";
 
 const commonViewStyleList = [
   "items-center",

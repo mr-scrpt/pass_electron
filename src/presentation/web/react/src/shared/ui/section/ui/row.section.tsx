@@ -37,7 +37,6 @@ export const RowSection: FC<RowSectionProps> = (props) => {
     classNameInner,
     classNameRoot: className,
   });
-  console.log("output_log:  =>>>", clsSectionRoot);
   return (
     <Component className={clsSectionRoot} {...rest}>
       <div className={clsSectionInner}>{children}</div>

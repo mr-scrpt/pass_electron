@@ -1,16 +1,10 @@
 export const buttonBaseCls = [
-  "inline-flex",
-  // "items-center",
-  // "justify-center",
+  "flex",
   "gap-2",
   "whitespace-nowrap",
-  // "rounded-md",
   "text-sm",
   "font-medium",
-  // "transition-colors",
-  // "focus-visible:outline-none",
-  // "focus-visible:ring-1",
-  // "focus-visible:ring-ring",
+  "cursor-pointer",
   "[&_svg]:pointer-events-none",
   "[&_svg]:size-4",
   "[&_svg]:shrink-0",
@@ -26,7 +20,4 @@ const buttonDisabledCls = [
   "disabled:active:scale-100",
 ];
 
-export const buttonNativeStateCls = [
-  ...buttonDisabledCls,
-  // ...buttonReadonlyCln,
-];
+export const buttonNativeStateCls = [...buttonDisabledCls];

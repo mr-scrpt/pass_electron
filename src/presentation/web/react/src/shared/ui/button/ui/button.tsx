@@ -20,7 +20,7 @@ export const Button = (props: ButtonProps) => {
     ...rest
   } = props;
 
-  const clsButton = useButtonClassBuilder({ size, view, state, className });
+  const { clsButton } = useButtonClassBuilder({ size, view, state, className });
 
   return <ButtonLib className={clsButton} disabled={disabled} {...rest} />;
 };

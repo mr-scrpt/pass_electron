@@ -11,7 +11,7 @@ type UseSectionGapClsParam = {
 export const useSectionGapCls = (params: UseSectionGapClsParam) => {
   const { gap, classNameGap: classNameDeco } = params;
 
-  const clsGap = cvax([], {
+  const clsGap = cvax({
     variants: {
       gap: sectionGapCls,
     },

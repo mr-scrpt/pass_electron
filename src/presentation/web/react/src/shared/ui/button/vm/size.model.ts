@@ -11,7 +11,7 @@ type GetButtonSizeClsParams = {
 export const getButtonSizeCls = (params: GetButtonSizeClsParams) => {
   const { size, classNameSize } = params;
 
-  const classes = cvax([], {
+  const classes = cvax({
     variants: {
       size: buttonSizeCls,
     },

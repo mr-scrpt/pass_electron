@@ -11,7 +11,7 @@ type UseSectionAreaClsParam = {
 export const useSectionAreaCls = (params: UseSectionAreaClsParam) => {
   const { area, classNameArea: classNameDeco } = params;
 
-  const clsArea = cvax([], {
+  const clsArea = cvax({
     variants: {
       area: sectionAreaCls,
     },

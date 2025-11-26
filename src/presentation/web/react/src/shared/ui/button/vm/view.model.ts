@@ -11,7 +11,7 @@ type GetButtonViewClsParams = {
 export const getButtonViewCls = (params: GetButtonViewClsParams) => {
   const { view, classNameView } = params;
 
-  const classes = cvax([], {
+  const classes = cvax({
     variants: {
       view: buttonViewCls,
     },

@@ -11,13 +11,13 @@ type UseSectionViewClsParam = {
 export const useSectionViewCls = (params: UseSectionViewClsParam) => {
   const { view, classNameView } = params;
 
-  const clsViewInner = cvax([], {
+  const clsViewInner = cvax({
     variants: {
       view: sectionViewCls,
     },
   })({ view });
 
-  const clsViewRoot = cvax([], { variants: { view: sectionViewCls } })({
+  const clsViewRoot = cvax({ variants: { view: sectionViewCls } })({
     view,
   });
 

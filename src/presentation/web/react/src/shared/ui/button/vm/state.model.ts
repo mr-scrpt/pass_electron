@@ -16,7 +16,7 @@ export const getButtonStateCls = (params: GetButtonStateClsParams) => {
 
   const composeState = getCompositeState({ view, state });
 
-  const classes = cvax([], {
+  const classes = cvax({
     variants: {
       state: buttonStateCls,
     },

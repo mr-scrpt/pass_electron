@@ -11,7 +11,7 @@ type UseSectionDecoClsParam = {
 export const useSectionDecoCls = (params: UseSectionDecoClsParam) => {
   const { deco, classNameDeco } = params;
 
-  const decoCls = cvax([], {
+  const decoCls = cvax({
     variants: {
       deco: sectionDecoCls,
     },

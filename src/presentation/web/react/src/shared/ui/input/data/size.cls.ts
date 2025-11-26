@@ -1,5 +1,6 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
-import { INPUT_SIZE, type InputSizeType } from "../domain/size.type";
+import { INPUT_SIZE } from "../domain/size/size.const";
+import type { InputSizeType } from "../domain/size/size.type";
 
 export const inputSizeCln = {
   [INPUT_SIZE.S]: ["h-6", "px-2", "py-1", "text-xs"],

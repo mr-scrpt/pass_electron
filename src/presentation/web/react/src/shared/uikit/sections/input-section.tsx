@@ -1,5 +1,4 @@
-import { INPUT_SIZE, INPUT_VIEW } from "@/shared/ui/input";
-import { INPUT_STATE } from "@/shared/ui/input/domain/state.type";
+import { INPUT_SIZE, INPUT_STATE, INPUT_VIEW } from "@/shared/ui/input";
 import { Input } from "@/shared/ui/input/ui/input";
 import { Section } from "../ui/section";
 import { VariantBlock } from "../ui/variant-block";
@@ -53,10 +52,7 @@ export const InputSection = () => {
       </VariantBlock>
 
       {/* SECONDARY View */}
-      <VariantBlock
-        title="SECONDARY"
-        subtitle="Filled input with green accent"
-      >
+      <VariantBlock title="SECONDARY" subtitle="Filled input with green accent">
         <Showcase label="Default">
           <Input
             view={INPUT_VIEW.SECONDARY}
@@ -126,10 +122,7 @@ export const InputSection = () => {
       </VariantBlock>
 
       {/* DISABLED States */}
-      <VariantBlock
-        title="DISABLED"
-        subtitle="All views with disabled state"
-      >
+      <VariantBlock title="DISABLED" subtitle="All views with disabled state">
         <Showcase label="Primary - Default">
           <Input
             view={INPUT_VIEW.PRIMARY}

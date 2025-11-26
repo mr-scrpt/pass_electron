@@ -1,5 +1,6 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
-import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
+import { INPUT_VIEW } from "../domain/view/view.const";
+import type { InputViewType } from "../domain/view/view.type";
 
 const commonViewStyleList = [
   "rounded-md",

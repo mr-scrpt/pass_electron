@@ -1,9 +1,12 @@
 import { InputLib } from "@/shared/ui/shadcn/input";
 import type { ComponentProps } from "react";
-import { INPUT_SIZE, type InputSizeType } from "../domain/size.type";
-import { INPUT_VIEW, type InputViewType } from "../domain/view.type";
-import { INPUT_STATE, type InputStateType } from "../domain/state.type";
-import { useInputClassBuilder } from "../model/useInputClassBuilder.model";
+import { INPUT_SIZE } from "../domain/size/size.const";
+import type { InputSizeType } from "../domain/size/size.type";
+import { INPUT_VIEW } from "../domain/view/view.const";
+import type { InputViewType } from "../domain/view/view.type";
+import { INPUT_STATE } from "../domain/state/state.const";
+import type { InputStateType } from "../domain/state/state.type";
+import { getInputCls } from "../vm/build.model";
 
 type InputProps = Omit<ComponentProps<"input">, "size"> & {
   size?: InputSizeType;
@@ -22,7 +25,7 @@ export const Input = (props: InputProps) => {
     ...rest
   } = props;
 
-  const clsInput = useInputClassBuilder({
+  const { clsInput } = getInputCls({
     size,
     view,
     state,

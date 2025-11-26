@@ -1,19 +1,19 @@
-import { INPUT_COMPOUND_STATE } from "../../domain/compound-state.type";
+import { INPUT_COMPOSITE_STATE } from "../../domain/composite-state/composite-state.const";
 
 export const stateViewPrimary = {
-  [INPUT_COMPOUND_STATE.PRIMARY_IDLE]: [],
+  [INPUT_COMPOSITE_STATE.PRIMARY_IDLE]: [],
 
-  [INPUT_COMPOUND_STATE.PRIMARY_ERROR]: [
+  [INPUT_COMPOSITE_STATE.PRIMARY_ERROR]: [
     "border-destructive",
     "text-destructive",
   ],
 
-  [INPUT_COMPOUND_STATE.PRIMARY_SUCCESS]: [
+  [INPUT_COMPOSITE_STATE.PRIMARY_SUCCESS]: [
     "border-ctp-green",
     "text-foreground",
   ],
 
-  [INPUT_COMPOUND_STATE.PRIMARY_WARNING]: [
+  [INPUT_COMPOSITE_STATE.PRIMARY_WARNING]: [
     "border-ctp-peach",
     "text-ctp-peach",
   ],

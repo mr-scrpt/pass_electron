@@ -1,6 +1,6 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
-import { buttonSizeCls } from "../data/size.cln";
+import { buttonSizeCls } from "../data/size.cls";
 import type { ButtonSizeType } from "../domain/size/size.type";
 
 type GetButtonSizeClsParams = {

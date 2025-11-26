@@ -6,16 +6,16 @@ import type { ButtonViewType } from "../domain/view/view.type";
 import { getButtonSizeCls } from "./size.model";
 import { getButtonStateCls } from "./state.model";
 import { getButtonViewCls } from "./view.model";
-import { getInteractionCls } from "./interaction.model";
+import { getButtonInteractionCls } from "./interaction.model";
 
-type getButtonClsParams = {
+type GetButtonClsParams = {
   size: ButtonSizeType;
   view: ButtonViewType;
   state: ButtonStateType;
   className?: string;
 };
 
-export const getButtonCls = (params: getButtonClsParams) => {
+export const getButtonCls = (params: GetButtonClsParams) => {
   const { view, size, state, className } = params;
 
   return {
@@ -24,7 +24,7 @@ export const getButtonCls = (params: getButtonClsParams) => {
         getButtonViewCls({ view }).clsView,
         getButtonSizeCls({ size }).clsSize,
         getButtonStateCls({ state, view }).clsState,
-        getInteractionCls({ state, view }).clsInteraction,
+        getButtonInteractionCls({ state, view }).clsInteraction,
       ],
       ...buttonBaseCls,
       ...buttonNativeStateCls,

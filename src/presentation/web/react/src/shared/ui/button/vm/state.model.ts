@@ -5,13 +5,13 @@ import type { ButtonStateType } from "../domain/state/state.type";
 import type { ButtonViewType } from "../domain/view/view.type";
 import { getCompositeState } from "../domain/composite-state/composite-state";
 
-type UseButtonStateClsParams = {
+type GetButtonStateClsParams = {
   state: ButtonStateType;
   view: ButtonViewType;
   classNameState?: string;
 };
 
-export const getButtonStateCls = (params: UseButtonStateClsParams) => {
+export const getButtonStateCls = (params: GetButtonStateClsParams) => {
   const { state, view, classNameState } = params;
 
   const composeState = getCompositeState({ view, state });

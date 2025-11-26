@@ -1,17 +1,19 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
-import { buttonInteractionCls } from "../data/interaction/interaction.cln";
+import { buttonInteractionCls } from "../data/interaction/interaction.cls";
 import type { ButtonStateType } from "../domain/state/state.type";
 import type { ButtonViewType } from "../domain/view/view.type";
 import { getCompositeInteraction } from "../domain/composite-interaction/composite-interaction";
 
-type GetInteractionClsParams = {
+type GetButtonInteractionClsParams = {
   view: ButtonViewType;
   state: ButtonStateType;
   classNameInteraction?: string;
 };
 
-export const getInteractionCls = (params: GetInteractionClsParams) => {
+export const getButtonInteractionCls = (
+  params: GetButtonInteractionClsParams,
+) => {
   const { view, state, classNameInteraction } = params;
   const compositeInteraction = getCompositeInteraction({ view, state });
 

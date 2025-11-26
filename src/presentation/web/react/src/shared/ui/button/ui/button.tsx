@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { BUTTON_SIZE, type ButtonSizeType } from "../domain/size.type";
 import { BUTTON_STATE, type ButtonStateType } from "../domain/state.type";
 import { BUTTON_VIEW, type ButtonViewType } from "../domain/view.type";
-import { useButtonClassBuilder } from "../model/useInputClsBuilder.modle
+import { useButtonClassBuilder } from "../model/useInputClsBuilder.modle";
 
 type ButtonProps = Omit<ComponentProps<"button">, "size"> & {
   size?: ButtonSizeType;

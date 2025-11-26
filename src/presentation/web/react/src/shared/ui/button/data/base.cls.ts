@@ -2,7 +2,6 @@ export const buttonBaseCls = [
   "flex",
   "gap-2",
   "whitespace-nowrap",
-  "text-sm",
   "font-medium",
   "cursor-pointer",
   "[&_svg]:pointer-events-none",

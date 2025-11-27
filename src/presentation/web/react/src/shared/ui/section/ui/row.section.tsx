@@ -7,7 +7,7 @@ import { SECTION_GAP } from "../domain/gap/gap.const";
 import type { SectionGapType } from "../domain/gap/gap.type";
 import { SECTION_VIEW } from "../domain/view/view.const";
 import type { SectionViewType } from "../domain/view/view.type";
-import { useSectionClsBuilder } from "../vm/build.model";
+import { getSectionCls } from "../vm/build.model";
 
 type RowSectionProps = ComponentProps<"section"> & {
   area?: SectionAreaType;
@@ -33,7 +33,7 @@ export const RowSection: FC<RowSectionProps> = (props) => {
     ...rest
   } = props;
 
-  const { clsSectionInner, clsSectionRoot } = useSectionClsBuilder({
+  const { clsSectionInner, clsSectionRoot } = getSectionCls({
     gap,
     area,
     deco,

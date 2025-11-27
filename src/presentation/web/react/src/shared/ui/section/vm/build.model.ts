@@ -9,7 +9,7 @@ import { getSectionDecoCls } from "./deco.model";
 import { getSectionGapCls } from "./gap.model";
 import { getSectionViewCls } from "./view.model";
 
-type UseSectionBuilderParam = {
+type GetSectionClsParams = {
   area: SectionAreaType;
   gap: SectionGapType;
   deco: SectionDecoType;
@@ -17,7 +17,7 @@ type UseSectionBuilderParam = {
   classNameRoot?: string;
   classNameInner?: string;
 };
-export const useSectionClsBuilder = (params: UseSectionBuilderParam) => {
+export const getSectionCls = (params: GetSectionClsParams) => {
   const { area, gap, deco, view, classNameRoot, classNameInner } = params;
 
   return {

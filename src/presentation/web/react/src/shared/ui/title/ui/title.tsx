@@ -1,10 +1,9 @@
-//  src/presentation/web/react/src/shared/ui/title/ui/title.tsx
 import { type ComponentProps, type ElementType } from "react";
-import { titleSizeCln } from "../domain/size.cln";
-import { TITLE_SIZE, type TitleSizeType } from "../domain/size.type";
-import { titleViewCln } from "../domain/view.cln";
-import { TITLE_VIEW, type TitleViewType } from "../domain/view.type";
-import { cn } from "@/shared/lib/shadcn";
+import { TITLE_SIZE } from "../domain/size/size.const";
+import type { TitleSizeType } from "../domain/size/size.type";
+import { TITLE_VIEW } from "../domain/view/view.const";
+import type { TitleViewType } from "../domain/view/view.type";
+import { getTitleCls } from "../vm/build.model";
 
 type TitleProps = Omit<ComponentProps<"h1">, "size"> & {
   text: string;
@@ -17,18 +16,16 @@ export const Title = (props: TitleProps) => {
   const {
     text,
     size = TITLE_SIZE.L,
-    view = TITLE_VIEW.PIMARY,
-
+    view = TITLE_VIEW.PRIMARY,
     className,
     as: Component = "h1",
   } = props;
 
-  const clsTitle = cn("flex", className);
-  const clsTitleText = cn(
-    "font-bold",
-    [titleSizeCln[size], titleViewCln[view]],
+  const { clsTitle, clsTitleText } = getTitleCls({
+    size,
+    view,
     className,
-  );
+  });
 
   return (
     <Component className={clsTitle}>

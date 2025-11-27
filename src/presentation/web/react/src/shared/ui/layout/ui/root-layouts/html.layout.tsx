@@ -15,7 +15,7 @@ export const HtmlLayout = (props: HtmlLayoutProps) => {
         <Links />
       </head>
       <body
-        className="bg-ctp-base text-ctp-text flex items-center justify-center"
+        className="bg-ctp-base text-ctp-text"
         style={{ minHeight: "100dvh" }}
       >
         {children}

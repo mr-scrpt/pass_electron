@@ -1,5 +1,5 @@
-import { HtmlLayout } from "@/shared/ui/layout/ui/html.layout";
-import { UIKitLayout } from "@/shared/ui/layout/ui/uikit.layout";
+import { HtmlLayout } from "@/shared/ui/layout/ui/root-layouts/html.layout";
+import { UIKitLayout } from "@/shared/ui/layout/ui/root-layouts/uikit.layout";
 import type { ComponentProps } from "react";
 import { useLocation } from "react-router";
 

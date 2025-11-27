@@ -1,21 +1,21 @@
 import { cvax } from "@/shared/lib/cvax";
 import { cn } from "@/shared/lib/shadcn";
 import { sectionDecoCls } from "../data/deco.cls";
-import type { SectionDecoType } from "../domain/deco.type";
+import type { SectionDecoType } from "../domain/deco/deco.type";
 
-type UseSectionDecoClsParam = {
+type GetSectionDecoClsParam = {
   deco: SectionDecoType;
   classNameDeco?: string;
 };
 
-export const useSectionDecoCls = (params: UseSectionDecoClsParam) => {
+export const getSectionDecoCls = (params: GetSectionDecoClsParam) => {
   const { deco, classNameDeco } = params;
 
-  const decoCls = cvax({
+  const clsDecoInner = cvax({
     variants: {
       deco: sectionDecoCls,
     },
   })({ deco });
 
-  return { clsDecoInner: cn(decoCls, classNameDeco) };
+  return { clsDecoInner: cn(clsDecoInner, classNameDeco) };
 };

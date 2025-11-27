@@ -8,5 +8,3 @@ export const SECTION_GAP = createBrandedDict(
   SECTION_GAP_VALUE_LIST,
   SECTION_GAP_BRAND,
 );
-
-export type SectionGapType = (typeof SECTION_GAP)[keyof typeof SECTION_GAP];

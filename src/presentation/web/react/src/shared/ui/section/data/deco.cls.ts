@@ -1,6 +1,6 @@
 import type { EnsureAllKeys } from "@/shared/lib/typescript";
-import { SECTION_DECO } from "../domain/deco.type";
-import { type SectionViewType } from "../domain/view.type";
+import { SECTION_DECO } from "../domain/deco/deco.const";
+import type { SectionViewType } from "../domain/view/view.type";
 
 const commonDecoBorderStyleList = ["border-3", "border-ctp-surface0"];
 

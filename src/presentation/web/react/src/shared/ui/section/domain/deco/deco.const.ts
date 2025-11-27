@@ -8,5 +8,3 @@ export const SECTION_DECO = createBrandedDict(
   SECTION_DECO_VALUE_LIST,
   SECTION_DECO_BRAND,
 );
-
-export type SectionDecoType = (typeof SECTION_DECO)[keyof typeof SECTION_DECO];

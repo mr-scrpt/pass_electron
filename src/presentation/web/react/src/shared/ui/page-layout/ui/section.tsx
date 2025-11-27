@@ -1,16 +1,23 @@
-import type { ReactNode } from "react";
-import type { LayoutBehaviorType } from "../../layout";
+import type { ComponentProps } from "react";
+import { PAGE_APPEARANCE } from "../../____page";
 import type { PageAppearanceType } from "../../____page";
+import { getPageSectionCls } from "../../____page/vm/build.model";
 
-export type PageLayoutSectionProps = {
-  children: ReactNode;
-  behavior?: LayoutBehaviorType;
+type SectionProps = Omit<ComponentProps<"section">, "appearance"> & {
   appearance?: PageAppearanceType;
-  className?: string;
 };
 
-// This component is a data carrier. It doesn't render any DOM element itself.
-// The parent PageLayout will read its props and children to construct the actual layout.
-export const Section = (props: PageLayoutSectionProps) => {
-  return <>{props.children}</>;
+export const Section = (props: SectionProps) => {
+  const {
+    appearance = PAGE_APPEARANCE.DEFAULT,
+    className,
+    ...rest
+  } = props;
+
+  const { clsSection } = getPageSectionCls({
+    appearance,
+    className,
+  });
+
+  return <section className={clsSection} {...rest} />;
 };

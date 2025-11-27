@@ -1,5 +1,6 @@
 import type { ComponentProps } from "react";
 import { Meta, Links, Scripts, ScrollRestoration } from "react-router";
+import { PageLayout } from "@/shared/ui/page-layout";
 
 type HtmlLayoutProps = ComponentProps<"html"> & { locale?: string };
 
@@ -14,14 +15,24 @@ export const HtmlLayout = (props: HtmlLayoutProps) => {
         <Meta />
         <Links />
       </head>
-      <body
-        className="bg-ctp-base text-ctp-text"
-        style={{ minHeight: "100dvh" }}
-      >
+      <PageLayout>
         {children}
         <ScrollRestoration />
         <Scripts />
-      </body>
+      </PageLayout>
     </html>
   );
 };
+
+// import { PageLayout as LayoutPage } from "@/shared/ui/page-layout";
+
+// export const PageMain = () => {
+//   // А здесь мы хотим использовать наш удобный API
+//   return (
+//     <>
+//       <LayoutPage.Header>...</LayoutPage.Header>
+//       <LayoutPage.Main>...</LayoutPage.Main>
+//       <LayoutPage.Footer>...</LayoutPage.Footer>
+//     </>
+//   );
+// };
